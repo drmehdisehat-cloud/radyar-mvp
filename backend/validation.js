@@ -16,9 +16,13 @@ function hasUnpairedSurrogate(value) {
   }
   return false;
 }
+// Require a letter or number, not only punctuation or invisible format characters.
+// Persian ZWNJ remains valid when used inside meaningful text.
+const HAS_SEMANTIC_CONTENT = /[\p{L}\p{N}]/u;
 function safeText(value, min, max) {
   return typeof value === 'string' && value.trim().length >= min &&
-    value.length <= max && !UNSAFE_TEXT.test(value) && !hasUnpairedSurrogate(value);
+    value.length <= max && HAS_SEMANTIC_CONTENT.test(value) &&
+    !UNSAFE_TEXT.test(value) && !hasUnpairedSurrogate(value);
 }
 
 function validateCase(payload) {
