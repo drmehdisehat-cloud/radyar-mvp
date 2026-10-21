@@ -1,0 +1,33 @@
+# Copy this reviewed file to .github/workflows/ci.yml on the experimental
+# branch only. It is intentionally inert while stored under docs/.
+name: Dadyar experimental checks
+on:
+  push:
+    branches:
+      - dadyar/mvp-sync-028
+permissions:
+  contents: read
+jobs:
+  verify:
+    if: github.ref == 'refs/heads/dadyar/mvp-sync-028'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check
+        run: |
+          node --check app.js
+          node --check flows.js
+          node --check export.js
+          node --check backend/validation.js
+      - name: Phase-one contracts and privacy
+        run: |
+          node tests/browser-bootstrap.test.cjs
+          node tests/validation-smoke.test.cjs
+          node tests/topic-role-contract.test.cjs
+          node tests/privacy-boundary.test.cjs
