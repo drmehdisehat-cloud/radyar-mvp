@@ -20,7 +20,9 @@ function unresolvedQuestions() {
 }
 // Prevent user-authored multiline text from impersonating trusted report headings.
 function quoteCaseText(value) {
-  return String(value).split(/\r\n|[\r\n\u0085\u2028\u2029]/u).map(line => '│ ' + line).join('\n');
+  return String(value).split(/\r\n|[\r\n\u0085\u2028\u2029]/u)
+    .map(line => '│ ' + line.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F\u202A-\u202E\u2066-\u2069]/gu, ''))
+    .join('\n');
 }
 function report() {
   const f = flows[state.topic];
