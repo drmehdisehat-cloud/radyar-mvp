@@ -29,5 +29,6 @@ jobs:
         run: |
           node tests/browser-bootstrap.test.cjs
           node tests/validation-smoke.test.cjs
+          node tests/phase-one-validator-regression.test.cjs
           node tests/topic-role-contract.test.cjs
           node tests/privacy-boundary.test.cjs
