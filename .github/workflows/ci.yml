@@ -33,3 +33,4 @@ jobs:
           node tests/topic-role-contract.test.cjs
           node tests/privacy-boundary.test.cjs
           node tests/sparse-answer-regression.test.cjs
+          node tests/accessor-payload-regression.test.cjs

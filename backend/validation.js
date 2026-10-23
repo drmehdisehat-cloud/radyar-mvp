@@ -3,7 +3,12 @@
 // Contract-only validation. This module never stores, logs, or sends case data.
 const TOPICS = new Set(['theft', 'fraud', 'check', 'debt', 'divorce', 'mehrieh']);
 const ROLES = new Set(['خواهان / شاکی', 'خوانده / متهم', 'وکیل', 'شاهد']);
+// Reject invisible formatting that can disguise case facts in exported reports.
+// Preserve normal Persian text, ZWNJ (U+200C), newlines and ordinary direction marks.
 const UNSAFE_TEXT = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\u200B\u202A-\u202E\u2060\u2066-\u206F\uFEFF]/u;
+// JSON can contain escaped lone UTF-16 surrogates. Reject them rather than
+// silently replacing case evidence with U+FFFD during UTF-8 export/transport.
+// for...of treats a valid surrogate pair as one Unicode scalar value.
 function hasUnpairedSurrogate(value) {
   for (const character of value) {
     const codePoint = character.codePointAt(0);
@@ -11,31 +16,54 @@ function hasUnpairedSurrogate(value) {
   }
   return false;
 }
+// Reject answers made only of invisible format characters or punctuation.
+// Normal Persian half-spaces and ordinary punctuation remain valid within text.
 const HAS_SEMANTIC_CONTENT = /[\p{L}\p{N}]/u;
 function safeText(value, min, max) {
   return typeof value === 'string' && value.trim().length >= min &&
     value.length <= max && HAS_SEMANTIC_CONTENT.test(value) &&
     !UNSAFE_TEXT.test(value) && !hasUnpairedSurrogate(value);
 }
+
+// Read only own *data* properties. Accessors must never execute while
+// validating a case passed by another module. Parsed JSON remains unaffected.
+function ownData(object, key) {
+  const descriptor = Object.getOwnPropertyDescriptor(object, key);
+  return descriptor && Object.hasOwn(descriptor, 'value') ? descriptor.value : undefined;
+}
+
+function ownEnumerableData(object, key) {
+  const descriptor = Object.getOwnPropertyDescriptor(object, key);
+  return descriptor && descriptor.enumerable && Object.hasOwn(descriptor, 'value')
+    ? descriptor.value : undefined;
+}
+
+const ANSWER_ARRAY_KEYS = new Set(['0', '1', '2', '3', '4', 'length']);
+
 function validateCase(payload) {
-  const errors = [];
-  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+  try {
+    const errors = [];
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+      return { valid: false, errors: ['payload'] };
+    }
+    if (!TOPICS.has(ownEnumerableData(payload, 'topic'))) errors.push('topic');
+    if (!ROLES.has(ownEnumerableData(payload, 'role'))) errors.push('role');
+    if (!safeText(ownEnumerableData(payload, 'story'), 10, 5000)) errors.push('story');
+    const answers = ownEnumerableData(payload, 'answers');
+    if (!Array.isArray(answers) || ownData(answers, 'length') !== 5 ||
+        Reflect.ownKeys(answers).some(key => !ANSWER_ARRAY_KEYS.has(key)) ||
+        Array.from({ length: 5 }, (_, index) => index).some(index =>
+          !safeText(ownEnumerableData(answers, String(index)), 1, 2000))) {
+      errors.push('answers');
+    }
+    // Reject unexpected fields to avoid silently accepting personal identifiers or secrets.
+    if (Reflect.ownKeys(payload).some(key => !['topic', 'role', 'story', 'answers'].includes(key))) {
+      errors.push('unexpected_fields');
+    }
+    return { valid: errors.length === 0, errors };
+  } catch {
+    // Revoked proxies and hostile descriptor traps are not valid case objects.
     return { valid: false, errors: ['payload'] };
   }
-  if (!Object.hasOwn(payload, 'topic') || !TOPICS.has(payload.topic)) errors.push('topic');
-  if (!Object.hasOwn(payload, 'role') || !ROLES.has(payload.role)) errors.push('role');
-  if (!Object.hasOwn(payload, 'story') || !safeText(payload.story, 10, 5000)) {
-    errors.push('story');
-  }
-  if (!Object.hasOwn(payload, 'answers') || !Array.isArray(payload.answers) ||
-      payload.answers.length !== 5 ||
-      Array.from({ length: 5 }, (_, index) => index).some(index =>
-        !Object.hasOwn(payload.answers, index) || !safeText(payload.answers[index], 1, 2000))) {
-    errors.push('answers');
-  }
-  if (Object.keys(payload).some(key => !['topic', 'role', 'story', 'answers'].includes(key))) {
-    errors.push('unexpected_fields');
-  }
-  return { valid: errors.length === 0, errors };
 }
 module.exports = { validateCase };
