@@ -24,6 +24,8 @@ jobs:
           node --check flows.js
           node --check export.js
           node --check backend/validation.js
+          node --check backend/rate-limit.js
+          node --check backend/server.js
       # Automatically execute all committed contract tests, including future additions.
       # This job never deploys and uses no repository secrets.
       - name: Run every committed contract test
