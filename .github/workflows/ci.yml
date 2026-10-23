@@ -24,15 +24,7 @@ jobs:
           node --check flows.js
           node --check export.js
           node --check backend/validation.js
-      - name: Run phase-one input and privacy contracts
-        run: |
-          node tests/browser-bootstrap.test.cjs
-          node tests/validation-smoke.test.cjs
-          node tests/phase-one-validator-regression.test.cjs
-          node tests/client-selector-boundary.test.cjs
-          node tests/topic-role-contract.test.cjs
-          node tests/privacy-boundary.test.cjs
-          node tests/sparse-answer-regression.test.cjs
-          node tests/accessor-payload-regression.test.cjs
-          node tests/answer-array-ownkeys-regression.test.cjs
-          node tests/required-field-visibility.test.cjs
+      # Automatically execute all committed contract tests, including future additions.
+      # This job never deploys and uses no repository secrets.
+      - name: Run every committed contract test
+        run: node --test tests/*.test.cjs
