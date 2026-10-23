@@ -8,10 +8,14 @@ function validReviewDate(value) {
   return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 &&
     date.getUTCDate() === day && value <= new Date().toISOString().slice(0, 10);
 }
+// Reject invisible, bidi and terminal control characters in trusted legal-source metadata.
+// A domain allowlist alone cannot prevent misleading report headings.
+const UNSAFE_SOURCE_METADATA = /[\u0000-\u001F\u007F-\u009F\u200B\u2028-\u202E\u2060-\u206F\uFEFF]/u;
 function safeLawSource(source) {
   return !!source && typeof source === 'object' &&
     typeof source.title === 'string' && source.title.trim().length > 0 &&
-    source.title.length <= 160 && typeof source.url === 'string' &&
+    source.title.length <= 160 && !UNSAFE_SOURCE_METADATA.test(source.title) &&
+    typeof source.url === 'string' && !UNSAFE_SOURCE_METADATA.test(source.url) &&
     OFFICIAL_LAW_LINK.test(source.url) && validReviewDate(source.checked);
 }
 function unresolvedQuestions() {
