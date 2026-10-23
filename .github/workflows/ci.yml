@@ -1,0 +1,35 @@
+# Stage-0 CI: existing tests on experimental branch only; no deploy.
+name: Dadyar stage-0 experimental CI
+on:
+  push:
+    branches:
+      - dadyar/mvp-sync-028
+permissions:
+  contents: read
+jobs:
+  verify-existing-frontend:
+    if: github.ref == 'refs/heads/dadyar/mvp-sync-028'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check existing source syntax
+        run: |
+          node --check app.js
+          node --check flows.js
+          node --check export.js
+          node --check backend/validation.js
+      - name: Run phase-one input and privacy contracts
+        run: |
+          node tests/browser-bootstrap.test.cjs
+          node tests/validation-smoke.test.cjs
+          node tests/phase-one-validator-regression.test.cjs
+          node tests/client-selector-boundary.test.cjs
+          node tests/topic-role-contract.test.cjs
+          node tests/privacy-boundary.test.cjs
+          node tests/sparse-answer-regression.test.cjs
