@@ -23,6 +23,7 @@ jobs:
           node --check app.js
           node --check flows.js
           node --check export.js
+          node --check api-validation.js
           node --check backend/validation.js
           node --check backend/rate-limit.js
           node --check backend/server.js
