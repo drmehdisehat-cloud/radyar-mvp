@@ -36,7 +36,7 @@ function report() {
     ...questionsFor(state.topic, state.role).map((q, i) => `${i + 1}. ${q}\nپاسخ اعلامی کاربر:\n${quoteCaseText(state.answers[i])}`),
     ...(unresolvedQuestions().length ? ['', 'اطلاعات تکمیل‌نشده (نیازمند پیگیری):', ...unresolvedQuestions().map(x => '• ' + x)] : []),
     '', 'مدارک احتمالی برای بررسی:', ...f.docs.map(x => '• ' + x),
-    ...(safeLawSource(f.source) ? ['', 'منبع مطالعه (بدون بررسی خودکار قانون):', f.source.title, f.source.url, 'تاریخ بازبینی لینک: ' + f.source.checked] : []),
+    ...(safeLawSource(f.source) ? ['', 'پیوند به پایگاه رسمی برای مطالعه (اعتبار حقوقی تأیید نشده):', f.source.title, f.source.url, 'تاریخ درج‌شده در داده‌های آزمایشی (نه تاریخ اعتبار قانون): ' + f.source.checked, 'متن تنقیح‌شده، اصلاحات، نسخ و قابلیت استناد در پرونده بررسی نشده است.'] : []),
     '', 'تذکر: این گزارش صرفاً جمع‌آوری اطلاعات است و مشاوره حقوقی، تشخیص صلاحیت یا پیش‌بینی رأی نیست.'
   ].join('\n');
 }
@@ -62,7 +62,7 @@ function finish() {
     const box = document.createElement('div');
     box.className = 'item';
     const heading = document.createElement('strong');
-    heading.textContent = 'منبع رسمی برای مطالعه (بدون بررسی خودکار)';
+    heading.textContent = 'پیوند به پایگاه رسمی (اعتبار حقوقی تأیید نشده)';
     const link = document.createElement('a');
     link.textContent = f.source.title;
     link.href = f.source.url;
@@ -70,7 +70,7 @@ function finish() {
     link.rel = 'noopener noreferrer';
     link.referrerPolicy = 'no-referrer';
     const note = document.createElement('div');
-    note.textContent = 'پیوند در ' + f.source.checked + ' بازبینی شده؛ وضعیت تنقیح و انطباق با پرونده بررسی خودکار نشده است.';
+    note.textContent = 'تاریخ درج‌شده در داده‌های آزمایشی: ' + f.source.checked + '؛ این تاریخ، تاریخ اعتبار قانون نیست. متن تنقیح‌شده، اصلاحات و قابلیت استناد بررسی نشده است.';
     box.append(heading, link, note);
     summary.append(box);
   }
