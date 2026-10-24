@@ -181,7 +181,7 @@ test('real Chromium: Persian interview, report, and privacy reset', { timeout: 4
     const afterBack = await evaluate("(() => [" +
       "state === null, document.getElementById('story').value," +
       "document.getElementById('summary').children.length," +
-      "document.getElementById('startBox').style.display" +
+      "getComputedStyle(document.getElementById('startBox')).display" +
       "])()");
     assert.deepEqual(afterBack, [true, '', 0, 'block'],
       'browser Back must not restore case data, even with BFCache');
