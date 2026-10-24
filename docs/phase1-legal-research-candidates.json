@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "purpose": "research-only; not legal advice or verified citations",
+  "inventoryUpdatedAt": "2026-10-24",
+  "officialResearchPortal": "https://qavanin.ir/",
+  "note": "Candidate law names and review questions only. No official text, effective date, amendments, or human legal review have been verified. Do not render as authoritative sources or count toward release readiness.",
+  "topics": [
+    {
+      "id": "theft",
+      "candidateActs": [
+        "کتاب پنجم قانون مجازات اسلامی (تعزیرات و مجازات‌های بازدارنده)",
+        "قانون اصلاح ماده ۱۰۴ قانون مجازات اسلامی"
+      ],
+      "reviewQuestions": [
+        "تشخیص عنوان دقیق رفتار و تمایز سرقت از سایر عناوین",
+        "تأثیر اصلاحات اخیر بر قابل گذشت بودن و صلاحیت رسیدگی"
+      ],
+      "officialTextUrl": null,
+      "effectiveDate": null,
+      "amendmentsCheckedAt": null,
+      "humanReviewer": null,
+      "status": "needs-official-verification"
+    },
+    {
+      "id": "fraud",
+      "candidateActs": [
+        "قانون تشدید مجازات مرتکبین ارتشاء و اختلاس و کلاهبرداری",
+        "قانون جرایم رایانه‌ای"
+      ],
+      "reviewQuestions": [
+        "تفکیک اختلاف قراردادی از ادعای وسایل متقلبانه",
+        "بررسی ادله الکترونیکی، صلاحیت و اصلاحات اخیر"
+      ],
+      "officialTextUrl": null,
+      "effectiveDate": null,
+      "amendmentsCheckedAt": null,
+      "humanReviewer": null,
+      "status": "needs-official-verification"
+    },
+    {
+      "id": "check",
+      "candidateActs": [
+        "قانون صدور چک و اصلاحات آن",
+        "قانون آیین دادرسی دادگاه‌های عمومی و انقلاب در امور مدنی"
+      ],
+      "reviewQuestions": [
+        "ثبت و تأیید چک در سامانه صیاد و وضعیت گواهی عدم پرداخت",
+        "تفکیک مسیرهای حقوقی، کیفری و اجرایی بدون فرض قابلیت هم‌زمان"
+      ],
+      "officialTextUrl": null,
+      "effectiveDate": null,
+      "amendmentsCheckedAt": null,
+      "humanReviewer": null,
+      "status": "needs-official-verification"
+    },
+    {
+      "id": "debt",
+      "candidateActs": [
+        "قانون مدنی",
+        "قانون آیین دادرسی دادگاه‌های عمومی و انقلاب در امور مدنی",
+        "قانون شوراهای حل اختلاف"
+      ],
+      "reviewQuestions": [
+        "اثبات منشأ تعهد، سررسید و پرداخت‌های قبلی",
+        "بررسی نصاب و صلاحیت مرجع رسیدگی در تاریخ طرح دعوا"
+      ],
+      "officialTextUrl": null,
+      "effectiveDate": null,
+      "amendmentsCheckedAt": null,
+      "humanReviewer": null,
+      "status": "needs-official-verification"
+    },
+    {
+      "id": "divorce",
+      "candidateActs": [
+        "قانون مدنی",
+        "قانون حمایت خانواده"
+      ],
+      "reviewQuestions": [
+        "مبنای درخواست طلاق و مدارک هر طرف",
+        "حقوق مالی، فرزندان و اثر توافق‌ها در وضعیت خاص پرونده"
+      ],
+      "officialTextUrl": null,
+      "effectiveDate": null,
+      "amendmentsCheckedAt": null,
+      "humanReviewer": null,
+      "status": "needs-official-verification"
+    },
+    {
+      "id": "mehrieh",
+      "candidateActs": [
+        "قانون مدنی",
+        "قانون نحوه اجرای محکومیت‌های مالی",
+        "مقررات اجرای مفاد اسناد رسمی لازم‌الاجرا"
+      ],
+      "reviewQuestions": [
+        "انتخاب مسیر ثبتی یا قضایی متناسب با وضعیت پرونده",
+        "بررسی پرداخت قبلی، اعسار، تقسیط و مستثنیات دین"
+      ],
+      "officialTextUrl": null,
+      "effectiveDate": null,
+      "amendmentsCheckedAt": null,
+      "humanReviewer": null,
+      "status": "needs-official-verification"
+    }
+  ]
+}
