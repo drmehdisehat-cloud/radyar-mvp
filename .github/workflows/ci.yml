@@ -30,6 +30,8 @@ jobs:
           node --check tests/real-browser-smoke.cjs
       - name: Run every committed contract test
         run: node --test tests/*.test.cjs
+      - name: Audit v1 release blockers (informational; never deploy)
+        run: node scripts/check-v1-readiness.cjs
       # Run a real Chrome session against the local development API.
       # Fail closed if Chrome is absent; this is a release gate, not a mock.
       - name: Real headless browser smoke test
