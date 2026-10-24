@@ -47,3 +47,26 @@ test('complete synthetic evidence passes the mechanical gate only', () => {
     assert.equal(audit.humanReviewCoverage, '6/6');
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
+
+test('release gate rejects inconsistent legal-review chronology', () => {
+  const variants = [
+    ["effectiveDate:'2020-01-01'", "effectiveDate:'2026-10-22'"],
+    ["reviewedAt:'2026-10-21'", "reviewedAt:'2026-10-22'"],
+  ];
+  for (const [from, to] of variants) {
+    const dir = fixture(true);
+    try {
+      const file = path.join(dir, 'flows.js');
+      const original = fs.readFileSync(file, 'utf8');
+      assert.ok(original.includes(from), 'fixture must contain expected review date');
+      fs.writeFileSync(file, original.replaceAll(from, to));
+      const result = run(dir, true);
+      assert.equal(result.status, 1, 'inconsistent dates must block release');
+      const audit = JSON.parse(result.stdout);
+      assert.equal(audit.status, 'NOT_READY');
+      assert.equal(audit.humanReviewCoverage, '0/6');
+      assert.equal(audit.issues.filter(x =>
+        x.startsWith('inconsistent_legal_review_dates:')).length, 6);
+    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+  }
+});
