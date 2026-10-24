@@ -42,13 +42,17 @@ function cdpClient(url) {
     async send(method, params = {}) {
       await ready;
       const id = ++nextId;
-      return Promise.race([
-        new Promise((resolve, reject) => {
-          pending.set(id, { resolve, reject });
-          socket.send(JSON.stringify({ id, method, params }));
-        }),
-        delay(10000).then(() => { throw new Error('CDP timeout: ' + method); }),
-      ]);
+      return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+          pending.delete(id);
+          reject(new Error('CDP timeout: ' + method));
+        }, 10000);
+        pending.set(id, {
+          resolve: value => { clearTimeout(timer); resolve(value); },
+          reject: error => { clearTimeout(timer); reject(error); },
+        });
+        socket.send(JSON.stringify({ id, method, params }));
+      });
     },
     close() { socket.close(); },
   };
@@ -106,12 +110,14 @@ test('real Chromium: Persian interview, report, and privacy reset', { timeout: 4
     assert.match(started[1], /1 از 5/);
 
     const finished = await evaluate("(() => {" +
-      "for(let i=0;i<5;i++){document.getElementById('answer').value='پاسخ ساختگی '+(i+1);" +
+      "for(let i=0;i<5;i++){if(i===1){document.getElementById('skip').click();continue;}" +
+      "document.getElementById('answer').value='پاسخ ساختگی '+(i+1);" +
       "document.getElementById('next').click();}" +
       "return [document.getElementById('results').style.display," +
       "document.getElementById('summary').children.length," +
-      "report().includes('گزارش آزمایشی دادیار')]})()");
-    assert.deepEqual(finished, ['block', 9, true]);
+      "report().includes('گزارش آزمایشی دادیار')," +
+      "report().includes('اطلاعات تکمیل‌نشده')]})()");
+    assert.deepEqual(finished, ['block', 9, true, true]);
 
     const cleared = await evaluate("(() => {" +
       "document.getElementById('reset').click();" +
