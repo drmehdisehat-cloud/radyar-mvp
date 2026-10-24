@@ -146,7 +146,7 @@ test('real Chromium: Persian interview, report, and privacy reset', { timeout: 4
       !fs.readdirSync(downloads).some(name => name.endsWith('.crdownload')),
     'completed browser report download');
     const downloaded = fs.readFileSync(reportPath, 'utf8');
-    assert.ok(downloaded.startsWith('\\ufeffگزارش آزمایشی دادیار'), 'UTF-8 BOM and Persian title');
+    assert.ok(downloaded.startsWith('\ufeffگزارش آزمایشی دادیار'), 'UTF-8 BOM and Persian title');
     assert.match(downloaded, /شرح کاملاً ساختگی پرونده/, 'synthetic narrative exported');
     assert.match(downloaded, /اطلاعات تکمیل‌نشده/, 'skipped question identified');
     assert.doesNotMatch(downloaded, /پیوند به پایگاه رسمی برای مطالعه/,
