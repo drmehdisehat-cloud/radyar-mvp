@@ -160,6 +160,34 @@ test('real Chromium: Persian interview, report, and privacy reset', { timeout: 4
       "document.getElementById('startBox').style.display]})()");
     assert.deepEqual(cleared, [true, '', 0, 'block']);
     assert.ok(fs.existsSync(reportPath), 'reset cannot delete an already downloaded local file');
+
+    // Exercise actual navigation and browser Back, not a synthetic pagehide event.
+    // A restored BFCache page must never expose the previous interview.
+    const beforeLeave = await evaluate("(() => {" +
+      "document.getElementById('topic').value='fraud';" +
+      "document.getElementById('role').value='شاهد';" +
+      "document.getElementById('story').value='داستان محرمانه ساختگی فقط برای آزمون بازگشت';" +
+      "document.getElementById('start').click();" +
+      "return [state !== null, document.getElementById('questionBox').style.display]})()");
+    assert.deepEqual(beforeLeave, [true, 'block']);
+    const away = await cdp.send('Page.navigate', { url: base + '/health' });
+    assert.ok(!away.errorText, 'Navigation away failed: ' + away.errorText);
+    await waitFor(() => evaluate("location.pathname === '/health'"), 'navigation away');
+    await evaluate('history.back()');
+    await waitFor(() => evaluate(
+      "location.pathname === '/' && document.readyState === 'complete' && " +
+      "!!document.getElementById('start') && typeof state !== 'undefined'"
+    ), 'return to interview after browser Back');
+    const afterBack = await evaluate("(() => [" +
+      "state === null, document.getElementById('story').value," +
+      "document.getElementById('summary').children.length," +
+      "document.getElementById('startBox').style.display" +
+      "])()");
+    assert.deepEqual(afterBack, [true, '', 0, 'block'],
+      'browser Back must not restore case data, even with BFCache');
+    assert.equal(validationPosts, 1, 'navigation must not send case data');
+    assert.ok(fs.existsSync(reportPath), 'navigation cannot erase a downloaded report');
+
   } finally {
     if (cdp) cdp.close();
     if (browser) browser.kill('SIGTERM');
