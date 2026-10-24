@@ -62,6 +62,11 @@ test('real Chromium: Persian interview, report, and privacy reset', { timeout: 4
   assert.ok(process.env.CHROME_BIN, 'CHROME_BIN is required for the browser release gate');
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-browser-'));
   const server = createServer({ rateLimit: { max: 100, windowMs: 60000 } });
+  // Count requests only; never retain or log the synthetic case body.
+  let validationPosts = 0;
+  server.on('request', req => {
+    if (req.method === 'POST' && req.url === '/api/cases/validate') validationPosts++;
+  });
   let browser, cdp;
   try {
     await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
@@ -118,6 +123,16 @@ test('real Chromium: Persian interview, report, and privacy reset', { timeout: 4
       "report().includes('گزارش آزمایشی دادیار')," +
       "report().includes('اطلاعات تکمیل‌نشده')]})()");
     assert.deepEqual(finished, ['block', 9, true, true]);
+
+    // Intake and report generation must never transmit case data by default.
+    assert.equal(validationPosts, 0, 'no automatic API submission');
+    await evaluate("(() => { window.confirm=()=>false; document.getElementById('validateLocal').click(); })()");
+    assert.equal(validationPosts, 0, 'declining consent must not send a request');
+    await evaluate("(() => { window.confirm=()=>true; document.getElementById('validateLocal').click(); })()");
+    await waitFor(() => evaluate(
+      "document.getElementById('validationStatus').textContent.includes('ساختار پرونده توسط API محلی تأیید شد')"
+    ), 'consented local API validation');
+    assert.equal(validationPosts, 1, 'one API request only after explicit consent');
 
     const cleared = await evaluate("(() => {" +
       "document.getElementById('reset').click();" +
