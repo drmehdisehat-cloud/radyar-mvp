@@ -10,8 +10,8 @@ const { spawn } = require('node:child_process');
 const { createServer } = require('../backend/server');
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-async function waitFor(check, label) {
-  const deadline = Date.now() + 12000;
+async function waitFor(check, label, timeoutMs = 12000) {
+  const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     try { const result = await check(); if (result) return result; } catch { /* startup */ }
     await delay(100);
@@ -58,7 +58,7 @@ function cdpClient(url) {
   };
 }
 
-test('real Chromium: Persian interview, report, and privacy reset', { timeout: 45000 }, async () => {
+test('real Chromium: Persian interview, report, and privacy reset', { timeout: 75000 }, async () => {
   assert.ok(process.env.CHROME_BIN, 'CHROME_BIN is required for the browser release gate');
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-browser-'));
   const downloads = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-report-'));
@@ -78,10 +78,12 @@ test('real Chromium: Persian interview, report, and privacy reset', { timeout: 4
       '--no-default-browser-check', '--no-proxy-server', '--remote-debugging-port=0',
       '--user-data-dir=' + profile, 'about:blank',
     ], { stdio: 'ignore' });
+    // Hosted CI runners can take over 12s to start Chrome after contract tests.
+    // Allow more startup time without relaxing any browser assertions.
     const port = await waitFor(() => {
       const file = path.join(profile, 'DevToolsActivePort');
       return fs.existsSync(file) ? Number(fs.readFileSync(file, 'utf8').split('\n')[0]) : null;
-    }, 'Chrome DevTools');
+    }, 'Chrome DevTools', 25000);
     const tabs = await waitFor(async () => {
       const response = await fetch('http://127.0.0.1:' + port + '/json/list');
       return response.ok ? response.json() : null;
