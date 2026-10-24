@@ -17,8 +17,17 @@ function fixture(complete) {
   fs.writeFileSync(path.join(dir, 'export.js'),
     'function safeLawSource(source){return source.url.startsWith("https://qavanin.ir/");}\n' +
     'function validReviewDate(date){return /^\\d{4}-\\d{2}-\\d{2}$/.test(date);}\n');
+  const requiredGateLabels = [
+    'Sync reviewed local source to experimental branch, with file-by-file SHA verification.',
+    'Add read-only GitHub Actions CI scoped to the experimental branch.',
+    'Run real browser tests for role/topic intake and privacy reset.',
+    'Verify server-side validation, rate limiting, and origin controls.',
+    'Review authentication, data retention, privacy notice, and handling of sensitive case data.',
+    'Cite authoritative Iranian legal texts with effective/review dates and human legal review.',
+    'Obtain explicit owner approval and backup before touching main or live deployment.',
+  ];
   fs.writeFileSync(path.join(dir, 'docs/V1-RELEASE-GATES.md'),
-    complete ? '- [x] Synthetic approval recorded\n' : '- [ ] Synthetic review still required\n');
+    requiredGateLabels.map(label => '- [' + (complete ? 'x' : ' ') + '] ' + label).join('\n') + '\n');
   return dir;
 }
 function run(dir, enforce) {
@@ -32,7 +41,7 @@ test('audit mode reports blockers without breaking development CI', () => {
     const audit = JSON.parse(result.stdout);
     assert.equal(audit.status, 'NOT_READY');
     assert.equal(audit.sourceCoverage, '0/6');
-    assert.equal(audit.uncheckedGates, 1);
+    assert.equal(audit.uncheckedGates, 7);
     assert.equal(audit.issues.filter(x => x.startsWith('missing_legal_source:')).length, 6);
     assert.equal(run(dir, true).status, 1, 'release enforcement must fail closed');
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
@@ -69,4 +78,22 @@ test('release gate rejects inconsistent legal-review chronology', () => {
         x.startsWith('inconsistent_legal_review_dates:')).length, 6);
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
   }
+});
+
+test('removing a required checklist item cannot make release appear ready', () => {
+  const dir = fixture(true);
+  try {
+    const file = path.join(dir, 'docs/V1-RELEASE-GATES.md');
+    const original = fs.readFileSync(file, 'utf8');
+    const filtered = original.split(/\r?\n/).filter(line =>
+      !line.includes('Review authentication, data retention')).join('\n');
+    assert.notEqual(filtered, original);
+    fs.writeFileSync(file, filtered);
+    const result = run(dir, true);
+    assert.equal(result.status, 1, 'missing mandatory review must block release');
+    const audit = JSON.parse(result.stdout);
+    assert.equal(audit.status, 'NOT_READY');
+    assert.equal(audit.uncheckedGates, 0);
+    assert.ok(audit.issues.includes('missing_required_release_gate:privacy'));
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });

@@ -58,6 +58,22 @@ try {
   const lines = checklist.split(/\r?\n/);
   const gates = lines.filter(line => /^- \[[ xX]\] /.test(line));
   if (!gates.length) issues.push('release_checklist_empty');
+  // Mandatory blockers must not disappear if checklist lines are deleted.
+  // Checked boxes remain human attestations, not independently verified facts.
+  const required = [
+    ['local_sync', 'Sync reviewed local source'],
+    ['ci', 'Add read-only GitHub Actions CI'],
+    ['browser', 'Run real browser tests'],
+    ['server_security', 'Verify server-side validation'],
+    ['privacy', 'Review authentication'],
+    ['legal_review', 'Cite authoritative Iranian legal texts'],
+    ['owner_approval', 'Obtain explicit owner approval'],
+  ];
+  for (const [id, prefix] of required) {
+    if (!gates.some(line => line.slice(6).startsWith(prefix))) {
+      issues.push('missing_required_release_gate:' + id);
+    }
+  }
   for (const line of gates) {
     if (/^- \[ \] /.test(line)) {
       uncheckedGates++;
