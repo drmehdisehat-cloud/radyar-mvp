@@ -234,9 +234,21 @@ test('real Chromium: Persian interview, report, and privacy reset', { timeout: 7
 
   } finally {
     if (cdp) cdp.close();
-    if (browser) browser.kill('SIGTERM');
+    // Wait for Chrome to stop writing its profile before deleting the directory.
+    // A signal alone is asynchronous and previously caused intermittent ENOTEMPTY.
+    if (browser && browser.exitCode === null && browser.signalCode === null) {
+      await new Promise(resolve => {
+        const timer = setTimeout(() => {
+          browser.kill('SIGKILL');
+          resolve();
+        }, 3000);
+        browser.once('exit', () => { clearTimeout(timer); resolve(); });
+        browser.kill('SIGTERM');
+      });
+    }
     if (server.listening) await new Promise(resolve => server.close(resolve));
-    fs.rmSync(profile, { recursive: true, force: true });
-    fs.rmSync(downloads, { recursive: true, force: true });
+    // Chrome subprocesses may briefly retain files after the parent exits.
+    fs.rmSync(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 150 });
+    fs.rmSync(downloads, { recursive: true, force: true, maxRetries: 10, retryDelay: 150 });
   }
 });
