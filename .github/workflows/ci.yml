@@ -1,4 +1,4 @@
-# Stage-0 CI: existing tests on experimental branch only; no deploy.
+# Stage-0 CI: experimental branch only; no deploy or repository secrets.
 name: Dadyar stage-0 experimental CI
 on:
   push:
@@ -27,7 +27,13 @@ jobs:
           node --check backend/validation.js
           node --check backend/rate-limit.js
           node --check backend/server.js
-      # Automatically execute all committed contract tests, including future additions.
-      # This job never deploys and uses no repository secrets.
+          node --check tests/real-browser-smoke.cjs
       - name: Run every committed contract test
         run: node --test tests/*.test.cjs
+      # Run a real Chrome session against the local development API.
+      # Fail closed if Chrome is absent; this is a release gate, not a mock.
+      - name: Real headless browser smoke test
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium)"
+          test -n "$CHROME_BIN"
+          CHROME_BIN="$CHROME_BIN" node --test tests/real-browser-smoke.cjs
