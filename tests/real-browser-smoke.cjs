@@ -58,6 +58,25 @@ function cdpClient(url) {
   };
 }
 
+// Chrome subprocesses may continue writing their disposable profile after the
+// parent exits. Cleanup must not turn an otherwise successful browser test into
+// a false product failure. Hosted CI runners discard these synthetic-only files.
+async function removeDisposableDirectory(directory) {
+  for (let attempt = 0; attempt < 12; attempt++) {
+    try {
+      await fs.promises.rm(directory, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+      return;
+    } catch (error) {
+      if (!['ENOTEMPTY', 'EBUSY', 'EPERM'].includes(error.code)) throw error;
+      if (attempt === 11) {
+        process.stderr.write('WARNING: synthetic Chrome temp cleanup deferred; runner must discard temporary files\\n');
+        return;
+      }
+      await delay(250);
+    }
+  }
+}
+
 test('real Chromium: Persian interview, report, and privacy reset', { timeout: 75000 }, async () => {
   assert.ok(process.env.CHROME_BIN, 'CHROME_BIN is required for the browser release gate');
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-browser-'));
@@ -248,7 +267,7 @@ test('real Chromium: Persian interview, report, and privacy reset', { timeout: 7
     }
     if (server.listening) await new Promise(resolve => server.close(resolve));
     // Chrome subprocesses may briefly retain files after the parent exits.
-    fs.rmSync(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 150 });
-    fs.rmSync(downloads, { recursive: true, force: true, maxRetries: 10, retryDelay: 150 });
+    await removeDisposableDirectory(profile);
+    await removeDisposableDirectory(downloads);
   }
 });
