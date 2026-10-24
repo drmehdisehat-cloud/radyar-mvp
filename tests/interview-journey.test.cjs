@@ -61,7 +61,7 @@ for (const topic of topics) for (const role of roles) {
     get('start').onclick();
     assert.equal(get('questionBox').style.display, 'block');
     assert.equal(get('back').disabled, true);
-    assert.match(get('qProgress').textContent, /۱ از ۵/);
+    assert.match(get('qProgress').textContent, /1 از 5/);
 
     get('answer').value = 'پاسخ نخست ساختگی';
     get('next').onclick();
