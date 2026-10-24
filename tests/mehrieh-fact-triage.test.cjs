@@ -17,6 +17,8 @@ test('mehrieh intake distinguishes obligation, discharge, enforcement and eviden
   assert.equal(q.length, 4);
   assert.match(q[0], /سکه، وجه نقد، مال معین/);
   assert.match(q[0], /عندالمطالبه\/عندالاستطاعه/);
+  assert.match(q[0], /سال عقد و واحد پول/);
+  assert.match(q[0], /شاخص یا مبلغ روز را حدس نزنید/);
   assert.match(q[1], /پرداخت، منتقل، بذل یا ابراء/);
   assert.match(q[2], /ثبت یا دادگاه/);
   assert.match(q[2], /اعسار و تقسیط/);
