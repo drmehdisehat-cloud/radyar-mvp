@@ -8,7 +8,7 @@ const { createServer } = require('../backend/server');
 const MAX_BODY = 64 * 1024;
 const sample = {
   topic: 'fraud', role: 'شاهد',
-  story: 'الف'.repeat(5000),
+  story: 'ا'.repeat(5000),
   answers: Array.from({ length: 5 }, () => 'ب'.repeat(2000)),
 };
 
