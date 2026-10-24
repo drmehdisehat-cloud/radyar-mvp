@@ -161,6 +161,48 @@ test('real Chromium: Persian interview, report, and privacy reset', { timeout: 4
     assert.deepEqual(cleared, [true, '', 0, 'block']);
     assert.ok(fs.existsSync(reportPath), 'reset cannot delete an already downloaded local file');
 
+    // Exercise every phase-1 topic and role in a real browser. All inputs are synthetic.
+    // A passing contract test alone does not prove that DOM controls work end-to-end.
+    const phaseOneJourneys = await evaluate(`(() => {
+      const topics = [...document.getElementById('topic').options].map(option => option.value);
+      const roles = [...document.getElementById('role').options].map(option => option.value);
+      const journeys = [];
+      for (const topic of topics) for (const role of roles) {
+        document.getElementById('topic').value = topic;
+        document.getElementById('role').value = role;
+        document.getElementById('story').value = 'شرح ساختگی برای پوشش مرورگری موضوع و نقش';
+        document.getElementById('start').click();
+        const count = questionsFor(topic, role).length;
+        const interviewVisible = getComputedStyle(document.getElementById('questionBox')).display === 'block';
+        for (let i = 0; i < count; i++) document.getElementById('skip').click();
+        const text = report();
+        const resultVisible = getComputedStyle(document.getElementById('results')).display === 'block';
+        const complete = unresolvedQuestions().length === count &&
+          text.includes('موضوع: ' + flows[topic].title) &&
+          text.includes('نقش: ' + role) &&
+          text.includes('اطلاعات تکمیل‌نشده') &&
+          text.includes('مدارک احتمالی برای بررسی:') &&
+          !text.includes('پیوند به پایگاه رسمی برای مطالعه');
+        document.getElementById('reset').click();
+        const cleared = state === null && document.getElementById('story').value === '' &&
+          document.getElementById('summary').children.length === 0 &&
+          getComputedStyle(document.getElementById('startBox')).display === 'block';
+        journeys.push({ topic, role, count, interviewVisible, resultVisible, complete, cleared });
+      }
+      return journeys;
+    })()`);
+    assert.equal(phaseOneJourneys.length, 24, 'all six topics x four roles are exercised');
+    assert.deepEqual([...new Set(phaseOneJourneys.map(item => item.topic))].sort(),
+      ['check', 'debt', 'divorce', 'fraud', 'mehrieh', 'theft']);
+    assert.deepEqual([...new Set(phaseOneJourneys.map(item => item.role))].sort(),
+      ['خوانده / متهم', 'خواهان / شاکی', 'شاهد', 'وکیل'].sort());
+    for (const journey of phaseOneJourneys) {
+      assert.ok(journey.count >= 5 && journey.interviewVisible && journey.resultVisible &&
+        journey.complete && journey.cleared,
+      'browser journey failed: ' + journey.topic + ' / ' + journey.role);
+    }
+    assert.equal(validationPosts, 1, 'all phase-1 journeys remain local without new API posts');
+
     // Exercise actual navigation and browser Back, not a synthetic pagehide event.
     // A restored BFCache page must never expose the previous interview.
     const beforeLeave = await evaluate("(() => {" +
