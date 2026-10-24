@@ -42,6 +42,11 @@ try {
         typeof review.reviewer !== 'string' || !review.reviewer.trim() ||
         !['checked-current', 'checked-amended'].includes(review.amendmentStatus)) {
       issues.push('missing_human_legal_review:' + topic.id);
+    } else if (review.effectiveDate > review.reviewedAt ||
+               review.reviewedAt > topic.source.checked) {
+      // ISO dates sort lexically. A future-effective rule or a review newer
+      // than the last source-link check must not count as current evidence.
+      issues.push('inconsistent_legal_review_dates:' + topic.id);
     } else reviewed++;
   }
 } catch (error) {
