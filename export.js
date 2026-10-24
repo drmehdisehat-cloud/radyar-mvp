@@ -10,7 +10,7 @@ function validReviewDate(value) {
 }
 // Reject invisible, bidi and terminal control characters in trusted legal-source metadata.
 // A domain allowlist alone cannot prevent misleading report headings.
-const UNSAFE_SOURCE_METADATA = /[\u0000-\u001F\u007F-\u009F\u200B\u2028-\u202E\u2060-\u206F\uFEFF]/u;
+const UNSAFE_SOURCE_METADATA = /[\u0000-\u001F\u007F-\u009F\u061C\u200B\u200E-\u202E\u2060-\u206F\uFEFF]/u;
 function safeLawSource(source) {
   return !!source && typeof source === 'object' &&
     typeof source.title === 'string' && source.title.trim().length > 0 &&
@@ -25,7 +25,7 @@ function unresolvedQuestions() {
 // Prevent user-authored multiline text from impersonating trusted report headings.
 function quoteCaseText(value) {
   return String(value).split(/\r\n|[\r\n\u0085\u2028\u2029]/u)
-    .map(line => '│ ' + line.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F\u202A-\u202E\u2066-\u2069]/gu, ''))
+    .map(line => '│ ' + line.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F\u061C\u200B\u200E\u200F\u202A-\u202E\u2060-\u206F\uFEFF]/gu, ''))
     .join('\n');
 }
 function report() {
