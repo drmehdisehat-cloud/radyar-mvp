@@ -14,6 +14,9 @@ if (rootArg !== -1 && (!args[rootArg + 1] || args[rootArg + 1].startsWith('--'))
 const root = rootArg === -1 ? path.resolve(__dirname, '..') : path.resolve(args[rootArg + 1]);
 const issues = [];
 const expected = ['theft', 'fraud', 'check', 'debt', 'divorce', 'mehrieh'];
+// Stale link checks and legal reviews are not current release evidence.
+// This is a mechanical freshness threshold, not proof of legal validity.
+const freshnessCutoff = new Date(Date.now() - 180 * 86400000).toISOString().slice(0, 10);
 let sourced = 0;
 let reviewed = 0;
 try {
@@ -42,6 +45,10 @@ try {
       issues.push('unverified_source_document_pattern:' + topic.id);
       continue;
     }
+    if (topic.source.checked < freshnessCutoff) {
+      issues.push('stale_source_check:' + topic.id);
+      continue;
+    }
     sourced++;
     const review = topic.source.legalReview;
     const dateOk = date => typeof date === 'string' &&
@@ -58,6 +65,8 @@ try {
       // ISO dates sort lexically. A future-effective rule or a review newer
       // than the last source-link check must not count as current evidence.
       issues.push('inconsistent_legal_review_dates:' + topic.id);
+    } else if (review.reviewedAt < freshnessCutoff) {
+      issues.push('stale_human_legal_review:' + topic.id);
     } else reviewed++;
   }
 } catch (error) {
