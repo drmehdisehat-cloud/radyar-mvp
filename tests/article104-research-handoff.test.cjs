@@ -46,3 +46,20 @@ test('temporal advisory leads are explicitly secondary and cannot promote releas
   assert.equal(handoff.effectiveDate, null);
   assert.equal(handoff.humanReviewer, null);
 });
+
+test('April parliamentary draft is not mistaken for the May enacted Article 104 amendment', () => {
+  const caution = handoff.legislativeHistoryCaution;
+  assert.equal(caution.status, 'unverified-secondary-comparison');
+  assert.equal(caution.draftReportedDateJalali, '1403/01/28');
+  assert.equal(caution.enactedReportedDateJalali, '1403/02/25');
+  assert.match(caution.draftReportedAddition, /746/);
+  assert.match(caution.enactedSecondaryTextDifference, /does not include.*746/);
+  assert.match(caution.releaseWarning, /Do not cite.*draft.*enacted/i);
+  for (const key of ['draftSecondaryUrl', 'enactedSecondaryUrl']) {
+    assert.equal(new URL(caution[key]).protocol, 'https:');
+  }
+  // Research metadata cannot silently become a verified official citation.
+  assert.equal(handoff.officialTextUrl, null);
+  assert.equal(handoff.effectiveDate, null);
+  assert.equal(handoff.humanReviewer, null);
+});
