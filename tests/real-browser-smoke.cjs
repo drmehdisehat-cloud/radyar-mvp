@@ -148,6 +148,25 @@ test('real Chromium: Persian interview, report, and privacy reset', { timeout: 7
       "report().includes('اطلاعات تکمیل‌نشده')]})()");
     assert.deepEqual(finished, ['block', 9, true, true]);
 
+    // Exercise in-app editing and the interview Back control in real Chrome.
+    // Edited answers must replace the old value in the final report and export.
+    const edited = await evaluate("(() => {" +
+      "document.getElementById('editAnswers').click();" +
+      "const original=document.getElementById('answer').value;" +
+      "document.getElementById('next').click();" +
+      "document.getElementById('back').click();" +
+      "const restored=document.getElementById('answer').value;" +
+      "document.getElementById('answer').value='پاسخ ویرایش‌شده در مرورگر';" +
+      "document.getElementById('next').click();" +
+      "for(let i=1;i<5;i++)document.getElementById('next').click();" +
+      "const output=report();" +
+      "return [original,restored,document.getElementById('results').style.display," +
+      "output.includes('پاسخ ویرایش‌شده در مرورگر')," +
+      "output.includes('پاسخ ساختگی 1'),output.includes('اطلاعات تکمیل‌نشده')];" +
+      "})()");
+    assert.deepEqual(edited, ['پاسخ ساختگی 1', 'پاسخ ساختگی 1', 'block', true, false, true],
+      'edited answer must survive interview Back and replace the old report value');
+
     // Intake and report generation must never transmit case data by default.
     assert.equal(validationPosts, 0, 'no automatic API submission');
     await evaluate("(() => { window.confirm=()=>false; document.getElementById('validateLocal').click(); })()");
