@@ -1,6 +1,9 @@
 'use strict';
 // Display safety only: official-looking links are not proof that a law is current.
 const OFFICIAL_LAW_LINK = /^https:\/\/(?:qavanin\.ir|dotic\.ir|rc\.majlis\.ir)\/[^\s"'<>\\]*$/i;
+// Only a direct, numeric qavanin law-text URL is structurally countable.
+// This is NOT proof of a verified text, amendments, or human legal review.
+const QAVANIN_DOCUMENT_LINK = /^https:\/\/qavanin\.ir\/Law\/TreeText\/\?IDS=\d+$/i;
 function validReviewDate(value) {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const [year, month, day] = value.split('-').map(Number);
@@ -17,6 +20,7 @@ function safeLawSource(source) {
     source.title.length <= 160 && !UNSAFE_SOURCE_METADATA.test(source.title) &&
     typeof source.url === 'string' && !UNSAFE_SOURCE_METADATA.test(source.url) &&
     OFFICIAL_LAW_LINK.test(source.url) &&
+    (!/^https:\/\/qavanin\.ir\//i.test(source.url) || QAVANIN_DOCUMENT_LINK.test(source.url)) &&
     // A portal homepage or query/fragment-only URL is not a document citation.
     /^https:\/\/[^/]+\/[^/?#][^?#]*/i.test(source.url) &&
     validReviewDate(source.checked);
