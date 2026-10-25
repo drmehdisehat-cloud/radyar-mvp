@@ -178,8 +178,11 @@ test('real Chromium: Persian interview, report, and privacy reset', { timeout: 7
       "document.getElementById('reset').click();" +
       "return [state===null,document.getElementById('story').value," +
       "document.getElementById('summary').children.length," +
-      "document.getElementById('startBox').style.display]})()");
-    assert.deepEqual(cleared, [true, '', 0, 'block']);
+      "document.getElementById('startBox').style.display," +
+      "document.getElementById('topic').value," +
+      "document.getElementById('role').value]})()");
+    assert.deepEqual(cleared, [true, '', 0, 'block', 'theft', 'خواهان / شاکی'],
+      'reset must erase topic and role selections as well as narrative');
     assert.ok(fs.existsSync(reportPath), 'reset cannot delete an already downloaded local file');
 
     // Exercise every phase-1 topic and role in a real browser. All inputs are synthetic.
@@ -244,9 +247,11 @@ test('real Chromium: Persian interview, report, and privacy reset', { timeout: 7
     const afterBack = await evaluate("(() => [" +
       "state === null, document.getElementById('story').value," +
       "document.getElementById('summary').children.length," +
-      "getComputedStyle(document.getElementById('startBox')).display" +
+      "getComputedStyle(document.getElementById('startBox')).display," +
+      "document.getElementById('topic').value," +
+      "document.getElementById('role').value" +
       "])()");
-    assert.deepEqual(afterBack, [true, '', 0, 'block'],
+    assert.deepEqual(afterBack, [true, '', 0, 'block', 'theft', 'خواهان / شاکی'],
       'browser Back must not restore case data, even with BFCache');
     assert.equal(validationPosts, 1, 'navigation must not send case data');
     assert.ok(fs.existsSync(reportPath), 'navigation cannot erase a downloaded report');
