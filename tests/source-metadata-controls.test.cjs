@@ -20,4 +20,12 @@ for (const bad of ['\n', '\r', '\u0085', '\u2028', '\u2029', '\u202e', '\u2066',
 }
 assert.equal(check({ ...source, title: 'قانون ساختگی با نیم‌فاصله' }), true,
   'Persian ZWNJ in an ordinary source title should remain valid');
-console.log(`PASS: ${rejected} unsafe legal-source metadata cases rejected; ordinary Persian accepted`);
+for (const title of ['!!!', '😀', '\u200c', '...  ؟!']) {
+  assert.equal(check({ ...source, title }), false,
+    'nonsemantic source titles must not appear as trusted legal citations');
+}
+assert.equal(check({ ...source, title: 'ماده ۱۰۴ (اصلاحی)' }), true,
+  'Persian legal titles containing digits and punctuation are valid');
+assert.equal(check({ ...source, title: 'Civil Code 1082' }), true,
+  'Latin titles containing legal identifiers are valid');
+console.log(`PASS: ${rejected} unsafe metadata controls and 4 nonsemantic titles rejected; semantic titles accepted`);
