@@ -30,4 +30,6 @@ $('cancel').onclick=clearCase;
 // A browser may preserve a page in the back-forward cache (BFCache).
 // Erase the case before navigation and again if a cached page is restored.
 window.addEventListener('pagehide',clearCase);
-window.addEventListener('pageshow',event=>{if(event.persisted)clearCase()});
+// Browsers may restore textarea values on a normal reload as well as BFCache Back.
+// Clear on every pageshow, not only when event.persisted is true.
+window.addEventListener('pageshow',clearCase);
