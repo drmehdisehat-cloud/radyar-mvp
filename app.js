@@ -23,7 +23,7 @@ function record(value){state.answers[state.index]=value;state.index++;question()
 $('next').onclick=()=>{const rawAnswer=$('answer').value;if(!safeCaseText(rawAnswer,1,2000)){alert('پاسخ معتبر وارد کنید (بدون نویسه کنترلی نامعتبر) یا «فعلاً نمی‌دانم» را انتخاب کنید.');return}record(rawAnswer.trim())};
 $('skip').onclick=()=>record('نامشخص');
 $('back').onclick=()=>{if(state&&state.index>0){state.index--;question()}};
-function clearCase(){state=null;$('story').value='';$('answer').value='';$('summary').replaceChildren();$('qLabel').textContent='';$('qTitle').textContent='';$('qProgress').textContent='';show('startBox')}
+function clearCase(){state=null;$('topic').selectedIndex=0;$('role').selectedIndex=0;$('story').value='';$('answer').value='';$('summary').replaceChildren();$('qLabel').textContent='';$('qTitle').textContent='';$('qProgress').textContent='';show('startBox')}
 $('editAnswers').onclick=()=>{if(!state)return;state.index=0;question()};
 $('reset').onclick=clearCase;
 $('cancel').onclick=clearCase;
