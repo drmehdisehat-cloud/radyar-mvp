@@ -17,7 +17,8 @@ const UNSAFE_SOURCE_METADATA = /[\u0000-\u001F\u007F-\u009F\u061C\u200B\u200E-\u
 function safeLawSource(source) {
   return !!source && typeof source === 'object' &&
     typeof source.title === 'string' && source.title.trim().length > 0 &&
-    source.title.length <= 160 && !UNSAFE_SOURCE_METADATA.test(source.title) &&
+    source.title.length <= 160 && /[\p{L}\p{N}]/u.test(source.title) &&
+    !UNSAFE_SOURCE_METADATA.test(source.title) &&
     typeof source.url === 'string' && !UNSAFE_SOURCE_METADATA.test(source.url) &&
     OFFICIAL_LAW_LINK.test(source.url) &&
     (!/^https:\/\/qavanin\.ir\//i.test(source.url) || QAVANIN_DOCUMENT_LINK.test(source.url)) &&
