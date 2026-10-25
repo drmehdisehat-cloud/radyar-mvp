@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "status": "research-only",
+  "collectedAt": "2026-10-25",
+  "warning": "Secondary-source research leads only. Not verified against an official consolidated law text, not legal advice, and not eligible for release source coverage.",
+  "law": "قانون اصلاح ماده ۱۰۴ قانون مجازات اسلامی",
+  "reportedApprovalDateJalali": "1403/02/25",
+  "reportedGuardianCouncilDateJalali": "1403/03/10",
+  "reportedPromulgationDateJalali": "1403/03/21",
+  "officialTextUrl": null,
+  "officialDocumentId": null,
+  "officialPublicationDate": null,
+  "effectiveDate": null,
+  "amendmentsCheckedAt": null,
+  "humanReviewer": null,
+  "affectedPhase1Topics": ["theft", "fraud"],
+  "secondaryLeads": [
+    {
+      "publisher": "Hemayat Online (Mizan report)",
+      "url": "https://hemayatonline.ir/قانون-اصلاح-ماده-۱۰۴-قانون-مجازات-اسلامی/",
+      "purpose": "Reported approval, Guardian Council confirmation, promulgation and amendment wording; verify against official publication"
+    },
+    {
+      "publisher": "Ekhtebar",
+      "url": "https://www.ekhtebar.ir/قانون-اصلاح-ماده-۱۰۴-قانون-مجازات-اسلامی/",
+      "purpose": "Secondary reproduction of enacted amendment; compare character-by-character with official text"
+    },
+    {
+      "publisher": "Hemayat Online (Mizan commentary)",
+      "url": "https://hemayatonline.ir/نکاتی-پیرامون-ماده-واحده-اصلاح-ماده-۱۰۴/",
+      "purpose": "Secondary claim that amendment became effective on 1403/04/08; independently verify date and temporal application"
+    }
+  ],
+  "reportedChangeForReview": "Secondary texts report deletion from Article 104 of the earlier conditional compoundability wording for certain fraud/transfer-of-property and theft offences under Articles 656, 657, 661 and 665. No case-level conclusion is approved.",
+  "humanReviewQuestions": [
+    "Find stable original publication and direct official qavanin.ir document ID; compare promulgation and effective dates.",
+    "Verify current consolidated Article 104 and subsequent amendments or authoritative annulments.",
+    "Distinguish the alleged offence date, complaint date, procedural stage and any final judgment; assess temporal application without automatic retroactivity claims.",
+    "Check precise charge classification, age of accused, victim, statutory exceptions and role of prior forgiveness before determining compoundability.",
+    "Record reviewer identity, reviewed source version, review date and written legal sign-off before adding a user-facing citation."
+  ]
+}
