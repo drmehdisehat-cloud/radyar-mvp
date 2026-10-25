@@ -34,8 +34,14 @@ try {
       issues.push('unsafe_source_metadata:' + topic.id);
       continue;
     }
-    // Count only structurally safe, dated official-portal link metadata.
-    // A present but invalid source must not inflate the coverage metric.
+    // Display-safe official URLs are NOT necessarily direct legal documents.
+    // Until document-specific patterns for other portals are verified, count
+    // only a positive numeric qavanin TreeText document ID as source coverage.
+    // This is still only structural evidence, never legal-text verification.
+    if (!/^https:\/\/qavanin\.ir\/Law\/TreeText\/\?IDS=[1-9]\d*$/i.test(topic.source.url)) {
+      issues.push('unverified_source_document_pattern:' + topic.id);
+      continue;
+    }
     sourced++;
     const review = topic.source.legalReview;
     const dateOk = date => typeof date === 'string' &&

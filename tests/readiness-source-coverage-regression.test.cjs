@@ -51,7 +51,7 @@ test('malformed official-looking links never count as source coverage', () => {
 test('safe link metadata and checked boxes do not substitute for human legal review', () => {
   const result = audit({ checkBoxes: true, injection: `
     for (const flow of Object.values(flows)) {
-      flow.source = { title: 'پیوند آزمایشی', url: 'https://qavanin.ir/Law/TreeText/?IDS=0',
+      flow.source = { title: 'پیوند آزمایشی', url: 'https://qavanin.ir/Law/TreeText/?IDS=1',
         checked: '2026-10-20' };
     }` });
   assert.equal(result.sourceCoverage, '6/6');
