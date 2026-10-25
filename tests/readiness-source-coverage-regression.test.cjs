@@ -111,3 +111,29 @@ test('official-looking portal homepages never inflate legal source coverage', ()
   assert.equal(result.issues.filter(issue =>
     issue.startsWith('unsafe_source_metadata:')).length, 6);
 });
+
+test('nonsemantic reviewer names cannot count as human legal review', () => {
+  // ZWNJ is legitimate within Persian names, but alone it is not a name.
+  for (const reviewer of ['String.fromCharCode(0x200c)', "'!!!'", "'😀'"]) {
+    const result = audit({ checkBoxes: true, injection: `
+      for (const flow of Object.values(flows)) {
+        flow.source = {
+          title: 'منبع آزمایشی',
+          url: 'https://qavanin.ir/Law/TreeText/?IDS=1',
+          checked: '2026-10-20',
+          legalReview: {
+            reviewer: ${reviewer},
+            effectiveDate: '2020-01-01',
+            reviewedAt: '2026-10-19',
+            amendmentStatus: 'checked-current'
+          }
+        };
+      }` });
+    assert.equal(result.sourceCoverage, '6/6');
+    assert.equal(result.humanReviewCoverage, '0/6', reviewer);
+    assert.equal(result.uncheckedGates, 0);
+    assert.equal(result.status, 'NOT_READY');
+    assert.equal(result.issues.filter(issue =>
+      issue.startsWith('missing_human_legal_review:')).length, 6);
+  }
+});
