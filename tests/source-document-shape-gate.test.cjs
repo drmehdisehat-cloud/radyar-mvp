@@ -40,11 +40,17 @@ test('generic dotic and majlis paths do not count as verified document shapes', 
   }
 });
 
-test('zero document IDs cannot inflate the source coverage metric', () => {
-  const result = auditFor('https://qavanin.ir/Law/TreeText/?IDS=0');
-  assert.equal(result.sourceCoverage, '0/6');
-  assert.equal(result.issues.filter(x =>
-    x.startsWith('unverified_source_document_pattern:')).length, 6);
+test('zero and ambiguous document IDs fail at the display-safety boundary', () => {
+  for (const url of [
+    'https://qavanin.ir/Law/TreeText/?IDS=0',
+    'https://qavanin.ir/Law/TreeText/?IDS=000123',
+  ]) {
+    const result = auditFor(url);
+    assert.equal(result.sourceCoverage, '0/6', url);
+    assert.equal(result.humanReviewCoverage, '0/6', url);
+    assert.equal(result.issues.filter(x =>
+      x.startsWith('unsafe_source_metadata:')).length, 6, url);
+  }
 });
 
 test('positive direct qavanin IDs are only structural candidates, not legal review', () => {
