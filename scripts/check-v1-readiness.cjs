@@ -55,7 +55,7 @@ try {
       vm.runInContext('validReviewDate(candidate)', Object.assign(context, { candidate: date }), { timeout: 1000 }) === true;
     if (!review || !dateOk(review.effectiveDate) || !dateOk(review.reviewedAt) ||
         typeof review.reviewer !== 'string' || !review.reviewer.trim() ||
-        !/[\p{L}\p{N}]/u.test(review.reviewer) ||
+        !/[\p{L}]{2}/u.test(review.reviewer) ||
         review.reviewer.length > 120 ||
         /[\u0000-\u001F\u007F-\u009F\u061C\u200B\u200E-\u202E\u2060-\u206F\uFEFF]/u.test(review.reviewer) ||
         !['checked-current', 'checked-amended'].includes(review.amendmentStatus)) {
