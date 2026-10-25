@@ -16,7 +16,10 @@ function safeLawSource(source) {
     typeof source.title === 'string' && source.title.trim().length > 0 &&
     source.title.length <= 160 && !UNSAFE_SOURCE_METADATA.test(source.title) &&
     typeof source.url === 'string' && !UNSAFE_SOURCE_METADATA.test(source.url) &&
-    OFFICIAL_LAW_LINK.test(source.url) && validReviewDate(source.checked);
+    OFFICIAL_LAW_LINK.test(source.url) &&
+    // A portal homepage or query/fragment-only URL is not a document citation.
+    /^https:\/\/[^/]+\/[^/?#][^?#]*/i.test(source.url) &&
+    validReviewDate(source.checked);
 }
 function unresolvedQuestions() {
   if (!state) return [];
