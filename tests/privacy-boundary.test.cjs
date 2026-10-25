@@ -16,7 +16,8 @@ for (const [name, source] of [['app.js', app], ['export.js', report]]) {
 }
 assert.match(app, /function clearCase\(\)\s*\{\s*state\s*=\s*null\s*;/);
 assert.match(app, /addEventListener\('pagehide',\s*clearCase\)/);
-assert.match(app, /event\.persisted\)\s*clearCase\(\)/);
+// Clear on every pageshow: ordinary reload can restore form values too.
+assert.match(app, /addEventListener\('pageshow',\s*clearCase\)/);
 assert.match(report, /\.textContent\s*=/);
 assert.match(report, /if\s*\(!confirm\(/);
 // A same-origin connection is needed for the explicit localhost-only API.
