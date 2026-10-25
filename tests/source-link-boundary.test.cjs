@@ -21,8 +21,15 @@ for (const url of [
   'https://qavanin.ir\\@evil.example/law',
   'https://qavanin.ir/Law/TreeText/\nhttps://evil.example',
   'https://qavanin.ir/Law/TreeText/<svg>',
+  'https://qavanin.ir/',
+  'https://qavanin.ir/?IDS=1',
+  'https://qavanin.ir/#Law',
+  'https://dotic.ir/',
+  'https://dotic.ir/?law=1',
+  'https://rc.majlis.ir/#law',
+  'https://qavanin.ir//Law/TreeText/?IDS=1',
 ]) assert.equal(isSafe({ ...good, url }), false, `reject unsafe link ${JSON.stringify(url)}`);
 for (const invalid of [null, {}, { ...good, checked: 'yesterday' }, { ...good, title: '' }, { ...good, title: 'x'.repeat(161) }]) {
   assert.equal(isSafe(invalid), false);
 }
-console.log('PASS: official-link display allowlist, 3 positive and 13 negative cases');
+console.log('PASS: official-link display allowlist, 3 positive and 20 negative cases');
