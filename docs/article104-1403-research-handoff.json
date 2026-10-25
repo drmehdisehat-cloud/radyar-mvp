@@ -13,7 +13,10 @@
   "effectiveDate": null,
   "amendmentsCheckedAt": null,
   "humanReviewer": null,
-  "affectedPhase1Topics": ["theft", "fraud"],
+  "affectedPhase1Topics": [
+    "theft",
+    "fraud"
+  ],
   "secondaryLeads": [
     {
       "publisher": "Hemayat Online (Mizan report)",
@@ -37,6 +40,25 @@
     "Verify current consolidated Article 104 and subsequent amendments or authoritative annulments.",
     "Distinguish the alleged offence date, complaint date, procedural stage and any final judgment; assess temporal application without automatic retroactivity claims.",
     "Check precise charge classification, age of accused, victim, statutory exceptions and role of prior forgiveness before determining compoundability.",
-    "Record reviewer identity, reviewed source version, review date and written legal sign-off before adding a user-facing citation."
+    "Record reviewer identity, reviewed source version, review date and written legal sign-off before adding a user-facing citation.",
+    "Verify the original texts and status of advisory opinions 7/1403/319 and 7/1403/752; do not treat secondary reproductions or non-binding opinions as conclusive law."
+  ],
+  "interpretiveLeads": [
+    {
+      "kind": "secondary-reproduction-of-advisory-opinion",
+      "reportedOpinionNumber": "7/1403/319",
+      "reportedDateJalali": "1403/11/07",
+      "url": "https://www.sarkhat.com/fa/news/148454068/",
+      "status": "unverified-secondary",
+      "researchQuestion": "Review eleven questions on pre-amendment theft, forgiveness, limitation, attempts and offence grading; locate the judiciary's original signed opinion. An advisory opinion is not a statute or binding judgment."
+    },
+    {
+      "kind": "secondary-reproduction-of-advisory-opinion",
+      "reportedOpinionNumber": "7/1403/752",
+      "reportedDateJalali": "1404/01/18",
+      "url": "https://lawlex.ir/opinions/opinion-7-1403-752",
+      "status": "unverified-secondary",
+      "researchQuestion": "Compare temporal application to pre-1403 conduct and distinguish procedural from substantive consequences. Verify original, date, subsequent jurisprudence and applicability."
+    }
   ]
 }
