@@ -60,3 +60,41 @@ test('safe link metadata and checked boxes do not substitute for human legal rev
   assert.equal(result.status, 'NOT_READY');
   assert.equal(result.issues.filter(issue => issue.startsWith('missing_human_legal_review:')).length, 6);
 });
+
+test('legal reviewer metadata with invisible controls never counts as human review', () => {
+  const result = audit({ checkBoxes: true, injection: `
+    for (const flow of Object.values(flows)) {
+      flow.source = {
+        title: 'منبع آزمایشی', url: 'https://qavanin.ir/Law/TreeText/?IDS=1',
+        checked: '2026-10-20',
+        legalReview: {
+          reviewer: 'بازبین فرضی' + String.fromCharCode(0x202e),
+          effectiveDate: '2026-01-01', reviewedAt: '2026-10-19',
+          amendmentStatus: 'checked-current'
+        }
+      };
+    }` });
+  assert.equal(result.sourceCoverage, '6/6');
+  assert.equal(result.humanReviewCoverage, '0/6');
+  assert.equal(result.status, 'NOT_READY');
+  assert.equal(result.issues.filter(issue => issue.startsWith('missing_human_legal_review:')).length, 6);
+});
+
+test('oversized reviewer metadata cannot inflate legal review coverage', () => {
+  const result = audit({ checkBoxes: true, injection: `
+    for (const flow of Object.values(flows)) {
+      flow.source = {
+        title: 'منبع آزمایشی', url: 'https://qavanin.ir/Law/TreeText/?IDS=1',
+        checked: '2026-10-20',
+        legalReview: {
+          reviewer: 'X'.repeat(121),
+          effectiveDate: '2026-01-01', reviewedAt: '2026-10-19',
+          amendmentStatus: 'checked-current'
+        }
+      };
+    }` });
+  assert.equal(result.sourceCoverage, '6/6');
+  assert.equal(result.humanReviewCoverage, '0/6');
+  assert.equal(result.status, 'NOT_READY');
+  assert.equal(result.issues.filter(issue => issue.startsWith('missing_human_legal_review:')).length, 6);
+});
