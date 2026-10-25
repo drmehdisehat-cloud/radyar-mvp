@@ -98,3 +98,16 @@ test('oversized reviewer metadata cannot inflate legal review coverage', () => {
   assert.equal(result.status, 'NOT_READY');
   assert.equal(result.issues.filter(issue => issue.startsWith('missing_human_legal_review:')).length, 6);
 });
+
+test('official-looking portal homepages never inflate legal source coverage', () => {
+  const result = audit({ checkBoxes: true, injection: `
+    for (const flow of Object.values(flows)) {
+      flow.source = { title: 'پیوند درگاه آزمایشی',
+        url: 'https://qavanin.ir/?IDS=1', checked: '2026-10-20' };
+    }` });
+  assert.equal(result.sourceCoverage, '0/6');
+  assert.equal(result.humanReviewCoverage, '0/6');
+  assert.equal(result.status, 'NOT_READY');
+  assert.equal(result.issues.filter(issue =>
+    issue.startsWith('unsafe_source_metadata:')).length, 6);
+});
