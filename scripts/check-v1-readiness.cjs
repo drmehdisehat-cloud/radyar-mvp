@@ -29,12 +29,14 @@ try {
   for (const id of actual) if (!expected.includes(id)) issues.push('unexpected_topic:' + id);
   for (const topic of topics) {
     if (!topic.source) { issues.push('missing_legal_source:' + topic.id); continue; }
-    sourced++;
     context.candidate = topic.source;
     if (vm.runInContext('safeLawSource(candidate)', context, { timeout: 1000 }) !== true) {
       issues.push('unsafe_source_metadata:' + topic.id);
       continue;
     }
+    // Count only structurally safe, dated official-portal link metadata.
+    // A present but invalid source must not inflate the coverage metric.
+    sourced++;
     const review = topic.source.legalReview;
     const dateOk = date => typeof date === 'string' &&
       vm.runInContext('validReviewDate(candidate)', Object.assign(context, { candidate: date }), { timeout: 1000 }) === true;
