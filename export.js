@@ -3,7 +3,7 @@
 const OFFICIAL_LAW_LINK = /^https:\/\/(?:qavanin\.ir|dotic\.ir|rc\.majlis\.ir)\/[^\s"'<>\\]*$/i;
 // Only a direct, numeric qavanin law-text URL is structurally countable.
 // This is NOT proof of a verified text, amendments, or human legal review.
-const QAVANIN_DOCUMENT_LINK = /^https:\/\/qavanin\.ir\/Law\/TreeText\/\?IDS=\d+$/i;
+const QAVANIN_DOCUMENT_LINK = /^https:\/\/qavanin\.ir\/Law\/TreeText\/\?IDS=[1-9]\d*$/i;
 function validReviewDate(value) {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const [year, month, day] = value.split('-').map(Number);
