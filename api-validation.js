@@ -20,7 +20,9 @@
   ['reset', 'cancel', 'editAnswers'].forEach(id =>
     document.getElementById(id).addEventListener('click', abortPending));
   window.addEventListener('pagehide', abortPending);
-  window.addEventListener('pageshow', event => { if (event.persisted) abortPending(); });
+  // App clears interview state on every pageshow, including ordinary reload.
+  // Cancel any pending validation and stale status on both kinds of restore.
+  window.addEventListener('pageshow', abortPending);
   button.addEventListener('click', async () => {
     if (!state || pending || state.answers.length !== questionsFor(state.topic, state.role).length) return;
     if (!confirm('متن شرح و پاسخ‌ها برای اعتبارسنجی ساختاری به سرور محلی همین دستگاه ارسال می‌شود؛ هیچ داده‌ای ذخیره نمی‌شود. ادامه می‌دهید؟')) return;
