@@ -31,3 +31,18 @@ test('unverified source, effective date and human review stay explicitly unset',
   }
   assert.match(handoff.reportedChangeForReview, /No case-level conclusion/);
 });
+
+test('temporal advisory leads are explicitly secondary and cannot promote release coverage', () => {
+  assert.equal(handoff.interpretiveLeads.length, 2);
+  const numbers = handoff.interpretiveLeads.map(lead => lead.reportedOpinionNumber).sort();
+  assert.deepEqual(numbers, ['7/1403/319', '7/1403/752']);
+  for (const lead of handoff.interpretiveLeads) {
+    assert.equal(lead.status, 'unverified-secondary');
+    assert.match(lead.kind, /secondary/);
+    assert.ok(/^https:\/\//.test(lead.url));
+    assert.ok(lead.researchQuestion.length > 50);
+  }
+  assert.equal(handoff.officialTextUrl, null);
+  assert.equal(handoff.effectiveDate, null);
+  assert.equal(handoff.humanReviewer, null);
+});
