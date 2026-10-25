@@ -60,5 +60,15 @@
       "status": "unverified-secondary",
       "researchQuestion": "Compare temporal application to pre-1403 conduct and distinguish procedural from substantive consequences. Verify original, date, subsequent jurisprudence and applicability."
     }
-  ]
+  ],
+  "legislativeHistoryCaution": {
+    "status": "unverified-secondary-comparison",
+    "draftReportedDateJalali": "1403/01/28",
+    "enactedReportedDateJalali": "1403/02/25",
+    "draftSecondaryUrl": "https://www.mamlekatonline.ir/بخش-فضای-مجازی-25/139029-اصلاح-ماده-قانون-مجازات-اسلامی-توسط-نمایندگان-مجلس",
+    "enactedSecondaryUrl": "https://hemayatonline.ir/قانون-اصلاح-ماده-۱۰۴-قانون-مجازات-اسلامی/",
+    "draftReportedAddition": "A preliminary parliamentary report proposed adding Article 746 next to Article 744 in the list of compoundable offences.",
+    "enactedSecondaryTextDifference": "The later reported enacted one-article law deletes specified fraud/theft language but does not include the draft addition of Article 746.",
+    "releaseWarning": "Do not cite an April 1403 parliamentary draft as the enacted May 1403 law. Both links are secondary; obtain and compare the official promulgated text and subsequent amendments before any legal conclusion or release source credit."
+  }
 }
