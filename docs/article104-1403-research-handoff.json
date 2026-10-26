@@ -59,6 +59,14 @@
       "url": "https://lawlex.ir/opinions/opinion-7-1403-752",
       "status": "unverified-secondary",
       "researchQuestion": "Compare temporal application to pre-1403 conduct and distinguish procedural from substantive consequences. Verify original, date, subsequent jurisprudence and applicability."
+    },
+    {
+      "kind": "secondary-reproduction-of-advisory-opinion",
+      "reportedOpinionNumber": "7/1403/332",
+      "reportedDateJalali": "1404/10/30",
+      "url": "https://lawlex.ir/opinions/opinion-7-1403-332",
+      "status": "unverified-secondary",
+      "researchQuestion": "Newer secondary reproduction discusses non-retroactivity of the 1403 Article 104 amendment for pre-effective-date theft/fraud and implications for grading, limitation and procedural choices. Obtain original judiciary text, verify date and any later contrary authority; never turn this into an automatic legal conclusion."
     }
   ],
   "legislativeHistoryCaution": {
@@ -70,5 +78,21 @@
     "draftReportedAddition": "A preliminary parliamentary report proposed adding Article 746 next to Article 744 in the list of compoundable offences.",
     "enactedSecondaryTextDifference": "The later reported enacted one-article law deletes specified fraud/theft language but does not include the draft addition of Article 746.",
     "releaseWarning": "Do not cite an April 1403 parliamentary draft as the enacted May 1403 law. Both links are secondary; obtain and compare the official promulgated text and subsequent amendments before any legal conclusion or release source credit."
+  },
+  "officialRetrievalStatus": {
+    "checkedAt": "2026-10-26",
+    "status": "primary-document-not-retrieved",
+    "portalsSearched": [
+      "qavanin.ir",
+      "dotic.ir",
+      "rrk.ir"
+    ],
+    "finding": "No stable original promulgated document URL or official document identifier was retrieved in this research pass. Search-engine snippets and secondary reproductions are insufficient for authoritative citation.",
+    "requiredNextEvidence": [
+      "Original official publication with stable document identifier",
+      "Official publication date and independently calculated effective date",
+      "Current consolidated Article 104 and subsequent amendments",
+      "Qualified human legal review and temporal application assessment"
+    ]
   }
 }
