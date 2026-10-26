@@ -78,6 +78,11 @@ function isSameOriginFetch(req) {
   return site === undefined || site === 'same-origin';
 }
 function handle(req, res, allow = () => true) {
+  // Exported handler is also an entrypoint: callers can bypass createServer().
+  // Never process requests if an importer runs it in production mode.
+  if (process.env.NODE_ENV === 'production') {
+    return send(res, 503, { error: 'development_api_disabled' });
+  }
   if (!isLocalRequest(req)) return send(res, 403, { error: 'local_origin_required' });
   if (req.method === 'GET' && Object.hasOwn(STATIC_FILES, req.url)) {
     return sendStatic(res, req.url);
