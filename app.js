@@ -2,7 +2,7 @@
 const $=id=>document.getElementById(id);
 let state=null;
 // Align browser intake with the server's structural input boundary.
-const UNSAFE_TEXT = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\u200B\u202A-\u202E\u2060\u2066-\u206F\uFEFF]/u;
+const UNSAFE_TEXT = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F\u200B\u202A-\u202E\u2060\u2066-\u206F\uFEFF]/u;
 const HAS_SEMANTIC_CONTENT = /[\p{L}\p{N}]/u;
 function hasUnpairedSurrogate(value) {
   for (const character of value) {

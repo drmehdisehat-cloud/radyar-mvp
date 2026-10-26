@@ -5,7 +5,7 @@ const TOPICS = new Set(['theft', 'fraud', 'check', 'debt', 'divorce', 'mehrieh']
 const ROLES = new Set(['خواهان / شاکی', 'خوانده / متهم', 'وکیل', 'شاهد']);
 // Reject invisible formatting that can disguise case facts in exported reports.
 // Preserve normal Persian text, ZWNJ (U+200C), newlines and ordinary direction marks.
-const UNSAFE_TEXT = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\u200B\u202A-\u202E\u2060\u2066-\u206F\uFEFF]/u;
+const UNSAFE_TEXT = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F\u200B\u202A-\u202E\u2060\u2066-\u206F\uFEFF]/u;
 // JSON can contain escaped lone UTF-16 surrogates. Reject them rather than
 // silently replacing case evidence with U+FFFD during UTF-8 export/transport.
 // for...of treats a valid surrogate pair as one Unicode scalar value.
