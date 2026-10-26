@@ -68,7 +68,7 @@ test('pre-created development API refuses binding after a switch to production',
     '  if (server.listening) process.exit(4);',
     '  process.stdout.write("blocked");',
     '}',
-  ].join('\\n');
+  ].join('\n');
   const run = spawnSync(process.execPath, ['-e', probe], {
     env: { ...process.env, NODE_ENV: 'development', PORT: '0' },
     encoding: 'utf8',
