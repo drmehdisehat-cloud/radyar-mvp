@@ -62,3 +62,24 @@ test('official HTML observation is recorded without claiming effective dates or 
   assert.equal(handoff.humanReviewedAt, null);
   assert.equal(handoff.releaseSourceEligible, false);
 });
+
+test('original-law gazette dates are kept separate from unverified amendment effective dates', () => {
+  const metadata = handoff.originalLawMetadataObservation;
+  assert.equal(metadata.retrievedAt, '2026-10-27');
+  assert.equal(metadata.source, 'primary-official-qavanin-attribute');
+  assert.equal(metadata.officialAttributeUrl,
+    handoff.officialTextUrl.replace('/Law/TreeText/', '/Law/Attribute/'));
+  assert.equal(metadata.approvalDateShown, '1355/04/16');
+  assert.equal(metadata.promulgationDateShown, '1355/05/09');
+  assert.equal(metadata.originalGazetteNumberShown, '9210');
+  assert.equal(metadata.originalGazetteDateShown, '1355/05/19');
+  assert.equal(metadata.originalEffectiveDateShown, '1355/06/04');
+  assert.equal(metadata.lastStatusShown, 'اصلاحي 1403/03/30');
+  assert.equal(metadata.amendmentEffectiveDatesVerified, false);
+  assert.equal(metadata.releaseSourceEligible, false);
+  assert.match(metadata.scope, /not independent evidence/i);
+  assert.equal(handoff.officialPublicationDate, null);
+  assert.equal(handoff.effectiveDate, null);
+  assert.equal(handoff.humanReviewer, null);
+  assert.equal(handoff.releaseSourceEligible, false);
+});
