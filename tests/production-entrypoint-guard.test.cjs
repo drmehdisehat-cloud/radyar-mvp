@@ -18,3 +18,33 @@ test('development API entrypoint refuses NODE_ENV=production without listening',
   assert.equal(run.stdout, '', 'must not claim to be listening');
   assert.match(run.stderr, /refuses production mode; no listener started/i);
 });
+
+test('imported development API factory refuses NODE_ENV=production', () => {
+  const entrypoint = path.resolve(__dirname, '../backend/server.js');
+  // A production launcher might import createServer instead of running server.js
+  // directly. It must not bypass the same fail-closed production guard.
+  const probe = [
+    'const { createServer } = require(' + JSON.stringify(entrypoint) + ');',
+    'try {',
+    '  const server = createServer();',
+    '  server.close();',
+    '  process.stderr.write("unexpected server creation");',
+    '  process.exit(3);',
+    '} catch (error) {',
+    '  if (!/refuses production mode; no listener started/i.test(String(error.message))) {',
+    '    process.stderr.write("unexpected factory error");',
+    '    process.exit(2);',
+    '  }',
+    '  process.stdout.write("blocked");',
+    '}',
+  ].join('\\n');
+  const run = spawnSync(process.execPath, ['-e', probe], {
+    env: { ...process.env, NODE_ENV: 'production', PORT: '0' },
+    encoding: 'utf8',
+    timeout: 4000,
+  });
+  if (run.error) throw run.error;
+  assert.equal(run.status, 0, 'imported factory must refuse to create a server');
+  assert.equal(run.stdout, 'blocked');
+  assert.equal(run.stderr, '');
+});
