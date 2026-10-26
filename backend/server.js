@@ -149,6 +149,11 @@ function createServer(options = {}) {
   // Require an explicit numeric TCP port and literal loopback address.
   const nativeListen = server.listen;
   server.listen = function (...args) {
+    // Refuse a late production switch even if the server was created in dev.
+    // Listener creation is the final safety boundary before network exposure.
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Dadyar development API refuses production mode; no listener started.');
+    }
     const first = args[0];
     const options = first && typeof first === 'object' && !Array.isArray(first)
       ? first : null;
