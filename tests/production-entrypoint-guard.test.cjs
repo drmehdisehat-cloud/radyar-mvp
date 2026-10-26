@@ -37,7 +37,7 @@ test('imported development API factory refuses NODE_ENV=production', () => {
     '  }',
     '  process.stdout.write("blocked");',
     '}',
-  ].join('\\n');
+  ].join('\n');
   const run = spawnSync(process.execPath, ['-e', probe], {
     env: { ...process.env, NODE_ENV: 'production', PORT: '0' },
     encoding: 'utf8',
