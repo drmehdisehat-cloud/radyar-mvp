@@ -155,7 +155,7 @@ function createServer(options = {}) {
     const host = options ? options.host : args[1];
     const port = options ? options.port : first;
     if (!['127.0.0.1', '::1'].includes(host) ||
-        !(typeof port === 'number' || (typeof port === 'string' && /^\\d+$/.test(port))) ||
+        !(typeof port === 'number' || (typeof port === 'string' && /^\d+$/.test(port))) ||
         !Number.isInteger(Number(port)) || Number(port) < 0 || Number(port) > 65535) {
       throw new Error('Dadyar development API requires an explicit loopback TCP listener.');
     }
