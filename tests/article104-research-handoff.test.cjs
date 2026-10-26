@@ -33,9 +33,9 @@ test('unverified source, effective date and human review stay explicitly unset',
 });
 
 test('temporal advisory leads are explicitly secondary and cannot promote release coverage', () => {
-  assert.equal(handoff.interpretiveLeads.length, 2);
+  assert.equal(handoff.interpretiveLeads.length, 3);
   const numbers = handoff.interpretiveLeads.map(lead => lead.reportedOpinionNumber).sort();
-  assert.deepEqual(numbers, ['7/1403/319', '7/1403/752']);
+  assert.deepEqual(numbers, ['7/1403/319', '7/1403/332', '7/1403/752']);
   for (const lead of handoff.interpretiveLeads) {
     assert.equal(lead.status, 'unverified-secondary');
     assert.match(lead.kind, /secondary/);
@@ -62,4 +62,20 @@ test('April parliamentary draft is not mistaken for the May enacted Article 104 
   assert.equal(handoff.officialTextUrl, null);
   assert.equal(handoff.effectiveDate, null);
   assert.equal(handoff.humanReviewer, null);
+});
+
+test('newer temporal opinion remains an unverified lead and primary retrieval stays blocked', () => {
+  const lead = handoff.interpretiveLeads.find(item => item.reportedOpinionNumber === '7/1403/332');
+  assert.ok(lead);
+  assert.equal(lead.reportedDateJalali, '1404/10/30');
+  assert.equal(lead.status, 'unverified-secondary');
+  assert.match(lead.researchQuestion, /original judiciary text/);
+  assert.equal(handoff.officialRetrievalStatus.checkedAt, '2026-10-26');
+  assert.equal(handoff.officialRetrievalStatus.status, 'primary-document-not-retrieved');
+  assert.ok(handoff.officialRetrievalStatus.portalsSearched.includes('qavanin.ir'));
+  assert.ok(handoff.officialRetrievalStatus.requiredNextEvidence.length >= 3);
+  for (const key of ['officialTextUrl', 'officialDocumentId', 'officialPublicationDate',
+    'effectiveDate', 'amendmentsCheckedAt', 'humanReviewer']) {
+    assert.equal(handoff[key], null, key + ' must remain unverified');
+  }
 });
