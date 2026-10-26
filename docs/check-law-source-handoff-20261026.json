@@ -39,7 +39,8 @@
     "Verify primary official gazette publication and effective dates separately from approval dates, including transitional provisions for issuance, delivery and Sayad registration.",
     "Verify the current effect of articles 4, 5, 11, 13, 14, 21 bis and 23 for specific scenarios without deriving an automatic civil/criminal eligibility conclusion from one interview answer.",
     "Cross-check the official qavanin document against parliamentary and official gazette publications; prior parliamentary links timed out on 2026-10-26.",
-    "Record qualified reviewer identity, review date, exact official text version, amendment review and written sign-off before exposing legal conclusions or counting v1 legal coverage."
+    "Record qualified reviewer identity, review date, exact official text version, amendment review and written sign-off before exposing legal conclusions or counting v1 legal coverage.",
+    "Verify each subsequent amendment's own official-gazette number, publication date, effective date and transitional rules; do not reuse the original law's 1355/06/04 effective date for amendments."
   ],
   "officialTextObservation": {
     "retrievedAt": "2026-10-27",
@@ -79,5 +80,19 @@
     ],
     "scope": "Observed article headings and selected amendment labels on official HTML page; not a verified amendment history, publication date, effective date, or legal opinion.",
     "sourceContentCopied": false
+  },
+  "originalLawMetadataObservation": {
+    "retrievedAt": "2026-10-27",
+    "source": "primary-official-qavanin-attribute",
+    "officialAttributeUrl": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
+    "approvalDateShown": "1355/04/16",
+    "promulgationDateShown": "1355/05/09",
+    "originalGazetteNumberShown": "9210",
+    "originalGazetteDateShown": "1355/05/19",
+    "originalEffectiveDateShown": "1355/06/04",
+    "lastStatusShown": "اصلاحي 1403/03/30",
+    "scope": "These are metadata displayed for the original 1355 law and the portal's latest-status label, not independent evidence of publication or effective dates of the 1397, 1400, 1403 or later amendments.",
+    "amendmentEffectiveDatesVerified": false,
+    "releaseSourceEligible": false
   }
 }
