@@ -32,6 +32,15 @@ jobs:
         run: node --test tests/*.test.cjs
       - name: Audit v1 release blockers (informational; never deploy)
         run: node scripts/check-v1-readiness.cjs
+      - name: Assert unapproved v1 stays blocked (experimental only)
+        run: |
+          # Expected failure is a safeguard, not a claim of release readiness.
+          set +e
+          node scripts/check-v1-readiness.cjs --enforce > /tmp/dadyar-v1-audit.json
+          code=$?
+          set -e
+          test "$code" -eq 1
+          node -e 'const a=require("/tmp/dadyar-v1-audit.json"); if(a.status!=="NOT_READY" || a.uncheckedGates<1 || !Array.isArray(a.issues) || !a.issues.length) process.exit(1)'
       # Run a real Chrome session against the local development API.
       # Fail closed if Chrome is absent; this is a release gate, not a mock.
       - name: Real headless browser smoke test
