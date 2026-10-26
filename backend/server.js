@@ -60,6 +60,17 @@ function isLoopbackPeer(address) {
 // Require an explicit local Host and reject cross-origin browser requests.
 function isLocalRequest(req) {
   if (!isLoopbackPeer(req.socket.remoteAddress)) return false;
+  // Node normally exposes only the first Host header in req.headers.host.
+  // Reject duplicate raw Host fields to prevent ambiguous local-origin checks.
+  // Unit-test request stubs may omit rawHeaders; live HTTP requests include it.
+  if (Array.isArray(req.rawHeaders)) {
+    let hostFields = 0;
+    for (let i = 0; i < req.rawHeaders.length; i += 2) {
+      if (typeof req.rawHeaders[i] === 'string' &&
+          req.rawHeaders[i].toLowerCase() === 'host') hostFields++;
+    }
+    if (hostFields !== 1) return false;
+  }
   const host = req.headers.host || '';
   const match = /^(?:localhost|127\.0\.0\.1|\[::1\])(?::(\d{1,5}))?$/i.exec(host);
   if (!match) return false;
