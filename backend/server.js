@@ -141,9 +141,16 @@ function createServer(options = {}) {
   return server;
 }
 if (require.main === module) {
-  // Intentionally loopback-only; a public deployment needs auth, rate limiting,
-  // TLS, threat modeling, audit, gateway rate limiting, and secure persistence decisions.
-  const port = Number(process.env.PORT || 8787);
-  createServer().listen(port, '127.0.0.1', () => console.log('Dadyar development API listening on loopback port ' + port));
+  // Fail closed if this development-only entrypoint is launched as production.
+  // This is not a substitute for authentication or a deployment security review.
+  if (process.env.NODE_ENV === 'production') {
+    console.error('Dadyar development API refuses production mode; no listener started.');
+    process.exitCode = 1;
+  } else {
+    // Intentionally loopback-only; a public deployment needs auth, rate limiting,
+    // TLS, threat modeling, audit, gateway rate limiting, and secure persistence decisions.
+    const port = Number(process.env.PORT || 8787);
+    createServer().listen(port, '127.0.0.1', () => console.log('Dadyar development API listening on loopback port ' + port));
+  }
 }
 module.exports = { createServer, handle, isLocalRequest, isSameOriginFetch, isLoopbackPeer };
