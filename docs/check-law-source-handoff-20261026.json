@@ -2,15 +2,15 @@
   "schemaVersion": 1,
   "topic": "check",
   "status": "research-only",
-  "observedAt": "2026-10-26",
-  "warning": "Candidate URLs were discovered but official consolidated legal text was not retrieved. No amendment status, effective date, or legal interpretation is verified. Never display as authoritative or count toward v1 source coverage.",
+  "observedAt": "2026-10-27",
+  "warning": "Primary-source HTML law text was retrieved on 2026-10-27, but amendment completeness, publication and effective dates, currentness and human legal review are not yet verified. This research record must not count toward v1 legal source coverage.",
   "candidateOfficialDocument": {
     "url": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
     "discoveredFrom": "https://hoghogh.ai/laws/%D9%82%D8%A7%D9%86%D9%88%D9%86-%D8%B5%D8%AF%D9%88%D8%B1-%DA%86%DA%A9/1",
     "discoveryType": "secondary-source-link",
-    "observedResult": "transfer-placeholder-only",
-    "officialTextRetrieved": false,
-    "documentIdConfirmedFromOfficialText": false
+    "observedResult": "official-html-text-retrieved",
+    "officialTextRetrieved": true,
+    "documentIdConfirmedFromOfficialText": true
   },
   "parliamentaryCrossChecks": [
     {
@@ -26,7 +26,7 @@
       "officialTextRetrieved": false
     }
   ],
-  "officialTextUrl": null,
+  "officialTextUrl": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
   "officialPublicationDate": null,
   "effectiveDate": null,
   "currentConsolidatedTextVerifiedAt": null,
@@ -35,10 +35,49 @@
   "humanReviewedAt": null,
   "releaseSourceEligible": false,
   "reviewQuestions": [
-    "Open the candidate qavanin document in a browser capable of completing its transfer and capture the actual law title, full text and stable official identifier.",
-    "Cross-check the law and amendment history, including 1397, 1400 and any subsequent changes, against primary official publications rather than secondary summaries.",
-    "Confirm effective dates separately from approval and promulgation dates; check whether transitional provisions affect the cheque's issuance and transfer dates.",
-    "Check the current legal status of Sayad registration, return certificates, possible execution and criminal/civil routes without inferring a conclusion from a single interview answer.",
-    "Record qualified reviewer identity, date, exact primary text version and written sign-off before enabling user-facing legal citation."
-  ]
+    "Independently cross-check the consolidated official page and its amendment history, including the displayed 1397, 1400 and 1403 article dates and any later amendments.",
+    "Verify primary official gazette publication and effective dates separately from approval dates, including transitional provisions for issuance, delivery and Sayad registration.",
+    "Verify the current effect of articles 4, 5, 11, 13, 14, 21 bis and 23 for specific scenarios without deriving an automatic civil/criminal eligibility conclusion from one interview answer.",
+    "Cross-check the official qavanin document against parliamentary and official gazette publications; prior parliamentary links timed out on 2026-10-26.",
+    "Record qualified reviewer identity, review date, exact official text version, amendment review and written sign-off before exposing legal conclusions or counting v1 legal coverage."
+  ],
+  "officialTextObservation": {
+    "retrievedAt": "2026-10-27",
+    "source": "primary-official-qavanin",
+    "retrievalFormat": "HTML-visible-law-text",
+    "lawTitleShown": "قانون صدور چك",
+    "approvalDateShown": "1355/04/16",
+    "amendmentDatesDisplayed": [
+      {
+        "article": "4",
+        "date": "1397/08/13"
+      },
+      {
+        "article": "5",
+        "date": "1397/08/13"
+      },
+      {
+        "article": "6",
+        "date": "1400/01/29"
+      },
+      {
+        "article": "7",
+        "date": "1403/03/30"
+      },
+      {
+        "article": "21 مکرر، تبصره 1",
+        "date": "1400/01/29"
+      },
+      {
+        "article": "23",
+        "date": "1397/08/13"
+      },
+      {
+        "article": "24",
+        "date": "1400/01/29"
+      }
+    ],
+    "scope": "Observed article headings and selected amendment labels on official HTML page; not a verified amendment history, publication date, effective date, or legal opinion.",
+    "sourceContentCopied": false
+  }
 }
