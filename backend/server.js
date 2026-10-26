@@ -143,6 +143,24 @@ function createServer(options = {}) {
   const server = http.createServer({ maxHeaderSize: 8 * 1024 }, (req, res) => handle(req, res, allow));
   server.requestTimeout = 10_000;
   server.headersTimeout = 5_000;
+  // A caller importing createServer() must not be able to accidentally
+  // expose the unauthenticated development service by choosing 0.0.0.0,
+  // ::, an omitted host, a Unix socket or a pre-bound handle.
+  // Require an explicit numeric TCP port and literal loopback address.
+  const nativeListen = server.listen;
+  server.listen = function (...args) {
+    const first = args[0];
+    const options = first && typeof first === 'object' && !Array.isArray(first)
+      ? first : null;
+    const host = options ? options.host : args[1];
+    const port = options ? options.port : first;
+    if (!['127.0.0.1', '::1'].includes(host) ||
+        !(typeof port === 'number' || (typeof port === 'string' && /^\\d+$/.test(port))) ||
+        !Number.isInteger(Number(port)) || Number(port) < 0 || Number(port) > 65535) {
+      throw new Error('Dadyar development API requires an explicit loopback TCP listener.');
+    }
+    return nativeListen.apply(this, args);
+  };
   return server;
 }
 if (require.main === module) {
