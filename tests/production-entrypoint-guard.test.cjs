@@ -48,3 +48,34 @@ test('imported development API factory refuses NODE_ENV=production', () => {
   assert.equal(run.stdout, 'blocked');
   assert.equal(run.stderr, '');
 });
+
+test('pre-created development API refuses binding after a switch to production', () => {
+  const entrypoint = path.resolve(__dirname, '../backend/server.js');
+  const probe = [
+    'const { createServer } = require(' + JSON.stringify(entrypoint) + ');',
+    'const server = createServer();',
+    'process.env.NODE_ENV = "production";',
+    'try {',
+    '  server.listen(0, "127.0.0.1");',
+    '  server.close();',
+    '  process.stderr.write("unexpected production listener");',
+    '  process.exit(3);',
+    '} catch (error) {',
+    '  if (!/refuses production mode; no listener started/i.test(String(error.message))) {',
+    '    process.stderr.write("unexpected bind error");',
+    '    process.exit(2);',
+    '  }',
+    '  if (server.listening) process.exit(4);',
+    '  process.stdout.write("blocked");',
+    '}',
+  ].join('\\n');
+  const run = spawnSync(process.execPath, ['-e', probe], {
+    env: { ...process.env, NODE_ENV: 'development', PORT: '0' },
+    encoding: 'utf8',
+    timeout: 4000,
+  });
+  if (run.error) throw run.error;
+  assert.equal(run.status, 0, 'late production switch must not open a listener');
+  assert.equal(run.stdout, 'blocked');
+  assert.equal(run.stderr, '');
+});
