@@ -133,6 +133,11 @@ function handle(req, res, allow = () => true) {
   req.on('error', () => { if (!res.headersSent) send(res, 400, { error: 'bad_request' }); });
 }
 function createServer(options = {}) {
+  // Also protect importers: a production entrypoint could require this module
+  // and call createServer() directly, bypassing the CLI-only guard below.
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Dadyar development API refuses production mode; no listener started.');
+  }
   const allow = createRateLimiter(options.rateLimit);
   // Cap header bytes before request handling to limit oversized-header abuse.
   const server = http.createServer({ maxHeaderSize: 8 * 1024 }, (req, res) => handle(req, res, allow));
