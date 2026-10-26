@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "topic": "check",
+  "status": "research-only",
+  "observedAt": "2026-10-26",
+  "warning": "Candidate URLs were discovered but official consolidated legal text was not retrieved. No amendment status, effective date, or legal interpretation is verified. Never display as authoritative or count toward v1 source coverage.",
+  "candidateOfficialDocument": {
+    "url": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
+    "discoveredFrom": "https://hoghogh.ai/laws/%D9%82%D8%A7%D9%86%D9%88%D9%86-%D8%B5%D8%AF%D9%88%D8%B1-%DA%86%DA%A9/1",
+    "discoveryType": "secondary-source-link",
+    "observedResult": "transfer-placeholder-only",
+    "officialTextRetrieved": false,
+    "documentIdConfirmedFromOfficialText": false
+  },
+  "parliamentaryCrossChecks": [
+    {
+      "url": "https://rc.majlis.ir/fa/law/show/92322",
+      "purpose": "Compare reported original/earlier amendment text",
+      "observedResult": "request-timeout",
+      "officialTextRetrieved": false
+    },
+    {
+      "url": "https://rc.majlis.ir/fa/law/show/1091223",
+      "purpose": "Compare reported 1397 amendment text",
+      "observedResult": "request-timeout",
+      "officialTextRetrieved": false
+    }
+  ],
+  "officialTextUrl": null,
+  "officialPublicationDate": null,
+  "effectiveDate": null,
+  "currentConsolidatedTextVerifiedAt": null,
+  "amendmentsCheckedAt": null,
+  "humanReviewer": null,
+  "humanReviewedAt": null,
+  "releaseSourceEligible": false,
+  "reviewQuestions": [
+    "Open the candidate qavanin document in a browser capable of completing its transfer and capture the actual law title, full text and stable official identifier.",
+    "Cross-check the law and amendment history, including 1397, 1400 and any subsequent changes, against primary official publications rather than secondary summaries.",
+    "Confirm effective dates separately from approval and promulgation dates; check whether transitional provisions affect the cheque's issuance and transfer dates.",
+    "Check the current legal status of Sayad registration, return certificates, possible execution and criminal/civil routes without inferring a conclusion from a single interview answer.",
+    "Record qualified reviewer identity, date, exact primary text version and written sign-off before enabling user-facing legal citation."
+  ]
+}
