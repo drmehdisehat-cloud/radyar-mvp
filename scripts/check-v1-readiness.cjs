@@ -16,7 +16,19 @@ const issues = [];
 const expected = ['theft', 'fraud', 'check', 'debt', 'divorce', 'mehrieh'];
 // Stale link checks and legal reviews are not current release evidence.
 // This is a mechanical freshness threshold, not proof of legal validity.
+const today = new Date().toISOString().slice(0, 10);
 const freshnessCutoff = new Date(Date.now() - 180 * 86400000).toISOString().slice(0, 10);
+// Verify calendar dates independently of UI helper functions. A mock or a
+// changed client-side validator must never make future/invalid evidence pass.
+function validEvidenceDate(value) {
+  if (typeof value !== 'string' || !/^\\d{4}-\\d{2}-\\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day &&
+    value <= today;
+}
 let sourced = 0;
 let reviewed = 0;
 try {
@@ -32,6 +44,10 @@ try {
   for (const id of actual) if (!expected.includes(id)) issues.push('unexpected_topic:' + id);
   for (const topic of topics) {
     if (!topic.source) { issues.push('missing_legal_source:' + topic.id); continue; }
+    if (!validEvidenceDate(topic.source.checked)) {
+      issues.push('invalid_source_check_date:' + topic.id);
+      continue;
+    }
     context.candidate = topic.source;
     if (vm.runInContext('safeLawSource(candidate)', context, { timeout: 1000 }) !== true) {
       issues.push('unsafe_source_metadata:' + topic.id);
@@ -51,7 +67,7 @@ try {
     }
     sourced++;
     const review = topic.source.legalReview;
-    const dateOk = date => typeof date === 'string' &&
+    const dateOk = date => validEvidenceDate(date) &&
       vm.runInContext('validReviewDate(candidate)', Object.assign(context, { candidate: date }), { timeout: 1000 }) === true;
     if (!review || !dateOk(review.effectiveDate) || !dateOk(review.reviewedAt) ||
         typeof review.reviewer !== 'string' || !review.reviewer.trim() ||
