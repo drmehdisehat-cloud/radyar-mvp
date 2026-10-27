@@ -76,7 +76,22 @@
         "secondarySourceUrl": "https://www.ekhtebar.ir/اصلاح-میزان-مبالغ-مربوط-به-جرایم-و-تخلف/",
         "secondaryEvidenceScope": "Reported cabinet decision and appendix table row 42 for article 7 of the Cheque Issuance Act; not official-gazette or commencement evidence.",
         "officialGazetteAndTemporalEffectVerified": false,
-        "approvedForLegalConclusions": false
+        "approvedForLegalConclusions": false,
+        "publicationResearchLead": {
+          "checkedAt": "2026-10-27",
+          "status": "secondary-reported-primary-unverified",
+          "reportedOfficialGazetteNumber": "23097",
+          "reportedOfficialGazetteDate": "1403/04/23",
+          "reportedEffectiveDate": "1403/05/07",
+          "supportingSecondaryUrls": [
+            "https://nourlaw.com/iran-increases-the-fines-and-penalty-amounts-related-to-the-crimes-and-violations-listed-in-various-laws/",
+            "https://www.dadmanlawyers.com/زمان-اجرای-مبالغ-جدید-جزای-نقدی-جرایم-و/"
+          ],
+          "primaryGazetteIssueRetrieved": false,
+          "appendixRow42PrimaryVerified": false,
+          "effectiveDateIndependentlyVerified": false,
+          "warning": "Both dates and issue number are secondary research leads, not official-gazette evidence. One secondary English article inconsistently converts 23 Tir 1403 to June 24 2024; do not use its Gregorian date. Retrieve issue 23097 and the complete signed appendix, check subsequent corrections and Article 28 commencement/temporal scope, and obtain qualified human review before any case-specific conclusion."
+        }
       }
     }
   ],
