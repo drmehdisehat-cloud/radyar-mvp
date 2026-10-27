@@ -48,3 +48,30 @@ test('1397, 1400 and 1403 amendment dates cannot masquerade as commencement date
     }
   }
 });
+
+test('1403 article-7 monetary adjustment is not misclassified as a parliamentary act', () => {
+  const byYear = Object.fromEntries(matrix.amendments.map(item => [item.label, item]));
+  for (const year of ['1397', '1400']) {
+    assert.equal(byYear[year].instrumentType, 'parliamentary-amending-act');
+    assert.equal(byYear[year].instrumentIdentificationStatus, 'primary-instrument-unverified');
+  }
+  const adjustment = byYear['1403'];
+  assert.equal(adjustment.instrumentType, 'executive-monetary-threshold-adjustment-candidate');
+  assert.equal(adjustment.instrumentIdentificationStatus, 'secondary-corroborated-primary-unverified');
+  assert.deepEqual(adjustment.articleLabels, ['7']);
+  const candidate = adjustment.candidateInstrument;
+  assert.equal(candidate.approvalDateReported, '1403/03/30');
+  assert.equal(candidate.notificationDateReported, '1403/04/04');
+  assert.equal(candidate.decisionNumberReported, '56261/ت62298هـ');
+  assert.match(candidate.candidatePrimaryDocumentUrl,
+    /^https:\/\/qavanin\.ir\/Law\/TreeText\/\?IDS=[1-9]\d*$/);
+  assert.match(candidate.secondarySourceUrl, /^https:\/\/www\.ekhtebar\.ir\//);
+  assert.equal(candidate.candidatePrimaryTextRetrieved, false);
+  assert.equal(candidate.officialGazetteAndTemporalEffectVerified, false);
+  assert.equal(candidate.approvedForLegalConclusions, false);
+  assert.equal(adjustment.effectiveDate, null);
+  assert.equal(adjustment.officialGazettePublicationDate, null);
+  assert.equal(matrix.releaseSourceEligible, false);
+  assert.equal(matrix.legalConclusionPermitted, false);
+  assert.match(adjustment.reviewTask, /not classify this as a parliamentary amendment/i);
+});
