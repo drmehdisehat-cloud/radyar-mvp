@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "topic": "check",
+  "status": "research-only",
+  "observedAt": "2026-10-27",
+  "primaryConsolidatedLawUrl": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
+  "originalLawMetadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
+  "originalLawEffectiveDateShown": "1355/06/04",
+  "warning": "The date printed beside an amended article is NOT independent proof of that amendment's official-gazette publication date, commencement date, transitional applicability or current legal effect. This record is not eligible for v1 legal coverage.",
+  "amendments": [
+    {
+      "label": "1397",
+      "articleLabels": [
+        "4",
+        "5",
+        "23"
+      ],
+      "dateShownOnConsolidatedArticles": "1397/08/13",
+      "dateMeaning": "article-amendment-label-only",
+      "officialGazetteNumber": null,
+      "officialGazettePublicationDate": null,
+      "effectiveDate": null,
+      "transitionalApplicabilityVerified": false,
+      "independentPrimaryAmendmentTextVerified": false,
+      "humanReviewer": null,
+      "humanReviewedAt": null,
+      "reviewTask": "Locate and compare the 1397 amending act and official gazette; determine its commencement and any delayed application per article, especially cheque issuance and electronic instruments."
+    },
+    {
+      "label": "1400",
+      "articleLabels": [
+        "6",
+        "21 مکرر، تبصره 1",
+        "24"
+      ],
+      "dateShownOnConsolidatedArticles": "1400/01/29",
+      "dateMeaning": "article-amendment-label-only",
+      "officialGazetteNumber": null,
+      "officialGazettePublicationDate": null,
+      "effectiveDate": null,
+      "transitionalApplicabilityVerified": false,
+      "independentPrimaryAmendmentTextVerified": false,
+      "humanReviewer": null,
+      "humanReviewedAt": null,
+      "reviewTask": "Retrieve the 1400 amending act and gazette independently; verify effective dates and the post-Esfand-1399 cheque-book transition without inferring applicability from the cheque date alone."
+    },
+    {
+      "label": "1403",
+      "articleLabels": [
+        "7"
+      ],
+      "dateShownOnConsolidatedArticles": "1403/03/30",
+      "dateMeaning": "article-amendment-label-only",
+      "officialGazetteNumber": null,
+      "officialGazettePublicationDate": null,
+      "effectiveDate": null,
+      "transitionalApplicabilityVerified": false,
+      "independentPrimaryAmendmentTextVerified": false,
+      "humanReviewer": null,
+      "humanReviewedAt": null,
+      "reviewTask": "Identify the specific legal instrument underlying the 1403 article-7 amounts, its official gazette, commencement and temporal criminal-law treatment; do not auto-apply amounts to earlier conduct."
+    }
+  ],
+  "releaseSourceEligible": false,
+  "legalConclusionPermitted": false
+}
