@@ -29,7 +29,7 @@ test('1397, 1400 and 1403 amendment dates cannot masquerade as commencement date
   assert.deepEqual(matrix.amendments.map(a => a.label), ['1397', '1400', '1403']);
   for (const amendment of matrix.amendments) {
     assert.equal(amendment.dateMeaning, 'article-amendment-label-only');
-    assert.match(amendment.dateShownOnConsolidatedArticles, /^14\d{2}\/\d{2}\/\d{2}$/);
+    assert.match(amendment.dateShownOnConsolidatedArticles, /^1[34]\d{2}\/\d{2}\/\d{2}$/);
     assert.ok(amendment.articleLabels.length >= 1);
     assert.ok(amendment.reviewTask.length > 40);
     assert.equal(amendment.independentPrimaryAmendmentTextVerified, false);
