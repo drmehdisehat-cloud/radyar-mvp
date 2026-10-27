@@ -6,7 +6,7 @@
   "primaryConsolidatedLawUrl": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
   "originalLawMetadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
   "originalLawEffectiveDateShown": "1355/06/04",
-  "warning": "The date printed beside an amended article is NOT independent proof of that amendment's official-gazette publication date, commencement date, transitional applicability or current legal effect. This record is not eligible for v1 legal coverage.",
+  "warning": "The date printed beside an article is NOT independent proof of the governing instrument's official-gazette publication, commencement, transitional applicability, or current legal effect. The 1403 article-7 monetary adjustment appears to arise from a Council of Ministers resolution, NOT a parliamentary amendment to the Cheque Issuance Act; primary instrument and temporal effect remain unverified. This record is not eligible for v1 legal coverage.",
   "amendments": [
     {
       "label": "1397",
@@ -24,7 +24,9 @@
       "independentPrimaryAmendmentTextVerified": false,
       "humanReviewer": null,
       "humanReviewedAt": null,
-      "reviewTask": "Locate and compare the 1397 amending act and official gazette; determine its commencement and any delayed application per article, especially cheque issuance and electronic instruments."
+      "reviewTask": "Locate and compare the 1397 amending act and official gazette; determine its commencement and any delayed application per article, especially cheque issuance and electronic instruments.",
+      "instrumentType": "parliamentary-amending-act",
+      "instrumentIdentificationStatus": "primary-instrument-unverified"
     },
     {
       "label": "1400",
@@ -42,7 +44,9 @@
       "independentPrimaryAmendmentTextVerified": false,
       "humanReviewer": null,
       "humanReviewedAt": null,
-      "reviewTask": "Retrieve the 1400 amending act and gazette independently; verify effective dates and the post-Esfand-1399 cheque-book transition without inferring applicability from the cheque date alone."
+      "reviewTask": "Retrieve the 1400 amending act and gazette independently; verify effective dates and the post-Esfand-1399 cheque-book transition without inferring applicability from the cheque date alone.",
+      "instrumentType": "parliamentary-amending-act",
+      "instrumentIdentificationStatus": "primary-instrument-unverified"
     },
     {
       "label": "1403",
@@ -58,7 +62,22 @@
       "independentPrimaryAmendmentTextVerified": false,
       "humanReviewer": null,
       "humanReviewedAt": null,
-      "reviewTask": "Identify the specific legal instrument underlying the 1403 article-7 amounts, its official gazette, commencement and temporal criminal-law treatment; do not auto-apply amounts to earlier conduct."
+      "reviewTask": "Independently retrieve the 1403 Council of Ministers monetary-threshold adjustment (reported decision 56261/ت62298هـ, approved 1403/03/30), verify appendix row 42 for cheque article 7 against primary official text and official gazette, then determine commencement, any subsequent adjustments and temporal criminal-law treatment. Do not classify this as a parliamentary amendment or auto-apply monetary thresholds to earlier conduct.",
+      "instrumentType": "executive-monetary-threshold-adjustment-candidate",
+      "instrumentIdentificationStatus": "secondary-corroborated-primary-unverified",
+      "candidateInstrument": {
+        "authority": "Council of Ministers (reported; verify official instrument)",
+        "approvalDateReported": "1403/03/30",
+        "notificationDateReported": "1403/04/04",
+        "decisionNumberReported": "56261/ت62298هـ",
+        "reportedLegalBasis": "Article 28 of the Islamic Penal Code",
+        "candidatePrimaryDocumentUrl": "https://qavanin.ir/Law/TreeText/?IDS=634882870797924421",
+        "candidatePrimaryTextRetrieved": false,
+        "secondarySourceUrl": "https://www.ekhtebar.ir/اصلاح-میزان-مبالغ-مربوط-به-جرایم-و-تخلف/",
+        "secondaryEvidenceScope": "Reported cabinet decision and appendix table row 42 for article 7 of the Cheque Issuance Act; not official-gazette or commencement evidence.",
+        "officialGazetteAndTemporalEffectVerified": false,
+        "approvedForLegalConclusions": false
+      }
     }
   ],
   "releaseSourceEligible": false,
