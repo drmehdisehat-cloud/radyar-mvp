@@ -57,7 +57,7 @@ test('1403 article-7 monetary adjustment is not misclassified as a parliamentary
   }
   const adjustment = byYear['1403'];
   assert.equal(adjustment.instrumentType, 'executive-monetary-threshold-adjustment-candidate');
-  assert.equal(adjustment.instrumentIdentificationStatus, 'secondary-corroborated-primary-unverified');
+  assert.equal(adjustment.instrumentIdentificationStatus, 'primary-portal-text-observed-gazette-unverified');
   assert.deepEqual(adjustment.articleLabels, ['7']);
   const candidate = adjustment.candidateInstrument;
   assert.equal(candidate.approvalDateReported, '1403/03/30');
@@ -66,7 +66,17 @@ test('1403 article-7 monetary adjustment is not misclassified as a parliamentary
   assert.match(candidate.candidatePrimaryDocumentUrl,
     /^https:\/\/qavanin\.ir\/Law\/TreeText\/\?IDS=[1-9]\d*$/);
   assert.match(candidate.secondarySourceUrl, /^https:\/\/www\.ekhtebar\.ir\//);
-  assert.equal(candidate.candidatePrimaryTextRetrieved, false);
+  assert.equal(candidate.candidatePrimaryTextRetrieved, true);
+  assert.equal(candidate.primaryTextObservation.sourceType, 'official-qavanin-portal-consolidated-text');
+  assert.equal(candidate.primaryTextObservation.observedAt, '2026-10-28');
+  assert.equal(candidate.primaryTextObservation.appendix, 'پیوست ۱، ردیف ۴۲، قانون صدور چک، ماده ۷');
+  assert.deepEqual(candidate.primaryTextObservation.thresholdsIRR, {
+    article7A: '780000000', article7BLower: '780000000',
+    article7BUpper: '3900000000', article7C: '3900000000'
+  });
+  assert.equal(candidate.primaryTextObservation.officialGazettePublicationVerified, false);
+  assert.equal(candidate.primaryTextObservation.legalCommencementVerified, false);
+  assert.equal(candidate.primaryTextObservation.humanLegalReview, false);
   assert.equal(candidate.officialGazetteAndTemporalEffectVerified, false);
   assert.equal(candidate.approvedForLegalConclusions, false);
   assert.equal(adjustment.effectiveDate, null);
