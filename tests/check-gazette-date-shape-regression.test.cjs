@@ -54,13 +54,13 @@ test('invalid or wrong-calendar effective dates retain commencement gap', () => 
   }
 });
 
-test('commencement before gazette publication is flagged as an inconsistent research claim', () => {
-  const impossible = [
+test('pre-publication commencement requires further research without legal conclusions', () => {
+  const needsReview = [
     { officialGazettePublicationDate: '1403/04/23', effectiveDate: '1403/04/22' },
     { officialGazettePublicationDate: '1403/01/01', effectiveDate: '1402/12/29' },
     { officialGazettePublicationDate: '1403/05/01', effectiveDate: '1403/04/31' }
   ];
-  for (const fields of impossible) {
+  for (const fields of needsReview) {
     assert.ok(gaps(fields).includes('verified_effective_date'), JSON.stringify(fields));
   }
   // Same-day or later commencement is merely structurally consistent.
