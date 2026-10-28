@@ -13,9 +13,12 @@ const fixture = {
     officialGazettePublicationDate: null, effectiveDate: null,
     transitionalApplicabilityVerified: false, humanReviewer: null, humanReviewedAt: null,
     candidateInstrument: { candidatePrimaryTextRetrieved: true,
+      candidatePrimaryDocumentUrl: 'https://qavanin.ir/Law/TreeText/?IDS=634882870797924421',
       publicationResearchLead: { primaryGazetteIssueRetrieved: false,
         effectiveDateIndependentlyVerified: false },
-      primaryTextObservation: { subsequentAmendmentsChecked: false } } }]
+      primaryTextObservation: { url: 'https://qavanin.ir/Law/TreeText/?IDS=634882870797924421',
+          sourceType: 'official-qavanin-portal-consolidated-text',
+          observedAt: '2026-10-28', subsequentAmendmentsChecked: false } } }]
 };
 
 test('1403 primary portal text does not erase gazette and temporal gaps', () => {

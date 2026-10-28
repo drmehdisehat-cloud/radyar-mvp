@@ -12,8 +12,24 @@ function audit(matrix) {
   const instruments = matrix.amendments.map(item => {
     const gaps = [];
     const candidate = item.candidateInstrument;
-    if (item.independentPrimaryAmendmentTextVerified !== true &&
-        !(candidate && candidate.candidatePrimaryTextRetrieved === true)) {
+    // A boolean claiming that primary text was retrieved is not evidence by
+    // itself. Require a dated observation linked to the same direct official
+    // document. This still does NOT verify the gazette or legal effect.
+    const observation = candidate && candidate.primaryTextObservation;
+    const primaryUrl = candidate && candidate.candidatePrimaryDocumentUrl;
+    const observationDate = observation && observation.observedAt;
+    const observedDateValid = typeof observationDate === 'string' &&
+      /^\\d{4}-\\d{2}-\\d{2}$/.test(observationDate) &&
+      !Number.isNaN(Date.parse(observationDate)) &&
+      new Date(observationDate).toISOString().slice(0, 10) === observationDate &&
+      observationDate <= new Date().toISOString().slice(0, 10);
+    const candidatePrimaryEvidence = candidate && candidate.candidatePrimaryTextRetrieved === true &&
+      typeof primaryUrl === 'string' &&
+      /^https:\/\/qavanin\\.ir\/Law\/TreeText\/\\?IDS=[1-9]\\d*$/i.test(primaryUrl) &&
+      observation && observation.url === primaryUrl &&
+      observation.sourceType === 'official-qavanin-portal-consolidated-text' &&
+      observedDateValid;
+    if (item.independentPrimaryAmendmentTextVerified !== true && !candidatePrimaryEvidence) {
       gaps.push('independent_primary_instrument');
     }
     const lead = candidate && candidate.publicationResearchLead;

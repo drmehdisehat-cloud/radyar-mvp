@@ -11,8 +11,11 @@ function candidate(lead) {
       effectiveDate: '1403/05/07', transitionalApplicabilityVerified: true,
       humanReviewer: 'Example reviewer', humanReviewedAt: '2026-10-28',
       candidateInstrument: { candidatePrimaryTextRetrieved: true,
+      candidatePrimaryDocumentUrl: 'https://qavanin.ir/Law/TreeText/?IDS=634882870797924421',
         ...(lead === undefined ? {} : { publicationResearchLead: lead }),
-        primaryTextObservation: { subsequentAmendmentsChecked: true } } }] };
+        primaryTextObservation: { url: 'https://qavanin.ir/Law/TreeText/?IDS=634882870797924421',
+          sourceType: 'official-qavanin-portal-consolidated-text',
+          observedAt: '2026-10-28', subsequentAmendmentsChecked: true } } }] };
 }
 
 test('missing candidate research lead never counts as gazette or commencement verification', () => {
