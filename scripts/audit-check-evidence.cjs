@@ -19,13 +19,13 @@ function audit(matrix) {
     const primaryUrl = candidate && candidate.candidatePrimaryDocumentUrl;
     const observationDate = observation && observation.observedAt;
     const observedDateValid = typeof observationDate === 'string' &&
-      /^\\d{4}-\\d{2}-\\d{2}$/.test(observationDate) &&
+      /^\d{4}-\d{2}-\d{2}$/.test(observationDate) &&
       !Number.isNaN(Date.parse(observationDate)) &&
       new Date(observationDate).toISOString().slice(0, 10) === observationDate &&
       observationDate <= new Date().toISOString().slice(0, 10);
     const candidatePrimaryEvidence = candidate && candidate.candidatePrimaryTextRetrieved === true &&
       typeof primaryUrl === 'string' &&
-      /^https:\/\/qavanin\\.ir\/Law\/TreeText\/\\?IDS=[1-9]\\d*$/i.test(primaryUrl) &&
+      /^https:\/\/qavanin\.ir\/Law\/TreeText\/\?IDS=[1-9]\d*$/i.test(primaryUrl) &&
       observation && observation.url === primaryUrl &&
       observation.sourceType === 'official-qavanin-portal-consolidated-text' &&
       observedDateValid;
