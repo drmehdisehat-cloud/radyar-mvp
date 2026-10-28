@@ -22,7 +22,7 @@ test('cheque amendments are tracked as research, not approved release evidence',
     handoff.originalLawMetadataObservation.officialAttributeUrl);
   assert.equal(matrix.originalLawEffectiveDateShown,
     handoff.originalLawMetadataObservation.originalEffectiveDateShown);
-  assert.match(matrix.warning, /NOT independent proof/i);
+  assert.match(matrix.warning, /NOT independently prove/i);
 });
 
 test('1397, 1400 and 1403 amendment dates cannot masquerade as commencement dates', () => {
