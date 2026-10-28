@@ -37,16 +37,16 @@ function audit(matrix) {
     // reviewer identity verification outside this research inventory.
     const reviewer = typeof item.humanReviewer === 'string'
       ? item.humanReviewer.trim().normalize('NFKC') : '';
-    const reviewerPlaceholder = /^(?:tbd|todo|pending|unknown|n\\/a|test|demo|نامشخص|در انتظار بررسی|بازبین فرضی)$/iu;
+    const reviewerPlaceholder = /^(?:tbd|todo|pending|unknown|n\/a|test|demo|نامشخص|در انتظار بررسی|بازبین فرضی)$/iu;
     const reviewedAt = item.humanReviewedAt;
     const reviewDateValid = typeof reviewedAt === 'string' &&
-      /^\\d{4}-\\d{2}-\\d{2}$/.test(reviewedAt) &&
+      /^\d{4}-\d{2}-\d{2}$/.test(reviewedAt) &&
       !Number.isNaN(Date.parse(reviewedAt)) &&
       new Date(reviewedAt).toISOString().slice(0, 10) === reviewedAt &&
       reviewedAt <= new Date().toISOString().slice(0, 10);
     if (!reviewer || reviewerPlaceholder.test(reviewer) ||
-        !/[\\p{L}]{2}/u.test(reviewer) ||
-        /[\\u0000-\\u001F\\u007F-\\u009F\\u061C\\u200B\\u200E-\\u202E\\u2060-\\u206F\\uFEFF]/u.test(reviewer) ||
+        !/[\p{L}]{2}/u.test(reviewer) ||
+        /[\u0000-\u001F\u007F-\u009F\u061C\u200B\u200E-\u202E\u2060-\u206F\uFEFF]/u.test(reviewer) ||
         !reviewDateValid) gaps.push('human_legal_signoff');
     return { label: String(item.label), instrumentType: item.instrumentType || 'unknown',
       missingEvidence: gaps };
