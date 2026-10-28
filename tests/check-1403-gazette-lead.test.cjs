@@ -15,7 +15,7 @@ test('1403 cheque article-7 gazette lead remains unverified research', () => {
   const instrument = adjustment.candidateInstrument;
   const lead = instrument.publicationResearchLead;
   assert.equal(lead.checkedAt, '2026-10-27');
-  assert.equal(lead.status, 'secondary-reported-primary-unverified');
+  assert.equal(lead.status, 'secondary-reported-gazette-unverified');
   assert.equal(lead.reportedOfficialGazetteNumber, '23097');
   assert.equal(lead.reportedOfficialGazetteDate, '1403/04/23');
   assert.equal(lead.reportedEffectiveDate, '1403/05/07');
@@ -24,12 +24,16 @@ test('1403 cheque article-7 gazette lead remains unverified research', () => {
   for (const url of lead.supportingSecondaryUrls) {
     assert.match(url, /^https:\/\//);
   }
-  assert.match(lead.warning, /secondary research leads/i);
-  assert.match(lead.warning, /Gregorian date/i);
+  assert.match(lead.warning, /secondary leads/i);
+  assert.match(lead.warning, /commencement/i);
   assert.equal(lead.primaryGazetteIssueRetrieved, false);
-  assert.equal(lead.appendixRow42PrimaryVerified, false);
+  assert.equal(lead.appendixRow42PrimaryVerified, true);
   assert.equal(lead.effectiveDateIndependentlyVerified, false);
-  assert.equal(instrument.candidatePrimaryTextRetrieved, false);
+  assert.equal(instrument.candidatePrimaryTextRetrieved, true);
+  assert.equal(instrument.primaryTextObservation.sourceType, 'official-qavanin-portal-consolidated-text');
+  assert.equal(instrument.primaryTextObservation.thresholdsIRR.article7A, '780000000');
+  assert.equal(instrument.primaryTextObservation.thresholdsIRR.article7BUpper, '3900000000');
+  assert.equal(instrument.primaryTextObservation.legalCommencementVerified, false);
   assert.equal(instrument.officialGazetteAndTemporalEffectVerified, false);
   assert.equal(instrument.approvedForLegalConclusions, false);
   assert.equal(adjustment.officialGazetteNumber, null);
