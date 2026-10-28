@@ -16,14 +16,15 @@ function audit(matrix) {
         !(candidate && candidate.candidatePrimaryTextRetrieved === true)) {
       gaps.push('independent_primary_instrument');
     }
+    const lead = candidate && candidate.publicationResearchLead;
+    // Missing research leads never count as proof of publication or commencement.
+    // Positive flags are necessary but do not replace independent legal review.
     if (!item.officialGazetteNumber || !item.officialGazettePublicationDate ||
-        (candidate && candidate.publicationResearchLead &&
-         candidate.publicationResearchLead.primaryGazetteIssueRetrieved !== true)) {
+        (candidate && (!lead || lead.primaryGazetteIssueRetrieved !== true))) {
       gaps.push('primary_official_gazette');
     }
     if (!item.effectiveDate ||
-        (candidate && candidate.publicationResearchLead &&
-         candidate.publicationResearchLead.effectiveDateIndependentlyVerified !== true)) {
+        (candidate && (!lead || lead.effectiveDateIndependentlyVerified !== true))) {
       gaps.push('verified_effective_date');
     }
     if (item.transitionalApplicabilityVerified !== true) gaps.push('transitional_applicability');
