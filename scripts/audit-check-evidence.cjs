@@ -72,6 +72,13 @@ function audit(matrix) {
       portalMetadata.sourceType === 'official-qavanin-portal-instrument-metadata' &&
       typeof primaryUrl === 'string' &&
       portalMetadata.url === primaryUrl.replace('/Law/TreeText/', '/Law/Attribute/');
+    // A present but unbound portal observation cannot silently bypass conflict
+    // checks. These are research gaps, never publication or legal proof.
+    if (portalMetadata && !portalMetadataBound) {
+      gaps.push('unbound_primary_metadata_observation');
+      if (!gaps.includes('primary_official_gazette')) gaps.push('primary_official_gazette');
+      if (!gaps.includes('verified_effective_date')) gaps.push('verified_effective_date');
+    }
     // Portal metadata is a research lead, not gazette proof. A conflicting
     // claimed issue/date must not pass merely by flipping verification flags.
     const portalGazetteNumber = portalMetadataBound && portalMetadata.officialGazetteNumberShown;
