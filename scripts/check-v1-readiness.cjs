@@ -44,6 +44,15 @@ try {
   for (const id of actual) if (!expected.includes(id)) issues.push('unexpected_topic:' + id);
   for (const topic of topics) {
     if (!topic.source) { issues.push('missing_legal_source:' + topic.id); continue; }
+    // Explicit research/draft and release-ineligible markers take precedence
+    // over plausible official URLs, recent dates and reviewer metadata.
+    // This is a negative safeguard, not proof that other sources are approved.
+    if ((Object.hasOwn(topic.source, 'status') && topic.source.status !== 'verified') ||
+        topic.source.releaseSourceEligible === false ||
+        topic.source.legalConclusionPermitted === false) {
+      issues.push('research_only_legal_source:' + topic.id);
+      continue;
+    }
     if (!validEvidenceDate(topic.source.checked)) {
       issues.push('invalid_source_check_date:' + topic.id);
       continue;
