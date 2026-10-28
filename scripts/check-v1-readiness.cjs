@@ -14,6 +14,9 @@ if (rootArg !== -1 && (!args[rootArg + 1] || args[rootArg + 1].startsWith('--'))
 const root = rootArg === -1 ? path.resolve(__dirname, '..') : path.resolve(args[rootArg + 1]);
 const issues = [];
 const expected = ['theft', 'fraud', 'check', 'debt', 'divorce', 'mehrieh'];
+// A reviewer field containing a placeholder is not evidence of a human sign-off.
+// This is a minimal denylist, not identity verification or proof of legal review.
+const PLACEHOLDER_REVIEWER = /^(?:tbd|todo|pending|unknown|n\/a|test|demo|نامشخص|در انتظار بررسی|بازبین فرضی)$/iu;
 // Stale link checks and legal reviews are not current release evidence.
 // This is a mechanical freshness threshold, not proof of legal validity.
 const today = new Date().toISOString().slice(0, 10);
@@ -82,6 +85,7 @@ try {
     if (!review || !dateOk(review.effectiveDate) || !dateOk(review.reviewedAt) ||
         typeof review.reviewer !== 'string' || !review.reviewer.trim() ||
         !/[\p{L}]{2}/u.test(review.reviewer) ||
+        PLACEHOLDER_REVIEWER.test(review.reviewer.trim()) ||
         review.reviewer.length > 120 ||
         /[\u0000-\u001F\u007F-\u009F\u061C\u200B\u200E-\u202E\u2060-\u206F\uFEFF]/u.test(review.reviewer) ||
         !['checked-current', 'checked-amended'].includes(review.amendmentStatus)) {
