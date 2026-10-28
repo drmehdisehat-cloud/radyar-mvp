@@ -95,6 +95,27 @@ function handle(req, res, allow = () => true) {
     return send(res, 503, { error: 'development_api_disabled' });
   }
   if (!isLocalRequest(req)) return send(res, 403, { error: 'local_origin_required' });
+  // Node can silently retain the first Content-Type when duplicate fields are
+  // sent. Reject ambiguous security-sensitive headers before parsing any
+  // payload, even when the normalized req.headers value looks acceptable.
+  if (Array.isArray(req.rawHeaders)) {
+    const sensitive = new Set(['origin', 'sec-fetch-site', 'content-type',
+      'content-encoding', 'content-length', 'transfer-encoding']);
+    const seen = new Set();
+    for (let i = 0; i < req.rawHeaders.length; i += 2) {
+      const name = req.rawHeaders[i];
+      if (typeof name !== 'string') {
+        return send(res, 400, { error: 'ambiguous_request_headers' });
+      }
+      const lower = name.toLowerCase();
+      if (sensitive.has(lower)) {
+        if (seen.has(lower)) {
+          return send(res, 400, { error: 'ambiguous_request_headers' });
+        }
+        seen.add(lower);
+      }
+    }
+  }
   if (req.method === 'GET' && Object.hasOwn(STATIC_FILES, req.url)) {
     return sendStatic(res, req.url);
   }
