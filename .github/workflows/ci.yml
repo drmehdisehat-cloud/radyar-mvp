@@ -1,14 +1,21 @@
-# Stage-0 CI: experimental branch only; no deploy or repository secrets.
+# Stage-0 CI: experimental branch and review PRs only; no deploy or repository secrets.
 name: Dadyar stage-0 experimental CI
 on:
   push:
     branches:
       - dadyar/mvp-sync-028
+  pull_request:
+    branches:
+      - main
+      - dadyar/mvp-sync-028
 permissions:
   contents: read
 jobs:
   verify-existing-frontend:
-    if: github.ref == 'refs/heads/dadyar/mvp-sync-028'
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/dadyar/mvp-sync-028') ||
+      (github.event_name == 'pull_request' &&
+       (github.base_ref == 'main' || github.base_ref == 'dadyar/mvp-sync-028'))
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
