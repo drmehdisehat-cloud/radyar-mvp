@@ -116,3 +116,22 @@ test('numeric-only and single-letter reviewer labels cannot satisfy legal review
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
   }
 });
+
+test('placeholder reviewer labels cannot pass the human legal-review gate', () => {
+  for (const placeholder of ['TBD', 'pending', 'نامشخص', 'در انتظار بررسی', 'بازبین فرضی']) {
+    const dir = fixture(true);
+    try {
+      const file = path.join(dir, 'flows.js');
+      const original = fs.readFileSync(file, 'utf8');
+      assert.ok(original.includes('Synthetic reviewer'));
+      fs.writeFileSync(file, original.replaceAll('Synthetic reviewer', placeholder));
+      const result = run(dir, true);
+      assert.equal(result.status, 1, 'placeholder must block release: ' + placeholder);
+      const audit = JSON.parse(result.stdout);
+      assert.equal(audit.sourceCoverage, '6/6');
+      assert.equal(audit.humanReviewCoverage, '0/6');
+      assert.equal(audit.issues.filter(x =>
+        x.startsWith('missing_human_legal_review:')).length, 6);
+    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+  }
+});
