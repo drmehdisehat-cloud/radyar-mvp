@@ -72,6 +72,20 @@ function audit(matrix) {
       portalMetadata.sourceType === 'official-qavanin-portal-instrument-metadata' &&
       typeof primaryUrl === 'string' &&
       portalMetadata.url === primaryUrl.replace('/Law/TreeText/', '/Law/Attribute/');
+    // Portal metadata is a research lead, not gazette proof. A conflicting
+    // claimed issue/date must not pass merely by flipping verification flags.
+    const portalGazetteNumber = portalMetadataBound && portalMetadata.officialGazetteNumberShown;
+    const portalGazetteDate = portalMetadataBound && portalMetadata.officialGazetteDateShown;
+    const gazetteNumberConflict = nonBlankGazetteNumber(portalGazetteNumber) &&
+      nonBlankGazetteNumber(item.officialGazetteNumber) &&
+      portalGazetteNumber.trim() !== item.officialGazetteNumber.trim();
+    const gazetteDateConflict = plausiblePersianDate(portalGazetteDate) &&
+      plausiblePersianDate(item.officialGazettePublicationDate) &&
+      portalGazetteDate !== item.officialGazettePublicationDate;
+    if (gazetteNumberConflict || gazetteDateConflict) {
+      gaps.push('gazette_source_conflict');
+      if (!gaps.includes('primary_official_gazette')) gaps.push('primary_official_gazette');
+    }
     const portalDate = portalMetadataBound && portalMetadata.effectiveDateShown;
     const secondaryDate = lead && lead.reportedEffectiveDate;
     const reportedDateConflict = plausiblePersianDate(portalDate) &&
