@@ -8,7 +8,7 @@ const path = require('node:path');
 // that a gazette was published or that an enactment is legally effective.
 function plausiblePersianDate(value) {
   if (typeof value !== 'string') return false;
-  const match = /^(\\d{4})\\/(0[1-9]|1[0-2])\\/(0[1-9]|[12]\\d|3[01])$/.exec(value);
+  const match = new RegExp('^([0-9]{4})/(0[1-9]|1[0-2])/([0][1-9]|[12][0-9]|3[01])$').exec(value);
   if (!match) return false;
   const month = Number(match[2]);
   const day = Number(match[3]);
