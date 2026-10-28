@@ -19,6 +19,9 @@ function audit(overrides = {}) {
       title: 'Synthetic source (not legally verified)',
       url: 'https://qavanin.ir/Law/TreeText/?IDS=1',
       checked: today,
+      status: 'verified',
+      releaseSourceEligible: true,
+      legalConclusionPermitted: true,
       legalReview: {
         effectiveDate: '2020-01-01',
         reviewedAt: today,
@@ -122,4 +125,21 @@ test('literal true eligibility flags remain mechanically admissible', () => {
   assert.equal(result.status, 'EVIDENCE_CHECKS_PASSED');
   assert.equal(result.sourceCoverage, '6/6');
   assert.equal(result.humanReviewCoverage, '6/6');
+});
+
+test('missing explicit approval fields cannot be treated as approval', () => {
+  for (const overrides of [
+    { status: undefined },
+    { releaseSourceEligible: undefined },
+    { legalConclusionPermitted: undefined },
+    { status: 'verified', releaseSourceEligible: undefined }
+  ]) {
+    const { exitCode, result } = audit(overrides);
+    assert.equal(exitCode, 1, JSON.stringify(overrides));
+    assert.equal(result.status, 'NOT_READY');
+    assert.equal(result.sourceCoverage, '0/6');
+    assert.equal(result.humanReviewCoverage, '0/6');
+    assert.equal(result.issues.filter(x =>
+      x.startsWith('research_only_legal_source:')).length, 6);
+  }
 });
