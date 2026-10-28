@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "topic": "check",
+  "status": "research-only",
+  "observedAt": "2026-10-28",
+  "officialTextUrl": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
+  "officialMetadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
+  "sourceType": "primary-official-portal-visible-text",
+  "scope": "Visible article amendment labels and original-law metadata only. Not a complete verified legislative history, official-gazette publication of amendments, effective-date analysis or legal opinion.",
+  "originalLawMetadata": {
+    "approvalDateShown": "1355/04/16",
+    "originalGazetteNumberShown": "9210",
+    "originalGazetteDateShown": "1355/05/19",
+    "originalEffectiveDateShown": "1355/06/04",
+    "lastStatusShown": "اصلاحي 1403/03/30",
+    "appliesToAmendments": false
+  },
+  "articles": [
+    {
+      "article": "4",
+      "amendmentLabelShown": "1397/08/13",
+      "reviewTask": "Verify bank refusal certificate tracking code, seal requirements and later amendments.",
+      "amendmentGazetteNumber": null,
+      "amendmentGazettePublishedAt": null,
+      "amendmentEffectiveDate": null,
+      "transitionalRulesVerified": false,
+      "humanReviewedAt": null,
+      "humanReviewer": null,
+      "releaseSourceEligible": false
+    },
+    {
+      "article": "5",
+      "amendmentLabelShown": "1397/08/13",
+      "reviewTask": "Verify partial-payment certificate and unpaid balance treatment under later rules.",
+      "amendmentGazetteNumber": null,
+      "amendmentGazettePublishedAt": null,
+      "amendmentEffectiveDate": null,
+      "transitionalRulesVerified": false,
+      "humanReviewedAt": null,
+      "humanReviewer": null,
+      "releaseSourceEligible": false
+    },
+    {
+      "article": "7",
+      "amendmentLabelShown": "1403/03/30",
+      "reviewTask": "Verify 1403 amendment publication/effective date, transitional applicability and current monetary thresholds; do not compute penalties.",
+      "amendmentGazetteNumber": null,
+      "amendmentGazettePublishedAt": null,
+      "amendmentEffectiveDate": null,
+      "transitionalRulesVerified": false,
+      "humanReviewedAt": null,
+      "humanReviewer": null,
+      "releaseSourceEligible": false
+    },
+    {
+      "article": "11",
+      "amendmentLabelShown": "1372/08/11",
+      "reviewTask": "Verify current criminal complaint timing and first-presenter/transfer exceptions against later enactments.",
+      "amendmentGazetteNumber": null,
+      "amendmentGazettePublishedAt": null,
+      "amendmentEffectiveDate": null,
+      "transitionalRulesVerified": false,
+      "humanReviewedAt": null,
+      "humanReviewer": null,
+      "releaseSourceEligible": false
+    },
+    {
+      "article": "13",
+      "amendmentLabelShown": "1382/06/02",
+      "reviewTask": "Verify conditional, guarantee, blank-signature and post-dated scenarios and evidentiary burden.",
+      "amendmentGazetteNumber": null,
+      "amendmentGazettePublishedAt": null,
+      "amendmentEffectiveDate": null,
+      "transitionalRulesVerified": false,
+      "humanReviewedAt": null,
+      "humanReviewer": null,
+      "releaseSourceEligible": false
+    },
+    {
+      "article": "21bis_note1",
+      "amendmentLabelShown": "1400/01/29",
+      "reviewTask": "Verify Sayad transition by checkbook delivery date and implementation rules, not check issue date alone.",
+      "amendmentGazetteNumber": null,
+      "amendmentGazettePublishedAt": null,
+      "amendmentEffectiveDate": null,
+      "transitionalRulesVerified": false,
+      "humanReviewedAt": null,
+      "humanReviewer": null,
+      "releaseSourceEligible": false
+    },
+    {
+      "article": "23",
+      "amendmentLabelShown": "1397/08/13",
+      "reviewTask": "Verify direct execution prerequisites, exceptions and any later procedural amendments.",
+      "amendmentGazetteNumber": null,
+      "amendmentGazettePublishedAt": null,
+      "amendmentEffectiveDate": null,
+      "transitionalRulesVerified": false,
+      "humanReviewedAt": null,
+      "humanReviewer": null,
+      "releaseSourceEligible": false
+    }
+  ],
+  "amendmentHistoryVerifiedAt": null,
+  "humanReviewedAt": null,
+  "humanReviewer": null,
+  "releaseSourceEligible": false,
+  "nextAction": "Obtain amendment-specific official gazette publications and effective dates, verify transitional rules and later amendments, then obtain signed qualified human legal review before adding any source to flows.js."
+}
