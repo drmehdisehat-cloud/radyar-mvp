@@ -20,6 +20,9 @@ function audit({ checked = today, reviewedAt = today, effectiveDate = '2020-01-0
       title: 'Synthetic legal text',
       url: 'https://qavanin.ir/Law/TreeText/?IDS=1',
       checked,
+      status: 'verified',
+      releaseSourceEligible: true,
+      legalConclusionPermitted: true,
       legalReview: {
         effectiveDate, reviewedAt,
         reviewer: 'Synthetic reviewer', amendmentStatus: 'checked-current'
