@@ -11,7 +11,7 @@ const topics = ['theft', 'fraud', 'check', 'debt', 'divorce', 'mehrieh'];
 function fixture(complete) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-release-gate-'));
   fs.mkdirSync(path.join(dir, 'docs'));
-  const source = complete ? `,source:{title:'قانون ساختگی',url:'https://qavanin.ir/Law/TreeText/?IDS=1',checked:'2026-10-21',legalReview:{effectiveDate:'2020-01-01',reviewedAt:'2026-10-21',reviewer:'Synthetic reviewer',amendmentStatus:'checked-current'}}` : '';
+  const source = complete ? `,source:{title:'قانون ساختگی',url:'https://qavanin.ir/Law/TreeText/?IDS=1',checked:'2026-10-21',status:'verified',releaseSourceEligible:true,legalConclusionPermitted:true,legalReview:{effectiveDate:'2020-01-01',reviewedAt:'2026-10-21',reviewer:'Synthetic reviewer',amendmentStatus:'checked-current'}}` : '';
   fs.writeFileSync(path.join(dir, 'flows.js'),
     `const flows={${topics.map(id => `${id}:{title:'Synthetic'${source}}`).join(',')}};`);
   fs.writeFileSync(path.join(dir, 'export.js'),
