@@ -40,8 +40,10 @@ function audit(matrix) {
   const incomplete = instruments.some(item => item.missingEvidence.length > 0);
   if (matrix.releaseSourceEligible === true && incomplete) errors.push('unsubstantiated_release_source');
   if (matrix.legalConclusionPermitted === true && incomplete) errors.push('unsubstantiated_legal_conclusion');
-  if (matrix.status === 'research-only' &&
-      (matrix.releaseSourceEligible !== false || matrix.legalConclusionPermitted !== false)) {
+  // This script inventories research leads only. A forged "verified" status
+  // must never suppress the release-flag conflict check or make the audit pass.
+  if (matrix.status !== 'research-only') errors.push('invalid_research_status');
+  if (matrix.releaseSourceEligible !== false || matrix.legalConclusionPermitted !== false) {
     errors.push('research_only_conflicts_with_release_flags');
   }
   return { status: errors.length ? 'INCONSISTENT_EVIDENCE' : 'RESEARCH_ONLY',
