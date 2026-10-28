@@ -50,4 +50,6 @@ test('committed evidence stays research-only with concrete gaps for every instru
 test('invalid matrix never becomes ready evidence', () => {
   assert.equal(audit(null).status, 'INVALID_EVIDENCE');
   assert.equal(audit({ topic: 'check' }).status, 'INVALID_EVIDENCE');
+  assert.equal(audit({ topic: 'check', amendments: [] }).status, 'INVALID_EVIDENCE');
+  assert.equal(audit({ topic: 'check', amendments: [null] }).status, 'INVALID_EVIDENCE');
 });
