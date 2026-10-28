@@ -41,7 +41,8 @@ test('malformed official-looking links never count as source coverage', () => {
   const result = audit({ injection: `
     for (const flow of Object.values(flows)) {
       flow.source = { title: 'منبع ساختگی', url: 'https://invalid.example/test',
-        checked: '2026-10-20' };
+        checked: '2026-10-20', status: 'verified',
+        releaseSourceEligible: true, legalConclusionPermitted: true };
     }` });
   assert.equal(result.sourceCoverage, '0/6');
   assert.equal(result.humanReviewCoverage, '0/6');
@@ -52,7 +53,8 @@ test('safe link metadata and checked boxes do not substitute for human legal rev
   const result = audit({ checkBoxes: true, injection: `
     for (const flow of Object.values(flows)) {
       flow.source = { title: 'پیوند آزمایشی', url: 'https://qavanin.ir/Law/TreeText/?IDS=1',
-        checked: '2026-10-20' };
+        checked: '2026-10-20', status: 'verified',
+        releaseSourceEligible: true, legalConclusionPermitted: true };
     }` });
   assert.equal(result.sourceCoverage, '6/6');
   assert.equal(result.humanReviewCoverage, '0/6');
@@ -66,7 +68,8 @@ test('legal reviewer metadata with invisible controls never counts as human revi
     for (const flow of Object.values(flows)) {
       flow.source = {
         title: 'منبع آزمایشی', url: 'https://qavanin.ir/Law/TreeText/?IDS=1',
-        checked: '2026-10-20',
+        checked: '2026-10-20', status: 'verified',
+        releaseSourceEligible: true, legalConclusionPermitted: true,
         legalReview: {
           reviewer: 'بازبین فرضی' + String.fromCharCode(0x202e),
           effectiveDate: '2026-01-01', reviewedAt: '2026-10-19',
@@ -85,7 +88,8 @@ test('oversized reviewer metadata cannot inflate legal review coverage', () => {
     for (const flow of Object.values(flows)) {
       flow.source = {
         title: 'منبع آزمایشی', url: 'https://qavanin.ir/Law/TreeText/?IDS=1',
-        checked: '2026-10-20',
+        checked: '2026-10-20', status: 'verified',
+        releaseSourceEligible: true, legalConclusionPermitted: true,
         legalReview: {
           reviewer: 'X'.repeat(121),
           effectiveDate: '2026-01-01', reviewedAt: '2026-10-19',
@@ -103,7 +107,8 @@ test('official-looking portal homepages never inflate legal source coverage', ()
   const result = audit({ checkBoxes: true, injection: `
     for (const flow of Object.values(flows)) {
       flow.source = { title: 'پیوند درگاه آزمایشی',
-        url: 'https://qavanin.ir/?IDS=1', checked: '2026-10-20' };
+        url: 'https://qavanin.ir/?IDS=1', checked: '2026-10-20', status: 'verified',
+        releaseSourceEligible: true, legalConclusionPermitted: true };
     }` });
   assert.equal(result.sourceCoverage, '0/6');
   assert.equal(result.humanReviewCoverage, '0/6');
@@ -120,7 +125,8 @@ test('nonsemantic reviewer names cannot count as human legal review', () => {
         flow.source = {
           title: 'منبع آزمایشی',
           url: 'https://qavanin.ir/Law/TreeText/?IDS=1',
-          checked: '2026-10-20',
+          checked: '2026-10-20', status: 'verified',
+        releaseSourceEligible: true, legalConclusionPermitted: true,
           legalReview: {
             reviewer: ${reviewer},
             effectiveDate: '2020-01-01',
