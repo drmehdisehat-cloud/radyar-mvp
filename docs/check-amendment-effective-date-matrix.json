@@ -6,7 +6,7 @@
   "primaryConsolidatedLawUrl": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
   "originalLawMetadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
   "originalLawEffectiveDateShown": "1355/06/04",
-  "warning": "The official qavanin portal shows the 1403 Council of Ministers monetary-threshold adjustment and appendix row 42 for cheque article 7. This does NOT independently prove official-gazette publication, legal commencement, transitional applicability, subsequent amendments, or case-specific criminal-law effect. The 1403 instrument is an executive adjustment, not a parliamentary amendment. This record remains research-only and is not eligible for v1 legal coverage.",
+  "warning": "The official qavanin portal shows the 1403 Council of Ministers monetary-threshold adjustment and appendix row 42 for cheque article 7. This does NOT independently prove official-gazette publication, legal commencement, transitional applicability, subsequent amendments, or case-specific criminal-law effect. The 1403 instrument is an executive adjustment, not a parliamentary amendment. This record remains research-only and is not eligible for v1 legal coverage. Official instrument metadata observed on 2026-10-28 shows execution date 1403/05/08, conflicting with a secondary report of 1403/05/07; no commencement date is certified.",
   "amendments": [
     {
       "label": "1397",
@@ -62,7 +62,7 @@
       "independentPrimaryAmendmentTextVerified": false,
       "humanReviewer": null,
       "humanReviewedAt": null,
-      "reviewTask": "Independently retrieve the 1403 Council of Ministers monetary-threshold adjustment (reported decision 56261/ت62298هـ, approved 1403/03/30), verify appendix row 42 for cheque article 7 against primary official text and official gazette, then determine commencement, any subsequent adjustments and temporal criminal-law treatment. Do not classify this as a parliamentary amendment or auto-apply monetary thresholds to earlier conduct.",
+      "reviewTask": "Independently retrieve the 1403 Council of Ministers monetary-threshold adjustment (reported decision 56261/ت62298هـ, approved 1403/03/30), verify appendix row 42 for cheque article 7 against primary official text and official gazette, then determine commencement, any subsequent adjustments and temporal criminal-law treatment. Do not classify this as a parliamentary amendment or auto-apply monetary thresholds to earlier conduct. Reconcile the official qavanin metadata execution date 1403/05/08 with the secondary 1403/05/07 lead; do not promote either to the verified effectiveDate field without independent review.",
       "instrumentType": "executive-monetary-threshold-adjustment-candidate",
       "instrumentIdentificationStatus": "primary-portal-text-observed-gazette-unverified",
       "candidateInstrument": {
@@ -90,7 +90,8 @@
           "primaryGazetteIssueRetrieved": false,
           "appendixRow42PrimaryVerified": true,
           "effectiveDateIndependentlyVerified": false,
-          "warning": "Official qavanin portal text and appendix row 42 were observed on 2026-10-28; reported gazette issue/date and effective date remain secondary leads. The official-gazette issue and signed appendix were not independently retrieved, nor were commencement, later amendments, temporal scope or human legal review verified. Do not use these amounts for case-specific penalties or v1 legal conclusions."
+          "warning": "Official qavanin portal text and appendix row 42 were observed on 2026-10-28; reported gazette issue/date and effective date remain secondary leads. The official-gazette issue and signed appendix were not independently retrieved, nor were commencement, later amendments, temporal scope or human legal review verified. Do not use these amounts for case-specific penalties or v1 legal conclusions. Official qavanin instrument metadata (observed 2026-10-28) shows execution date 1403/05/08, conflicting with the secondary lead 1403/05/07; do not auto-select either date.",
+          "reportedEffectiveDateConflictWithPrimaryPortal": true
         },
         "primaryTextObservation": {
           "observedAt": "2026-10-28",
@@ -111,6 +112,21 @@
           "subsequentAmendmentsChecked": false,
           "humanLegalReview": false,
           "scope": "Primary portal confirms instrument text and appendix row 42 only; not signed gazette, commencement, later amendments, or temporal applicability. No automatic penalties or release approval."
+        },
+        "primaryMetadataObservation": {
+          "observedAt": "2026-10-28",
+          "sourceType": "official-qavanin-portal-instrument-metadata",
+          "url": "https://qavanin.ir/Law/Attribute/?IDS=634882870797924421",
+          "decisionNumberShown": "56261/ت62298هـ",
+          "approvalDateShown": "1403/03/30",
+          "notificationDateShown": "1403/04/04",
+          "officialGazetteNumberShown": "23097",
+          "officialGazetteDateShown": "1403/04/23",
+          "effectiveDateShown": "1403/05/08",
+          "lastStatusDateShown": "1403/08/27",
+          "gazetteIssueIndependentlyRetrieved": false,
+          "temporalApplicabilityVerified": false,
+          "note": "Official qavanin metadata displays 1403/05/08 as execution date, while a secondary lead reports 1403/05/07. This discrepancy requires independent gazette, commencement and subsequent-amendment review; neither date is approved for case-specific conclusions."
         }
       }
     }

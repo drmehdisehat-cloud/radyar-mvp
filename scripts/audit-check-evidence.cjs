@@ -63,7 +63,24 @@ function audit(matrix) {
     const prePublicationCommencementNeedsReview = plausiblePersianDate(item.officialGazettePublicationDate) &&
       plausiblePersianDate(item.effectiveDate) &&
       item.effectiveDate < item.officialGazettePublicationDate;
+    // The official portal's instrument metadata is a research observation,
+    // not a signed gazette or a case-specific commencement determination.
+    // A conflicting secondary lead or asserted date must remain visible
+    // even if another field is manually flipped to "verified".
+    const portalMetadata = candidate && candidate.primaryMetadataObservation;
+    const portalMetadataBound = portalMetadata &&
+      portalMetadata.sourceType === 'official-qavanin-portal-instrument-metadata' &&
+      typeof primaryUrl === 'string' &&
+      portalMetadata.url === primaryUrl.replace('/Law/TreeText/', '/Law/Attribute/');
+    const portalDate = portalMetadataBound && portalMetadata.effectiveDateShown;
+    const secondaryDate = lead && lead.reportedEffectiveDate;
+    const reportedDateConflict = plausiblePersianDate(portalDate) &&
+      plausiblePersianDate(secondaryDate) && portalDate !== secondaryDate;
+    const assertedDateConflict = plausiblePersianDate(portalDate) &&
+      plausiblePersianDate(item.effectiveDate) && portalDate !== item.effectiveDate;
+    if (reportedDateConflict || assertedDateConflict) gaps.push('effective_date_source_conflict');
     if (!plausiblePersianDate(item.effectiveDate) || prePublicationCommencementNeedsReview ||
+        assertedDateConflict ||
         (candidate && (!lead || lead.effectiveDateIndependentlyVerified !== true))) {
       gaps.push('verified_effective_date');
     }
