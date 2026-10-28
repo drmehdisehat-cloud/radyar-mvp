@@ -17,7 +17,7 @@ function auditFor(url) {
     fs.writeFileSync(path.join(directory, 'flows.js'), flows + '\n' +
       'for (const flow of Object.values(flows)) flow.source = {' +
       'title: "منبع ساختگی", url: ' + JSON.stringify(url) +
-      ', checked: "2026-10-24" };\n');
+      ', checked: "2026-10-24", status: "verified", releaseSourceEligible: true, legalConclusionPermitted: true };\n');
     fs.copyFileSync(path.join(root, 'export.js'), path.join(directory, 'export.js'));
     fs.copyFileSync(path.join(root, 'docs/V1-RELEASE-GATES.md'),
       path.join(directory, 'docs/V1-RELEASE-GATES.md'));
