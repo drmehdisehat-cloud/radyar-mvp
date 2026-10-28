@@ -87,3 +87,39 @@ test('explicit release-ineligible flags override otherwise complete metadata', (
       6, JSON.stringify(overrides));
   }
 });
+
+test('ambiguous non-boolean eligibility flags fail closed', () => {
+  // These values are truthy or false-like in JavaScript, but none is
+  // an explicit affirmative boolean approval for legal release.
+  for (const overrides of [
+    { status: 'verified', releaseSourceEligible: 'false' },
+    { status: 'verified', releaseSourceEligible: 'true' },
+    { status: 'verified', releaseSourceEligible: 0 },
+    { status: 'verified', releaseSourceEligible: null },
+    { status: 'verified', legalConclusionPermitted: 'false' },
+    { status: 'verified', legalConclusionPermitted: 'true' },
+    { status: 'verified', legalConclusionPermitted: 0 },
+    { status: 'verified', legalConclusionPermitted: null }
+  ]) {
+    const { exitCode, result } = audit(overrides);
+    assert.equal(exitCode, 1, JSON.stringify(overrides));
+    assert.equal(result.status, 'NOT_READY', JSON.stringify(overrides));
+    assert.equal(result.sourceCoverage, '0/6', JSON.stringify(overrides));
+    assert.equal(result.humanReviewCoverage, '0/6', JSON.stringify(overrides));
+    assert.equal(result.issues.filter(x =>
+      x.startsWith('research_only_legal_source:')).length, 6,
+      JSON.stringify(overrides));
+  }
+});
+
+test('literal true eligibility flags remain mechanically admissible', () => {
+  const { exitCode, result } = audit({
+    status: 'verified',
+    releaseSourceEligible: true,
+    legalConclusionPermitted: true
+  });
+  assert.equal(exitCode, 0);
+  assert.equal(result.status, 'EVIDENCE_CHECKS_PASSED');
+  assert.equal(result.sourceCoverage, '6/6');
+  assert.equal(result.humanReviewCoverage, '6/6');
+});
