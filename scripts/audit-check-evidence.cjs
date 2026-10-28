@@ -57,7 +57,13 @@ function audit(matrix) {
         (candidate && (!lead || lead.primaryGazetteIssueRetrieved !== true))) {
       gaps.push('primary_official_gazette');
     }
-    if (!plausiblePersianDate(item.effectiveDate) ||
+    // The claimed commencement cannot predate the claimed gazette publication.
+    // Zero-padded YYYY/MM/DD strings are ordered lexicographically. This is
+    // a consistency check only, not verification of either legal date.
+    const impossiblePublicationOrder = plausiblePersianDate(item.officialGazettePublicationDate) &&
+      plausiblePersianDate(item.effectiveDate) &&
+      item.effectiveDate < item.officialGazettePublicationDate;
+    if (!plausiblePersianDate(item.effectiveDate) || impossiblePublicationOrder ||
         (candidate && (!lead || lead.effectiveDateIndependentlyVerified !== true))) {
       gaps.push('verified_effective_date');
     }
