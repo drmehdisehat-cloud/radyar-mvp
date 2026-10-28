@@ -5,7 +5,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 function audit(matrix) {
-  if (!matrix || matrix.topic !== 'check' || !Array.isArray(matrix.amendments)) {
+  if (!matrix || matrix.topic !== 'check' || !Array.isArray(matrix.amendments) ||
+      matrix.amendments.length === 0 || matrix.amendments.some(item => !item || typeof item !== 'object')) {
     return { status: 'INVALID_EVIDENCE', topic: 'check', instruments: [], errors: ['invalid_matrix'] };
   }
   const instruments = matrix.amendments.map(item => {
@@ -39,7 +40,7 @@ function audit(matrix) {
   if (matrix.releaseSourceEligible === true && incomplete) errors.push('unsubstantiated_release_source');
   if (matrix.legalConclusionPermitted === true && incomplete) errors.push('unsubstantiated_legal_conclusion');
   if (matrix.status === 'research-only' &&
-      (matrix.releaseSourceEligible === true || matrix.legalConclusionPermitted === true)) {
+      (matrix.releaseSourceEligible !== false || matrix.legalConclusionPermitted !== false)) {
     errors.push('research_only_conflicts_with_release_flags');
   }
   return { status: errors.length ? 'INCONSISTENT_EVIDENCE' : 'RESEARCH_ONLY',
