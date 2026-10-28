@@ -44,16 +44,13 @@ try {
   for (const id of actual) if (!expected.includes(id)) issues.push('unexpected_topic:' + id);
   for (const topic of topics) {
     if (!topic.source) { issues.push('missing_legal_source:' + topic.id); continue; }
-    // Explicit research/draft and release-ineligible markers take precedence
-    // over plausible official URLs, recent dates and reviewer metadata.
-    // Optional eligibility flags must be literal booleans: strings such as
-    // "false" and numeric 0 are not authoritative approval.
-    // This is a negative safeguard, not proof that other sources are approved.
-    if ((Object.hasOwn(topic.source, 'status') && topic.source.status !== 'verified') ||
-        (Object.hasOwn(topic.source, 'releaseSourceEligible') &&
-         topic.source.releaseSourceEligible !== true) ||
-        (Object.hasOwn(topic.source, 'legalConclusionPermitted') &&
-         topic.source.legalConclusionPermitted !== true)) {
+    // Explicit positive release flags are mandatory. Missing status/flags
+    // must never be interpreted as approval, even when a source URL and
+    // reviewer metadata look complete. This is only a mechanical safeguard:
+    // real legal review and owner authorization remain separate requirements.
+    if (topic.source.status !== 'verified' ||
+        topic.source.releaseSourceEligible !== true ||
+        topic.source.legalConclusionPermitted !== true) {
       issues.push('research_only_legal_source:' + topic.id);
       continue;
     }
