@@ -18,6 +18,9 @@ function audit(checked, reviewedAt) {
       title: 'منبع کاملاً ساختگی',
       url: 'https://qavanin.ir/Law/TreeText/?IDS=1',
       checked,
+      status: 'verified',
+      releaseSourceEligible: true,
+      legalConclusionPermitted: true,
       legalReview: {
         effectiveDate: '2020-01-01',
         reviewedAt,
