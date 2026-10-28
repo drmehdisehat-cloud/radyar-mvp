@@ -4,6 +4,23 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
+// Structural checks only. A well-formed Solar Hijri date is NOT evidence
+// that a gazette was published or that an enactment is legally effective.
+function plausiblePersianDate(value) {
+  if (typeof value !== 'string') return false;
+  const match = /^(\\d{4})\\/(0[1-9]|1[0-2])\\/(0[1-9]|[12]\\d|3[01])$/.exec(value);
+  if (!match) return false;
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  // Esfand 30 is allowed as a candidate in leap years; independent
+  // calendrical and legal verification is still required.
+  return day <= (month <= 6 ? 31 : 30);
+}
+
+function nonBlankGazetteNumber(value) {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
 function audit(matrix) {
   if (!matrix || matrix.topic !== 'check' || !Array.isArray(matrix.amendments) ||
       matrix.amendments.length === 0 || matrix.amendments.some(item => !item || typeof item !== 'object')) {
@@ -35,11 +52,12 @@ function audit(matrix) {
     const lead = candidate && candidate.publicationResearchLead;
     // Missing research leads never count as proof of publication or commencement.
     // Positive flags are necessary but do not replace independent legal review.
-    if (!item.officialGazetteNumber || !item.officialGazettePublicationDate ||
+    if (!nonBlankGazetteNumber(item.officialGazetteNumber) ||
+        !plausiblePersianDate(item.officialGazettePublicationDate) ||
         (candidate && (!lead || lead.primaryGazetteIssueRetrieved !== true))) {
       gaps.push('primary_official_gazette');
     }
-    if (!item.effectiveDate ||
+    if (!plausiblePersianDate(item.effectiveDate) ||
         (candidate && (!lead || lead.effectiveDateIndependentlyVerified !== true))) {
       gaps.push('verified_effective_date');
     }
