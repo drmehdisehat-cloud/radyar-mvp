@@ -6,7 +6,7 @@
   "primaryConsolidatedLawUrl": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
   "originalLawMetadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
   "originalLawEffectiveDateShown": "1355/06/04",
-  "warning": "The date printed beside an article is NOT independent proof of the governing instrument's official-gazette publication, commencement, transitional applicability, or current legal effect. The 1403 article-7 monetary adjustment appears to arise from a Council of Ministers resolution, NOT a parliamentary amendment to the Cheque Issuance Act; primary instrument and temporal effect remain unverified. This record is not eligible for v1 legal coverage.",
+  "warning": "The official qavanin portal shows the 1403 Council of Ministers monetary-threshold adjustment and appendix row 42 for cheque article 7. This does NOT independently prove official-gazette publication, legal commencement, transitional applicability, subsequent amendments, or case-specific criminal-law effect. The 1403 instrument is an executive adjustment, not a parliamentary amendment. This record remains research-only and is not eligible for v1 legal coverage.",
   "amendments": [
     {
       "label": "1397",
@@ -64,7 +64,7 @@
       "humanReviewedAt": null,
       "reviewTask": "Independently retrieve the 1403 Council of Ministers monetary-threshold adjustment (reported decision 56261/ت62298هـ, approved 1403/03/30), verify appendix row 42 for cheque article 7 against primary official text and official gazette, then determine commencement, any subsequent adjustments and temporal criminal-law treatment. Do not classify this as a parliamentary amendment or auto-apply monetary thresholds to earlier conduct.",
       "instrumentType": "executive-monetary-threshold-adjustment-candidate",
-      "instrumentIdentificationStatus": "secondary-corroborated-primary-unverified",
+      "instrumentIdentificationStatus": "primary-portal-text-observed-gazette-unverified",
       "candidateInstrument": {
         "authority": "Council of Ministers (reported; verify official instrument)",
         "approvalDateReported": "1403/03/30",
@@ -72,14 +72,14 @@
         "decisionNumberReported": "56261/ت62298هـ",
         "reportedLegalBasis": "Article 28 of the Islamic Penal Code",
         "candidatePrimaryDocumentUrl": "https://qavanin.ir/Law/TreeText/?IDS=634882870797924421",
-        "candidatePrimaryTextRetrieved": false,
+        "candidatePrimaryTextRetrieved": true,
         "secondarySourceUrl": "https://www.ekhtebar.ir/اصلاح-میزان-مبالغ-مربوط-به-جرایم-و-تخلف/",
         "secondaryEvidenceScope": "Reported cabinet decision and appendix table row 42 for article 7 of the Cheque Issuance Act; not official-gazette or commencement evidence.",
         "officialGazetteAndTemporalEffectVerified": false,
         "approvedForLegalConclusions": false,
         "publicationResearchLead": {
           "checkedAt": "2026-10-27",
-          "status": "secondary-reported-primary-unverified",
+          "status": "secondary-reported-gazette-unverified",
           "reportedOfficialGazetteNumber": "23097",
           "reportedOfficialGazetteDate": "1403/04/23",
           "reportedEffectiveDate": "1403/05/07",
@@ -88,9 +88,29 @@
             "https://www.dadmanlawyers.com/زمان-اجرای-مبالغ-جدید-جزای-نقدی-جرایم-و/"
           ],
           "primaryGazetteIssueRetrieved": false,
-          "appendixRow42PrimaryVerified": false,
+          "appendixRow42PrimaryVerified": true,
           "effectiveDateIndependentlyVerified": false,
-          "warning": "Both dates and issue number are secondary research leads, not official-gazette evidence. One secondary English article inconsistently converts 23 Tir 1403 to June 24 2024; do not use its Gregorian date. Retrieve issue 23097 and the complete signed appendix, check subsequent corrections and Article 28 commencement/temporal scope, and obtain qualified human review before any case-specific conclusion."
+          "warning": "Official qavanin portal text and appendix row 42 were observed on 2026-10-28; reported gazette issue/date and effective date remain secondary leads. The official-gazette issue and signed appendix were not independently retrieved, nor were commencement, later amendments, temporal scope or human legal review verified. Do not use these amounts for case-specific penalties or v1 legal conclusions."
+        },
+        "primaryTextObservation": {
+          "observedAt": "2026-10-28",
+          "sourceType": "official-qavanin-portal-consolidated-text",
+          "url": "https://qavanin.ir/Law/TreeText/?IDS=634882870797924421",
+          "heading": "اصلاح میزان مبالغ مربوط به جرائم و تخلفات مندرج در قوانین مختلف",
+          "authorityShown": "هیئت وزیران",
+          "approvalDateShown": "1403/03/30",
+          "appendix": "پیوست ۱، ردیف ۴۲، قانون صدور چک، ماده ۷",
+          "thresholdsIRR": {
+            "article7A": "780000000",
+            "article7BLower": "780000000",
+            "article7BUpper": "3900000000",
+            "article7C": "3900000000"
+          },
+          "officialGazettePublicationVerified": false,
+          "legalCommencementVerified": false,
+          "subsequentAmendmentsChecked": false,
+          "humanLegalReview": false,
+          "scope": "Primary portal confirms instrument text and appendix row 42 only; not signed gazette, commencement, later amendments, or temporal applicability. No automatic penalties or release approval."
         }
       }
     }
