@@ -18,8 +18,12 @@ function createRateLimiter({ max = 30, windowMs = 60_000, maxPeers = 1024, now =
   }
   return function allow(ip) {
     const time = now();
-    // An invalid clock cannot safely establish an expiry boundary.
-    if (!Number.isFinite(time)) return false;
+    // A fractional, negative or overflowing clock cannot safely define
+    // an expiry. Reject it before modifying any existing peer quota.
+    // In particular, time + windowMs must remain a safe integer: otherwise
+    // rounding can make an expiry equal to the current instant.
+    if (!Number.isSafeInteger(time) || time < 0 ||
+        !Number.isSafeInteger(time + windowMs)) return false;
     if (++requests % 128 === 0) discardExpired(time);
     const key = String(ip || 'unknown');
     let item = entries.get(key);
