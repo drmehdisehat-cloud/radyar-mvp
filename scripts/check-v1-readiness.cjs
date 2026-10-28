@@ -46,10 +46,14 @@ try {
     if (!topic.source) { issues.push('missing_legal_source:' + topic.id); continue; }
     // Explicit research/draft and release-ineligible markers take precedence
     // over plausible official URLs, recent dates and reviewer metadata.
+    // Optional eligibility flags must be literal booleans: strings such as
+    // "false" and numeric 0 are not authoritative approval.
     // This is a negative safeguard, not proof that other sources are approved.
     if ((Object.hasOwn(topic.source, 'status') && topic.source.status !== 'verified') ||
-        topic.source.releaseSourceEligible === false ||
-        topic.source.legalConclusionPermitted === false) {
+        (Object.hasOwn(topic.source, 'releaseSourceEligible') &&
+         topic.source.releaseSourceEligible !== true) ||
+        (Object.hasOwn(topic.source, 'legalConclusionPermitted') &&
+         topic.source.legalConclusionPermitted !== true)) {
       issues.push('research_only_legal_source:' + topic.id);
       continue;
     }
