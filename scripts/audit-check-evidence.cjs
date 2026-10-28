@@ -28,8 +28,8 @@ function audit(matrix) {
       gaps.push('verified_effective_date');
     }
     if (item.transitionalApplicabilityVerified !== true) gaps.push('transitional_applicability');
-    if (candidate && candidate.primaryTextObservation &&
-        candidate.primaryTextObservation.subsequentAmendmentsChecked !== true) {
+    if (candidate && (!candidate.primaryTextObservation ||
+        candidate.primaryTextObservation.subsequentAmendmentsChecked !== true)) {
       gaps.push('subsequent_amendments');
     }
     if (!item.humanReviewer || !item.humanReviewedAt) gaps.push('human_legal_signoff');
