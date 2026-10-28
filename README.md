@@ -36,7 +36,7 @@ node scripts/check-v1-readiness.cjs --enforce
 CHROME_BIN=/path/to/chromium node --test tests/real-browser-smoke.cjs
 ```
 
-GitHub Actions در `.github/workflows/ci.yml` فقط روی `dadyar/mvp-sync-028` اجرا می‌شود؛ سبز شدن CI **تأیید حقوقی، امنیت محیط انتشار یا آمادگی نسخه ۱ نیست**.
+GitHub Actions در `.github/workflows/ci.yml` روی push شاخه آزمایشی `dadyar/mvp-sync-028` و روی pull requestهای هدف‌گرفته به `main` یا همین شاخه، فقط آزمون‌های خواندنی و بدون استقرار اجرا می‌کند. اجرای واقعی رویداد pull request باید جداگانه تأیید شود؛ سبز شدن CI **تأیید حقوقی، امنیت محیط انتشار یا آمادگی نسخه ۱ نیست**.
 
 ## مسیر انتشار نسخه ۱
 
