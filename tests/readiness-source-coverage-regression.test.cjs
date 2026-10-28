@@ -143,3 +143,30 @@ test('nonsemantic reviewer names cannot count as human legal review', () => {
       issue.startsWith('missing_human_legal_review:')).length, 6);
   }
 });
+
+test('Unicode compatibility placeholders cannot count as legal-review sign-off', () => {
+  // Fullwidth compatibility characters visually resemble ordinary placeholder text.
+  // Source URL and dates here are synthetic structural fixtures, not legal evidence.
+  for (const reviewer of ['ＴＢＤ', 'ｐｅｎｄｉｎｇ', 'ｄｅｍｏ', 'ｔｅｓｔ']) {
+    const result = audit({ checkBoxes: true, injection: `
+      for (const flow of Object.values(flows)) {
+        flow.source = {
+          title: 'منبع آزمایشی',
+          url: 'https://qavanin.ir/Law/TreeText/?IDS=1',
+          checked: '2026-10-20', status: 'verified',
+          releaseSourceEligible: true, legalConclusionPermitted: true,
+          legalReview: {
+            reviewer: ${JSON.stringify(reviewer)},
+            effectiveDate: '2020-01-01',
+            reviewedAt: '2026-10-19',
+            amendmentStatus: 'checked-current'
+          }
+        };
+      }` });
+    assert.equal(result.sourceCoverage, '6/6');
+    assert.equal(result.humanReviewCoverage, '0/6', reviewer);
+    assert.equal(result.status, 'NOT_READY');
+    assert.equal(result.issues.filter(issue =>
+      issue.startsWith('missing_human_legal_review:')).length, 6);
+  }
+});
