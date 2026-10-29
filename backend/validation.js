@@ -22,13 +22,13 @@ const HAS_SEMANTIC_CONTENT = /[\p{L}\p{N}]/u;
 // Best-effort privacy guard: block likely full 16-digit payment-card numbers.
  // Luhn + common 4x4 grouping avoids rejecting ordinary years and amounts.
  // This is not comprehensive PII detection or a substitute for redaction.
-const CARD_CANDIDATE = /(?<![0-9۰-۹٠-٩])(?:[0-9۰-۹٠-٩]{16}|[0-9۰-۹٠-٩]{4}(?:[ -][0-9۰-۹٠-٩]{4}){3})(?![0-9۰-۹٠-٩]|[ -][0-9۰-۹٠-٩])/gu;
+const CARD_CANDIDATE = /(?<![0-9۰-۹٠-٩])(?<![0-9۰-۹٠-٩][ \t\u00A0\u202F\u2009\u2010-\u2013-]+)(?:[0-9۰-۹٠-٩]{16}|[0-9۰-۹٠-٩]{4}(?:[ \t\u00A0\u202F\u2009\u2010-\u2013-]+[0-9۰-۹٠-٩]{4}){3})(?![0-9۰-۹٠-٩]|[ \t\u00A0\u202F\u2009\u2010-\u2013-]+[0-9۰-۹٠-٩])/gu;
 function hasLikelyPaymentCardNumber(value) {
   for (const match of value.matchAll(CARD_CANDIDATE)) {
     const digits = match[0]
       .replace(/[۰-۹]/g, digit => String(digit.charCodeAt(0) - 0x06F0))
       .replace(/[٠-٩]/g, digit => String(digit.charCodeAt(0) - 0x0660))
-      .replace(/[ -]/g, '');
+      .replace(/[ \t\u00A0\u202F\u2009\u2010-\u2013-]/g, '');
     let checksum = 0;
     for (let index = digits.length - 1, double = false; index >= 0; index--, double = !double) {
       let digit = digits.charCodeAt(index) - 48;
