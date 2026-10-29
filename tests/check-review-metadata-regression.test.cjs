@@ -42,7 +42,7 @@ test('invalid, future, and non-string review dates leave a sign-off gap', () => 
 
 test('well-shaped synthetic metadata is still research-only and cannot authorize release', () => {
   const result = audit(matrix('Synthetic Reviewer', '2026-10-28'));
-  assert.deepEqual(result.instruments[0].missingEvidence, []);
+  assert.deepEqual(result.instruments[0].missingEvidence, ['primary_official_gazette']);
   assert.equal(result.status, 'RESEARCH_ONLY');
   assert.deepEqual(result.errors, []);
 });

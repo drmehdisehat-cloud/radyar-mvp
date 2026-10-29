@@ -24,7 +24,7 @@ function gaps(fields = {}) {
 }
 
 test('plausible Persian gazette and effective dates do not create a release approval', () => {
-  assert.deepEqual(gaps(), []);
+  assert.deepEqual(gaps(), ['primary_official_gazette']);
   // A research-only matrix remains research-only even with complete-looking fields.
   assert.ok(!gaps().includes('verified_effective_date'));
 });

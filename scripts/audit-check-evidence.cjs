@@ -21,6 +21,13 @@ function nonBlankGazetteNumber(value) {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
+// A gazette issue number is a positive decimal identifier, not free-form
+// commentary (e.g. "unknown" or "not published"). This is only a shape
+// check: a numeric issue number is not evidence of an actual publication.
+function plausibleGazetteNumber(value) {
+  return typeof value === 'string' && /^[1-9][0-9]*$/.test(value);
+}
+
 function audit(matrix) {
   if (!matrix || matrix.topic !== 'check' || !Array.isArray(matrix.amendments) ||
       matrix.amendments.length === 0 || matrix.amendments.some(item => !item || typeof item !== 'object')) {
@@ -52,9 +59,55 @@ function audit(matrix) {
     const lead = candidate && candidate.publicationResearchLead;
     // Missing research leads never count as proof of publication or commencement.
     // Positive flags are necessary but do not replace independent legal review.
-    if (!nonBlankGazetteNumber(item.officialGazetteNumber) ||
+    // A boolean plus a typed issue number/date is not an independently
+    // retrieved official gazette. Bind the claimed issue to a dated observation
+    // of a specific rrk.ir document, never to the portal homepage or a
+    // secondary article. This checks provenance *shape*, not authenticity.
+    const gazette = lead && lead.primaryGazetteObservation;
+    let officialGazetteDocument = false;
+    try {
+      const url = new URL(gazette && gazette.url);
+      // Fail closed for generic site pages, asset URLs, fragments and
+      // alternate ports. A multi-segment document route is only a structural
+      // lead: it is NOT independent verification of a gazette issue.
+      const segments = url.pathname.split('/').filter(Boolean);
+      const lastSegment = segments.at(-1) || '';
+      const genericPage = /^(?:login|search|about|contact|help|home|index|robots\.txt|favicon\.ico|sitemap\.xml)$/i.test(lastSegment);
+      const assetPath = /\.(?:txt|xml|js|css|ico|png|svg|jpe?g|webp)$/i.test(lastSegment);
+      // Only a narrow issue-shaped route is a structural lead. Other paths,
+      // query strings and encoded path separators are ambiguous and require
+      // manual source verification. This does not authenticate the document.
+      const issueRoute = segments.length >= 4 &&
+        segments[0].toLowerCase() === 'ords' &&
+        segments[1].toLowerCase() === 'r' &&
+        segments[2].toLowerCase() === 'rrs';
+      // URL() normalizes dot segments and backslashes before pathname checks.
+      // Reject ambiguous raw paths rather than trusting that normalized route.
+      // Conservative: even percent-encoded printable path bytes require manual
+      // review. This is a structural research gate, not legal authentication.
+      const ambiguousEncoding = typeof gazette.url !== 'string' ||
+        /%|\\|\/\.{1,2}(?:\/|$)|[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF]/u.test(gazette.url) ||
+        url.pathname.includes('//') ||
+        url.pathname !== '/' + segments.join('/');
+      officialGazetteDocument = url.protocol === 'https:' &&
+        ['rrk.ir', 'www.rrk.ir', 'ocr.rrk.ir'].includes(url.hostname) &&
+        issueRoute && !genericPage && !assetPath && !ambiguousEncoding &&
+        !url.port && !url.search && !url.hash && !url.username && !url.password;
+    } catch { /* Missing or malformed source remains a gap. */ }
+    const gazetteObservedAt = gazette && gazette.observedAt;
+    const validGazetteObservationDate = typeof gazetteObservedAt === 'string' &&
+      /^\d{4}-\d{2}-\d{2}$/.test(gazetteObservedAt) &&
+      !Number.isNaN(Date.parse(gazetteObservedAt)) &&
+      new Date(gazetteObservedAt).toISOString().slice(0, 10) === gazetteObservedAt &&
+      gazetteObservedAt <= new Date().toISOString().slice(0, 10);
+    const primaryGazetteBound = lead && lead.primaryGazetteIssueRetrieved === true &&
+      gazette && gazette.sourceType === 'official-gazette-primary-issue' &&
+      officialGazetteDocument && validGazetteObservationDate &&
+      gazette.issueNumber === item.officialGazetteNumber &&
+      gazette.publicationDate === item.officialGazettePublicationDate;
+    if (!plausibleGazetteNumber(item.officialGazetteNumber) ||
         !plausiblePersianDate(item.officialGazettePublicationDate) ||
-        (candidate && (!lead || lead.primaryGazetteIssueRetrieved !== true))) {
+        !primaryGazetteBound) {
       gaps.push('primary_official_gazette');
     }
     // Claimed commencement before gazette publication needs independent review:
@@ -68,10 +121,35 @@ function audit(matrix) {
     // A conflicting secondary lead or asserted date must remain visible
     // even if another field is manually flipped to "verified".
     const portalMetadata = candidate && candidate.primaryMetadataObservation;
-    const portalMetadataBound = portalMetadata &&
+    // A portal claim without a real, non-future observation date is not
+    // bound evidence. Keep both gazette and commencement gaps open, even if
+    // a caller toggles all the other verification flags.
+    const metadataObservedAt = portalMetadata && portalMetadata.observedAt;
+    const metadataDateValid = typeof metadataObservedAt === 'string' &&
+      /^\d{4}-\d{2}-\d{2}$/.test(metadataObservedAt) &&
+      !Number.isNaN(Date.parse(metadataObservedAt)) &&
+      new Date(metadataObservedAt).toISOString().slice(0, 10) === metadataObservedAt &&
+      metadataObservedAt <= new Date().toISOString().slice(0, 10);
+    const portalMetadataBound = portalMetadata && metadataDateValid &&
       portalMetadata.sourceType === 'official-qavanin-portal-instrument-metadata' &&
       typeof primaryUrl === 'string' &&
       portalMetadata.url === primaryUrl.replace('/Law/TreeText/', '/Law/Attribute/');
+    // Malformed or absent fields inside an otherwise correctly bound portal
+    // observation are not agreement with claimed publication/commencement.
+    // Keep these as explicit research gaps, never authenticated legal proof.
+    const invalidPortalGazetteMetadata = portalMetadataBound &&
+      (!plausibleGazetteNumber(portalMetadata.officialGazetteNumberShown) ||
+       !plausiblePersianDate(portalMetadata.officialGazetteDateShown));
+    const invalidPortalEffectiveDate = portalMetadataBound &&
+      !plausiblePersianDate(portalMetadata.effectiveDateShown);
+    if (invalidPortalGazetteMetadata) {
+      gaps.push('invalid_primary_metadata_gazette');
+      if (!gaps.includes('primary_official_gazette')) gaps.push('primary_official_gazette');
+    }
+    if (invalidPortalEffectiveDate) {
+      gaps.push('invalid_primary_metadata_effective_date');
+      if (!gaps.includes('verified_effective_date')) gaps.push('verified_effective_date');
+    }
     // A present but unbound portal observation cannot silently bypass conflict
     // checks. These are research gaps, never publication or legal proof.
     if (portalMetadata && !portalMetadataBound) {
