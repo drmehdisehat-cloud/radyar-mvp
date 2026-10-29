@@ -60,9 +60,17 @@ function audit(matrix) {
     let officialGazetteDocument = false;
     try {
       const url = new URL(gazette && gazette.url);
+      // Fail closed for generic site pages, asset URLs, fragments and
+      // alternate ports. A multi-segment document route is only a structural
+      // lead: it is NOT independent verification of a gazette issue.
+      const segments = url.pathname.split('/').filter(Boolean);
+      const lastSegment = segments.at(-1) || '';
+      const genericPage = /^(?:login|search|about|contact|help|home|index|robots\.txt|favicon\.ico|sitemap\.xml)$/i.test(lastSegment);
+      const assetPath = /\.(?:txt|xml|js|css|ico|png|svg|jpe?g|webp)$/i.test(lastSegment);
       officialGazetteDocument = url.protocol === 'https:' &&
         ['rrk.ir', 'www.rrk.ir', 'ocr.rrk.ir'].includes(url.hostname) &&
-        url.pathname.length > 1 && !url.username && !url.password;
+        segments.length >= 4 && !genericPage && !assetPath &&
+        !url.port && !url.hash && !url.username && !url.password;
     } catch { /* Missing or malformed source remains a gap. */ }
     const gazetteObservedAt = gazette && gazette.observedAt;
     const validGazetteObservationDate = typeof gazetteObservedAt === 'string' &&
