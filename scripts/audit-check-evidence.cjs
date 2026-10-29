@@ -66,7 +66,7 @@ function audit(matrix) {
     } catch { /* Missing or malformed source remains a gap. */ }
     const gazetteObservedAt = gazette && gazette.observedAt;
     const validGazetteObservationDate = typeof gazetteObservedAt === 'string' &&
-      /^\\d{4}-\\d{2}-\\d{2}$/.test(gazetteObservedAt) &&
+      /^\d{4}-\d{2}-\d{2}$/.test(gazetteObservedAt) &&
       !Number.isNaN(Date.parse(gazetteObservedAt)) &&
       new Date(gazetteObservedAt).toISOString().slice(0, 10) === gazetteObservedAt &&
       gazetteObservedAt <= new Date().toISOString().slice(0, 10);
