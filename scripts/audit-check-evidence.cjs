@@ -81,6 +81,22 @@ function audit(matrix) {
     }
     // Portal metadata is a research lead, not gazette proof. A conflicting
     // claimed issue/date must not pass merely by flipping verification flags.
+    // Invalid dates in an official-portal observation must not disappear from
+    // conflict checks. This is a data-quality flag, not legal date validation.
+    // Preserve research-only status even when malformed metadata is detected.
+    const malformedPortalGazetteDate = portalMetadataBound &&
+      !plausiblePersianDate(portalMetadata.officialGazetteDateShown);
+    const malformedPortalEffectiveDate = portalMetadataBound &&
+      !plausiblePersianDate(portalMetadata.effectiveDateShown);
+    if (malformedPortalGazetteDate || malformedPortalEffectiveDate) {
+      gaps.push('invalid_primary_metadata_date');
+      if (malformedPortalGazetteDate && !gaps.includes('primary_official_gazette')) {
+        gaps.push('primary_official_gazette');
+      }
+      if (malformedPortalEffectiveDate && !gaps.includes('verified_effective_date')) {
+        gaps.push('verified_effective_date');
+      }
+    }
     const portalGazetteNumber = portalMetadataBound && portalMetadata.officialGazetteNumberShown;
     const portalGazetteDate = portalMetadataBound && portalMetadata.officialGazetteDateShown;
     const gazetteNumberConflict = nonBlankGazetteNumber(portalGazetteNumber) &&
@@ -101,7 +117,10 @@ function audit(matrix) {
       plausiblePersianDate(item.effectiveDate) && portalDate !== item.effectiveDate;
     if (reportedDateConflict || assertedDateConflict) gaps.push('effective_date_source_conflict');
     if (!plausiblePersianDate(item.effectiveDate) || prePublicationCommencementNeedsReview ||
-        assertedDateConflict ||
+        // A disputed reported commencement remains unresolved even when the
+        // manually asserted date matches the official portal's metadata.
+        // Portal metadata is not independent gazette/commencement evidence.
+        reportedDateConflict || assertedDateConflict ||
         (candidate && (!lead || lead.effectiveDateIndependentlyVerified !== true))) {
       gaps.push('verified_effective_date');
     }
