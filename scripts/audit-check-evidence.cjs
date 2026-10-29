@@ -52,9 +52,32 @@ function audit(matrix) {
     const lead = candidate && candidate.publicationResearchLead;
     // Missing research leads never count as proof of publication or commencement.
     // Positive flags are necessary but do not replace independent legal review.
+    // A boolean plus a typed issue number/date is not an independently
+    // retrieved official gazette. Bind the claimed issue to a dated observation
+    // of a specific rrk.ir document, never to the portal homepage or a
+    // secondary article. This checks provenance *shape*, not authenticity.
+    const gazette = lead && lead.primaryGazetteObservation;
+    let officialGazetteDocument = false;
+    try {
+      const url = new URL(gazette && gazette.url);
+      officialGazetteDocument = url.protocol === 'https:' &&
+        ['rrk.ir', 'www.rrk.ir', 'ocr.rrk.ir'].includes(url.hostname) &&
+        url.pathname.length > 1 && !url.username && !url.password;
+    } catch { /* Missing or malformed source remains a gap. */ }
+    const gazetteObservedAt = gazette && gazette.observedAt;
+    const validGazetteObservationDate = typeof gazetteObservedAt === 'string' &&
+      /^\\d{4}-\\d{2}-\\d{2}$/.test(gazetteObservedAt) &&
+      !Number.isNaN(Date.parse(gazetteObservedAt)) &&
+      new Date(gazetteObservedAt).toISOString().slice(0, 10) === gazetteObservedAt &&
+      gazetteObservedAt <= new Date().toISOString().slice(0, 10);
+    const primaryGazetteBound = lead && lead.primaryGazetteIssueRetrieved === true &&
+      gazette && gazette.sourceType === 'official-gazette-primary-issue' &&
+      officialGazetteDocument && validGazetteObservationDate &&
+      gazette.issueNumber === item.officialGazetteNumber &&
+      gazette.publicationDate === item.officialGazettePublicationDate;
     if (!nonBlankGazetteNumber(item.officialGazetteNumber) ||
         !plausiblePersianDate(item.officialGazettePublicationDate) ||
-        (candidate && (!lead || lead.primaryGazetteIssueRetrieved !== true))) {
+        !primaryGazetteBound) {
       gaps.push('primary_official_gazette');
     }
     // Claimed commencement before gazette publication needs independent review:
