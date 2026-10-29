@@ -16,11 +16,13 @@ const JSON_MEDIA_TYPE = /^application\/json(?:\s*;\s*charset\s*=\s*(?:utf-8|"utf
 // Fail closed on malformed UTF-8 rather than silently changing evidence text.
 const strictUtf8 = new TextDecoder('utf-8', { fatal: true });
 const WEB_ROOT = path.resolve(__dirname, '..');
-// This is not an authenticated staging service. Fail closed in any deployment
-// environment, even when imported by another Node entrypoint.
-const BLOCKED_MODES = new Set(['production', 'staging', 'preview']);
+// This is an unauthenticated development-only service. Allow only an unset
+// NODE_ENV (local CLI) or the exact "development" value. Fail closed for
+// production, staging, preview, test, CI, misspellings and case variations,
+// including when imported or when the environment changes before listen().
+const ALLOWED_MODES = new Set([undefined, 'development']);
 function deploymentModeBlocked() {
-  return BLOCKED_MODES.has(process.env.NODE_ENV);
+  return !ALLOWED_MODES.has(process.env.NODE_ENV);
 }
 function deploymentModeError() {
   return 'Dadyar development API refuses ' + process.env.NODE_ENV + ' mode; no listener started.';
