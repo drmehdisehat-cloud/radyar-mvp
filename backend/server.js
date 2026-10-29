@@ -86,7 +86,9 @@ function isLocalRequest(req) {
   const requestedPort = match[1] === undefined ? 80 : Number(match[1]);
   if (requestedPort !== req.socket.localPort) return false;
   const origin = req.headers.origin;
-  if (origin && origin !== 'http://' + host) return false;
+  // Even an empty Origin field is an explicitly supplied, malformed origin.
+  // Treat it as untrusted instead of allowing it through a truthiness check.
+  if (origin !== undefined && origin !== 'http://' + host) return false;
   return true;
 }
 // Browser Fetch Metadata is an additional CSRF boundary for the local API.
