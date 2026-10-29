@@ -178,6 +178,13 @@ function createServer(options = {}) {
   const allow = createRateLimiter(options.rateLimit);
   // Cap header bytes before request handling to limit oversized-header abuse.
   const server = http.createServer({ maxHeaderSize: 8 * 1024 }, (req, res) => handle(req, res, allow));
+  // Node automatically sends 100 Continue unless checkContinue is handled.
+  // This unauthenticated development API must never invite request bodies
+  // before rejecting an Expect handshake; normal POSTs remain supported.
+  server.on('checkContinue', (_req, res) => {
+    res.writeHead(417, { ...HEADERS, Connection: 'close' });
+    res.end(JSON.stringify({ error: 'expectation_not_supported' }));
+  });
   server.requestTimeout = 10_000;
   server.headersTimeout = 5_000;
   // A caller importing createServer() must not be able to accidentally
