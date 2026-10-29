@@ -188,10 +188,15 @@ function createServer(options = {}) {
   // Node automatically sends 100 Continue unless checkContinue is handled.
   // This unauthenticated development API must never invite request bodies
   // before rejecting an Expect handshake; normal POSTs remain supported.
-  server.on('checkContinue', (_req, res) => {
+  // Both Expect: 100-continue and unsupported Expect tokens must get the
+  // same privacy-preserving denial. Without checkExpectation, Node's default
+  // 417 response does not include our no-store and hardening headers.
+  function rejectExpectation(_req, res) {
     res.writeHead(417, { ...HEADERS, Connection: 'close' });
     res.end(JSON.stringify({ error: 'expectation_not_supported' }));
-  });
+  }
+  server.on('checkContinue', rejectExpectation);
+  server.on('checkExpectation', rejectExpectation);
   server.requestTimeout = 10_000;
   server.headersTimeout = 5_000;
   // A caller importing createServer() must not be able to accidentally
