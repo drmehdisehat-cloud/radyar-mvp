@@ -5,9 +5,9 @@ let state=null;
 const UNSAFE_TEXT = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F\u200B\u202A-\u202E\u2060\u2066-\u206F\uFEFF]/u;
 const HAS_SEMANTIC_CONTENT = /[\p{L}\p{N}]/u;
 // Best-effort privacy guard: block likely full 16-digit payment-card numbers.
- // Luhn + common 4x4 grouping avoids rejecting ordinary years and amounts.
+// Luhn + exact 16-digit counting handles uneven grouping without partial 20-digit matches.
  // This is not comprehensive PII detection or a substitute for redaction.
-const CARD_CANDIDATE = /(?<![0-9۰-۹٠-٩])(?<![0-9۰-۹٠-٩][ \t\u00A0\u202F\u2009\u2010-\u2013-]+)(?:[0-9۰-۹٠-٩]{16}|[0-9۰-۹٠-٩]{4}(?:[ \t\u00A0\u202F\u2009\u2010-\u2013-]+[0-9۰-۹٠-٩]{4}){3})(?![0-9۰-۹٠-٩]|[ \t\u00A0\u202F\u2009\u2010-\u2013-]+[0-9۰-۹٠-٩])/gu;
+const CARD_CANDIDATE = /(?<![0-9۰-۹٠-٩])(?<![0-9۰-۹٠-٩][ \t\u00A0\u202F\u2009\u2010-\u2013-]+)[0-9۰-۹٠-٩](?:[ \t\u00A0\u202F\u2009\u2010-\u2013-]*[0-9۰-۹٠-٩]){15}(?![0-9۰-۹٠-٩]|[ \t\u00A0\u202F\u2009\u2010-\u2013-]+[0-9۰-۹٠-٩])/gu;
 function hasLikelyPaymentCardNumber(value) {
   for (const match of value.matchAll(CARD_CANDIDATE)) {
     const digits = match[0]
