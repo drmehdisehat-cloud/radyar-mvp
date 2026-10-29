@@ -74,7 +74,14 @@ function audit(matrix) {
         segments[0].toLowerCase() === 'ords' &&
         segments[1].toLowerCase() === 'r' &&
         segments[2].toLowerCase() === 'rrs';
-      const ambiguousEncoding = /%(?:2f|5c|2e|00)/i.test(url.pathname);
+      // URL() normalizes dot segments and backslashes before pathname checks.
+      // Reject ambiguous raw paths rather than trusting that normalized route.
+      // Conservative: even percent-encoded printable path bytes require manual
+      // review. This is a structural research gate, not legal authentication.
+      const ambiguousEncoding = typeof gazette.url !== 'string' ||
+        /%|\\|\/\.{1,2}(?:\/|$)|[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF]/u.test(gazette.url) ||
+        url.pathname.includes('//') ||
+        url.pathname !== '/' + segments.join('/');
       officialGazetteDocument = url.protocol === 'https:' &&
         ['rrk.ir', 'www.rrk.ir', 'ocr.rrk.ir'].includes(url.hostname) &&
         issueRoute && !genericPage && !assetPath && !ambiguousEncoding &&
