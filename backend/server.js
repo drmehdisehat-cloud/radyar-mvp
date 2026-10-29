@@ -79,7 +79,12 @@ function isLocalRequest(req) {
   // Reject the whole X-Forwarded-* family plus common rewrite/original-host
   // markers, not just a short list of known proxy headers. This cannot detect
   // a proxy that strips all markers; authenticated staging remains mandatory.
-  const proxyHeaders = ['forwarded', 'x-real-ip', 'via',
+  // Additional proxy/CDN client-address markers can appear even when
+  // X-Forwarded-* is absent. Their presence is incompatible with a direct
+  // loopback-only development request; reject before reading any case body.
+  const proxyHeaders = ['forwarded', 'x-real-ip', 'via', 'proxy-connection',
+    'x-client-ip', 'x-cluster-client-ip', 'x-envoy-external-address',
+    'cf-connecting-ip', 'true-client-ip', 'fastly-client-ip',
     'x-original-host', 'x-original-url', 'x-rewrite-url'];
   if (proxyHeaders.some(name => req.headers[name] !== undefined) ||
       Object.keys(req.headers).some(name => name.startsWith('x-forwarded-'))) return false;
