@@ -34,6 +34,14 @@ test('local API refuses reverse-proxy markers while preserving direct loopback',
       ['X-Forwarded-For', '198.51.100.5'],
       ['X-Forwarded-Host', 'example.invalid'],
       ['X-Forwarded-Proto', 'https'],
+      // Some reverse proxies send only a less common forwarding marker.
+      // A loopback peer alone must never make these look like direct requests.
+      ['X-Forwarded-Port', '443'],
+      ['X-Forwarded-Prefix', '/public'],
+      ['X-Forwarded-Server', 'proxy.invalid'],
+      ['X-Original-Host', 'example.invalid'],
+      ['X-Original-URL', '/api/cases/validate'],
+      ['X-Rewrite-URL', '/api/cases/validate'],
       ['X-Real-IP', '198.51.100.5'],
       ['Via', '1.1 proxy.invalid'],
     ]) {
