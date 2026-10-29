@@ -22,7 +22,7 @@ function completeSyntheticMatrix(status, releaseSourceEligible, legalConclusionP
 
 test('spoofed verified status cannot authorize a complete-looking research inventory', () => {
   const report = audit(completeSyntheticMatrix('verified', true, true));
-  assert.deepEqual(report.instruments[0].missingEvidence, []);
+  assert.deepEqual(report.instruments[0].missingEvidence, ['primary_official_gazette']);
   assert.equal(report.status, 'INCONSISTENT_EVIDENCE');
   assert.ok(report.errors.includes('invalid_research_status'));
   assert.ok(report.errors.includes('research_only_conflicts_with_release_flags'));
