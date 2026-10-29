@@ -197,6 +197,22 @@ function createServer(options = {}) {
   }
   server.on('checkContinue', rejectExpectation);
   server.on('checkExpectation', rejectExpectation);
+  // Node's default parser-error reply omits our privacy headers. Malformed
+  // HTTP and oversized headers must not expose parser diagnostics or permit
+  // caching of a response from this development-only endpoint.
+  server.on('clientError', (_error, socket) => {
+    if (!socket.writable) return socket.destroy();
+    const body = JSON.stringify({ error: 'bad_request' });
+    const response = [
+      'HTTP/1.1 400 Bad Request',
+      ...Object.entries(HEADERS).map(([name, value]) => name + ': ' + value),
+      'Connection: close',
+      'Content-Length: ' + Buffer.byteLength(body),
+      '',
+      body,
+    ].join('\r\n');
+    socket.end(response);
+  });
   server.requestTimeout = 10_000;
   server.headersTimeout = 5_000;
   // A caller importing createServer() must not be able to accidentally
