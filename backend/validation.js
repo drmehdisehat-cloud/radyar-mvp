@@ -19,10 +19,32 @@ function hasUnpairedSurrogate(value) {
 // Reject answers made only of invisible format characters or punctuation.
 // Normal Persian half-spaces and ordinary punctuation remain valid within text.
 const HAS_SEMANTIC_CONTENT = /[\p{L}\p{N}]/u;
+// Best-effort privacy guard: block likely full 16-digit payment-card numbers.
+ // Luhn + common 4x4 grouping avoids rejecting ordinary years and amounts.
+ // This is not comprehensive PII detection or a substitute for redaction.
+const CARD_CANDIDATE = /(?<![0-9۰-۹٠-٩])(?:[0-9۰-۹٠-٩]{16}|[0-9۰-۹٠-٩]{4}(?:[ -][0-9۰-۹٠-٩]{4}){3})(?![0-9۰-۹٠-٩]|[ -][0-9۰-۹٠-٩])/gu;
+function hasLikelyPaymentCardNumber(value) {
+  for (const match of value.matchAll(CARD_CANDIDATE)) {
+    const digits = match[0]
+      .replace(/[۰-۹]/g, digit => String(digit.charCodeAt(0) - 0x06F0))
+      .replace(/[٠-٩]/g, digit => String(digit.charCodeAt(0) - 0x0660))
+      .replace(/[ -]/g, '');
+    let checksum = 0;
+    for (let index = digits.length - 1, double = false; index >= 0; index--, double = !double) {
+      let digit = digits.charCodeAt(index) - 48;
+      if (double) { digit *= 2; if (digit > 9) digit -= 9; }
+      checksum += digit;
+    }
+    if (checksum % 10 === 0) return true;
+  }
+  return false;
+}
+
 function safeText(value, min, max) {
   return typeof value === 'string' && value.trim().length >= min &&
     value.length <= max && HAS_SEMANTIC_CONTENT.test(value) &&
-    !UNSAFE_TEXT.test(value) && !hasUnpairedSurrogate(value);
+    !UNSAFE_TEXT.test(value) && !hasUnpairedSurrogate(value) &&
+    !hasLikelyPaymentCardNumber(value);
 }
 
 // Read only own *data* properties. Accessors must never execute while
