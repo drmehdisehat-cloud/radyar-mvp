@@ -121,7 +121,16 @@ function audit(matrix) {
     // A conflicting secondary lead or asserted date must remain visible
     // even if another field is manually flipped to "verified".
     const portalMetadata = candidate && candidate.primaryMetadataObservation;
-    const portalMetadataBound = portalMetadata &&
+    // A portal claim without a real, non-future observation date is not
+    // bound evidence. Keep both gazette and commencement gaps open, even if
+    // a caller toggles all the other verification flags.
+    const metadataObservedAt = portalMetadata && portalMetadata.observedAt;
+    const metadataDateValid = typeof metadataObservedAt === 'string' &&
+      /^\\d{4}-\\d{2}-\\d{2}$/.test(metadataObservedAt) &&
+      !Number.isNaN(Date.parse(metadataObservedAt)) &&
+      new Date(metadataObservedAt).toISOString().slice(0, 10) === metadataObservedAt &&
+      metadataObservedAt <= new Date().toISOString().slice(0, 10);
+    const portalMetadataBound = portalMetadata && metadataDateValid &&
       portalMetadata.sourceType === 'official-qavanin-portal-instrument-metadata' &&
       typeof primaryUrl === 'string' &&
       portalMetadata.url === primaryUrl.replace('/Law/TreeText/', '/Law/Attribute/');
