@@ -67,10 +67,18 @@ function audit(matrix) {
       const lastSegment = segments.at(-1) || '';
       const genericPage = /^(?:login|search|about|contact|help|home|index|robots\.txt|favicon\.ico|sitemap\.xml)$/i.test(lastSegment);
       const assetPath = /\.(?:txt|xml|js|css|ico|png|svg|jpe?g|webp)$/i.test(lastSegment);
+      // Only a narrow issue-shaped route is a structural lead. Other paths,
+      // query strings and encoded path separators are ambiguous and require
+      // manual source verification. This does not authenticate the document.
+      const issueRoute = segments.length >= 4 &&
+        segments[0].toLowerCase() === 'ords' &&
+        segments[1].toLowerCase() === 'r' &&
+        segments[2].toLowerCase() === 'rrs';
+      const ambiguousEncoding = /%(?:2f|5c|2e|00)/i.test(url.pathname);
       officialGazetteDocument = url.protocol === 'https:' &&
         ['rrk.ir', 'www.rrk.ir', 'ocr.rrk.ir'].includes(url.hostname) &&
-        segments.length >= 4 && !genericPage && !assetPath &&
-        !url.port && !url.hash && !url.username && !url.password;
+        issueRoute && !genericPage && !assetPath && !ambiguousEncoding &&
+        !url.port && !url.search && !url.hash && !url.username && !url.password;
     } catch { /* Missing or malformed source remains a gap. */ }
     const gazetteObservedAt = gazette && gazette.observedAt;
     const validGazetteObservationDate = typeof gazetteObservedAt === 'string' &&
