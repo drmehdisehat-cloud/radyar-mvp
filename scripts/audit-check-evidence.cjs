@@ -134,6 +134,22 @@ function audit(matrix) {
       portalMetadata.sourceType === 'official-qavanin-portal-instrument-metadata' &&
       typeof primaryUrl === 'string' &&
       portalMetadata.url === primaryUrl.replace('/Law/TreeText/', '/Law/Attribute/');
+    // Malformed or absent fields inside an otherwise correctly bound portal
+    // observation are not agreement with claimed publication/commencement.
+    // Keep these as explicit research gaps, never authenticated legal proof.
+    const invalidPortalGazetteMetadata = portalMetadataBound &&
+      (!plausibleGazetteNumber(portalMetadata.officialGazetteNumberShown) ||
+       !plausiblePersianDate(portalMetadata.officialGazetteDateShown));
+    const invalidPortalEffectiveDate = portalMetadataBound &&
+      !plausiblePersianDate(portalMetadata.effectiveDateShown);
+    if (invalidPortalGazetteMetadata) {
+      gaps.push('invalid_primary_metadata_gazette');
+      if (!gaps.includes('primary_official_gazette')) gaps.push('primary_official_gazette');
+    }
+    if (invalidPortalEffectiveDate) {
+      gaps.push('invalid_primary_metadata_effective_date');
+      if (!gaps.includes('verified_effective_date')) gaps.push('verified_effective_date');
+    }
     // A present but unbound portal observation cannot silently bypass conflict
     // checks. These are research gaps, never publication or legal proof.
     if (portalMetadata && !portalMetadataBound) {
