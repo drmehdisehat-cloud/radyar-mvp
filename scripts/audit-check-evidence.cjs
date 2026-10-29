@@ -21,6 +21,13 @@ function nonBlankGazetteNumber(value) {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
+// A gazette issue number is a positive decimal identifier, not free-form
+// commentary (e.g. "unknown" or "not published"). This is only a shape
+// check: a numeric issue number is not evidence of an actual publication.
+function plausibleGazetteNumber(value) {
+  return typeof value === 'string' && /^[1-9][0-9]*$/.test(value);
+}
+
 function audit(matrix) {
   if (!matrix || matrix.topic !== 'check' || !Array.isArray(matrix.amendments) ||
       matrix.amendments.length === 0 || matrix.amendments.some(item => !item || typeof item !== 'object')) {
@@ -98,7 +105,7 @@ function audit(matrix) {
       officialGazetteDocument && validGazetteObservationDate &&
       gazette.issueNumber === item.officialGazetteNumber &&
       gazette.publicationDate === item.officialGazettePublicationDate;
-    if (!nonBlankGazetteNumber(item.officialGazetteNumber) ||
+    if (!plausibleGazetteNumber(item.officialGazetteNumber) ||
         !plausiblePersianDate(item.officialGazettePublicationDate) ||
         !primaryGazetteBound) {
       gaps.push('primary_official_gazette');
