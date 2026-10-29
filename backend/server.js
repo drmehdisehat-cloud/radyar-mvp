@@ -60,6 +60,13 @@ function isLoopbackPeer(address) {
 // Require an explicit local Host and reject cross-origin browser requests.
 function isLocalRequest(req) {
   if (!isLoopbackPeer(req.socket.remoteAddress)) return false;
+  // A local reverse proxy can mask the remote peer as 127.0.0.1 and
+  // rewrite Host. Refuse standard forwarding markers so this dev-only API
+  // is less likely to be exposed accidentally through a proxy. This is
+  // defense in depth, not a substitute for an authenticated deployment.
+  const proxyHeaders = ['forwarded', 'x-forwarded-for', 'x-forwarded-host',
+    'x-forwarded-proto', 'x-real-ip', 'via'];
+  if (proxyHeaders.some(name => req.headers[name] !== undefined)) return false;
   // Node normally exposes only the first Host header in req.headers.host.
   // Reject duplicate raw Host fields to prevent ambiguous local-origin checks.
   // Unit-test request stubs may omit rawHeaders; live HTTP requests include it.
