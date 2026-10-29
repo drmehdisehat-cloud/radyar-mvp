@@ -75,9 +75,14 @@ function isLocalRequest(req) {
   // rewrite Host. Refuse standard forwarding markers so this dev-only API
   // is less likely to be exposed accidentally through a proxy. This is
   // defense in depth, not a substitute for an authenticated deployment.
-  const proxyHeaders = ['forwarded', 'x-forwarded-for', 'x-forwarded-host',
-    'x-forwarded-proto', 'x-real-ip', 'via'];
-  if (proxyHeaders.some(name => req.headers[name] !== undefined)) return false;
+  // Proxy implementations differ in which forwarding fields they emit.
+  // Reject the whole X-Forwarded-* family plus common rewrite/original-host
+  // markers, not just a short list of known proxy headers. This cannot detect
+  // a proxy that strips all markers; authenticated staging remains mandatory.
+  const proxyHeaders = ['forwarded', 'x-real-ip', 'via',
+    'x-original-host', 'x-original-url', 'x-rewrite-url'];
+  if (proxyHeaders.some(name => req.headers[name] !== undefined) ||
+      Object.keys(req.headers).some(name => name.startsWith('x-forwarded-'))) return false;
   // Node normally exposes only the first Host header in req.headers.host.
   // Reject duplicate raw Host fields to prevent ambiguous local-origin checks.
   // Unit-test request stubs may omit rawHeaders; live HTTP requests include it.
