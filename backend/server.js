@@ -16,6 +16,15 @@ const JSON_MEDIA_TYPE = /^application\/json(?:\s*;\s*charset\s*=\s*(?:utf-8|"utf
 // Fail closed on malformed UTF-8 rather than silently changing evidence text.
 const strictUtf8 = new TextDecoder('utf-8', { fatal: true });
 const WEB_ROOT = path.resolve(__dirname, '..');
+// This is not an authenticated staging service. Fail closed in any deployment
+// environment, even when imported by another Node entrypoint.
+const BLOCKED_MODES = new Set(['production', 'staging', 'preview']);
+function deploymentModeBlocked() {
+  return BLOCKED_MODES.has(process.env.NODE_ENV);
+}
+function deploymentModeError() {
+  return 'Dadyar development API refuses ' + process.env.NODE_ENV + ' mode; no listener started.';
+}
 // Explicit allowlist: no directory traversal, dotfiles, or arbitrary file reads.
 const STATIC_FILES = Object.freeze({
   '/': ['index.html', 'text/html; charset=utf-8'],
@@ -100,7 +109,7 @@ function isSameOriginFetch(req) {
 function handle(req, res, allow = () => true) {
   // Exported handler is also an entrypoint: callers can bypass createServer().
   // Never process requests if an importer runs it in production mode.
-  if (process.env.NODE_ENV === 'production') {
+  if (deploymentModeBlocked()) {
     return send(res, 503, { error: 'development_api_disabled' });
   }
   // Node can silently retain the first Content-Type when duplicate fields are
@@ -181,8 +190,8 @@ function handle(req, res, allow = () => true) {
 function createServer(options = {}) {
   // Also protect importers: a production entrypoint could require this module
   // and call createServer() directly, bypassing the CLI-only guard below.
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('Dadyar development API refuses production mode; no listener started.');
+  if (deploymentModeBlocked()) {
+    throw new Error(deploymentModeError());
   }
   const allow = createRateLimiter(options.rateLimit);
   // Cap header bytes before request handling to limit oversized-header abuse.
@@ -225,8 +234,8 @@ function createServer(options = {}) {
   server.listen = function (...args) {
     // Refuse a late production switch even if the server was created in dev.
     // Listener creation is the final safety boundary before network exposure.
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('Dadyar development API refuses production mode; no listener started.');
+    if (deploymentModeBlocked()) {
+      throw new Error(deploymentModeError());
     }
     const first = args[0];
     const options = first && typeof first === 'object' && !Array.isArray(first)
@@ -246,8 +255,8 @@ function createServer(options = {}) {
 if (require.main === module) {
   // Fail closed if this development-only entrypoint is launched as production.
   // This is not a substitute for authentication or a deployment security review.
-  if (process.env.NODE_ENV === 'production') {
-    console.error('Dadyar development API refuses production mode; no listener started.');
+  if (deploymentModeBlocked()) {
+    console.error(deploymentModeError());
     process.exitCode = 1;
   } else {
     // Intentionally loopback-only; a public deployment needs auth, rate limiting,
