@@ -48,6 +48,17 @@ test('a correctly bound observation has no binding error', () => {
   const missing = gaps(() => {});
   assert.ok(!missing.includes('unbound_primary_metadata_observation'));
   assert.ok(missing.includes('effective_date_source_conflict'));
+  assert.ok(missing.includes('verified_effective_date'),
+    'disputed commencement must remain unverified despite positive flags');
+});
+
+test('an aligned secondary date removes only the conflict, not other evidence gaps', () => {
+  const missing = gaps(candidate => {
+    candidate.publicationResearchLead.reportedEffectiveDate = '1403/05/08';
+  });
+  assert.ok(!missing.includes('effective_date_source_conflict'));
+  assert.ok(!missing.includes('verified_effective_date'));
+  assert.ok(missing.includes('transitional_applicability'));
 });
 
 test('an absent metadata observation does not claim a conflict', () => {
