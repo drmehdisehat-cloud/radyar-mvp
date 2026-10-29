@@ -117,7 +117,10 @@ function audit(matrix) {
       plausiblePersianDate(item.effectiveDate) && portalDate !== item.effectiveDate;
     if (reportedDateConflict || assertedDateConflict) gaps.push('effective_date_source_conflict');
     if (!plausiblePersianDate(item.effectiveDate) || prePublicationCommencementNeedsReview ||
-        assertedDateConflict ||
+        // A disputed reported commencement remains unresolved even when the
+        // manually asserted date matches the official portal's metadata.
+        // Portal metadata is not independent gazette/commencement evidence.
+        reportedDateConflict || assertedDateConflict ||
         (candidate && (!lead || lead.effectiveDateIndependentlyVerified !== true))) {
       gaps.push('verified_effective_date');
     }
