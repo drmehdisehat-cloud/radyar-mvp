@@ -126,7 +126,7 @@ function audit(matrix) {
     // a caller toggles all the other verification flags.
     const metadataObservedAt = portalMetadata && portalMetadata.observedAt;
     const metadataDateValid = typeof metadataObservedAt === 'string' &&
-      /^\\d{4}-\\d{2}-\\d{2}$/.test(metadataObservedAt) &&
+      /^\d{4}-\d{2}-\d{2}$/.test(metadataObservedAt) &&
       !Number.isNaN(Date.parse(metadataObservedAt)) &&
       new Date(metadataObservedAt).toISOString().slice(0, 10) === metadataObservedAt &&
       metadataObservedAt <= new Date().toISOString().slice(0, 10);
