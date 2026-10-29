@@ -41,7 +41,7 @@ test('unrecognized NODE_ENV rejects both imported factory and raw handler', () =
     '  if (!/development API refuses .* mode; no listener started/i.test(error.message)) process.exit(5);',
     '}',
     'process.stdout.write("blocked");',
-  ].join('\\n');
+  ].join('\n');
   for (const mode of forbidden) {
     const result = run(mode, ['-e', probe]);
     assert.equal(result.status, 0, JSON.stringify(mode) + ': ' + result.stderr);
@@ -60,7 +60,7 @@ test('late NODE_ENV change to an unknown mode cannot bind a listener', () => {
     '}',
     'if (server.listening) process.exit(4);',
     'process.stdout.write("blocked");',
-  ].join('\\n');
+  ].join('\n');
   for (const mode of forbidden) {
     const result = run('development', ['-e', probe, mode]);
     assert.equal(result.status, 0, JSON.stringify(mode) + ': ' + result.stderr);
@@ -74,7 +74,7 @@ test('explicit development and unset NODE_ENV remain usable for local tests', ()
     'const server = createServer();',
     'if (server.listening) process.exit(2);',
     'process.stdout.write("local");',
-  ].join('\\n');
+  ].join('\n');
   const dev = run('development', ['-e', probe]);
   assert.equal(dev.status, 0, dev.stderr);
   assert.equal(dev.stdout, 'local');
