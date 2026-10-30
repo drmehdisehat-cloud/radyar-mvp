@@ -17,14 +17,21 @@ function isValidPreviewToken(value) {
 function verifyPreviewBearer(request, configuredToken) {
   if (!isValidPreviewToken(configuredToken) || !Array.isArray(request?.rawHeaders) ||
       request.rawHeaders.length % 2 !== 0) return false;
+  // This prototype accepts only header-based credentials on an origin-form
+  // request target. Query strings, fragments and absolute-form targets can
+  // expose credentials to logs, browser history or intermediary systems.
+  if (typeof request.url === 'string' &&
+      (!request.url.startsWith('/') || request.url.startsWith('//') ||
+       request.url.includes('?') || request.url.includes('#'))) return false;
   let bearer;
   for (let i = 0; i < request.rawHeaders.length; i += 2) {
     const name = request.rawHeaders[i];
     if (typeof name !== 'string') return false;
-    // Proxy credentials must never coexist with an end-user preview token.
-    // Reject case-insensitively before any token comparison.
-    if (name.toLowerCase() === 'proxy-authorization') return false;
-    if (name.toLowerCase() !== 'authorization') continue;
+    const lowerName = name.toLowerCase();
+    // Do not mix bearer authentication with ambient cookie or proxy
+    // credentials, regardless of whether they contain the preview token.
+    if (lowerName === 'proxy-authorization' || lowerName === 'cookie') return false;
+    if (lowerName !== 'authorization') continue;
     if (bearer !== undefined || typeof request.rawHeaders[i + 1] !== 'string') return false;
     bearer = request.rawHeaders[i + 1];
   }
