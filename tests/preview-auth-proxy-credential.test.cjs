@@ -12,11 +12,11 @@ const bearer = 'Bearer ' + token;
 
 test('preview verifier rejects mixed end-user and proxy credentials', () => {
   for (const name of ['Proxy-Authorization', 'proxy-authorization', 'PROXY-AUTHORIZATION']) {
-    assert.equal(verifyPreviewBearer({ rawHeaders: [
+    assert.equal(verifyPreviewBearer({ url: '/preview', rawHeaders: [
       'Host', 'localhost', 'Authorization', bearer, name, 'Basic synthetic'
     ] }, token), false, 'proxy credential must deny regardless of header casing');
   }
-  assert.equal(verifyPreviewBearer({ rawHeaders: [
+  assert.equal(verifyPreviewBearer({ url: '/preview', rawHeaders: [
     'Authorization', bearer, 'X-Request-Id', 'synthetic'
   ] }, token), true, 'ordinary unrelated headers remain allowed');
 });
