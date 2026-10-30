@@ -21,6 +21,9 @@ function verifyPreviewBearer(request, configuredToken) {
   for (let i = 0; i < request.rawHeaders.length; i += 2) {
     const name = request.rawHeaders[i];
     if (typeof name !== 'string') return false;
+    // Proxy credentials must never coexist with an end-user preview token.
+    // Reject case-insensitively before any token comparison.
+    if (name.toLowerCase() === 'proxy-authorization') return false;
     if (name.toLowerCase() !== 'authorization') continue;
     if (bearer !== undefined || typeof request.rawHeaders[i + 1] !== 'string') return false;
     bearer = request.rawHeaders[i + 1];
