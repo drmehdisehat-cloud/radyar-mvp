@@ -28,7 +28,8 @@ function isLocalPreviewRequest(req) {
 
   const forbidden = new Set(['forwarded', 'via', 'x-real-ip',
     'proxy-connection', 'x-original-host', 'x-original-url', 'x-rewrite-url',
-    'cf-connecting-ip', 'true-client-ip', 'fastly-client-ip']);
+    'cf-connecting-ip', 'true-client-ip', 'fastly-client-ip',
+    'x-client-ip', 'x-cluster-client-ip', 'x-envoy-external-address']);
   if (Object.keys(headers).some(name => forbidden.has(name.toLowerCase()) ||
       name.toLowerCase().startsWith('x-forwarded-'))) return false;
 
