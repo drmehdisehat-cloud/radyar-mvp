@@ -6,7 +6,7 @@ const { isValidPreviewToken, verifyPreviewBearer } = require('../backend/preview
 
 const token = Buffer.from(Array.from({ length: 32 }, (_, i) => i + 1)).toString('base64url');
 const other = Buffer.from(Array.from({ length: 32 }, (_, i) => i + 2)).toString('base64url');
-const req = (...rawHeaders) => ({ rawHeaders });
+const req = (...rawHeaders) => ({ url: '/preview', rawHeaders });
 
 test('preview credential format requires canonical 256-bit base64url encoding', () => {
   assert.equal(isValidPreviewToken(token), true);
