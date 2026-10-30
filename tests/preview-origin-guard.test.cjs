@@ -41,6 +41,9 @@ test('real preview gate rejects nonlocal Host, forwarded traffic and cross-origi
       ['127.0.0.1:' + port, ['X-Forwarded-For', '203.0.113.10']],
       ['127.0.0.1:' + port, ['Forwarded', 'for=203.0.113.10']],
       ['127.0.0.1:' + port, ['Via', '1.1 proxy']],
+      ['127.0.0.1:' + port, ['X-Client-IP', '203.0.113.10']],
+      ['127.0.0.1:' + port, ['X-Cluster-Client-IP', '203.0.113.10']],
+      ['127.0.0.1:' + port, ['X-Envoy-External-Address', '203.0.113.10']],
     ]) {
       const result = await request(port, host, extras);
       assert.equal(result.status, 401, 'must reject a forged origin or proxy marker');
