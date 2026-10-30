@@ -25,6 +25,18 @@ function main() {
   const inventory = git(['rev-list', '--objects', '--all'], 16 * 1024 * 1024)
     .toString('utf8').split('\n').filter(Boolean);
   if (!inventory.length) throw new Error('empty_git_history');
+  // A deleted or renamed credential file can contain an unrecognised secret.
+  // Audit historical filenames independently of blob signatures. -z preserves
+  // whitespace in names; only aggregate counts leave this process.
+  const historicalNames = git(['log', '--all', '--format=', '--name-only', '-z'],
+    16 * 1024 * 1024).toString('utf8').split('\0').filter(Boolean);
+  function isSensitiveHistoricalName(name) {
+    const basename = name.split('/').at(-1);
+    if (/^\.env(?:\..+)?$/i.test(basename) &&
+        !/\.(?:example|sample|template)$/i.test(basename)) return true;
+    return /^(?:id_(?:rsa|dsa|ecdsa|ed25519)|\.npmrc|\.pypirc|\.netrc|\.git-credentials|credentials(?:\.json)?)$/i.test(basename);
+  }
+  const historicalSensitivePaths = new Set(historicalNames.filter(isSensitiveHistoricalName)).size;
   const seen = new Set();
   let scanned = 0;
   let flagged = 0;
@@ -44,10 +56,10 @@ function main() {
     if (/^version https:\/\/git-lfs\.github\.com\/spec\/v1\r?\n/.test(data)) lfsPointers++;
     if (signatures.some(pattern => pattern.test(data))) flagged++;
   }
-  const status = flagged === 0 && oversized === 0 && lfsPointers === 0 ? 'PASS' : 'NOT_READY';
+  const status = flagged === 0 && oversized === 0 && lfsPointers === 0 && historicalSensitivePaths === 0 ? 'PASS' : 'NOT_READY';
   process.stdout.write(JSON.stringify({ status, scannedBlobs: scanned,
     flaggedBlobs: flagged, unreviewedLargeBlobs: oversized,
-    unreviewedLfsPointers: lfsPointers }) + '\n');
+    unreviewedLfsPointers: lfsPointers, historicalSensitivePaths }) + '\n');
   if (status !== 'PASS') process.exitCode = 1;
 }
 try { main(); }
