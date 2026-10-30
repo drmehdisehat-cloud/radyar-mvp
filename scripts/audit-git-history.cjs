@@ -29,6 +29,7 @@ function main() {
   let scanned = 0;
   let flagged = 0;
   let oversized = 0;
+  let lfsPointers = 0;
   for (const line of inventory) {
     const oid = line.split(' ', 1)[0];
     if (!/^[a-f0-9]{40}(?:[a-f0-9]{24})?$/.test(oid) || seen.has(oid)) continue;
@@ -38,11 +39,15 @@ function main() {
     if (!Number.isSafeInteger(size) || size > 2 * 1024 * 1024) { oversized++; continue; }
     scanned++;
     const data = git(['cat-file', 'blob', oid], 3 * 1024 * 1024).toString('utf8');
+    // Git LFS pointers are not the underlying bytes. A PASS would otherwise
+    // incorrectly imply that every reachable historical file was inspected.
+    if (/^version https:\/\/git-lfs\.github\.com\/spec\/v1\r?\n/.test(data)) lfsPointers++;
     if (signatures.some(pattern => pattern.test(data))) flagged++;
   }
-  const status = flagged === 0 && oversized === 0 ? 'PASS' : 'NOT_READY';
+  const status = flagged === 0 && oversized === 0 && lfsPointers === 0 ? 'PASS' : 'NOT_READY';
   process.stdout.write(JSON.stringify({ status, scannedBlobs: scanned,
-    flaggedBlobs: flagged, unreviewedLargeBlobs: oversized }) + '\n');
+    flaggedBlobs: flagged, unreviewedLargeBlobs: oversized,
+    unreviewedLfsPointers: lfsPointers }) + '\n');
   if (status !== 'PASS') process.exitCode = 1;
 }
 try { main(); }
