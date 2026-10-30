@@ -20,9 +20,11 @@ function verifyPreviewBearer(request, configuredToken) {
   // This prototype accepts only header-based credentials on an origin-form
   // request target. Query strings, fragments and absolute-form targets can
   // expose credentials to logs, browser history or intermediary systems.
-  if (typeof request.url === 'string' &&
-      (!request.url.startsWith('/') || request.url.startsWith('//') ||
-       request.url.includes('?') || request.url.includes('#'))) return false;
+  // A missing or non-string target is ambiguous even in test harnesses and
+  // middleware adapters. Deny instead of silently skipping URL validation.
+  if (typeof request.url !== 'string' ||
+      !request.url.startsWith('/') || request.url.startsWith('//') ||
+      request.url.includes('?') || request.url.includes('#')) return false;
   let bearer;
   for (let i = 0; i < request.rawHeaders.length; i += 2) {
     const name = request.rawHeaders[i];
