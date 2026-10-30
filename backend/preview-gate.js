@@ -23,8 +23,8 @@ function isLocalPreviewRequest(req) {
   if (typeof peer !== 'string' || net.isIP(peer) === 0 ||
       !headers || !Array.isArray(req.rawHeaders) ||
       req.rawHeaders.length % 2 !== 0) return false;
-  if (peer !== '::1' && !/^127\.(?:\d{1,3}\.){3}$/.test(peer) &&
-      !/^::ffff:127\.(?:\d{1,3}\.){3}$/i.test(peer)) return false;
+  if (peer !== '::1' && !/^127\.(?:\d{1,3}\.){2}\d{1,3}$/.test(peer) &&
+      !/^::ffff:127\.(?:\d{1,3}\.){2}\d{1,3}$/i.test(peer)) return false;
 
   const forbidden = new Set(['forwarded', 'via', 'x-real-ip',
     'proxy-connection', 'x-original-host', 'x-original-url', 'x-rewrite-url',
