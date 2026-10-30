@@ -12,6 +12,11 @@ function isSensitiveTrackedPath(file) {
   const basename = normalized.split('/').at(-1);
   // Reject private environment configurations, but allow non-secret templates.
   if (/^\.env(?:\..+)?$/i.test(basename) && !/\.example$|\.sample$|\.template$/i.test(basename)) return true;
+  // Common credential stores and SSH private keys often have no extension.
+  // Public .pub keys and explicitly named example templates are not credentials.
+  if (/^(?:id_(?:rsa|dsa|ecdsa|ed25519)|\.npmrc|\.pypirc|\.netrc|\.git-credentials|credentials(?:\.json)?|terraform\.tfstate(?:\.backup)?)$/i.test(basename)) return true;
+  if (/(?:^|\/)(?:\.aws\/credentials|\.kube\/config|\.docker\/config\.json)$/i.test(normalized)) return true;
+  if (/\.tfvars(?:\.json)?$/i.test(basename)) return true;
   // Credential material, local databases, SQL exports, and backup archives
   // must not be published as tracked artifacts.
   return /\.(?:pem|p12|pfx|key|kdbx|sqlite3?|db|sql|bak|backup|dump|zip|tar|tgz|7z)$/i.test(basename) ||
@@ -21,11 +26,17 @@ function isSensitiveTrackedPath(file) {
 test('sensitive tracked-path policy catches representative private artifacts', () => {
   for (const file of ['.env', '.env.production', 'private/cert.pem',
     'backups/client.sql.gz', 'backups/site.tar.gz', 'storage/cases.sqlite',
-    'secrets/identity.p12']) {
+    'secrets/identity.p12', 'private/id_rsa', 'private/id_ed25519',
+    '.npmrc', '.pypirc', '.netrc', '.git-credentials',
+    '.aws/credentials', 'home/.kube/config', 'home/.docker/config.json',
+    'infra/terraform.tfstate', 'infra/terraform.tfstate.backup',
+    'infra/prod.tfvars', 'infra/prod.tfvars.json', 'secrets/credentials.json']) {
     assert.equal(isSensitiveTrackedPath(file), true, 'must reject synthetic sensitive filename');
   }
   for (const file of ['.env.example', 'README.md', 'tests/example.test.cjs',
-    'docs/backup-policy.md', 'public/index.html']) {
+    'docs/backup-policy.md', 'public/index.html',
+    'keys/id_rsa.pub', '.npmrc.example', 'infra/prod.tfvars.example',
+    'docs/credentials-policy.md']) {
     assert.equal(isSensitiveTrackedPath(file), false, 'ordinary source or template remains allowed');
   }
 });
