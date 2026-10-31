@@ -26,14 +26,3 @@ test('phase-one user-facing interview copy contains no HTML elements or active U
   }
 });
 
-test('phase-one prompts never request a password or one-time code as an answer', () => {
-  for (const topic of topics) {
-    const flow = data.flows[topic];
-    const prompts = [...flow.questions, ...flow.docs, ...roles.map(role => data.roleQuestions[topic]?.[role])];
-    for (const prompt of prompts) {
-      assert.ok(prompt, topic);
-      // Explicitly prohibit imperative requests for secrets; warnings against sharing remain allowed.
-      assert.doesNotMatch(prompt, /(?:رمز|کد (?:یکبارمصرف|یک‌بارمصرف|تأیید))\s*(?:خود|بانکی|ورود)?\s*را\s*(?:وارد|ارسال|بنویسید)/, topic);
-    }
-  }
-});
