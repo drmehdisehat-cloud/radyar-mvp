@@ -45,6 +45,8 @@ function isLocalPreviewRequest(req) {
     if (typeof req.rawHeaders[i] !== 'string' ||
         typeof req.rawHeaders[i + 1] !== 'string') return false;
     const name = req.rawHeaders[i].toLowerCase();
+    // Check the wire-level names too: normalized headers can omit fields.
+    if (forbidden.has(name) || name.startsWith('x-forwarded-')) return false;
     if (sensitive.has(name)) {
       if (rawSensitive.has(name) || headers[name] !== req.rawHeaders[i + 1]) return false;
       rawSensitive.set(name, req.rawHeaders[i + 1]);
