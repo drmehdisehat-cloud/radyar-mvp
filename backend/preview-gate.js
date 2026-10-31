@@ -58,11 +58,6 @@ function isLocalPreviewRequest(req) {
   }
   if (hostCount !== 1 || typeof headers.host !== 'string' ||
       rawHost !== headers.host) return false;
-  // Normalized origin metadata without a corresponding raw header is ambiguous.
-  // Reject it rather than relying on a parser or middleware's synthetic value.
-  for (const name of ['origin', 'sec-fetch-site']) {
-    if (headers[name] !== undefined && !rawSensitive.has(name)) return false;
-  }
   // Require an explicit port matching the actual listener; do not trust
   // arbitrary DNS names that happen to resolve to the loopback interface.
   const match = /^(?:localhost|127\.0\.0\.1|\[::1\]):(\d{1,5})$/i.exec(headers.host);
