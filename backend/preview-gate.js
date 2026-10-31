@@ -36,12 +36,17 @@ function isLocalPreviewRequest(req) {
       name.toLowerCase().startsWith('x-forwarded-'))) return false;
 
   let hostCount = 0;
+  let rawHost;
   for (let i = 0; i < req.rawHeaders.length; i += 2) {
     if (typeof req.rawHeaders[i] !== 'string' ||
         typeof req.rawHeaders[i + 1] !== 'string') return false;
-    if (req.rawHeaders[i].toLowerCase() === 'host') hostCount++;
+    if (req.rawHeaders[i].toLowerCase() === 'host') {
+      hostCount++;
+      rawHost = req.rawHeaders[i + 1];
+    }
   }
-  if (hostCount !== 1 || typeof headers.host !== 'string') return false;
+  if (hostCount !== 1 || typeof headers.host !== 'string' ||
+      rawHost !== headers.host) return false;
   // Require an explicit port matching the actual listener; do not trust
   // arbitrary DNS names that happen to resolve to the loopback interface.
   const match = /^(?:localhost|127\.0\.0\.1|\[::1\]):(\d{1,5})$/i.exec(headers.host);
