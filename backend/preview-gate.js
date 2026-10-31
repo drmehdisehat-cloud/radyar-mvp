@@ -54,8 +54,6 @@ function isLocalPreviewRequest(req) {
       rawHost = req.rawHeaders[i + 1];
     }
   }
-  if (['origin', 'sec-fetch-site'].some(name =>
-      headers[name] !== undefined && !rawSensitive.has(name))) return false;
   if (hostCount !== 1 || typeof headers.host !== 'string' ||
       rawHost !== headers.host) return false;
   // Require an explicit port matching the actual listener; do not trust
