@@ -50,7 +50,9 @@ function isLocalPreviewRequest(req) {
   // Require an explicit port matching the actual listener; do not trust
   // arbitrary DNS names that happen to resolve to the loopback interface.
   const match = /^(?:localhost|127\.0\.0\.1|\[::1\]):(\d{1,5})$/i.exec(headers.host);
-  if (!match || Number(match[1]) !== req.socket.localPort) return false;
+  if (!match || !Number.isInteger(req.socket.localPort) ||
+      req.socket.localPort < 1 || req.socket.localPort > 65535 ||
+      String(req.socket.localPort) !== match[1]) return false;
   if (headers.origin !== undefined && headers.origin !== 'http://' + headers.host) return false;
   if (headers['sec-fetch-site'] !== undefined &&
       headers['sec-fetch-site'] !== 'same-origin') return false;
