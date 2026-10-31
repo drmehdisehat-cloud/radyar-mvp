@@ -35,16 +35,27 @@ function isLocalPreviewRequest(req) {
   if (Object.keys(headers).some(name => forbidden.has(name.toLowerCase()) ||
       name.toLowerCase().startsWith('x-forwarded-'))) return false;
 
+  // Reject duplicate or parser-normalized origin metadata before trusting it.
+  // A proxy and Node may disagree about which duplicate value is authoritative.
+  const sensitive = new Set(['host', 'origin', 'sec-fetch-site']);
+  const rawSensitive = new Map();
   let hostCount = 0;
   let rawHost;
   for (let i = 0; i < req.rawHeaders.length; i += 2) {
     if (typeof req.rawHeaders[i] !== 'string' ||
         typeof req.rawHeaders[i + 1] !== 'string') return false;
+    const name = req.rawHeaders[i].toLowerCase();
+    if (sensitive.has(name)) {
+      if (rawSensitive.has(name) || headers[name] !== req.rawHeaders[i + 1]) return false;
+      rawSensitive.set(name, req.rawHeaders[i + 1]);
+    }
     if (req.rawHeaders[i].toLowerCase() === 'host') {
       hostCount++;
       rawHost = req.rawHeaders[i + 1];
     }
   }
+  if (['origin', 'sec-fetch-site'].some(name =>
+      headers[name] !== undefined && !rawSensitive.has(name))) return false;
   if (hostCount !== 1 || typeof headers.host !== 'string' ||
       rawHost !== headers.host) return false;
   // Require an explicit port matching the actual listener; do not trust
