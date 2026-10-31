@@ -16,6 +16,17 @@ const JSON_MEDIA_TYPE = /^application\/json(?:\s*;\s*charset\s*=\s*(?:utf-8|"utf
 // Fail closed on malformed UTF-8 rather than silently changing evidence text.
 const strictUtf8 = new TextDecoder('utf-8', { fatal: true });
 const WEB_ROOT = path.resolve(__dirname, '..');
+// This is an unauthenticated development-only service. Allow only an unset
+// NODE_ENV (local CLI) or the exact "development" value. Fail closed for
+// production, staging, preview, test, CI, misspellings and case variations,
+// including when imported or when the environment changes before listen().
+const ALLOWED_MODES = new Set([undefined, 'development']);
+function deploymentModeBlocked() {
+  return !ALLOWED_MODES.has(process.env.NODE_ENV);
+}
+function deploymentModeError() {
+  return 'Dadyar development API refuses ' + process.env.NODE_ENV + ' mode; no listener started.';
+}
 // Explicit allowlist: no directory traversal, dotfiles, or arbitrary file reads.
 const STATIC_FILES = Object.freeze({
   '/': ['index.html', 'text/html; charset=utf-8'],
@@ -60,6 +71,23 @@ function isLoopbackPeer(address) {
 // Require an explicit local Host and reject cross-origin browser requests.
 function isLocalRequest(req) {
   if (!isLoopbackPeer(req.socket.remoteAddress)) return false;
+  // A local reverse proxy can mask the remote peer as 127.0.0.1 and
+  // rewrite Host. Refuse standard forwarding markers so this dev-only API
+  // is less likely to be exposed accidentally through a proxy. This is
+  // defense in depth, not a substitute for an authenticated deployment.
+  // Proxy implementations differ in which forwarding fields they emit.
+  // Reject the whole X-Forwarded-* family plus common rewrite/original-host
+  // markers, not just a short list of known proxy headers. This cannot detect
+  // a proxy that strips all markers; authenticated staging remains mandatory.
+  // Additional proxy/CDN client-address markers can appear even when
+  // X-Forwarded-* is absent. Their presence is incompatible with a direct
+  // loopback-only development request; reject before reading any case body.
+  const proxyHeaders = ['forwarded', 'x-real-ip', 'via', 'proxy-connection',
+    'x-client-ip', 'x-cluster-client-ip', 'x-envoy-external-address',
+    'cf-connecting-ip', 'true-client-ip', 'fastly-client-ip',
+    'x-original-host', 'x-original-url', 'x-rewrite-url'];
+  if (proxyHeaders.some(name => req.headers[name] !== undefined) ||
+      Object.keys(req.headers).some(name => name.startsWith('x-forwarded-'))) return false;
   // Node normally exposes only the first Host header in req.headers.host.
   // Reject duplicate raw Host fields to prevent ambiguous local-origin checks.
   // Unit-test request stubs may omit rawHeaders; live HTTP requests include it.
@@ -79,7 +107,9 @@ function isLocalRequest(req) {
   const requestedPort = match[1] === undefined ? 80 : Number(match[1]);
   if (requestedPort !== req.socket.localPort) return false;
   const origin = req.headers.origin;
-  if (origin && origin !== 'http://' + host) return false;
+  // Even an empty Origin field is an explicitly supplied, malformed origin.
+  // Treat it as untrusted instead of allowing it through a truthiness check.
+  if (origin !== undefined && origin !== 'http://' + host) return false;
   return true;
 }
 // Browser Fetch Metadata is an additional CSRF boundary for the local API.
@@ -91,7 +121,7 @@ function isSameOriginFetch(req) {
 function handle(req, res, allow = () => true) {
   // Exported handler is also an entrypoint: callers can bypass createServer().
   // Never process requests if an importer runs it in production mode.
-  if (process.env.NODE_ENV === 'production') {
+  if (deploymentModeBlocked()) {
     return send(res, 503, { error: 'development_api_disabled' });
   }
   // Node can silently retain the first Content-Type when duplicate fields are
@@ -172,12 +202,40 @@ function handle(req, res, allow = () => true) {
 function createServer(options = {}) {
   // Also protect importers: a production entrypoint could require this module
   // and call createServer() directly, bypassing the CLI-only guard below.
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('Dadyar development API refuses production mode; no listener started.');
+  if (deploymentModeBlocked()) {
+    throw new Error(deploymentModeError());
   }
   const allow = createRateLimiter(options.rateLimit);
   // Cap header bytes before request handling to limit oversized-header abuse.
   const server = http.createServer({ maxHeaderSize: 8 * 1024 }, (req, res) => handle(req, res, allow));
+  // Node automatically sends 100 Continue unless checkContinue is handled.
+  // This unauthenticated development API must never invite request bodies
+  // before rejecting an Expect handshake; normal POSTs remain supported.
+  // Both Expect: 100-continue and unsupported Expect tokens must get the
+  // same privacy-preserving denial. Without checkExpectation, Node's default
+  // 417 response does not include our no-store and hardening headers.
+  function rejectExpectation(_req, res) {
+    res.writeHead(417, { ...HEADERS, Connection: 'close' });
+    res.end(JSON.stringify({ error: 'expectation_not_supported' }));
+  }
+  server.on('checkContinue', rejectExpectation);
+  server.on('checkExpectation', rejectExpectation);
+  // Node's default parser-error reply omits our privacy headers. Malformed
+  // HTTP and oversized headers must not expose parser diagnostics or permit
+  // caching of a response from this development-only endpoint.
+  server.on('clientError', (_error, socket) => {
+    if (!socket.writable) return socket.destroy();
+    const body = JSON.stringify({ error: 'bad_request' });
+    const response = [
+      'HTTP/1.1 400 Bad Request',
+      ...Object.entries(HEADERS).map(([name, value]) => name + ': ' + value),
+      'Connection: close',
+      'Content-Length: ' + Buffer.byteLength(body),
+      '',
+      body,
+    ].join('\r\n');
+    socket.end(response);
+  });
   server.requestTimeout = 10_000;
   server.headersTimeout = 5_000;
   // A caller importing createServer() must not be able to accidentally
@@ -188,8 +246,8 @@ function createServer(options = {}) {
   server.listen = function (...args) {
     // Refuse a late production switch even if the server was created in dev.
     // Listener creation is the final safety boundary before network exposure.
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('Dadyar development API refuses production mode; no listener started.');
+    if (deploymentModeBlocked()) {
+      throw new Error(deploymentModeError());
     }
     const first = args[0];
     const options = first && typeof first === 'object' && !Array.isArray(first)
@@ -209,8 +267,8 @@ function createServer(options = {}) {
 if (require.main === module) {
   // Fail closed if this development-only entrypoint is launched as production.
   // This is not a substitute for authentication or a deployment security review.
-  if (process.env.NODE_ENV === 'production') {
-    console.error('Dadyar development API refuses production mode; no listener started.');
+  if (deploymentModeBlocked()) {
+    console.error(deploymentModeError());
     process.exitCode = 1;
   } else {
     // Intentionally loopback-only; a public deployment needs auth, rate limiting,

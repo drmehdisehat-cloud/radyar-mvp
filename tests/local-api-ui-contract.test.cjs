@@ -5,6 +5,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const vm = require('node:vm');
 const root = path.resolve(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const client = fs.readFileSync(path.join(root, 'api-validation.js'), 'utf8');
@@ -34,10 +35,58 @@ test('local opt-in UI is wired once and in safe script order', () => {
   assert.match(client, /if \(!confirm\(/, 'Explicit confirmation required');
   assert.match(client, /credentials: 'omit'/);
   assert.match(client, /cache: 'no-store'/);
+  assert.match(client, /redirect: 'error'/, 'Validation must refuse HTTP redirects');
+  assert.match(client, /fetch\('\/api\/cases\/validate',/, 'Validation must use a relative local path');
 });
 
 test('missing validation control and unsafe CSP fail closed', () => {
   assert.throws(() => verifyUi(html.replace('id="validateLocal"', 'id="missingControl"')));
   assert.throws(() => verifyUi(html.replace("connect-src 'self'", "connect-src 'none'")));
   assert.throws(() => verifyUi(html.replace('<script src="api-validation.js"></script>', '')));
+});
+
+test('opt-in local API refuses redirects and reports validation failure', async () => {
+  // Synthetic-only DOM/fetch harness. No real network or client information.
+  const listeners = new Map();
+  const nodes = new Map();
+  const element = id => {
+    if (!nodes.has(id)) nodes.set(id, {
+      disabled: true, textContent: '',
+      addEventListener(event, callback) { listeners.set(id + ':' + event, callback); }
+    });
+    return nodes.get(id);
+  };
+  let requests = 0;
+  const context = {
+    document: { getElementById: element },
+    window: { addEventListener() {} },
+    location: { protocol: 'http:', hostname: '127.0.0.1' },
+    state: {
+      topic: 'theft', role: 'شاهد',
+      story: 'شرح کاملاً ساختگی برای آزمون جلوگیری از تغییر مسیر',
+      answers: Array(5).fill('پاسخ ساختگی')
+    },
+    questionsFor: () => Array(5).fill('سؤال ساختگی'),
+    confirm: () => true,
+    AbortController, setTimeout, clearTimeout,
+    async fetch(url, options) {
+      requests++;
+      assert.equal(url, '/api/cases/validate');
+      assert.equal(options.method, 'POST');
+      assert.equal(options.credentials, 'omit');
+      assert.equal(options.cache, 'no-store');
+      // Simulate browser redirect behavior: with "error", the browser
+      // rejects a redirect instead of forwarding the case body.
+      if (options.redirect !== 'error') {
+        return { ok: true, json: async () => ({ valid: true }) };
+      }
+      throw new TypeError('Synthetic redirect blocked');
+    }
+  };
+  vm.runInNewContext(client, context, { timeout: 1000 });
+  assert.equal(element('validateLocal').disabled, false);
+  await listeners.get('validateLocal:click')();
+  assert.equal(requests, 1);
+  assert.match(element('validationStatus').textContent, /اتصال به API محلی ناموفق بود/);
+  assert.equal(element('validateLocal').disabled, false);
 });
