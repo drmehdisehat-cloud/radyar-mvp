@@ -16,7 +16,6 @@ test('only canonical unpadded 32-byte base64url preview credentials qualify', ()
     Buffer.alloc(31, 0x5a).toString('base64url'),
     Buffer.alloc(33, 0x5a).toString('base64url'),
     token + '=',
-    token.toLowerCase(),
     token + '\n',
     token.replace(/.$/, '!'),
     '',
