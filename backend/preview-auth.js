@@ -37,7 +37,11 @@ function verifyPreviewBearer(request, configuredToken) {
     if (bearer !== undefined || typeof request.rawHeaders[i + 1] !== 'string') return false;
     bearer = request.rawHeaders[i + 1];
   }
-  if (typeof bearer !== 'string') return false;
+  // A middleware adapter must not present a different normalized credential
+  // from the raw Authorization field. Deny ambiguous parser boundaries.
+  if (typeof bearer !== 'string' ||
+      (request.headers?.authorization !== undefined &&
+       request.headers.authorization !== bearer)) return false;
   const match = /^Bearer ([A-Za-z0-9_-]{43})$/.exec(bearer);
   if (!match || !isValidPreviewToken(match[1])) return false;
   // Equal-sized digests avoid secret-dependent byte comparisons.
