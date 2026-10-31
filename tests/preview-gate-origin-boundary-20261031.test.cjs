@@ -9,7 +9,8 @@ function request(overrides = {}) {
     url: '/preview',
     socket: { remoteAddress: '127.0.0.1', localPort: 4321 },
     headers: { host: 'localhost:4321', origin: 'http://localhost:4321', 'sec-fetch-site': 'same-origin' },
-    rawHeaders: ['Host', 'localhost:4321', 'Authorization', 'Bearer ' + token],
+    rawHeaders: ['Host', 'localhost:4321', 'Origin', 'http://localhost:4321',
+      'Sec-Fetch-Site', 'same-origin', 'Authorization', 'Bearer ' + token],
     ...overrides,
   };
 }
