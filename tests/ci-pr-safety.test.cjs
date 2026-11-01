@@ -7,11 +7,11 @@ const path = require('node:path');
 const workflow = fs.readFileSync(path.join(__dirname, '../.github/workflows/ci.yml'), 'utf8');
 
 test('review CI covers PRs to main and experimental branch, not pushes to main', () => {
-  assert.match(workflow, /\bon:\s*\n\s*push:\s*\n\s*branches:\s*\n\s*- dadyar\/mvp-sync-028\s*\n\s*pull_request:\s*\n\s*branches:\s*\n\s*- main\s*\n\s*- dadyar\/mvp-sync-028/);
+  assert.match(workflow, /\bon:\s*\n\s*push:\s*\n\s*branches:\s*\n\s*- dadyar\/mvp-sync-028\s*\n\s*- dadyar\/preview-auth-policy-20261030\s*\n\s*pull_request:\s*\n\s*branches:\s*\n\s*- main\s*\n\s*- dadyar\/mvp-sync-028/);
   assert.match(workflow, /github\.event_name == 'pull_request'/);
   assert.match(workflow, /github\.base_ref == 'main'/);
   assert.match(workflow, /github\.base_ref == 'dadyar\/mvp-sync-028'/);
-  assert.match(workflow, /github\.event_name == 'push' && github\.ref == 'refs\/heads\/dadyar\/mvp-sync-028'/);
+  assert.match(workflow, /github\.event_name == 'push' && \(github\.ref == 'refs\/heads\/dadyar\/mvp-sync-028' \|\| github\.ref == 'refs\/heads\/dadyar\/preview-auth-policy-20261030'\)/);
   assert.doesNotMatch(workflow, /\bpull_request_target\s*:/);
 });
 
