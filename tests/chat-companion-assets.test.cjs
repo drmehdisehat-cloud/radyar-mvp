@@ -16,7 +16,7 @@ test('private chat companion assets load from local server; unlisted files remai
       assert.equal(response.status, 200, route);
       assert.match(response.headers.get('content-type'), new RegExp(type));
       assert.match(response.headers.get('cache-control'), /no-store/);
-      assert.match(await response.text(), new RegExp(marker.replace(/[.*+?^$\{\}()|[\]\\]/g, '\\$&')));
+      assert.ok((await response.text()).includes(marker), route + ' marker missing');
     }
     const forbidden = await fetch(origin + '/backend/ai-handler.js');
     assert.equal(forbidden.status, 404);
