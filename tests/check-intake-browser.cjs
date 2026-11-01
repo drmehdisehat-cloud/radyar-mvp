@@ -19,13 +19,19 @@ test('real Chromium: synthetic cheque interview, role switch and contradiction g
   await send('Page.enable');await send('Runtime.enable');
   const nav=await send('Page.navigate',{url:pathToFileURL(path.resolve(__dirname,'../check-intake.html')).href});assert.ok(!nav.errorText);
   await wait(()=>evaluate("document.readyState==='complete' && !!document.getElementById('intake')"));
+  // Browser download stays in a disposable directory, never in the repository.
+  const downloads=path.join(profile,'downloads');fs.mkdirSync(downloads);
+  await send('Page.setDownloadBehavior',{behavior:'allow',downloadPath:downloads});
   const outcome=await evaluate(`(()=>{
    const f=document.getElementById('intake'),dl=document.getElementById('download'),out=document.getElementById('draft');
    const set=(k,v)=>{f.elements[k].value=v;f.elements[k].dispatchEvent(new Event('change',{bubbles:true}));};
    set('role','دارنده چک');set('state','برگشت خورده');set('sayad','تأیید شده');set('evidence','هر دو');set('certificate','بله');set('signature','خیر');
    f.elements.timeline.value='داستان ساختگی';let a=[...document.querySelectorAll('#role-answers textarea')];const fields=a.length===3;
-   a.forEach((x,i)=>x.value='پاسخ ساختگی '+i);f.requestSubmit();
+   a.slice(0,2).forEach((x,i)=>x.value='پاسخ ساختگی '+i);f.requestSubmit();
+   const incomplete=dl.disabled&&out.textContent.includes('تکمیل سه پاسخ');
+   a[2].value='پاسخ ساختگی 2';f.requestSubmit();
    const generated=!dl.disabled&&out.textContent.includes('پاسخ ساختگی 0');
+   dl.click();
    set('role','صادرکننده چک');const invalidated=dl.disabled&&[...document.querySelectorAll('#role-answers textarea')].every(x=>!x.value);
    [...document.querySelectorAll('#role-answers textarea')].forEach((x,i)=>x.value='دفاع فرضی '+i);
    set('evidence','تصویر فرضی چک');f.requestSubmit();
@@ -33,9 +39,15 @@ test('real Chromium: synthetic cheque interview, role switch and contradiction g
    set('evidence','هر دو');f.requestSubmit();
    const recovered=!dl.disabled&&out.textContent.includes('دفاع فرضی 0')&&!out.textContent.includes('پاسخ ساختگی 0');
    f.reset();const cleared=dl.disabled&&f.elements.role.value==='';
-   return {fields,generated,invalidated,blocked,recovered,cleared};
+   return {fields,incomplete,generated,invalidated,blocked,recovered,cleared};
   })()`);
-  assert.deepEqual(outcome,{fields:true,generated:true,invalidated:true,blocked:true,recovered:true,cleared:true});
+  assert.deepEqual(outcome,{fields:true,incomplete:true,generated:true,invalidated:true,blocked:true,recovered:true,cleared:true});
+  const downloaded=await wait(()=>{const names=fs.readdirSync(downloads);return names.find(n=>n.endsWith('.txt'))||null;});
+  const content=fs.readFileSync(path.join(downloads,downloaded),'utf8');
+  assert.ok(content.startsWith('\\ufeff'),'download must preserve UTF-8 BOM for Persian text');
+  assert.match(content,/پاسخ فرضی: پاسخ ساختگی 0/);
+  assert.match(content,/پاسخ فرضی: پاسخ ساختگی 2/);
+  assert.doesNotMatch(content,/دفاع فرضی 0/);
  }finally{
   if(ws)ws.close();
   if(browser.exitCode===null){browser.kill('SIGTERM');await Promise.race([new Promise(r=>browser.once('exit',r)),sleep(2000)]);if(browser.exitCode===null)browser.kill('SIGKILL');}
