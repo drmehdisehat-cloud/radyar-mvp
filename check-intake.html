@@ -12,6 +12,8 @@
 <label>ثبت در سامانه صیاد<select name="sayad" required><option value="">انتخاب کنید</option><option>تأیید شده</option><option>تأیید نشده</option><option>نامعلوم</option></select></label>
 <label>زمان‌بندی ساختگی (بدون نام، شماره حساب، شماره چک یا مشخصات واقعی)<textarea name="timeline" maxlength="600" placeholder="مثلاً چک فرضی در ماه اول صادر و در ماه دوم ارائه شد"></textarea></label>
 <label>مدارک فرضی<select name="evidence" required><option value="">انتخاب کنید</option><option>تصویر فرضی چک</option><option>گواهی فرضی عدم پرداخت</option><option>هر دو</option><option>هیچ‌کدام</option></select></label>
+<label>آیا گواهی عدم پرداخت فرضی دارید؟<select name="certificate" required><option value="">انتخاب کنید</option><option>بله</option><option>خیر</option><option>نامعلوم</option></select></label>
+<label>آیا درباره اصالت امضا اختلاف فرضی وجود دارد؟<select name="signature" required><option value="">انتخاب کنید</option><option>بله</option><option>خیر</option><option>نامعلوم</option></select></label>
 <label>ابهام یا دفاع طرف مقابل (ساختگی)<textarea name="opposition" maxlength="600"></textarea></label>
 <button type="submit">ساخت پیش‌نویس قابل بازبینی</button><button type="reset">پاک‌کردن</button>
 </form></section>
@@ -24,9 +26,15 @@ function clean(value){return String(value||'').replace(/[\u202a-\u202e\u2066-\u2
 form.addEventListener('submit',event=>{
  event.preventDefault();if(!form.reportValidity())return;
  const d=new FormData(form);
- const fields=['role','state','sayad','timeline','evidence','opposition'];
+ const fields=['role','state','sayad','timeline','evidence','certificate','signature','opposition'];
  const v=Object.fromEntries(fields.map(k=>[k,clean(d.get(k))]));
- report=['کاربرگ فرضی دادیار | چک','نقش: '+v.role,'وضعیت: '+v.state,'ثبت صیاد: '+v.sayad,'شرح زمان‌بندی: '+(v.timeline||'نامشخص'),'مدارک: '+v.evidence,'ابهام/دفاع: '+(v.opposition||'نامشخص'),'','موارد نیازمند بررسی انسانی: اصالت و وضعیت چک، ثبت و انتقال صیاد، گواهی عدم پرداخت، تاریخ‌های مؤثر، ادله و دفاعیات طرفین، مرجع و مسیر قانونی متناسب با مقررات معتبر در تاریخ اقدام.','این متن صرفاً پیش‌نویس فرضی است؛ هیچ ماده قانونی یا نتیجه قضایی تأیید نشده است.'].join('\n');
+ const gaps=[];
+ if(v.state==='برگشت خورده' && v.certificate!=='بله')gaps.push('برای بررسی مسیر اقدام، وجود و جزئیات گواهی عدم پرداخت باید روشن شود.');
+ if(v.sayad!=='تأیید شده')gaps.push('وضعیت ثبت و تأیید صیاد نیازمند بررسی مستقل است.');
+ if(v.signature!=='خیر')gaps.push('اختلاف یا ابهام درباره اصالت امضا باید توسط متخصص بررسی شود.');
+ if(!v.timeline)gaps.push('تاریخ‌های مؤثر و ترتیب رویدادها هنوز مشخص نیست.');
+ if(v.evidence==='هیچ‌کدام')gaps.push('مدارک پایه هنوز ارائه نشده‌اند.');
+ report=['کاربرگ فرضی دادیار | چک','نقش: '+v.role,'وضعیت: '+v.state,'ثبت صیاد: '+v.sayad,'شرح زمان‌بندی: '+(v.timeline||'نامشخص'),'مدارک: '+v.evidence,'گواهی عدم پرداخت: '+v.certificate,'اختلاف امضا: '+v.signature,'ابهام/دفاع: '+(v.opposition||'نامشخص'),'','ابهام‌های شناسایی‌شده (نه نتیجه حقوقی):',...(gaps.length?gaps:['ابهام اولیه مشخصی در پاسخ‌های انتخابی ثبت نشد؛ صحت آنها همچنان نیازمند بررسی است.']),'','موارد نیازمند بررسی انسانی: اصالت و وضعیت چک، ثبت و انتقال صیاد، گواهی عدم پرداخت، تاریخ‌های مؤثر، ادله و دفاعیات طرفین، مرجع و مسیر قانونی متناسب با مقررات معتبر در تاریخ اقدام.','این متن صرفاً پیش‌نویس فرضی است؛ هیچ ماده قانونی یا نتیجه قضایی تأیید نشده است.'].join('\n');
  draft.textContent=report;download.disabled=false;
 });
 form.addEventListener('reset',()=>{report='';draft.textContent='فرم پاک شد. هیچ اطلاعاتی در سرور ذخیره نشده است.';download.disabled=true;});
