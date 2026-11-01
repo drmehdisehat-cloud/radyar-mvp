@@ -63,3 +63,4 @@ jobs:
           CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium)"
           test -n "$CHROME_BIN"
           CHROME_BIN="$CHROME_BIN" node --test tests/real-browser-smoke.cjs
+          CHROME_BIN="$CHROME_BIN" node --test tests/check-intake-browser.cjs
