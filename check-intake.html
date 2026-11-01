@@ -38,7 +38,16 @@ form.addEventListener('submit',event=>{
  if(v.certificate==='خیر' && ['گواهی فرضی عدم پرداخت','هر دو'].includes(v.evidence))gaps.push('ناسازگاری پاسخ‌ها: گواهی عدم پرداخت در مدارک انتخاب شده، اما وجود آن رد شده است؛ وضعیت واقعی باید روشن شود.');
  if(v.state==='پرداخت شده' && v.certificate==='بله')gaps.push('پرداخت و وجود گواهی عدم پرداخت لزوماً متناقض نیستند؛ ترتیب زمانی پرداخت، برگشت و تسویه باید روشن شود.');
  report=['کاربرگ فرضی دادیار | چک','نقش: '+v.role,'وضعیت: '+v.state,'ثبت صیاد: '+v.sayad,'شرح زمان‌بندی: '+(v.timeline||'نامشخص'),'مدارک: '+v.evidence,'گواهی عدم پرداخت: '+v.certificate,'اختلاف امضا: '+v.signature,'ابهام/دفاع: '+(v.opposition||'نامشخص'),'','ابهام‌های شناسایی‌شده (نه نتیجه حقوقی):',...(gaps.length?gaps:['ابهام اولیه مشخصی در پاسخ‌های انتخابی ثبت نشد؛ صحت آنها همچنان نیازمند بررسی است.']),'','موارد نیازمند بررسی انسانی: اصالت و وضعیت چک، ثبت و انتقال صیاد، گواهی عدم پرداخت، تاریخ‌های مؤثر، ادله و دفاعیات طرفین، مرجع و مسیر قانونی متناسب با مقررات معتبر در تاریخ اقدام.','این متن صرفاً پیش‌نویس فرضی است؛ هیچ ماده قانونی یا نتیجه قضایی تأیید نشده است.'].join('\n');
- draft.textContent=report;download.disabled=false;
+ draft.textContent=report;
+// Contradictory evidence answers must be reconciled before an export is offered.
+const certificateInEvidence=['گواهی فرضی عدم پرداخت','هر دو'].includes(v.evidence);
+const certificateContradiction=(v.certificate==='بله'&&!certificateInEvidence)||
+ (v.certificate==='خیر'&&certificateInEvidence);
+download.disabled=certificateContradiction;
+if(certificateContradiction){
+ draft.textContent+='\n\n⛔ دریافت گزارش تا اصلاح تناقض گواهی عدم پرداخت و فهرست مدارک غیرفعال است.';
+ report='';
+}
 });
 // Never offer a stale export after any interview answer changes.
 function invalidateDraft(){
