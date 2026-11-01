@@ -44,7 +44,10 @@ el('send').addEventListener('click', async () => {
     if (!response.ok) throw Error(await responseError(response));
     const data = await response.json();
     if (pending !== controller) return;
-    // Never present a malformed upstream payload as an AI answer.\n    if (!data || typeof data.answer !== 'string' || !data.answer.trim() || data.answer.length > 16000)\n      throw Error('پاسخ معتبر از سرویس دریافت نشد؛ گفتگو ثبت نشد.');\n    messages = [...next,{role:'assistant',content:data.answer}];
+    // Never present a malformed upstream payload as an AI answer.
+    if (!data || typeof data.answer !== 'string' || !data.answer.trim() || data.answer.length > 16000)
+      throw Error('پاسخ معتبر از سرویس دریافت نشد؛ گفتگو ثبت نشد.');
+    messages = [...next,{role:'assistant',content:data.answer}];
     render(); el('message').value='';el('status').textContent='پاسخ آزمایشی؛ پیش از اقدام واقعی با وکیل بررسی کنید.';
   } catch(error) {if(pending===controller)el('status').textContent=error.name==='AbortError'?'ارسال لغو شد.':error.message;}
   finally {if(pending===controller){pending=null;el('send').disabled=false;}}
