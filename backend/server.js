@@ -32,6 +32,8 @@ function deploymentModeError() {
 const STATIC_FILES = Object.freeze({
   '/chat.html': ['chat.html', 'text/html; charset=utf-8'],
   '/chat.js': ['chat.js', 'text/javascript; charset=utf-8'],
+  '/companion.js': ['companion.js', 'text/javascript; charset=utf-8'],
+  '/companion.css': ['companion.css', 'text/css; charset=utf-8'],
   '/': ['index.html', 'text/html; charset=utf-8'],
   '/index.html': ['index.html', 'text/html; charset=utf-8'],
   '/flows.js': ['flows.js', 'text/javascript; charset=utf-8'],
