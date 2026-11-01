@@ -18,7 +18,9 @@ test('provider receives private stateless request; only text returned', async ()
     assert.deepEqual(body.input, sample.messages);
     return { ok:true, json: async()=>({status:'completed', output:[{type:'message',content:[{type:'output_text',text:'تاریخ و وضعیت چک را مشخص کنید.'}]}]}) };
   }});
-  assert.equal(result.answer,'تاریخ و وضعیت چک را مشخص کنید.');
+  assert.match(result.answer, /^⚠️ پاسخ آزمایشی است؛ منابع قانونی و اعتبار زمانی آن‌ها مستقلاً تأیید نشده‌اند/);
+  assert.match(result.answer, /بازبینی وکیل ضروری است/);
+  assert.ok(result.answer.endsWith('تاریخ و وضعیت چک را مشخص کنید.'));
   assert.equal(result.legalSourcesVerified,false);
 });
 test('provider failure never exposes upstream body', async () => {
