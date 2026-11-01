@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="fa" dir="rtl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>دادیار | کاربرگ فرضی چک</title>
+<style>
+*{box-sizing:border-box}body{font:16px/1.9 Tahoma,Arial;background:#f4f7f6;color:#18333c;margin:0}main{max-width:800px;margin:auto;padding:18px}section{background:#fff;border:1px solid #cbd8d6;border-radius:16px;padding:18px;margin:14px 0}label{display:block;margin:12px 0}input,select,textarea,button{font:inherit;padding:10px;border:1px solid #81999a;border-radius:8px;max-width:100%}input,select,textarea{display:block;width:100%}textarea{min-height:85px}button{background:#164653;color:white;cursor:pointer;margin:8px 3px}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #e7a44a}#draft{white-space:pre-wrap;overflow-wrap:anywhere;background:#edf3f2;padding:14px;border-radius:10px}@media(max-width:500px){main{padding:9px}section{padding:13px}}
+</style>
+<main><h1>کاربرگ مصاحبه فرضی پرونده چک</h1>
+<p><strong>نسخه آفلاین آزمایشی:</strong> هیچ داده‌ای به سرور ارسال نمی‌شود. فقط اطلاعات ساختگی وارد کنید. این ابزار رأی، دادخواست آماده ثبت یا مشاوره قطعی نیست؛ مرجع صالح و مواد قانونی باید از منابع رسمی روز و توسط وکیل بررسی شوند.</p>
+<section><form id="intake" autocomplete="off">
+<label>نقش فرضی<select name="role" required><option value="">انتخاب کنید</option><option>دارنده چک</option><option>صادرکننده چک</option><option>انتقال‌گیرنده چک</option><option>نماینده حقوقی</option></select></label>
+<label>وضعیت چک<select name="state" required><option value="">انتخاب کنید</option><option>سررسید نشده</option><option>برگشت خورده</option><option>پرداخت شده</option><option>وضعیت نامعلوم</option></select></label>
+<label>ثبت در سامانه صیاد<select name="sayad" required><option value="">انتخاب کنید</option><option>تأیید شده</option><option>تأیید نشده</option><option>نامعلوم</option></select></label>
+<label>زمان‌بندی ساختگی (بدون نام، شماره حساب، شماره چک یا مشخصات واقعی)<textarea name="timeline" maxlength="600" placeholder="مثلاً چک فرضی در ماه اول صادر و در ماه دوم ارائه شد"></textarea></label>
+<label>مدارک فرضی<select name="evidence" required><option value="">انتخاب کنید</option><option>تصویر فرضی چک</option><option>گواهی فرضی عدم پرداخت</option><option>هر دو</option><option>هیچ‌کدام</option></select></label>
+<label>ابهام یا دفاع طرف مقابل (ساختگی)<textarea name="opposition" maxlength="600"></textarea></label>
+<button type="submit">ساخت پیش‌نویس قابل بازبینی</button><button type="reset">پاک‌کردن</button>
+</form></section>
+<section><h2>خروجی غیررسمی</h2><div id="draft" role="status" aria-live="polite">فرم را با اطلاعات فرضی تکمیل کنید.</div><button id="download" type="button" disabled>دریافت متن</button></section></main>
+<script>
+'use strict';
+const form=document.getElementById('intake'),draft=document.getElementById('draft'),download=document.getElementById('download');
+let report='';
+function clean(value){return String(value||'').replace(/[\u202a-\u202e\u2066-\u2069]/g,'').trim();}
+form.addEventListener('submit',event=>{
+ event.preventDefault();if(!form.reportValidity())return;
+ const d=new FormData(form);
+ const fields=['role','state','sayad','timeline','evidence','opposition'];
+ const v=Object.fromEntries(fields.map(k=>[k,clean(d.get(k))]));
+ report=['کاربرگ فرضی دادیار | چک','نقش: '+v.role,'وضعیت: '+v.state,'ثبت صیاد: '+v.sayad,'شرح زمان‌بندی: '+(v.timeline||'نامشخص'),'مدارک: '+v.evidence,'ابهام/دفاع: '+(v.opposition||'نامشخص'),'','موارد نیازمند بررسی انسانی: اصالت و وضعیت چک، ثبت و انتقال صیاد، گواهی عدم پرداخت، تاریخ‌های مؤثر، ادله و دفاعیات طرفین، مرجع و مسیر قانونی متناسب با مقررات معتبر در تاریخ اقدام.','این متن صرفاً پیش‌نویس فرضی است؛ هیچ ماده قانونی یا نتیجه قضایی تأیید نشده است.'].join('\n');
+ draft.textContent=report;download.disabled=false;
+});
+form.addEventListener('reset',()=>{report='';draft.textContent='فرم پاک شد. هیچ اطلاعاتی در سرور ذخیره نشده است.';download.disabled=true;});
+download.addEventListener('click',()=>{
+ if(!report)return;
+ const blob=new Blob(['\ufeff',report],{type:'text/plain;charset=utf-8'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='dadyar-synthetic-cheque-draft.txt';a.click();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+window.addEventListener('pagehide',()=>{report='';form.reset();});
+</script></html>
