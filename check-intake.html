@@ -15,6 +15,7 @@
 <label>آیا گواهی عدم پرداخت فرضی دارید؟<select name="certificate" required><option value="">انتخاب کنید</option><option>بله</option><option>خیر</option><option>نامعلوم</option></select></label>
 <label>آیا درباره اصالت امضا اختلاف فرضی وجود دارد؟<select name="signature" required><option value="">انتخاب کنید</option><option>بله</option><option>خیر</option><option>نامعلوم</option></select></label>
 <label>ابهام یا دفاع طرف مقابل (ساختگی)<textarea name="opposition" maxlength="600"></textarea></label>
+<fieldset id="role-followups"><legend>پرسش‌های تکمیلی نقش انتخابی</legend><p id="role-hint">ابتدا نقش فرضی را انتخاب کنید.</p><div id="role-answers"></div></fieldset>
 <button type="submit">ساخت پیش‌نویس قابل بازبینی</button><button type="reset">پاک‌کردن</button>
 </form></section>
 <section><h2>خروجی غیررسمی</h2><div id="draft" role="status" aria-live="polite">فرم را با اطلاعات فرضی تکمیل کنید.</div><button id="download" type="button" disabled>دریافت متن</button></section></main>
@@ -36,6 +37,8 @@ form.addEventListener('submit',event=>{
   'نماینده حقوقی':['حدود اختیار نمایندگی و مدارک مثبت سمت چیست؟','ادله موافق و مخالف هر دو طرف کدام‌اند؟','کدام تاریخ‌ها و اسناد پیش از انتخاب مسیر اقدام باید راستی‌آزمایی شوند؟']
  };
  const followups=roleQuestions[v.role]||[];
+ const answers=[...document.querySelectorAll('#role-answers textarea')].map((el,i)=>({question:followups[i],answer:clean(el.value)}));
+ if(answers.some(x=>!x.answer))gaps.push('پاسخ برخی پرسش‌های تکمیلی نقش هنوز ثبت نشده است.');
 
  if(v.state==='برگشت خورده' && v.certificate!=='بله')gaps.push('برای بررسی مسیر اقدام، وجود و جزئیات گواهی عدم پرداخت باید روشن شود.');
  if(v.sayad!=='تأیید شده')gaps.push('وضعیت ثبت و تأیید صیاد نیازمند بررسی مستقل است.');
@@ -45,7 +48,7 @@ form.addEventListener('submit',event=>{
  if(v.certificate==='بله' && !['گواهی فرضی عدم پرداخت','هر دو'].includes(v.evidence))gaps.push('ناسازگاری پاسخ‌ها: وجود گواهی عدم پرداخت اعلام شده، اما در فهرست مدارک انتخاب نشده است؛ پیش از هر تحلیل اصلاح یا توضیح داده شود.');
  if(v.certificate==='خیر' && ['گواهی فرضی عدم پرداخت','هر دو'].includes(v.evidence))gaps.push('ناسازگاری پاسخ‌ها: گواهی عدم پرداخت در مدارک انتخاب شده، اما وجود آن رد شده است؛ وضعیت واقعی باید روشن شود.');
  if(v.state==='پرداخت شده' && v.certificate==='بله')gaps.push('پرداخت و وجود گواهی عدم پرداخت لزوماً متناقض نیستند؛ ترتیب زمانی پرداخت، برگشت و تسویه باید روشن شود.');
- report=['کاربرگ فرضی دادیار | چک','نقش: '+v.role,'وضعیت: '+v.state,'ثبت صیاد: '+v.sayad,'شرح زمان‌بندی: '+(v.timeline||'نامشخص'),'مدارک: '+v.evidence,'گواهی عدم پرداخت: '+v.certificate,'اختلاف امضا: '+v.signature,'ابهام/دفاع: '+(v.opposition||'نامشخص'),'','پرسش‌های تکمیلی متناسب با نقش (پاسخ داده نشده):',...followups.map((q,i)=>(i+1)+'. '+q),'','ابهام‌های شناسایی‌شده (نه نتیجه حقوقی):',...(gaps.length?gaps:['ابهام اولیه مشخصی در پاسخ‌های انتخابی ثبت نشد؛ صحت آنها همچنان نیازمند بررسی است.']),'','موارد نیازمند بررسی انسانی: اصالت و وضعیت چک، ثبت و انتقال صیاد، گواهی عدم پرداخت، تاریخ‌های مؤثر، ادله و دفاعیات طرفین، مرجع و مسیر قانونی متناسب با مقررات معتبر در تاریخ اقدام.','این متن صرفاً پیش‌نویس فرضی است؛ هیچ ماده قانونی یا نتیجه قضایی تأیید نشده است.'].join('\n');
+ report=['کاربرگ فرضی دادیار | چک','نقش: '+v.role,'وضعیت: '+v.state,'ثبت صیاد: '+v.sayad,'شرح زمان‌بندی: '+(v.timeline||'نامشخص'),'مدارک: '+v.evidence,'گواهی عدم پرداخت: '+v.certificate,'اختلاف امضا: '+v.signature,'ابهام/دفاع: '+(v.opposition||'نامشخص'),'','پرسش‌های تکمیلی متناسب با نقش (پاسخ داده نشده):',...answers.map((x,i)=>(i+1)+'. '+x.question+'\nپاسخ فرضی: '+(x.answer||'پاسخ داده نشده')),'','ابهام‌های شناسایی‌شده (نه نتیجه حقوقی):',...(gaps.length?gaps:['ابهام اولیه مشخصی در پاسخ‌های انتخابی ثبت نشد؛ صحت آنها همچنان نیازمند بررسی است.']),'','موارد نیازمند بررسی انسانی: اصالت و وضعیت چک، ثبت و انتقال صیاد، گواهی عدم پرداخت، تاریخ‌های مؤثر، ادله و دفاعیات طرفین، مرجع و مسیر قانونی متناسب با مقررات معتبر در تاریخ اقدام.','این متن صرفاً پیش‌نویس فرضی است؛ هیچ ماده قانونی یا نتیجه قضایی تأیید نشده است.'].join('\n');
  draft.textContent=report;
 // Contradictory evidence answers must be reconciled before an export is offered.
 const certificateInEvidence=['گواهی فرضی عدم پرداخت','هر دو'].includes(v.evidence);
@@ -57,6 +60,24 @@ if(certificateContradiction){
  report='';
 }
 });
+// Render role-specific answer fields; role changes discard prior answers, never reuse them.
+const roleFollowups={
+ 'دارنده چک':['زنجیره انتقال و سمت دارنده چگونه احراز می‌شود؟','اصل چک و گواهی عدم پرداخت برای بررسی در دسترس هستند؟','آیا پرداخت جزئی یا توافق تسویه پس از برگشت رخ داده است؟'],
+ 'صادرکننده چک':['مبنای صدور و قرارداد مرتبط چه بوده است؟','آیا پرداخت، تضمینی بودن یا ایراد امضا با مدرک قابل بررسی است؟','آیا ابلاغ یا مطالبه‌ای دریافت شده و تاریخ آن چیست؟'],
+ 'انتقال‌گیرنده چک':['زمان و شیوه انتقال و وضعیت تأیید صیاد چگونه بوده است؟','سمت انتقال‌دهنده و سابقه ظهرنویسی چگونه احراز می‌شود؟','آیا ایرادات یا پرداخت‌های پیشین به اطلاع انتقال‌گیرنده رسیده است؟'],
+ 'نماینده حقوقی':['حدود اختیار نمایندگی و مدارک مثبت سمت چیست؟','ادله موافق و مخالف هر دو طرف کدام‌اند؟','کدام تاریخ‌ها و اسناد پیش از انتخاب مسیر اقدام باید راستی‌آزمایی شوند؟']
+};
+function renderRoleAnswers(){
+ const host=document.getElementById('role-answers');host.replaceChildren();
+ const questions=roleFollowups[form.elements.role.value]||[];
+ document.getElementById('role-hint').textContent=questions.length?'پاسخ‌ها فقط برای پیش‌نویس فرضی و آفلاین استفاده می‌شوند.':'ابتدا نقش فرضی را انتخاب کنید.';
+ questions.forEach((question,i)=>{
+  const label=document.createElement('label');label.textContent=(i+1)+'. '+question;
+  const input=document.createElement('textarea');input.maxLength=600;input.name='followup-'+i;input.setAttribute('aria-label',question);
+  label.appendChild(input);host.appendChild(label);
+ });
+}
+form.elements.role.addEventListener('change',renderRoleAnswers);
 // Never offer a stale export after any interview answer changes.
 function invalidateDraft(){
  if(!report)return;
@@ -66,7 +87,7 @@ function invalidateDraft(){
 }
 form.addEventListener('input',invalidateDraft);
 form.addEventListener('change',invalidateDraft);
-form.addEventListener('reset',()=>{report='';draft.textContent='فرم پاک شد. هیچ اطلاعاتی در سرور ذخیره نشده است.';download.disabled=true;});
+form.addEventListener('reset',()=>{setTimeout(renderRoleAnswers,0);report='';draft.textContent='فرم پاک شد. هیچ اطلاعاتی در سرور ذخیره نشده است.';download.disabled=true;});
 download.addEventListener('click',()=>{
  if(!report)return;
  const blob=new Blob(['\ufeff',report],{type:'text/plain;charset=utf-8'});
