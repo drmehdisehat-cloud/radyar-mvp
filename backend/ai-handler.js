@@ -31,7 +31,12 @@ function createChatHandler({ env = process.env, answer = answerChat, now = Date.
       try {
         const result = await answer(data, {apiKey:env.OPENAI_API_KEY,model:env.OPENAI_MODEL || 'gpt-4.1-mini'});
         send(200, result);
-      } catch { send(502, {error:'provider_unavailable'}); }
+      } catch (error) {
+        // Provider 429 may mean exhausted credits, not our local preview quota.
+        // Do not expose provider bodies, tokens or request metadata.
+        if (error && error.status === 429) send(503, {error:'provider_capacity_unavailable'});
+        else send(502, {error:'provider_unavailable'});
+      }
       finally { active--; }
     } catch { send(400, {error:'invalid_json'}); }
   };
