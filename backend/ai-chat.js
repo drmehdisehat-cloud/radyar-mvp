@@ -32,6 +32,9 @@ async function answerChat(payload, { apiKey, model = 'gpt-4.1-mini', fetchImpl =
     .flatMap(x => x.content || []).filter(x => x.type === 'output_text')
     .map(x => x.text).join('\n');
   if (!text || data.status !== 'completed') throw new Error('incomplete_response');
-  return { answer: text, experimental: true, legalSourcesVerified: false };
+  // The model cannot certify its own sources. Enforce this notice in the server output,
+  // independently of prompt compliance; this is not a substitute for legal review.
+  const notice = '⚠️ پاسخ آزمایشی است؛ منابع قانونی و اعتبار زمانی آن‌ها مستقلاً تأیید نشده‌اند. برای اقدام واقعی، بازبینی وکیل ضروری است.\\n\\n';
+  return { answer: notice.replace(/\\n/g, '\n') + text, experimental: true, legalSourcesVerified: false };
 }
 module.exports = { answerChat, validateChat };
