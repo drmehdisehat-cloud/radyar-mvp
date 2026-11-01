@@ -5,6 +5,7 @@ on:
     branches:
       - dadyar/mvp-sync-028
       - dadyar/preview-auth-policy-20261030
+      - dadyar/ai-chat-private-20261101
   pull_request:
     branches:
       - main
@@ -14,7 +15,7 @@ permissions:
 jobs:
   verify-existing-frontend:
     if: >-
-      (github.event_name == 'push' && (github.ref == 'refs/heads/dadyar/mvp-sync-028' || github.ref == 'refs/heads/dadyar/preview-auth-policy-20261030')) ||
+      (github.event_name == 'push' && (github.ref == 'refs/heads/dadyar/mvp-sync-028' || github.ref == 'refs/heads/dadyar/preview-auth-policy-20261030' || github.ref == 'refs/heads/dadyar/ai-chat-private-20261101')) ||
       (github.event_name == 'pull_request' &&
        (github.base_ref == 'main' || github.base_ref == 'dadyar/mvp-sync-028'))
     runs-on: ubuntu-latest

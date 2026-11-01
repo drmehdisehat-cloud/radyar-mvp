@@ -7,6 +7,7 @@ const path = require('node:path');
 const { TextDecoder } = require('node:util');
 const { validateCase } = require('./validation');
 const { createRateLimiter } = require('./rate-limit');
+const { handleChat } = require('./ai-handler');
 // UTF-8 Persian text may take three bytes per character. The interview allows
 // 5,000 characters of story plus five answers of up to 2,000 characters each;
 // 16 KiB would reject otherwise-valid Persian interviews. Keep a strict byte cap.
@@ -29,6 +30,8 @@ function deploymentModeError() {
 }
 // Explicit allowlist: no directory traversal, dotfiles, or arbitrary file reads.
 const STATIC_FILES = Object.freeze({
+  '/chat.html': ['chat.html', 'text/html; charset=utf-8'],
+  '/chat.js': ['chat.js', 'text/javascript; charset=utf-8'],
   '/': ['index.html', 'text/html; charset=utf-8'],
   '/index.html': ['index.html', 'text/html; charset=utf-8'],
   '/flows.js': ['flows.js', 'text/javascript; charset=utf-8'],
@@ -146,6 +149,10 @@ function handle(req, res, allow = () => true) {
     }
   }
   if (!isLocalRequest(req)) return send(res, 403, { error: 'local_origin_required' });
+  if (req.url === '/api/chat') {
+    if (!isSameOriginFetch(req)) return send(res, 403, { error: 'same_origin_required' });
+    return handleChat(req, (status, body) => send(res, status, body));
+  }
   if (req.method === 'GET' && Object.hasOwn(STATIC_FILES, req.url)) {
     return sendStatic(res, req.url);
   }
