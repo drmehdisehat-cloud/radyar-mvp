@@ -38,7 +38,8 @@ form.addEventListener('submit',event=>{
  };
  const followups=roleQuestions[v.role]||[];
  const answers=[...document.querySelectorAll('#role-answers textarea')].map((el,i)=>({question:followups[i],answer:clean(el.value)}));
- if(answers.some(x=>!x.answer))gaps.push('پاسخ برخی پرسش‌های تکمیلی نقش هنوز ثبت نشده است.');
+ const missingFollowups=answers.length!==3 || answers.some(x=>!x.answer);
+ if(missingFollowups)gaps.push('پاسخ همه پرسش‌های تکمیلی نقش برای خروجی ضروری است.');
 
  if(v.state==='برگشت خورده' && v.certificate!=='بله')gaps.push('برای بررسی مسیر اقدام، وجود و جزئیات گواهی عدم پرداخت باید روشن شود.');
  if(v.sayad!=='تأیید شده')gaps.push('وضعیت ثبت و تأیید صیاد نیازمند بررسی مستقل است.');
@@ -48,13 +49,17 @@ form.addEventListener('submit',event=>{
  if(v.certificate==='بله' && !['گواهی فرضی عدم پرداخت','هر دو'].includes(v.evidence))gaps.push('ناسازگاری پاسخ‌ها: وجود گواهی عدم پرداخت اعلام شده، اما در فهرست مدارک انتخاب نشده است؛ پیش از هر تحلیل اصلاح یا توضیح داده شود.');
  if(v.certificate==='خیر' && ['گواهی فرضی عدم پرداخت','هر دو'].includes(v.evidence))gaps.push('ناسازگاری پاسخ‌ها: گواهی عدم پرداخت در مدارک انتخاب شده، اما وجود آن رد شده است؛ وضعیت واقعی باید روشن شود.');
  if(v.state==='پرداخت شده' && v.certificate==='بله')gaps.push('پرداخت و وجود گواهی عدم پرداخت لزوماً متناقض نیستند؛ ترتیب زمانی پرداخت، برگشت و تسویه باید روشن شود.');
- report=['کاربرگ فرضی دادیار | چک','نقش: '+v.role,'وضعیت: '+v.state,'ثبت صیاد: '+v.sayad,'شرح زمان‌بندی: '+(v.timeline||'نامشخص'),'مدارک: '+v.evidence,'گواهی عدم پرداخت: '+v.certificate,'اختلاف امضا: '+v.signature,'ابهام/دفاع: '+(v.opposition||'نامشخص'),'','پرسش‌های تکمیلی متناسب با نقش (پاسخ داده نشده):',...answers.map((x,i)=>(i+1)+'. '+x.question+'\nپاسخ فرضی: '+(x.answer||'پاسخ داده نشده')),'','ابهام‌های شناسایی‌شده (نه نتیجه حقوقی):',...(gaps.length?gaps:['ابهام اولیه مشخصی در پاسخ‌های انتخابی ثبت نشد؛ صحت آنها همچنان نیازمند بررسی است.']),'','موارد نیازمند بررسی انسانی: اصالت و وضعیت چک، ثبت و انتقال صیاد، گواهی عدم پرداخت، تاریخ‌های مؤثر، ادله و دفاعیات طرفین، مرجع و مسیر قانونی متناسب با مقررات معتبر در تاریخ اقدام.','این متن صرفاً پیش‌نویس فرضی است؛ هیچ ماده قانونی یا نتیجه قضایی تأیید نشده است.'].join('\n');
+ report=['کاربرگ فرضی دادیار | چک','نقش: '+v.role,'وضعیت: '+v.state,'ثبت صیاد: '+v.sayad,'شرح زمان‌بندی: '+(v.timeline||'نامشخص'),'مدارک: '+v.evidence,'گواهی عدم پرداخت: '+v.certificate,'اختلاف امضا: '+v.signature,'ابهام/دفاع: '+(v.opposition||'نامشخص'),'','پرسش‌ها و پاسخ‌های تکمیلی متناسب با نقش:',...answers.map((x,i)=>(i+1)+'. '+x.question+'\nپاسخ فرضی: '+(x.answer||'پاسخ داده نشده')),'','ابهام‌های شناسایی‌شده (نه نتیجه حقوقی):',...(gaps.length?gaps:['ابهام اولیه مشخصی در پاسخ‌های انتخابی ثبت نشد؛ صحت آنها همچنان نیازمند بررسی است.']),'','موارد نیازمند بررسی انسانی: اصالت و وضعیت چک، ثبت و انتقال صیاد، گواهی عدم پرداخت، تاریخ‌های مؤثر، ادله و دفاعیات طرفین، مرجع و مسیر قانونی متناسب با مقررات معتبر در تاریخ اقدام.','این متن صرفاً پیش‌نویس فرضی است؛ هیچ ماده قانونی یا نتیجه قضایی تأیید نشده است.'].join('\n');
  draft.textContent=report;
 // Contradictory evidence answers must be reconciled before an export is offered.
 const certificateInEvidence=['گواهی فرضی عدم پرداخت','هر دو'].includes(v.evidence);
 const certificateContradiction=(v.certificate==='بله'&&!certificateInEvidence)||
  (v.certificate==='خیر'&&certificateInEvidence);
-download.disabled=certificateContradiction;
+download.disabled=certificateContradiction || missingFollowups;
+if(missingFollowups){
+ draft.textContent+='\n\n⛔ دریافت گزارش تا تکمیل سه پاسخ تکمیلی نقش غیرفعال است.';
+ report='';
+}
 if(certificateContradiction){
  draft.textContent+='\n\n⛔ دریافت گزارش تا اصلاح تناقض گواهی عدم پرداخت و فهرست مدارک غیرفعال است.';
  report='';
