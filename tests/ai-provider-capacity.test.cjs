@@ -29,3 +29,52 @@ for (const [upstream, expectedStatus, expectedError] of [
     assert.doesNotMatch(JSON.stringify(result), /private upstream detail|synthetic-test-only/);
   });
 }
+
+test('provider 429 pauses authenticated retries for five minutes without consuming quota', async () => {
+  let time = 1000, calls = 0;
+  const handle = createChatHandler({
+    env: { DADYAR_PREVIEW_TOKEN: token, OPENAI_API_KEY: 'synthetic-test-only' },
+    now: () => time,
+    answer: async () => {
+      calls++;
+      if (calls === 1) { const e = new Error('private'); e.status = 429; throw e; }
+      return {answer:'synthetic answer'};
+    }
+  });
+  async function invoke(req = request()) {
+    let result;
+    await handle(req, (status, body) => { result = {status, body}; });
+    return result;
+  }
+  assert.equal((await invoke()).status, 503);
+  for (let i = 0; i < 35; i++) assert.deepEqual(await invoke(), {
+    status:503, body:{error:'provider_capacity_unavailable'}
+  });
+  assert.equal(calls, 1);
+  const unauthorized = request(); unauthorized.rawHeaders = [];
+  assert.equal((await invoke(unauthorized)).status, 401);
+  time += 299999;
+  assert.equal((await invoke()).status, 503);
+  time++;
+  assert.equal((await invoke()).status, 200);
+  assert.equal(calls, 2);
+});
+
+test('provider capacity failure during body reading blocks a pending request before upstream call', async () => {
+  let calls = 0, unblock;
+  const handle = createChatHandler({
+    env:{DADYAR_PREVIEW_TOKEN:token, OPENAI_API_KEY:'synthetic-test-only'},
+    answer:async()=>{calls++; const e=new Error('private'); e.status=429; throw e;}
+  });
+  const delayed = request(), original = delayed[Symbol.asyncIterator];
+  delayed[Symbol.asyncIterator] = async function* () {
+    await new Promise(resolve=>{unblock=resolve;});
+    yield* original();
+  };
+  let pendingResult;
+  const pending = handle(delayed,(status,body)=>{pendingResult={status,body};});
+  await handle(request(),()=>{});
+  unblock(); await pending;
+  assert.deepEqual(pendingResult,{status:503,body:{error:'provider_capacity_unavailable'}});
+  assert.equal(calls,1);
+});
