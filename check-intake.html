@@ -37,6 +37,15 @@ form.addEventListener('submit',event=>{
  report=['کاربرگ فرضی دادیار | چک','نقش: '+v.role,'وضعیت: '+v.state,'ثبت صیاد: '+v.sayad,'شرح زمان‌بندی: '+(v.timeline||'نامشخص'),'مدارک: '+v.evidence,'گواهی عدم پرداخت: '+v.certificate,'اختلاف امضا: '+v.signature,'ابهام/دفاع: '+(v.opposition||'نامشخص'),'','ابهام‌های شناسایی‌شده (نه نتیجه حقوقی):',...(gaps.length?gaps:['ابهام اولیه مشخصی در پاسخ‌های انتخابی ثبت نشد؛ صحت آنها همچنان نیازمند بررسی است.']),'','موارد نیازمند بررسی انسانی: اصالت و وضعیت چک، ثبت و انتقال صیاد، گواهی عدم پرداخت، تاریخ‌های مؤثر، ادله و دفاعیات طرفین، مرجع و مسیر قانونی متناسب با مقررات معتبر در تاریخ اقدام.','این متن صرفاً پیش‌نویس فرضی است؛ هیچ ماده قانونی یا نتیجه قضایی تأیید نشده است.'].join('\n');
  draft.textContent=report;download.disabled=false;
 });
+// Never offer a stale export after any interview answer changes.
+function invalidateDraft(){
+ if(!report)return;
+ report='';
+ draft.textContent='پاسخ‌ها تغییر کردند. برای دریافت گزارش به‌روز، دوباره پیش‌نویس بسازید.';
+ download.disabled=true;
+}
+form.addEventListener('input',invalidateDraft);
+form.addEventListener('change',invalidateDraft);
 form.addEventListener('reset',()=>{report='';draft.textContent='فرم پاک شد. هیچ اطلاعاتی در سرور ذخیره نشده است.';download.disabled=true;});
 download.addEventListener('click',()=>{
  if(!report)return;
