@@ -44,7 +44,7 @@ test('real Chromium: synthetic cheque interview, role switch and contradiction g
   assert.deepEqual(outcome,{fields:true,incomplete:true,generated:true,invalidated:true,blocked:true,recovered:true,cleared:true});
   const downloaded=await wait(()=>{const names=fs.readdirSync(downloads);return names.find(n=>n.endsWith('.txt'))||null;});
   const content=fs.readFileSync(path.join(downloads,downloaded),'utf8');
-  assert.ok(content.startsWith('\\ufeff'),'download must preserve UTF-8 BOM for Persian text');
+  assert.ok(content.charCodeAt(0)===0xFEFF,'download must preserve UTF-8 BOM for Persian text');
   assert.match(content,/پاسخ فرضی: پاسخ ساختگی 0/);
   assert.match(content,/پاسخ فرضی: پاسخ ساختگی 2/);
   assert.doesNotMatch(content,/دفاع فرضی 0/);
