@@ -6,6 +6,8 @@ const token = Buffer.alloc(32, 7).toString('base64url'); // synthetic only
 function request() {
   return {
     method: 'POST',
+    url: '/api/ai-chat',
+    rawHeaders: ['Authorization', 'Bearer ' + token, 'Content-Type', 'application/json'],
     headers: { authorization: 'Bearer ' + token, 'content-type': 'application/json' },
     async *[Symbol.asyncIterator]() {
       yield Buffer.from(JSON.stringify({ syntheticOnly: true, messages: [
