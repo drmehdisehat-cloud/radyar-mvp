@@ -24,6 +24,8 @@
 const form=document.getElementById('intake'),draft=document.getElementById('draft'),download=document.getElementById('download');
 let report='';
 function clean(value){return String(value||'').replace(/[\u202a-\u202e\u2066-\u2069]/g,'').trim();}
+// Attribute every user-authored line in exported drafts.
+function quoted(value){return clean(value).split(/\r\n|[\r\n\u0085\u2028\u2029]/u).map(line=>'│ '+line).join('\n');}
 form.addEventListener('submit',event=>{
  event.preventDefault();if(!form.reportValidity())return;
  const d=new FormData(form);
@@ -49,7 +51,7 @@ form.addEventListener('submit',event=>{
  if(v.certificate==='بله' && !['گواهی فرضی عدم پرداخت','هر دو'].includes(v.evidence))gaps.push('ناسازگاری پاسخ‌ها: وجود گواهی عدم پرداخت اعلام شده، اما در فهرست مدارک انتخاب نشده است؛ پیش از هر تحلیل اصلاح یا توضیح داده شود.');
  if(v.certificate==='خیر' && ['گواهی فرضی عدم پرداخت','هر دو'].includes(v.evidence))gaps.push('ناسازگاری پاسخ‌ها: گواهی عدم پرداخت در مدارک انتخاب شده، اما وجود آن رد شده است؛ وضعیت واقعی باید روشن شود.');
  if(v.state==='پرداخت شده' && v.certificate==='بله')gaps.push('پرداخت و وجود گواهی عدم پرداخت لزوماً متناقض نیستند؛ ترتیب زمانی پرداخت، برگشت و تسویه باید روشن شود.');
- report=['کاربرگ فرضی دادیار | چک','نقش: '+v.role,'وضعیت: '+v.state,'ثبت صیاد: '+v.sayad,'شرح زمان‌بندی: '+(v.timeline||'نامشخص'),'مدارک: '+v.evidence,'گواهی عدم پرداخت: '+v.certificate,'اختلاف امضا: '+v.signature,'ابهام/دفاع: '+(v.opposition||'نامشخص'),'','پرسش‌ها و پاسخ‌های تکمیلی متناسب با نقش:',...answers.map((x,i)=>(i+1)+'. '+x.question+'\nپاسخ فرضی: '+(x.answer||'پاسخ داده نشده')),'','ابهام‌های شناسایی‌شده (نه نتیجه حقوقی):',...(gaps.length?gaps:['ابهام اولیه مشخصی در پاسخ‌های انتخابی ثبت نشد؛ صحت آنها همچنان نیازمند بررسی است.']),'','موارد نیازمند بررسی انسانی: اصالت و وضعیت چک، ثبت و انتقال صیاد، گواهی عدم پرداخت، تاریخ‌های مؤثر، ادله و دفاعیات طرفین، مرجع و مسیر قانونی متناسب با مقررات معتبر در تاریخ اقدام.','این متن صرفاً پیش‌نویس فرضی است؛ هیچ ماده قانونی یا نتیجه قضایی تأیید نشده است.'].join('\n');
+ report=['کاربرگ فرضی دادیار | چک','نقش: '+v.role,'وضعیت: '+v.state,'ثبت صیاد: '+v.sayad,'شرح زمان‌بندی (اظهار فرضی):\n'+quoted(v.timeline||'نامشخص'),'مدارک: '+v.evidence,'گواهی عدم پرداخت: '+v.certificate,'اختلاف امضا: '+v.signature,'ابهام/دفاع (اظهار فرضی):\n'+quoted(v.opposition||'نامشخص'),'','پرسش‌ها و پاسخ‌های تکمیلی متناسب با نقش:',...answers.map((x,i)=>(i+1)+'. '+x.question+'\nپاسخ فرضی:\n'+quoted(x.answer||'پاسخ داده نشده')),'','ابهام‌های شناسایی‌شده (نه نتیجه حقوقی):',...(gaps.length?gaps:['ابهام اولیه مشخصی در پاسخ‌های انتخابی ثبت نشد؛ صحت آنها همچنان نیازمند بررسی است.']),'','موارد نیازمند بررسی انسانی: اصالت و وضعیت چک، ثبت و انتقال صیاد، گواهی عدم پرداخت، تاریخ‌های مؤثر، ادله و دفاعیات طرفین، مرجع و مسیر قانونی متناسب با مقررات معتبر در تاریخ اقدام.','این متن صرفاً پیش‌نویس فرضی است؛ هیچ ماده قانونی یا نتیجه قضایی تأیید نشده است.'].join('\n');
  draft.textContent=report;
 // Contradictory evidence answers must be reconciled before an export is offered.
 const certificateInEvidence=['گواهی فرضی عدم پرداخت','هر دو'].includes(v.evidence);
