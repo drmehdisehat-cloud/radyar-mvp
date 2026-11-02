@@ -6,9 +6,10 @@ const { TextDecoder } = require('node:util');
 function createChatHandler({ env = process.env, answer = answerChat, now = Date.now } = {}) {
   let day = -1, count = 0, active = 0, providerBlockedUntil = 0;
   return async function handleChat(req, send) {
-    if (!isValidPreviewToken(env.DADYAR_PREVIEW_TOKEN) || !env.OPENAI_API_KEY)
-      return send(503, { error: 'ai_not_configured' });
+    // Deny unauthenticated callers before revealing provider configuration.
+    // A missing/invalid preview token must also fail closed without disclosure.
     if (!verifyPreviewBearer(req, env.DADYAR_PREVIEW_TOKEN)) return send(401, { error: 'authentication_required' });
+    if (!env.OPENAI_API_KEY) return send(503, { error: 'ai_not_configured' });
     if (req.method !== 'POST') return send(405, { error: 'post_required' });
     if (!/^application\/json(?:;\s*charset=utf-8)?$/i.test(req.headers['content-type'] || '') ||
         req.headers['content-encoding']) return send(415, { error: 'json_required' });
