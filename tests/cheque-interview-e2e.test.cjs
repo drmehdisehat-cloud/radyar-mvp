@@ -44,7 +44,7 @@ test('cheque intake completes, exports uncertainty, supports correction and eras
   const count=vm.runInContext("questionsFor('check','وکیل').length",context);
   assert.ok(count>=4);
   for(let i=0;i<count;i++) {
-    assert.match($('qProgress').textContent,new RegExp('سؤال '+String(i+1).replace(/[0-9]/g, d => '[ '+d+'۰۱۲۳۴۵۶۷۸۹'.charAt(Number(d)+1)+']'.replace(' ',''))));
+    assert.match($('qProgress').textContent,new RegExp('سؤال '+(i+1)));
     if(i===1) $('skip').click();
     else { $('answer').value='اطلاعات ساختگی مرحله '+(i+1)+'؛ مدرک تأیید نشده است.'; $('next').click(); }
   }
