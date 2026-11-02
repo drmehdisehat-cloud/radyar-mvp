@@ -27,6 +27,16 @@ let report='';
 function clean(value){return String(value||'').replace(/[\u202a-\u202e\u2066-\u2069]/g,'').trim();}
 // Attribute every user-authored line in exported drafts.
 function quoted(value){return clean(value).split(/\r\n|[\r\n\u0085\u2028\u2029]/u).map(line=>'│ '+line).join('\n');}
+// Local-only privacy guard. Reject recognizable identifiers; do not transmit or log them.
+function containsSensitiveIdentifier(value){
+ const s=String(value||'').replace(/[۰-۹٠-٩]/g,ch=>{
+  const n=ch.charCodeAt(0);return String(n>=0x6f0&&n<=0x6f9?n-0x6f0:n-0x660);
+ });
+ return /(?:^|\D)(?:\+?98|0)?9\d{9}(?!\d)/.test(s) ||
+  /(?:^|\D)\d{16}(?!\d)/.test(s.replace(/[ -]/g,'')) ||
+  /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(s);
+}
+
 form.addEventListener('submit',event=>{
  event.preventDefault();if(!form.reportValidity())return;
  const d=new FormData(form);
@@ -42,6 +52,13 @@ form.addEventListener('submit',event=>{
  const followups=roleQuestions[v.role]||[];
  const answers=[...document.querySelectorAll('#role-answers textarea')].map((el,i)=>({question:followups[i],answer:clean(el.value)}));
  const missingFollowups=answers.length!==3 || answers.some(x=>!x.answer);
+ const hasIdentifiers=[v.timeline,v.opposition,...answers.map(x=>x.answer)].some(containsSensitiveIdentifier);
+ if(hasIdentifiers){
+  report='';exportConfirm.checked=false;exportConfirm.disabled=true;download.disabled=true;
+  draft.textContent='⛔ نشانه‌ای از شماره تماس، شماره کارت یا ایمیل در پاسخ‌ها دیده شد. این کاربرگ فقط برای داده ساختگی است؛ شناسه‌ها را حذف و دوباره تلاش کنید.';
+  return;
+ }
+
  if(missingFollowups)gaps.push('پاسخ همه پرسش‌های تکمیلی نقش برای خروجی ضروری است.');
 
  if(v.state==='برگشت خورده' && v.certificate!=='بله')gaps.push('برای بررسی مسیر اقدام، وجود و جزئیات گواهی عدم پرداخت باید روشن شود.');
