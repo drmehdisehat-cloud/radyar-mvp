@@ -6,11 +6,11 @@ const INSTRUCTIONS = `شما دادیار، دستیار آزمایشی حقوق
 function containsObviousIdentifier(text) {
   const normalized = text.replace(/[۰-۹]/g, d => String(d.charCodeAt(0) - 1776))
     .replace(/[٠-٩]/g, d => String(d.charCodeAt(0) - 1632));
-  if (/[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}/i.test(normalized)) return true;
-  if (/(?:\\+?98|0098|0)[\\s().-]*9(?:[\\s().-]*\\d){9}(?!\\d)/.test(normalized)) return true;
-  if (/\\bIR(?:[\\s-]*\\d){24}(?!\\d)/i.test(normalized)) return true;
+  if (/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(normalized)) return true;
+  if (/(?:\+?98|0098|0)[\s().-]*9(?:[\s().-]*\d){9}(?!\d)/.test(normalized)) return true;
+  if (/\bIR(?:[\s-]*\d){24}(?!\d)/i.test(normalized)) return true;
   // Only match card-like groups, avoiding dates and ordinary monetary amounts.
-  if (/(?:^|\\D)(?:\\d{4}[ -]){3}\\d{4}(?!\\d)/.test(normalized)) return true;
+  if (/(?:^|\D)(?:\d{4}[ -]){3}\d{4}(?!\d)/.test(normalized)) return true;
   return false;
 }
 function validateChat(value) {
