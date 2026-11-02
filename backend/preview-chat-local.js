@@ -5,7 +5,10 @@ const { createPreviewTestServer } = require('./preview-http');
 const { createChatHandler } = require('./ai-handler');
 
 function createLocalChatPreview({ env = process.env, answer, now } = {}) {
-  if (process.env.NODE_ENV !== undefined && process.env.NODE_ENV !== 'development') {
+  // Both the actual process and injected configuration must be development-only.
+  // A production-labelled env object must never bypass this local-only guard.
+  if ((process.env.NODE_ENV !== undefined && process.env.NODE_ENV !== 'development') ||
+      (env.NODE_ENV !== undefined && env.NODE_ENV !== 'development')) {
     throw new Error('Local chat preview refuses non-development mode');
   }
   const handleChat = createChatHandler({ env, answer, now });
