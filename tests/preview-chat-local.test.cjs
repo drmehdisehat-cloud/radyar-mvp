@@ -42,3 +42,12 @@ test('authenticated synthetic chat reaches mocked answer; unauthenticated and wr
     await new Promise(resolve => server.close(resolve));
   }
 });
+
+test('injected staging and production modes cannot create a local chat server', () => {
+  for (const mode of ['production', 'staging', 'Production', '', 'test']) {
+    assert.throws(() => createLocalChatPreview({
+      env: { NODE_ENV: mode, DADYAR_PREVIEW_TOKEN: randomBytes(32).toString('base64url'), OPENAI_API_KEY: 'synthetic-test-only' },
+      answer: async () => ({ experimental: true }),
+    }), /non-development mode/);
+  }
+});
