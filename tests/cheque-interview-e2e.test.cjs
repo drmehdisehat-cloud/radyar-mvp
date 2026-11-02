@@ -13,11 +13,12 @@ test('cheque intake completes, exports uncertainty, supports correction and eras
   class Element {
     constructor(id) {
       this.id=id; this.style={}; this.value=''; this.textContent='';
-      this.disabled=false; this.children=[]; this.selectedIndex=0;
+      this.disabled=false; this.children=[]; this.selectedIndex=0; this.focusCount=0;
     }
     replaceChildren(...children) { this.children=children; }
     append(...children) { this.children.push(...children); }
     click() { if(this.onclick) this.onclick(); }
+    focus() { this.focusCount++; }
   }
   const elements=Object.fromEntries(ids.map(id=>[id,new Element(id)]));
   const listeners={};
@@ -39,6 +40,7 @@ test('cheque intake completes, exports uncertainty, supports correction and eras
   $('topic').value='check'; $('role').value='وکیل';
   $('story').value='یک چک کاملاً فرضی با اختلاف درباره پرداخت جزئی و گواهی عدم پرداخت.';
   $('start').click();
+  assert.equal($('answer').focusCount,1,'starting intake focuses the answer field');
   assert.match($('qProgress').textContent,/سؤال [1۱]/);
   // The real flow may contain additional role-specific questions.
   const count=vm.runInContext("questionsFor('check','وکیل').length",context);
@@ -48,6 +50,7 @@ test('cheque intake completes, exports uncertainty, supports correction and eras
     if(i===1) $('skip').click();
     else { $('answer').value='اطلاعات ساختگی مرحله '+(i+1)+'؛ مدرک تأیید نشده است.'; $('next').click(); }
   }
+  assert.equal($('answer').focusCount,count,'each question focuses its answer field');
   assert.equal($('results').style.display,'block');
   let report=vm.runInContext('report()',context);
   assert.match(report,/گزارش آزمایشی دادیار/);
