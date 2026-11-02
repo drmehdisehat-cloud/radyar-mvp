@@ -18,10 +18,11 @@
 <fieldset id="role-followups"><legend>پرسش‌های تکمیلی نقش انتخابی</legend><p id="role-hint">ابتدا نقش فرضی را انتخاب کنید.</p><div id="role-answers"></div></fieldset>
 <button type="submit">ساخت پیش‌نویس قابل بازبینی</button><button type="reset">پاک‌کردن</button>
 </form></section>
-<section><h2>خروجی غیررسمی</h2><div id="draft" role="status" aria-live="polite">فرم را با اطلاعات فرضی تکمیل کنید.</div><button id="download" type="button" disabled>دریافت متن</button></section></main>
+<section><h2>خروجی غیررسمی</h2><div id="draft" role="status" aria-live="polite">فرم را با اطلاعات فرضی تکمیل کنید.</div><label><input id="export-confirm" type="checkbox" style="display:inline;width:auto" disabled> تأیید می‌کنم داده‌ها ساختگی‌اند و این متن پیش از هر استفاده حقوقی نیازمند بررسی انسانی و منابع رسمی روز است.</label><button id="download" type="button" disabled>دریافت متن</button></section></main>
 <script>
 'use strict';
 const form=document.getElementById('intake'),draft=document.getElementById('draft'),download=document.getElementById('download');
+const exportConfirm=document.getElementById('export-confirm');
 let report='';
 function clean(value){return String(value||'').replace(/[\u202a-\u202e\u2066-\u2069]/g,'').trim();}
 // Attribute every user-authored line in exported drafts.
@@ -57,7 +58,9 @@ form.addEventListener('submit',event=>{
 const certificateInEvidence=['گواهی فرضی عدم پرداخت','هر دو'].includes(v.evidence);
 const certificateContradiction=(v.certificate==='بله'&&!certificateInEvidence)||
  (v.certificate==='خیر'&&certificateInEvidence);
-download.disabled=certificateContradiction || missingFollowups;
+exportConfirm.checked=false;
+exportConfirm.disabled=certificateContradiction || missingFollowups;
+download.disabled=true;
 if(missingFollowups){
  draft.textContent+='\n\n⛔ دریافت گزارش تا تکمیل سه پاسخ تکمیلی نقش غیرفعال است.';
  report='';
@@ -89,18 +92,20 @@ form.elements.role.addEventListener('change',renderRoleAnswers);
 function invalidateDraft(){
  if(!report)return;
  report='';
+ exportConfirm.checked=false;exportConfirm.disabled=true;
  draft.textContent='پاسخ‌ها تغییر کردند. برای دریافت گزارش به‌روز، دوباره پیش‌نویس بسازید.';
  download.disabled=true;
 }
 form.addEventListener('input',invalidateDraft);
 form.addEventListener('change',invalidateDraft);
-form.addEventListener('reset',()=>{setTimeout(renderRoleAnswers,0);report='';draft.textContent='فرم پاک شد. هیچ اطلاعاتی در سرور ذخیره نشده است.';download.disabled=true;});
+form.addEventListener('reset',()=>{setTimeout(renderRoleAnswers,0);report='';draft.textContent='فرم پاک شد. هیچ اطلاعاتی در سرور ذخیره نشده است.';exportConfirm.checked=false;exportConfirm.disabled=true;download.disabled=true;});
+exportConfirm.addEventListener('change',()=>{download.disabled=!report || !exportConfirm.checked;});
 download.addEventListener('click',()=>{
- if(!report)return;
+ if(!report || !exportConfirm.checked)return;
  const blob=new Blob(['\ufeff',report],{type:'text/plain;charset=utf-8'});
  const url=URL.createObjectURL(blob),a=document.createElement('a');
  a.href=url;a.download='dadyar-synthetic-cheque-draft.txt';a.click();
  setTimeout(()=>URL.revokeObjectURL(url),1000);
 });
-window.addEventListener('pagehide',()=>{report='';form.reset();});
+window.addEventListener('pagehide',()=>{report='';exportConfirm.checked=false;exportConfirm.disabled=true;download.disabled=true;form.reset();});
 </script></html>
