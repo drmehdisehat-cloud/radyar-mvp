@@ -35,6 +35,7 @@ function containsSensitiveIdentifier(value){
  const compact=s.replace(/[\s\u200c\u200d()\-–]/g,'');
  return /(?:^|\D)(?:\+?98|0098|0)?9\d{9}(?!\d)/.test(compact) ||
   /(?:^|\D)\d{16}(?!\d)/.test(compact) ||
+  /(?:^|[^A-Z0-9])IR\s*\d(?:[\s\u200c\u200d\-–]*\d){23}(?!\d)/i.test(s) ||
   /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(s);
 }
 
