@@ -10,7 +10,7 @@ const source=script.match(/function containsSensitiveIdentifier\(value\)\{[\s\S]
 assert.ok(source,'privacy guard exists');
 const guard=vm.runInNewContext(source+';containsSensitiveIdentifier');
 test('offline cheque privacy guard blocks identifiers and allows synthetic narrative',()=>{
- for(const value of ['۰۹۱۲۱۲۳۴۵۶۷','09121234567','test@example.org','6037991234567890','۰۹۱۲ ۱۲۳ ۴۵۶۷','۰۹۱۲-۱۲۳-۴۵۶۷','(۰۹۱۲) ۱۲۳ ۴۵۶۷','۰۰۹۸ ۹۱۲ ۱۲۳ ۴۵۶۷','۶۰۳۷ ۹۹۱۲ ۳۴۵۶ ۷۸۹۰'])assert.equal(guard(value),true);
+ for(const value of ['۰۹۱۲۱۲۳۴۵۶۷','09121234567','test@example.org','6037991234567890','۰۹۱۲ ۱۲۳ ۴۵۶۷','۰۹۱۲-۱۲۳-۴۵۶۷','(۰۹۱۲) ۱۲۳ ۴۵۶۷','۰۰۹۸ ۹۱۲ ۱۲۳ ۴۵۶۷','۶۰۳۷ ۹۹۱۲ ۳۴۵۶ ۷۸۹۰','IR820540102680020817909002','IR82 0540 1026 8002 0817 9090 02','IR۸۲-۰۵۴۰-۱۰۲۶-۸۰۰۲-۰۸۱۷-۹۰۹۰-۰۲'])assert.equal(guard(value),true);
  for(const value of ['چک فرضی در ماه دوم ارائه شد','ماه ۱۴۰۵، مبلغ فرضی',''])assert.equal(guard(value),false);
  assert.match(script,/if\(hasIdentifiers\)\{/);
  assert.match(script,/exportConfirm\.disabled=true;download\.disabled=true/);
