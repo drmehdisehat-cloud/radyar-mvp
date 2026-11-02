@@ -32,8 +32,9 @@ function containsSensitiveIdentifier(value){
  const s=String(value||'').replace(/[۰-۹٠-٩]/g,ch=>{
   const n=ch.charCodeAt(0);return String(n>=0x6f0&&n<=0x6f9?n-0x6f0:n-0x660);
  });
- return /(?:^|\D)(?:\+?98|0)?9\d{9}(?!\d)/.test(s) ||
-  /(?:^|\D)\d{16}(?!\d)/.test(s.replace(/[ -]/g,'')) ||
+ const compact=s.replace(/[\s\u200c\u200d()\-–]/g,'');
+ return /(?:^|\D)(?:\+?98|0098|0)?9\d{9}(?!\d)/.test(compact) ||
+  /(?:^|\D)\d{16}(?!\d)/.test(compact) ||
   /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(s);
 }
 
