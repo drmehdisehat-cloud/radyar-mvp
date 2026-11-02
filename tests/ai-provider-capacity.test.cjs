@@ -78,3 +78,33 @@ test('provider capacity failure during body reading blocks a pending request bef
   assert.deepEqual(pendingResult,{status:503,body:{error:'provider_capacity_unavailable'}});
   assert.equal(calls,1);
 });
+
+test('unauthenticated requests do not reveal missing provider configuration', async () => {
+  const envs = [
+    {},
+    { DADYAR_PREVIEW_TOKEN: token },
+    { DADYAR_PREVIEW_TOKEN: 'invalid', OPENAI_API_KEY: 'synthetic-test-only' },
+    { DADYAR_PREVIEW_TOKEN: token, OPENAI_API_KEY: 'synthetic-test-only' }
+  ];
+  for (const env of envs) {
+    let calls = 0, response;
+    const handle = createChatHandler({ env, answer: async () => { calls++; return { answer: 'synthetic' }; } });
+    const req = request();
+    req.rawHeaders = [];
+    delete req.headers.authorization;
+    await handle(req, (status, body) => { response = { status, body }; });
+    assert.deepEqual(response, { status: 401, body: { error: 'authentication_required' } });
+    assert.equal(calls, 0);
+  }
+});
+
+test('authenticated requests with missing provider key fail closed', async () => {
+  let calls = 0, response;
+  const handle = createChatHandler({
+    env: { DADYAR_PREVIEW_TOKEN: token },
+    answer: async () => { calls++; return { answer: 'synthetic' }; }
+  });
+  await handle(request(), (status, body) => { response = { status, body }; });
+  assert.deepEqual(response, { status: 503, body: { error: 'ai_not_configured' } });
+  assert.equal(calls, 0);
+});
