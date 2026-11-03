@@ -21,15 +21,15 @@ function containsObviousIdentifier(text) {
     }
     return sum % 10 === 0;
   };
-  if (/(?:^|\\D)\\d{16}(?!\\d)/g.test(normalized)) {
-    for (const match of normalized.matchAll(/(?:^|\\D)(\\d{16})(?!\\d)/g)) {
+  if (/(?:^|\D)\d{16}(?!\d)/g.test(normalized)) {
+    for (const match of normalized.matchAll(/(?:^|\D)(\d{16})(?!\d)/g)) {
       if (luhn(match[1])) return true;
     }
   }
   // Iranian national ID checksum, excluding repeated-digit placeholders.
-  for (const match of normalized.matchAll(/(?:^|\\D)(\\d{10})(?!\\d)/g)) {
+  for (const match of normalized.matchAll(/(?:^|\D)(\d{10})(?!\d)/g)) {
     const id = match[1];
-    if (/^(\\d)\\1{9}$/.test(id)) continue;
+    if (/^(\d)\1{9}$/.test(id)) continue;
     const remainder = [...id.slice(0, 9)].reduce((sum, digit, i) => sum + Number(digit) * (10 - i), 0) % 11;
     const expected = remainder < 2 ? remainder : 11 - remainder;
     if (Number(id[9]) === expected) return true;
