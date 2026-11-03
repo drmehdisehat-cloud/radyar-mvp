@@ -76,6 +76,8 @@ form.addEventListener('submit',event=>{
  if(v.signature!=='خیر')gaps.push('اختلاف یا ابهام درباره اصالت امضا باید توسط متخصص بررسی شود.');
  if(!v.timeline)gaps.push('تاریخ‌های مؤثر و ترتیب رویدادها هنوز مشخص نیست.');
  if(v.evidence==='هیچ‌کدام')gaps.push('مدارک پایه هنوز ارائه نشده‌اند.');
+ if(v.state==='وضعیت نامعلوم')gaps.push('وضعیت پرداخت یا برگشت چک باید پیش از خروجی روشن شود.');
+ if(v.certificate==='نامعلوم')gaps.push('وجود یا نبود گواهی عدم پرداخت باید پیش از خروجی روشن شود.');
  if(v.certificate==='بله' && !['گواهی فرضی عدم پرداخت','هر دو'].includes(v.evidence))gaps.push('ناسازگاری پاسخ‌ها: وجود گواهی عدم پرداخت اعلام شده، اما در فهرست مدارک انتخاب نشده است؛ پیش از هر تحلیل اصلاح یا توضیح داده شود.');
  if(v.certificate==='خیر' && ['گواهی فرضی عدم پرداخت','هر دو'].includes(v.evidence))gaps.push('ناسازگاری پاسخ‌ها: گواهی عدم پرداخت در مدارک انتخاب شده، اما وجود آن رد شده است؛ وضعیت واقعی باید روشن شود.');
  if(v.state==='پرداخت شده' && v.certificate==='بله')gaps.push('پرداخت و وجود گواهی عدم پرداخت لزوماً متناقض نیستند؛ ترتیب زمانی پرداخت، برگشت و تسویه باید روشن شود.');
@@ -86,7 +88,7 @@ const certificateInEvidence=['گواهی فرضی عدم پرداخت','هر د�
 const certificateContradiction=(v.certificate==='بله'&&!certificateInEvidence)||
  (v.certificate==='خیر'&&certificateInEvidence);
 exportConfirm.checked=false;
-const unresolvedEvidence=v.sayad!=='تأیید شده' || v.signature!=='خیر' || !v.timeline || v.evidence==='هیچ‌کدام' || (v.state==='برگشت خورده' && v.certificate!=='بله');
+const unresolvedEvidence=v.state==='وضعیت نامعلوم' || v.certificate==='نامعلوم' || v.sayad!=='تأیید شده' || v.signature!=='خیر' || !v.timeline || v.evidence==='هیچ‌کدام' || (v.state==='برگشت خورده' && v.certificate!=='بله');
 exportConfirm.disabled=certificateContradiction || missingFollowups || unresolvedEvidence;
 download.disabled=true;
 if(missingFollowups){
@@ -98,7 +100,7 @@ if(certificateContradiction){
  report='';
 }
 if(unresolvedEvidence){
- draft.textContent+='\n\n⛔ دریافت گزارش تا روشن‌شدن وضعیت صیاد، امضا، زمان‌بندی و مدارک ضروری غیرفعال است.';
+ draft.textContent+='\n\n⛔ دریافت گزارش تا روشن‌شدن وضعیت چک، گواهی عدم پرداخت، صیاد، امضا، زمان‌بندی و مدارک ضروری غیرفعال است.';
  report='';
 }
 });
