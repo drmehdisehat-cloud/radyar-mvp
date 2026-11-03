@@ -30,7 +30,7 @@ test('real Chromium: synthetic cheque interview, role switch and contradiction g
   const outcome=await evaluate(`(()=>{
    const f=document.getElementById('intake'),dl=document.getElementById('download'),out=document.getElementById('draft'),confirm=document.getElementById('export-confirm');
    const set=(k,v)=>{f.elements[k].value=v;f.elements[k].dispatchEvent(new Event('change',{bubbles:true}));};
-   set('role','دارنده چک');set('state','برگشت خورده');set('sayad','تأیید شده');set('evidence','هر دو');set('certificate','بله');set('signature','خیر');
+   set('role','دارنده چک');set('state','برگشت خورده');set('sayad','تأیید شده');set('evidence','هر دو');set('certificate','بله');set('settlementChronology','موضوعیت ندارد');set('signature','خیر');
    f.elements.timeline.value='داستان ساختگی';let a=[...document.querySelectorAll('#role-answers textarea')];const fields=a.length===3;
    a.slice(0,2).forEach((x,i)=>x.value='پاسخ ساختگی '+i);f.requestSubmit();
    const incomplete=dl.disabled&&out.textContent.includes('تکمیل سه پاسخ');
@@ -44,8 +44,11 @@ test('real Chromium: synthetic cheque interview, role switch and contradiction g
    set('state','برگشت خورده');set('certificate','نامعلوم');f.requestSubmit();
    const unknownCertificateBlocked=dl.disabled&&confirm.disabled&&out.textContent.includes('وجود یا نبود گواهی');
    set('certificate','بله');f.requestSubmit();confirm.click();const unknownsResolved=!dl.disabled&&confirm.checked;
-   set('state','پرداخت شده');f.requestSubmit();
+   set('state','پرداخت شده');set('settlementChronology','نامعلوم یا بدون مدرک');f.requestSubmit();
    const paidAfterReturnBlocked=dl.disabled&&confirm.disabled&&out.textContent.includes('ترتیب زمانی پرداخت');
+   set('settlementChronology','برگشت سپس پرداخت و تسویه مستند');f.requestSubmit();
+   const documentedSettlementAllowed=dl.disabled&&!confirm.disabled&&out.textContent.includes('تسویه مستند');
+   confirm.click();const documentedSettlementConfirmed=!dl.disabled&&confirm.checked;
    set('state','برگشت خورده');f.requestSubmit();confirm.click();
    const paidAfterReturnRestored=!dl.disabled&&confirm.checked;
    dl.click();
@@ -57,9 +60,9 @@ test('real Chromium: synthetic cheque interview, role switch and contradiction g
    const awaitingReconfirmation=dl.disabled&&!confirm.disabled&&!confirm.checked&&out.textContent.includes('دفاع فرضی 0')&&!out.textContent.includes('پاسخ ساختگی 0');
    confirm.click();const recovered=!dl.disabled&&confirm.checked;
    f.reset();const cleared=dl.disabled&&f.elements.role.value==='';
-   return {fields,incomplete,needsConfirmation,generated,unverifiedBlocked,restored,unknownStateBlocked,unknownCertificateBlocked,unknownsResolved,paidAfterReturnBlocked,paidAfterReturnRestored,invalidated,blocked,awaitingReconfirmation,recovered,cleared};
+   return {fields,incomplete,needsConfirmation,generated,unverifiedBlocked,restored,unknownStateBlocked,unknownCertificateBlocked,unknownsResolved,paidAfterReturnBlocked,documentedSettlementAllowed,documentedSettlementConfirmed,paidAfterReturnRestored,invalidated,blocked,awaitingReconfirmation,recovered,cleared};
   })()`);
-  assert.deepEqual(outcome,{fields:true,incomplete:true,needsConfirmation:true,generated:true,unverifiedBlocked:true,restored:true,unknownStateBlocked:true,unknownCertificateBlocked:true,unknownsResolved:true,paidAfterReturnBlocked:true,paidAfterReturnRestored:true,invalidated:true,blocked:true,awaitingReconfirmation:true,recovered:true,cleared:true});
+  assert.deepEqual(outcome,{fields:true,incomplete:true,needsConfirmation:true,generated:true,unverifiedBlocked:true,restored:true,unknownStateBlocked:true,unknownCertificateBlocked:true,unknownsResolved:true,paidAfterReturnBlocked:true,documentedSettlementAllowed:true,documentedSettlementConfirmed:true,paidAfterReturnRestored:true,invalidated:true,blocked:true,awaitingReconfirmation:true,recovered:true,cleared:true});
   const downloaded=await wait(()=>{const names=fs.readdirSync(downloads);return names.find(n=>n.endsWith('.txt'))||null;});
   const content=fs.readFileSync(path.join(downloads,downloaded),'utf8');
   assert.ok(content.charCodeAt(0)===0xFEFF,'download must preserve UTF-8 BOM for Persian text');
