@@ -5,7 +5,10 @@ const INSTRUCTIONS = `شما دادیار، دستیار آزمایشی حقوق
 // This is not a comprehensive personal-data detector or permission to process real cases.
 function containsObviousIdentifier(text) {
   const normalized = text.replace(/[۰-۹]/g, d => String(d.charCodeAt(0) - 1776))
-    .replace(/[٠-٩]/g, d => String(d.charCodeAt(0) - 1632));
+    .replace(/[٠-٩]/g, d => String(d.charCodeAt(0) - 1632))
+    // Remove invisible formatting controls only in the detection copy.
+    // Otherwise an identifier with a zero-width separator can bypass checks.
+    .replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u2069\uFEFF]/g, '');
   if (/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(normalized)) return true;
   if (/(?:\+?98|0098|0)[\s().-]*9(?:[\s().-]*\d){9}(?!\d)/.test(normalized)) return true;
   if (/\bIR(?:[\s-]*\d){24}(?!\d)/i.test(normalized)) return true;
