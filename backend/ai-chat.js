@@ -67,6 +67,9 @@ async function answerChat(payload, { apiKey, model = 'gpt-4.1-mini', fetchImpl =
     .flatMap(x => x.content || []).filter(x => x.type === 'output_text')
     .map(x => x.text).join('\n');
   if (!text || data.status !== 'completed') throw new Error('incomplete_response');
+  // Fail closed if a provider unexpectedly emits an obvious personal identifier.
+  // Never return the unsafe response body or the matched value to the caller.
+  if (containsObviousIdentifier(text)) throw new Error('unsafe_provider_output');
   // The model cannot certify its own sources. Enforce this notice in the server output,
   // independently of prompt compliance; this is not a substitute for legal review.
   const notice = '⚠️ پاسخ آزمایشی است؛ منابع قانونی و اعتبار زمانی آن‌ها مستقلاً تأیید نشده‌اند. برای اقدام واقعی، بازبینی وکیل ضروری است.\\n\\n';
