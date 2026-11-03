@@ -86,7 +86,8 @@ const certificateInEvidence=['گواهی فرضی عدم پرداخت','هر د�
 const certificateContradiction=(v.certificate==='بله'&&!certificateInEvidence)||
  (v.certificate==='خیر'&&certificateInEvidence);
 exportConfirm.checked=false;
-exportConfirm.disabled=certificateContradiction || missingFollowups;
+const unresolvedEvidence=v.sayad!=='تأیید شده' || v.signature!=='خیر' || !v.timeline || v.evidence==='هیچ‌کدام' || (v.state==='برگشت خورده' && v.certificate!=='بله');
+exportConfirm.disabled=certificateContradiction || missingFollowups || unresolvedEvidence;
 download.disabled=true;
 if(missingFollowups){
  draft.textContent+='\n\n⛔ دریافت گزارش تا تکمیل سه پاسخ تکمیلی نقش غیرفعال است.';
@@ -94,6 +95,10 @@ if(missingFollowups){
 }
 if(certificateContradiction){
  draft.textContent+='\n\n⛔ دریافت گزارش تا اصلاح تناقض گواهی عدم پرداخت و فهرست مدارک غیرفعال است.';
+ report='';
+}
+if(unresolvedEvidence){
+ draft.textContent+='\n\n⛔ دریافت گزارش تا روشن‌شدن وضعیت صیاد، امضا، زمان‌بندی و مدارک ضروری غیرفعال است.';
  report='';
 }
 });
