@@ -37,6 +37,8 @@ test('real Chromium: synthetic cheque interview, role switch and contradiction g
    a[2].value='پاسخ ساختگی 2';f.requestSubmit();
    const needsConfirmation=dl.disabled&&!confirm.disabled&&out.textContent.includes('پاسخ ساختگی 0');
    confirm.click();const generated=!dl.disabled&&confirm.checked;
+   set('sayad','نامعلوم');f.requestSubmit();const unverifiedBlocked=dl.disabled&&confirm.disabled&&out.textContent.includes('وضعیت صیاد');
+   set('sayad','تأیید شده');f.requestSubmit();confirm.click();const restored=!dl.disabled&&confirm.checked;
    dl.click();
    set('role','صادرکننده چک');const invalidated=dl.disabled&&[...document.querySelectorAll('#role-answers textarea')].every(x=>!x.value);
    [...document.querySelectorAll('#role-answers textarea')].forEach((x,i)=>x.value='دفاع فرضی '+i);
@@ -46,9 +48,9 @@ test('real Chromium: synthetic cheque interview, role switch and contradiction g
    const awaitingReconfirmation=dl.disabled&&!confirm.disabled&&!confirm.checked&&out.textContent.includes('دفاع فرضی 0')&&!out.textContent.includes('پاسخ ساختگی 0');
    confirm.click();const recovered=!dl.disabled&&confirm.checked;
    f.reset();const cleared=dl.disabled&&f.elements.role.value==='';
-   return {fields,incomplete,needsConfirmation,generated,invalidated,blocked,awaitingReconfirmation,recovered,cleared};
+   return {fields,incomplete,needsConfirmation,generated,unverifiedBlocked,restored,invalidated,blocked,awaitingReconfirmation,recovered,cleared};
   })()`);
-  assert.deepEqual(outcome,{fields:true,incomplete:true,needsConfirmation:true,generated:true,invalidated:true,blocked:true,awaitingReconfirmation:true,recovered:true,cleared:true});
+  assert.deepEqual(outcome,{fields:true,incomplete:true,needsConfirmation:true,generated:true,unverifiedBlocked:true,restored:true,invalidated:true,blocked:true,awaitingReconfirmation:true,recovered:true,cleared:true});
   const downloaded=await wait(()=>{const names=fs.readdirSync(downloads);return names.find(n=>n.endsWith('.txt'))||null;});
   const content=fs.readFileSync(path.join(downloads,downloaded),'utf8');
   assert.ok(content.charCodeAt(0)===0xFEFF,'download must preserve UTF-8 BOM for Persian text');
