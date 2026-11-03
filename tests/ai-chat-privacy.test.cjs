@@ -56,3 +56,14 @@ test('checksum-valid contiguous identifiers are blocked before provider call', a
   }
   assert.equal(containsObviousIdentifier('شماره ساختگی 1111111111'), false);
 });
+
+test('provider output with obvious identifiers is not returned to the caller', async () => {
+  for (const unsafe of ['test.person@example.org', '۰۹۱۲ ۳۴۵ ۶۷۸۹']) {
+    await assert.rejects(answerChat(payload('سؤال فرضی درباره چک'), {
+      apiKey: 'synthetic-test-only',
+      fetchImpl: async () => ({ ok: true, json: async () => ({
+        status: 'completed', output: [{ type: 'message', content: [{ type: 'output_text', text: unsafe }] }]
+      }) })
+    }), error => error.message === 'unsafe_provider_output' && !error.message.includes(unsafe));
+  }
+});
