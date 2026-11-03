@@ -76,7 +76,7 @@ async function answerChat(payload, { apiKey, model = 'gpt-4.1-mini', fetchImpl =
   const normalizedLegalText = text.replace(/[۰-۹]/g, d => String(d.charCodeAt(0) - 1776))
     .replace(/[٠-٩]/g, d => String(d.charCodeAt(0) - 1632))
     .replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u2069\uFEFF]/g, '');
-  if (/(?:ماده|تبصره|اصل)\s*[:：شمارهٔ‌ ]*\d{1,5}(?!\d)/u.test(normalizedLegalText) ||
+  if (/(?:ماده|تبصره|اصل)(?:[\s\u200c]*[‌یٔۀه])?[\s\u200c]*(?:شماره[\s\u200c]*)?[:：]?[\s\u200c]*\d{1,5}(?!\d)/u.test(normalizedLegalText) ||
       /(?:article|section)\s*\d{1,5}\b/i.test(normalizedLegalText)) {
     throw new Error('unverified_legal_citation');
   }
