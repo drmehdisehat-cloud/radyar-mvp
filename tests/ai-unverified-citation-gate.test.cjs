@@ -13,7 +13,7 @@ function fakeProvider(text) {
   });
 }
 test('experimental AI output refuses unsupported numbered Persian legal citations', async () => {
-  for (const answer of ['طبق ماده ۱۲۳ قانون', 'تبصره‌ ۴', 'اصل ۳۴', 'Article 123']) {
+  for (const answer of ['طبق ماده ۱۲۳ قانون', 'تبصره‌ ۴', 'اصل ۳۴', 'Article 123', 'ماده‌ی ۱۲', 'مادهٔ ۱۲', 'ماده شماره ۲', 'تبصره ی ۴']) {
     await assert.rejects(
       answerChat(payload, { apiKey: 'synthetic-test-only', fetchImpl: fakeProvider(answer) }),
       /unverified_legal_citation/
