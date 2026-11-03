@@ -22,6 +22,8 @@ test('real Chromium: synthetic cheque interview, role switch and contradiction g
   // Privacy guard must reject invisible-character obfuscation in the real page.
   const privacy=await evaluate("({email:containsSensitiveIdentifier('test.person@ex\\u200Bample.org'),mobile:containsSensitiveIdentifier('۰۹۱۲\\u200C۳۴۵۶۷۸۹'),ordinary:containsSensitiveIdentifier('پرونده کاملاً فرضی چک')})");
   assert.deepEqual(privacy,{email:true,mobile:true,ordinary:false});
+  const nationalId=await evaluate("({valid:containsSensitiveIdentifier('کد فرضی ۱۲۳۴۵۶۷۸۹۱'),invalid:containsSensitiveIdentifier('کد فرضی ۱۲۳۴۵۶۷۸۹۰'),repeated:containsSensitiveIdentifier('۱۱۱۱۱۱۱۱۱۱')})");
+  assert.deepEqual(nationalId,{valid:true,invalid:false,repeated:false});
   // Browser download stays in a disposable directory, never in the repository.
   const downloads=path.join(profile,'downloads');fs.mkdirSync(downloads);
   await send('Page.setDownloadBehavior',{behavior:'allow',downloadPath:downloads});
