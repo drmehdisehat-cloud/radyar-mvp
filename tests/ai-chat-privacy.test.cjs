@@ -67,3 +67,27 @@ test('provider output with obvious identifiers is not returned to the caller', a
     }), error => error.message === 'unsafe_provider_output' && !error.message.includes(unsafe));
   }
 });
+
+test('invisible Unicode controls cannot hide identifiers from input and output guards', async () => {
+  const samples = [
+    'test.person@ex\u200Bample.org',
+    '۰۹۱۲\u200C۳۴۵۶۷۸۹',
+    'IR12\u2060 1234 1234 1234 1234 1234 12'
+  ];
+  for (const unsafe of samples) {
+    assert.equal(containsObviousIdentifier(unsafe), true);
+    assert.equal(validateChat(payload(unsafe)), false);
+    let calls = 0;
+    await assert.rejects(answerChat(payload(unsafe), {
+      apiKey: 'synthetic-test-only',
+      fetchImpl: async () => { calls++; throw new Error('unexpected provider call'); }
+    }), /invalid_chat/);
+    assert.equal(calls, 0);
+    await assert.rejects(answerChat(payload('سؤال فرضی چک'), {
+      apiKey: 'synthetic-test-only',
+      fetchImpl: async () => ({ ok: true, json: async () => ({
+        status: 'completed', output: [{ type: 'message', content: [{ type: 'output_text', text: unsafe }] }]
+      }) })
+    }), error => error.message === 'unsafe_provider_output');
+  }
+});
