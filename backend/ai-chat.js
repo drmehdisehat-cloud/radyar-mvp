@@ -70,6 +70,16 @@ async function answerChat(payload, { apiKey, model = 'gpt-4.1-mini', fetchImpl =
     .flatMap(x => x.content || []).filter(x => x.type === 'output_text')
     .map(x => x.text).join('\n');
   if (!text || data.status !== 'completed') throw new Error('incomplete_response');
+  // No legal source has passed the independent evidence gate in v1. Do not
+  // display an apparently authoritative numbered statute or article invented
+  // by the provider. This is a narrow safeguard, not legal verification.
+  const normalizedLegalText = text.replace(/[۰-۹]/g, d => String(d.charCodeAt(0) - 1776))
+    .replace(/[٠-٩]/g, d => String(d.charCodeAt(0) - 1632))
+    .replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u2069\uFEFF]/g, '');
+  if (/(?:ماده|تبصره|اصل)\s*[:：شمارهٔ‌ ]*\d{1,5}(?!\d)/u.test(normalizedLegalText) ||
+      /(?:article|section)\s*\d{1,5}\b/i.test(normalizedLegalText)) {
+    throw new Error('unverified_legal_citation');
+  }
   // Fail closed if a provider unexpectedly emits an obvious personal identifier.
   // Never return the unsafe response body or the matched value to the caller.
   if (containsObviousIdentifier(text)) throw new Error('unsafe_provider_output');
