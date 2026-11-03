@@ -26,3 +26,33 @@ test('blocked payload never calls provider', async () => {
   }), /invalid_chat/);
   assert.equal(calls, 0);
 });
+
+test('checksum-valid contiguous identifiers are blocked before provider call', async () => {
+  const luhnDigit = prefix => {
+    for (let n = 0; n <= 9; n++) {
+      const digits = prefix + n;
+      let sum = 0;
+      for (let i = digits.length - 1, double = false; i >= 0; i--, double = !double) {
+        let d = Number(digits[i]);
+        if (double) { d *= 2; if (d > 9) d -= 9; }
+        sum += d;
+      }
+      if (sum % 10 === 0) return digits;
+    }
+    throw new Error('no check digit');
+  };
+  const nationalPrefix = '123456789';
+  const remainder = [...nationalPrefix].reduce((sum, digit, i) => sum + Number(digit) * (10 - i), 0) % 11;
+  const nationalId = nationalPrefix + (remainder < 2 ? remainder : 11 - remainder);
+  for (const identifier of [luhnDigit('400000000000000'), nationalId]) {
+    assert.equal(containsObviousIdentifier('شناسه فرضی ' + identifier), true);
+    assert.equal(validateChat(payload('شناسه فرضی ' + identifier)), false);
+    let calls = 0;
+    await assert.rejects(answerChat(payload('شناسه فرضی ' + identifier), {
+      apiKey: 'synthetic-test-only',
+      fetchImpl: async () => { calls++; throw new Error('provider should not be called'); }
+    }), /invalid_chat/);
+    assert.equal(calls, 0);
+  }
+  assert.equal(containsObviousIdentifier('شماره ساختگی 1111111111'), false);
+});
