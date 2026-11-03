@@ -11,6 +11,29 @@ function containsObviousIdentifier(text) {
   if (/\bIR(?:[\s-]*\d){24}(?!\d)/i.test(normalized)) return true;
   // Only match card-like groups, avoiding dates and ordinary monetary amounts.
   if (/(?:^|\D)(?:\d{4}[ -]){3}\d{4}(?!\d)/.test(normalized)) return true;
+  // A contiguous card number is ambiguous with other 16-digit values: require Luhn.
+  const luhn = digits => {
+    let sum = 0;
+    for (let i = digits.length - 1, double = false; i >= 0; i--, double = !double) {
+      let n = Number(digits[i]);
+      if (double) { n *= 2; if (n > 9) n -= 9; }
+      sum += n;
+    }
+    return sum % 10 === 0;
+  };
+  if (/(?:^|\\D)\\d{16}(?!\\d)/g.test(normalized)) {
+    for (const match of normalized.matchAll(/(?:^|\\D)(\\d{16})(?!\\d)/g)) {
+      if (luhn(match[1])) return true;
+    }
+  }
+  // Iranian national ID checksum, excluding repeated-digit placeholders.
+  for (const match of normalized.matchAll(/(?:^|\\D)(\\d{10})(?!\\d)/g)) {
+    const id = match[1];
+    if (/^(\\d)\\1{9}$/.test(id)) continue;
+    const remainder = [...id.slice(0, 9)].reduce((sum, digit, i) => sum + Number(digit) * (10 - i), 0) % 11;
+    const expected = remainder < 2 ? remainder : 11 - remainder;
+    if (Number(id[9]) === expected) return true;
+  }
   return false;
 }
 function validateChat(value) {
