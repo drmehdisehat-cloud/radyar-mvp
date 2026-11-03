@@ -33,7 +33,15 @@ function containsSensitiveIdentifier(value){
   const n=ch.charCodeAt(0);return String(n>=0x6f0&&n<=0x6f9?n-0x6f0:n-0x660);
  });
  const compact=s.replace(/[\s\u200c\u200d()\-–]/g,'');
- return /(?:^|\D)(?:\+?98|0098|0)?9\d{9}(?!\d)/.test(compact) ||
+ // Iranian national ID checksum; reject only structurally valid 10-digit identifiers.
+ // This is a limited local warning, not a guarantee of anonymisation.
+ const hasNationalId=[...compact.matchAll(/(?:^|\D)(\d{10})(?!\d)/g)].some(match=>{
+  const id=match[1];if(/^(\d)\1{9}$/.test(id))return false;
+  const sum=[...id.slice(0,9)].reduce((total,digit,index)=>total+Number(digit)*(10-index),0);
+  const remainder=sum%11,check=remainder<2?remainder:11-remainder;
+  return Number(id[9])===check;
+ });
+ return hasNationalId || /(?:^|\D)(?:\+?98|0098|0)?9\d{9}(?!\d)/.test(compact) ||
   /(?:^|\D)\d{16}(?!\d)/.test(compact) ||
   /(?:^|[^A-Z0-9])IR\s*\d(?:[\s\u200c\u200d\-–]*\d){23}(?!\d)/i.test(s) ||
   /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(s);
