@@ -13,6 +13,7 @@
 <label>زمان‌بندی ساختگی (بدون نام، شماره حساب، شماره چک یا مشخصات واقعی)<textarea name="timeline" maxlength="600" placeholder="مثلاً چک فرضی در ماه اول صادر و در ماه دوم ارائه شد"></textarea></label>
 <label>مدارک فرضی<select name="evidence" required><option value="">انتخاب کنید</option><option>تصویر فرضی چک</option><option>گواهی فرضی عدم پرداخت</option><option>هر دو</option><option>هیچ‌کدام</option></select></label>
 <label>آیا گواهی عدم پرداخت فرضی دارید؟<select name="certificate" required><option value="">انتخاب کنید</option><option>بله</option><option>خیر</option><option>نامعلوم</option></select></label>
+<label>در صورت پرداخت پس از برگشت، ترتیب رویدادها مشخص است؟<select name="settlementChronology" required><option value="">انتخاب کنید</option><option>برگشت سپس پرداخت و تسویه مستند</option><option>پرداخت پیش از گواهی برگشت</option><option>نامعلوم یا بدون مدرک</option><option>موضوعیت ندارد</option></select></label>
 <label>آیا درباره اصالت امضا اختلاف فرضی وجود دارد؟<select name="signature" required><option value="">انتخاب کنید</option><option>بله</option><option>خیر</option><option>نامعلوم</option></select></label>
 <label>ابهام یا دفاع طرف مقابل (ساختگی)<textarea name="opposition" maxlength="600"></textarea></label>
 <fieldset id="role-followups"><legend>پرسش‌های تکمیلی نقش انتخابی</legend><p id="role-hint">ابتدا نقش فرضی را انتخاب کنید.</p><div id="role-answers"></div></fieldset>
@@ -50,7 +51,7 @@ function containsSensitiveIdentifier(value){
 form.addEventListener('submit',event=>{
  event.preventDefault();if(!form.reportValidity())return;
  const d=new FormData(form);
- const fields=['role','state','sayad','timeline','evidence','certificate','signature','opposition'];
+ const fields=['role','state','sayad','timeline','evidence','certificate','settlementChronology','signature','opposition'];
  const v=Object.fromEntries(fields.map(k=>[k,clean(d.get(k))]));
  const gaps=[];
  const roleQuestions={
@@ -80,15 +81,15 @@ form.addEventListener('submit',event=>{
  if(v.certificate==='نامعلوم')gaps.push('وجود یا نبود گواهی عدم پرداخت باید پیش از خروجی روشن شود.');
  if(v.certificate==='بله' && !['گواهی فرضی عدم پرداخت','هر دو'].includes(v.evidence))gaps.push('ناسازگاری پاسخ‌ها: وجود گواهی عدم پرداخت اعلام شده، اما در فهرست مدارک انتخاب نشده است؛ پیش از هر تحلیل اصلاح یا توضیح داده شود.');
  if(v.certificate==='خیر' && ['گواهی فرضی عدم پرداخت','هر دو'].includes(v.evidence))gaps.push('ناسازگاری پاسخ‌ها: گواهی عدم پرداخت در مدارک انتخاب شده، اما وجود آن رد شده است؛ وضعیت واقعی باید روشن شود.');
- if(v.state==='پرداخت شده' && v.certificate==='بله')gaps.push('پرداخت و وجود گواهی عدم پرداخت لزوماً متناقض نیستند؛ ترتیب زمانی پرداخت، برگشت و تسویه باید روشن شود.');
- report=['کاربرگ فرضی دادیار | چک','نقش: '+v.role,'وضعیت: '+v.state,'ثبت صیاد: '+v.sayad,'شرح زمان‌بندی (اظهار فرضی):\n'+quoted(v.timeline||'نامشخص'),'مدارک: '+v.evidence,'گواهی عدم پرداخت: '+v.certificate,'اختلاف امضا: '+v.signature,'ابهام/دفاع (اظهار فرضی):\n'+quoted(v.opposition||'نامشخص'),'','پرسش‌ها و پاسخ‌های تکمیلی متناسب با نقش:',...answers.map((x,i)=>(i+1)+'. '+x.question+'\nپاسخ فرضی:\n'+quoted(x.answer||'پاسخ داده نشده')),'','ابهام‌های شناسایی‌شده (نه نتیجه حقوقی):',...(gaps.length?gaps:['ابهام اولیه مشخصی در پاسخ‌های انتخابی ثبت نشد؛ صحت آنها همچنان نیازمند بررسی است.']),'','موارد نیازمند بررسی انسانی: اصالت و وضعیت چک، ثبت و انتقال صیاد، گواهی عدم پرداخت، تاریخ‌های مؤثر، ادله و دفاعیات طرفین، مرجع و مسیر قانونی متناسب با مقررات معتبر در تاریخ اقدام.','این متن صرفاً پیش‌نویس فرضی است؛ هیچ ماده قانونی یا نتیجه قضایی تأیید نشده است.'].join('\n');
+ if(v.state==='پرداخت شده' && v.certificate==='بله' && v.settlementChronology!=='برگشت سپس پرداخت و تسویه مستند')gaps.push('پرداخت و وجود گواهی عدم پرداخت لزوماً متناقض نیستند؛ ترتیب زمانی پرداخت، برگشت و تسویه باید روشن شود.');
+ report=['کاربرگ فرضی دادیار | چک','نقش: '+v.role,'وضعیت: '+v.state,'ثبت صیاد: '+v.sayad,'شرح زمان‌بندی (اظهار فرضی):\n'+quoted(v.timeline||'نامشخص'),'مدارک: '+v.evidence,'گواهی عدم پرداخت: '+v.certificate,'ترتیب برگشت و تسویه (اظهار فرضی): '+v.settlementChronology,'اختلاف امضا: '+v.signature,'ابهام/دفاع (اظهار فرضی):\n'+quoted(v.opposition||'نامشخص'),'','پرسش‌ها و پاسخ‌های تکمیلی متناسب با نقش:',...answers.map((x,i)=>(i+1)+'. '+x.question+'\nپاسخ فرضی:\n'+quoted(x.answer||'پاسخ داده نشده')),'','ابهام‌های شناسایی‌شده (نه نتیجه حقوقی):',...(gaps.length?gaps:['ابهام اولیه مشخصی در پاسخ‌های انتخابی ثبت نشد؛ صحت آنها همچنان نیازمند بررسی است.']),'','موارد نیازمند بررسی انسانی: اصالت و وضعیت چک، ثبت و انتقال صیاد، گواهی عدم پرداخت، تاریخ‌های مؤثر، ادله و دفاعیات طرفین، مرجع و مسیر قانونی متناسب با مقررات معتبر در تاریخ اقدام.','این متن صرفاً پیش‌نویس فرضی است؛ هیچ ماده قانونی یا نتیجه قضایی تأیید نشده است.'].join('\n');
  draft.textContent=report;
 // Contradictory evidence answers must be reconciled before an export is offered.
 const certificateInEvidence=['گواهی فرضی عدم پرداخت','هر دو'].includes(v.evidence);
 const certificateContradiction=(v.certificate==='بله'&&!certificateInEvidence)||
  (v.certificate==='خیر'&&certificateInEvidence);
 exportConfirm.checked=false;
-const unresolvedEvidence=v.state==='وضعیت نامعلوم' || v.certificate==='نامعلوم' || v.sayad!=='تأیید شده' || v.signature!=='خیر' || !v.timeline || v.evidence==='هیچ‌کدام' || (v.state==='برگشت خورده' && v.certificate!=='بله') || (v.state==='پرداخت شده' && v.certificate==='بله');
+const unresolvedEvidence=v.state==='وضعیت نامعلوم' || v.certificate==='نامعلوم' || v.sayad!=='تأیید شده' || v.signature!=='خیر' || !v.timeline || v.evidence==='هیچ‌کدام' || (v.state==='برگشت خورده' && v.certificate!=='بله') || (v.state==='پرداخت شده' && v.certificate==='بله' && v.settlementChronology!=='برگشت سپس پرداخت و تسویه مستند');
 exportConfirm.disabled=certificateContradiction || missingFollowups || unresolvedEvidence;
 download.disabled=true;
 if(missingFollowups){
