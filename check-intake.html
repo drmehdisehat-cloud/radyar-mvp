@@ -29,7 +29,7 @@ function clean(value){return String(value||'').replace(/[\u202a-\u202e\u2066-\u2
 function quoted(value){return clean(value).split(/\r\n|[\r\n\u0085\u2028\u2029]/u).map(line=>'│ '+line).join('\n');}
 // Local-only privacy guard. Reject recognizable identifiers; do not transmit or log them.
 function containsSensitiveIdentifier(value){
- const s=String(value||'').replace(/[۰-۹٠-٩]/g,ch=>{
+ const s=String(value||'').replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u2069\uFEFF]/g,'').replace(/[۰-۹٠-٩]/g,ch=>{
   const n=ch.charCodeAt(0);return String(n>=0x6f0&&n<=0x6f9?n-0x6f0:n-0x660);
  });
  const compact=s.replace(/[\s\u200c\u200d()\-–]/g,'');
