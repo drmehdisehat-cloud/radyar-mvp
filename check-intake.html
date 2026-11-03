@@ -88,7 +88,7 @@ const certificateInEvidence=['گواهی فرضی عدم پرداخت','هر د�
 const certificateContradiction=(v.certificate==='بله'&&!certificateInEvidence)||
  (v.certificate==='خیر'&&certificateInEvidence);
 exportConfirm.checked=false;
-const unresolvedEvidence=v.state==='وضعیت نامعلوم' || v.certificate==='نامعلوم' || v.sayad!=='تأیید شده' || v.signature!=='خیر' || !v.timeline || v.evidence==='هیچ‌کدام' || (v.state==='برگشت خورده' && v.certificate!=='بله');
+const unresolvedEvidence=v.state==='وضعیت نامعلوم' || v.certificate==='نامعلوم' || v.sayad!=='تأیید شده' || v.signature!=='خیر' || !v.timeline || v.evidence==='هیچ‌کدام' || (v.state==='برگشت خورده' && v.certificate!=='بله') || (v.state==='پرداخت شده' && v.certificate==='بله');
 exportConfirm.disabled=certificateContradiction || missingFollowups || unresolvedEvidence;
 download.disabled=true;
 if(missingFollowups){
