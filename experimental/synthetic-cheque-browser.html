@@ -31,7 +31,8 @@ for(const checkbox of document.querySelectorAll('input[type=checkbox]')) checkbo
 document.getElementById('generate').addEventListener('click',()=>{
  const evidence=[...document.querySelectorAll('input[type=checkbox]:checked')].map(e=>({stance:e.dataset.stance,description:e.value}));
  const answers=[...document.querySelectorAll('#interview select')].map(el=>({question:el.dataset.question,answer:el.options[el.selectedIndex].textContent,state:el.value}));
- const unresolved=answers.filter(item=>item.state!=='yes');
+ const unresolved=answers.filter(item=>item.state==='unknown');
+ const negativeAnswers=answers.filter(item=>item.state==='no');
  // Surface inconsistent synthetic interview answers instead of silently treating them as verified.
  const hasCertificate=evidence.some(e=>e.description==='گواهی عدم پرداخت نمونه');
  const unknownDueDate=evidence.some(e=>e.description==='تاریخ سررسید در پرونده فرضی مشخص نیست');
@@ -44,7 +45,8 @@ document.getElementById('generate').addEventListener('click',()=>{
  'ادله موافق:\n'+section('موافق'),'ادله مخالف:\n'+section('مخالف'),'نامعلوم:\n'+section('نامعلوم'),
  'تعارض‌های داده فرضی:\n'+(conflicts.map(c=>'• '+c).join('\n')||'تعارض آشکاری میان پاسخ‌های نمونه و فهرست مدارک یافت نشد.'),
  'وضعیت مصاحبه فرضی:\n'+answers.map(a=>'• '+a.question+' '+a.answer).join('\n'),
- 'پرسش‌های نیازمند تکمیل:\n'+(unresolved.map(a=>'• '+a.question).join('\n')||'سه پاسخ نمونه ثبت شده‌اند؛ اصالت و کفایت مدارک همچنان بررسی نشده است.'),
+ 'پرسش‌های بی‌پاسخ:\n'+(unresolved.map(a=>'• '+a.question).join('\n')||'هیچ پرسش بی‌پاسخی در این مصاحبه فرضی باقی نمانده است.'),
+ 'موارد اعلام‌شده به‌عنوان ناموجود (نیازمند ارزیابی اثر حقوقی):\n'+(negativeAnswers.map(a=>'• '+a.question).join('\n')||'ثبت نشده'),
  'منابع قانونی: تأییدنشده؛ هیچ استناد قانونی ارائه نمی‌شود.','هیچ ادعایی احراز نشده است. اصالت مدارک، متن قانون، منبع رسمی و تاریخ اعتبار باید توسط متخصص انسانی بررسی شود.',
  'این متن رأی، سند رسمی یا دستور انتظامی نیست.'].join('\n\n');
  out.textContent=report;box.hidden=false;box.focus();
