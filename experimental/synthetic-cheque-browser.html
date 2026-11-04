@@ -15,7 +15,7 @@
 <label for="certificate">گواهی عدم پرداخت نمونه موجود است؟</label><select id="certificate" data-question="گواهی عدم پرداخت موجود است؟"><option value="unknown">نامعلوم</option><option value="yes">در نمونه موجود است</option><option value="no">در نمونه موجود نیست</option></select>
 <label for="defense">ادعای پرداخت یا دفاعی در سناریو مطرح است؟</label><select id="defense" data-question="آیا ادعای پرداخت یا دفاع دیگری مطرح است؟"><option value="unknown">نامعلوم</option><option value="yes">صرفاً ادعا شده است</option><option value="no">در نمونه مطرح نشده</option></select>
 <p><small>پاسخ‌ها صرفاً وضعیت داده ساختگی هستند و اصالت مدارک را تأیید نمی‌کنند.</small></p></fieldset><button id="generate" type="button">ساخت پیش‌نویس غیررسمی</button></section>
-<section id="result" hidden tabindex="-1" aria-live="polite"><h2>پیش‌نویس برای بازبینی انسانی</h2><pre id="report"></pre><button type="button" id="download">دریافت گزارش متنی</button><p><small>این خروجی رأی، دستور، ثبت رسمی سند یا مشاوره حقوقی قطعی نیست. منابع قانونی و تاریخ اعتبار بررسی نشده‌اند.</small></p></section></main>
+<section id="result" hidden tabindex="-1" aria-live="polite"><h2>پیش‌نویس برای بازبینی انسانی</h2><pre id="report"></pre><button type="button" id="download">دریافت گزارش متنی</button><p id="export-status" role="status" aria-live="polite"></p><p><small>این خروجی رأی، دستور، ثبت رسمی سند یا مشاوره حقوقی قطعی نیست. منابع قانونی و تاریخ اعتبار بررسی نشده‌اند.</small></p></section></main>
 <script>
 'use strict';
 const questions=['تاریخ صدور و سررسید فرضی چک چیست؟','گواهی عدم پرداخت فرضی موجود است؟','آیا ادعای پرداخت یا دفاع دیگری مطرح است؟'];
@@ -23,9 +23,10 @@ const purposes={'وکیل':'مصاحبه و تنظیم پیش‌نویس','قا�
 const role=document.getElementById('role'),out=document.getElementById('report'),box=document.getElementById('result');
 let report='';
 const downloadButton=document.getElementById('download');
+const exportStatus=document.getElementById('export-status');
 // Invalidate an earlier draft as soon as the hypothetical evidence or role changes.
 // Otherwise the download button could export a different case state than the UI.
-function invalidateDraft(){ report=''; out.textContent=''; box.hidden=true; downloadButton.disabled=true; }
+function invalidateDraft(){ report=''; out.textContent=''; exportStatus.textContent=''; box.hidden=true; downloadButton.disabled=true; }
 role.addEventListener('change',invalidateDraft);
 for(const answer of document.querySelectorAll('#interview select')) answer.addEventListener('change',invalidateDraft);
 for(const checkbox of document.querySelectorAll('input[type=checkbox]')) checkbox.addEventListener('change',invalidateDraft);
@@ -50,7 +51,9 @@ document.getElementById('generate').addEventListener('click',()=>{
  'موارد اعلام‌شده به‌عنوان ناموجود (نیازمند ارزیابی اثر حقوقی):\n'+(negativeAnswers.map(a=>'• '+a.question).join('\n')||'ثبت نشده'),
  'منابع قانونی: تأییدنشده؛ هیچ استناد قانونی ارائه نمی‌شود.','هیچ ادعایی احراز نشده است. اصالت مدارک، متن قانون، منبع رسمی و تاریخ اعتبار باید توسط متخصص انسانی بررسی شود.',
  'این متن رأی، سند رسمی یا دستور انتظامی نیست.'].join('\n\n');
- out.textContent=report;downloadButton.disabled=conflicts.length>0;box.hidden=false;box.focus();
+ out.textContent=report;downloadButton.disabled=conflicts.length>0;
+ exportStatus.textContent=conflicts.length>0?'دریافت گزارش به علت تناقض اطلاعات غیرفعال است. پاسخ‌ها یا مدارک فرضی را اصلاح و پیش‌نویس را دوباره تولید کنید.':'پیش‌نویس فرضی آماده دریافت است؛ بررسی انسانی همچنان الزامی است.';
+ box.hidden=false;box.focus();
 });
 document.getElementById('download').addEventListener('click',()=>{
  if(!report || downloadButton.disabled)return;
