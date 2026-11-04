@@ -37,7 +37,7 @@ test('real Chromium: synthetic cheque interview, role switch and contradiction g
    a[2].value='پاسخ ساختگی 2';f.requestSubmit();
    const needsConfirmation=dl.disabled&&!confirm.disabled&&out.textContent.includes('پاسخ ساختگی 0');
    confirm.click();const generated=!dl.disabled&&confirm.checked;
-   set('sayad','نامعلوم');f.requestSubmit();const unverifiedBlocked=dl.disabled&&confirm.disabled&&out.textContent.includes('وضعیت صیاد');
+   set('sayad','نامعلوم');f.requestSubmit();const unverifiedBlocked=dl.disabled&&confirm.disabled&&out.textContent.includes('وضعیت ثبت و تأیید صیاد نیازمند بررسی مستقل است.');
    set('sayad','تأیید شده');f.requestSubmit();confirm.click();const restored=!dl.disabled&&confirm.checked;
    set('state','وضعیت نامعلوم');f.requestSubmit();
    const unknownStateBlocked=dl.disabled&&confirm.disabled&&out.textContent.includes('وضعیت پرداخت یا برگشت');
