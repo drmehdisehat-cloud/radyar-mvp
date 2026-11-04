@@ -49,7 +49,7 @@ test('interview report uses actual line breaks instead of escaped backslash-n',(
  const h=harness();h.handlers['generate:click']();
  const report=h.get('report').textContent;
  assert.match(report,/وضعیت مصاحبه فرضی:\n• /);
- assert.match(report,/پرسش‌های نیازمند تکمیل:\n• /);
+ assert.match(report,/پرسش‌های بی‌پاسخ:\n• /);
  assert.doesNotMatch(report,/\\\\n/);
 });
 
