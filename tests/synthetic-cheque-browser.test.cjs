@@ -1,0 +1,31 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const html=fs.readFileSync(path.join(__dirname,'../experimental/synthetic-cheque-browser.html'),'utf8');
+function harness(){
+ const handlers={};const elements={};
+ const get=id=>elements[id]??=( {value:id==='role'?'وکیل':'',hidden:true,textContent:'',focus(){this.focused=true},addEventListener(name,fn){handlers[id+':'+name]=fn;}});
+ const inputs=[{checked:true,dataset:{stance:'موافق'},value:'تصویر چک نمونه با شماره ساختگی'},{checked:true,dataset:{stance:'مخالف'},value:'ادعای تسویه وجه در پرونده فرضی'}];
+ const document={getElementById:get,querySelectorAll:()=>inputs,createElement:()=>({click(){}})};
+ const script=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+ assert.ok(script,'browser code present');
+ vm.runInNewContext(script,{document,URL:{createObjectURL:()=>'',revokeObjectURL(){}},Blob:class{},setTimeout(){}},{timeout:1000});
+ return {handlers,elements,inputs,get};
+}
+test('offline cheque interview generates opposing-evidence review draft',()=>{
+ const h=harness();h.handlers['generate:click']();
+ assert.match(h.get('report').textContent,/تصویر چک نمونه/);
+ assert.match(h.get('report').textContent,/ادعای تسویه/);
+ assert.match(h.get('report').textContent,/گواهی عدم پرداخت/);
+ assert.match(h.get('report').textContent,/منابع قانونی: تأییدنشده/);
+ assert.equal(h.get('result').hidden,false);assert.equal(h.get('result').focused,true);
+});
+test('changing role updates simulation without official authority',()=>{
+ const h=harness();h.get('role').value='قاضی';h.handlers['generate:click']();
+ assert.match(h.get('report').textContent,/بدون صدور رأی/);
+ assert.match(h.get('report').textContent,/متخصص انسانی/);
+});
+test('page has no network requests or free-text intake',()=>{
+ assert.doesNotMatch(html,/<textarea\b|<input[^>]+type=["']?text|fetch\s*\(|XMLHttpRequest|WebSocket|<form\b/i);
+ assert.match(html,/prefers-reduced-motion/);
+ assert.match(html,/aria-live="polite"/);
+});
