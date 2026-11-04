@@ -4,7 +4,7 @@ const html=fs.readFileSync(path.join(__dirname,'../experimental/synthetic-cheque
 function harness(){
  const handlers={};const elements={};
  const get=id=>elements[id]??=( {value:id==='role'?'وکیل':'',hidden:true,textContent:'',focus(){this.focused=true},addEventListener(name,fn){handlers[id+':'+name]=fn;}});
- const inputs=[{checked:true,dataset:{stance:'موافق'},value:'تصویر چک نمونه با شماره ساختگی'},{checked:true,dataset:{stance:'مخالف'},value:'ادعای تسویه وجه در پرونده فرضی'}];
+ const inputs=[{checked:true,dataset:{stance:'موافق'},value:'تصویر چک نمونه با شماره ساختگی',addEventListener(name,fn){handlers['evidence1:'+name]=fn;}},{checked:true,dataset:{stance:'مخالف'},value:'ادعای تسویه وجه در پرونده فرضی',addEventListener(name,fn){handlers['evidence2:'+name]=fn;}}];
  const document={getElementById:get,querySelectorAll:()=>inputs,createElement:()=>({click(){}})};
  const script=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
  assert.ok(script,'browser code present');
@@ -28,4 +28,14 @@ test('page has no network requests or free-text intake',()=>{
  assert.doesNotMatch(html,/<textarea\b|<input[^>]+type=["']?text|fetch\s*\(|XMLHttpRequest|WebSocket|<form\b/i);
  assert.match(html,/prefers-reduced-motion/);
  assert.match(html,/aria-live="polite"/);
+});
+
+test('changing role or synthetic evidence invalidates stale downloadable draft',()=>{
+ const h=harness();h.handlers['generate:click']();
+ assert.equal(h.get('result').hidden,false);
+ h.get('role').value='قاضی';h.handlers['role:change']();
+ assert.equal(h.get('result').hidden,true);assert.equal(h.get('report').textContent,'');
+ h.handlers['generate:click']();assert.equal(h.get('result').hidden,false);
+ h.inputs[0].checked=false;h.handlers['evidence1:change']();
+ assert.equal(h.get('result').hidden,true);assert.equal(h.get('report').textContent,'');
 });
