@@ -23,6 +23,19 @@ function createSyntheticEvidenceBrief(input) {
   if (!againstClaim.length) gaps.push('دلیل مخالف یا دفاع احتمالی ثبت نشده است.');
   if (unresolved.length) gaps.push('اعتبار یا جهت برخی داده‌ها نامعلوم است.');
   gaps.push('اصالت، قابلیت استناد و تاریخ اعتبار منابع قانونی بررسی نشده است.');
+  // Interview prompts are questions, not legal advice or conclusions.
+  const topicQuestions = {
+    'سرقت تعزیری': ['زمان و محل فرضی واقعه چیست؟', 'مالکیت و نحوه خروج مال چگونه مستند می‌شود؟'],
+    'کلاهبرداری': ['اظهار خلاف واقع ادعایی دقیقاً چه بوده است؟', 'رابطه ادعایی میان فریب و انتقال مال چیست؟'],
+    'چک': ['تاریخ صدور و سررسید فرضی چک چیست؟', 'گواهی عدم پرداخت فرضی و دلیل پرداخت احتمالی موجود است؟'],
+    'مطالبه وجه': ['مبنای ادعایی دین و تاریخ سررسید چیست؟', 'پرداخت‌های احتمالی چگونه مستند شده‌اند؟'],
+    'طلاق': ['خواسته دقیق و وضعیت فرضی رابطه زوجیت چیست؟', 'درباره حقوق مالی و فرزندان چه داده‌ای هنوز نامعلوم است؟'],
+    'مهریه': ['نوع و میزان مهر در سند فرضی چیست؟', 'آیا پرداخت یا انتقال قبلی ادعا شده است؟'],
+  };
+  const nextQuestions = [...topicQuestions[input.topic]];
+  if (!forClaim.length) nextQuestions.push('چه دلیل فرضی به سود ادعا وجود دارد؟');
+  if (!againstClaim.length) nextQuestions.push('طرف مقابل چه دفاع یا دلیل فرضی می‌تواند ارائه کند؟');
+  if (unresolved.length) nextQuestions.push('برای بررسی داده‌های نامعلوم چه مدرک فرضی دیگری لازم است؟');
   const rolePurpose = {
     'وکیل': 'سامان‌دهی پرسش‌ها و پیش‌نویس غیررسمی',
     'قاضی': 'مقایسه استدلال طرفین، بدون صدور رأی',
@@ -32,7 +45,7 @@ function createSyntheticEvidenceBrief(input) {
   }[input.role];
   return Object.freeze({
     status: 'SYNTHETIC_ONLY', topic: input.topic, role: input.role,
-    purpose: rolePurpose, forClaim, againstClaim, unresolved, gaps,
+    purpose: rolePurpose, forClaim, againstClaim, unresolved, gaps, nextQuestions,
     legalSources: [], legalValidity: 'تأییدنشده',
     conclusion: 'هیچ نتیجه حقوقی قطعی از این داده‌ها استخراج نشده است.',
     review: 'استفاده حقوقی مستلزم بررسی اصل مدارک، متن مواد، منبع رسمی، تاریخ اعتبار و بازبینی متخصص انسانی است.',
