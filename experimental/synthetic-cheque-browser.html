@@ -14,7 +14,7 @@
 <label for="issue-date">تاریخ صدور و سررسید در مدارک نمونه مشخص است؟</label><select id="issue-date" data-question="تاریخ صدور و سررسید چک چیست؟"><option value="unknown">نامعلوم</option><option value="yes">در نمونه درج شده</option><option value="no">در نمونه درج نشده</option></select>
 <label for="certificate">گواهی عدم پرداخت نمونه موجود است؟</label><select id="certificate" data-question="گواهی عدم پرداخت موجود است؟"><option value="unknown">نامعلوم</option><option value="yes">در نمونه موجود است</option><option value="no">در نمونه موجود نیست</option></select>
 <label for="defense">ادعای پرداخت یا دفاعی در سناریو مطرح است؟</label><select id="defense" data-question="آیا ادعای پرداخت یا دفاع دیگری مطرح است؟"><option value="unknown">نامعلوم</option><option value="yes">صرفاً ادعا شده است</option><option value="no">در نمونه مطرح نشده</option></select>
-<p><small>پاسخ‌ها صرفاً وضعیت داده ساختگی هستند و اصالت مدارک را تأیید نمی‌کنند.</small></p></fieldset><button id="generate" type="button">ساخت پیش‌نویس غیررسمی</button></section>
+<p><small>پاسخ‌ها صرفاً وضعیت داده ساختگی هستند و اصالت مدارک را تأیید نمی‌کنند.</small></p></fieldset><button id="generate" type="button">ساخت پیش‌نویس غیررسمی</button> <button id="reset" type="button">پاک‌کردن انتخاب‌ها و پیش‌نویس</button><p id="reset-status" role="status" aria-live="polite"></p></section>
 <section id="result" hidden tabindex="-1" aria-live="polite"><h2>پیش‌نویس برای بازبینی انسانی</h2><pre id="report"></pre><button type="button" id="download">دریافت گزارش متنی</button><p id="export-status" role="status" aria-live="polite"></p><p><small>این خروجی رأی، دستور، ثبت رسمی سند یا مشاوره حقوقی قطعی نیست. منابع قانونی و تاریخ اعتبار بررسی نشده‌اند.</small></p></section></main>
 <script>
 'use strict';
@@ -28,6 +28,14 @@ const exportStatus=document.getElementById('export-status');
 // Otherwise the download button could export a different case state than the UI.
 function invalidateDraft(){ report=''; out.textContent=''; exportStatus.textContent=''; box.hidden=true; downloadButton.disabled=true; }
 role.addEventListener('change',invalidateDraft);
+document.getElementById('reset').addEventListener('click',()=>{
+ role.selectedIndex=0;
+ for(const answer of document.querySelectorAll('#interview select')) answer.selectedIndex=0;
+ for(const checkbox of document.querySelectorAll('input[type=checkbox]')) checkbox.checked=false;
+ invalidateDraft();
+ document.getElementById('reset-status').textContent='انتخاب‌ها و پیش‌نویس فرضی پاک شدند؛ هیچ داده‌ای به سرور ارسال نشده است.';
+ role.focus();
+});
 for(const answer of document.querySelectorAll('#interview select')) answer.addEventListener('change',invalidateDraft);
 for(const checkbox of document.querySelectorAll('input[type=checkbox]')) checkbox.addEventListener('change',invalidateDraft);
 document.getElementById('generate').addEventListener('click',()=>{
