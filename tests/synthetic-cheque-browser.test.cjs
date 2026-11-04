@@ -39,3 +39,11 @@ test('changing role or synthetic evidence invalidates stale downloadable draft',
  h.inputs[0].checked=false;h.handlers['evidence1:change']();
  assert.equal(h.get('result').hidden,true);assert.equal(h.get('report').textContent,'');
 });
+
+test('interview report uses actual line breaks instead of escaped backslash-n',()=>{
+ const h=harness();h.handlers['generate:click']();
+ const report=h.get('report').textContent;
+ assert.match(report,/وضعیت مصاحبه فرضی:\n• /);
+ assert.match(report,/پرسش‌های نیازمند تکمیل:\n• /);
+ assert.doesNotMatch(report,/\\\\n/);
+});
