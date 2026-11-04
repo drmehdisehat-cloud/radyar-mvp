@@ -65,3 +65,15 @@ test('contradictory synthetic certificate and due-date evidence is explicitly fl
  assert.match(report,/گواهی عدم پرداخت در فهرست مدارک انتخاب شده/);
  assert.match(report,/تاریخ سررسید نامعلوم علامت خورده/);
 });
+
+test('negative answers are recorded as absent, not mislabelled unanswered',()=>{
+ const h=harness();
+ h.selects[0].value='no';h.selects[0].selectedIndex=2;
+ h.selects[1].value='yes';h.selects[1].selectedIndex=1;
+ h.selects[2].value='yes';h.selects[2].selectedIndex=1;
+ h.handlers['generate:click']();
+ const report=h.get('report').textContent;
+ assert.match(report,/پرسش‌های بی‌پاسخ:\nهیچ پرسش بی‌پاسخی/);
+ assert.match(report,/موارد اعلام‌شده به‌عنوان ناموجود[^\n]*:\n• تاریخ صدور و سررسید چک چیست؟/);
+ assert.doesNotMatch(report,/پرسش‌های بی‌پاسخ:\n• تاریخ صدور/);
+});
