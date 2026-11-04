@@ -22,9 +22,10 @@ const questions=['تاریخ صدور و سررسید فرضی چک چیست؟',
 const purposes={'وکیل':'مصاحبه و تنظیم پیش‌نویس','قاضی':'مقایسه استدلال طرفین، بدون صدور رأی','سردفتر':'بررسی اولیه مدارک، بدون ثبت سند','دادستان':'بررسی ادعا و دفاع، بدون تصمیم قضایی','ضابط':'سامان‌دهی گزارش، بدون اقدام انتظامی'};
 const role=document.getElementById('role'),out=document.getElementById('report'),box=document.getElementById('result');
 let report='';
+const downloadButton=document.getElementById('download');
 // Invalidate an earlier draft as soon as the hypothetical evidence or role changes.
 // Otherwise the download button could export a different case state than the UI.
-function invalidateDraft(){ report=''; out.textContent=''; box.hidden=true; }
+function invalidateDraft(){ report=''; out.textContent=''; box.hidden=true; downloadButton.disabled=true; }
 role.addEventListener('change',invalidateDraft);
 for(const answer of document.querySelectorAll('#interview select')) answer.addEventListener('change',invalidateDraft);
 for(const checkbox of document.querySelectorAll('input[type=checkbox]')) checkbox.addEventListener('change',invalidateDraft);
@@ -49,10 +50,10 @@ document.getElementById('generate').addEventListener('click',()=>{
  'موارد اعلام‌شده به‌عنوان ناموجود (نیازمند ارزیابی اثر حقوقی):\n'+(negativeAnswers.map(a=>'• '+a.question).join('\n')||'ثبت نشده'),
  'منابع قانونی: تأییدنشده؛ هیچ استناد قانونی ارائه نمی‌شود.','هیچ ادعایی احراز نشده است. اصالت مدارک، متن قانون، منبع رسمی و تاریخ اعتبار باید توسط متخصص انسانی بررسی شود.',
  'این متن رأی، سند رسمی یا دستور انتظامی نیست.'].join('\n\n');
- out.textContent=report;box.hidden=false;box.focus();
+ out.textContent=report;downloadButton.disabled=conflicts.length>0;box.hidden=false;box.focus();
 });
 document.getElementById('download').addEventListener('click',()=>{
- if(!report)return;
+ if(!report || downloadButton.disabled)return;
  const url=URL.createObjectURL(new Blob(['\uFEFF'+report],{type:'text/plain;charset=utf-8'}));
  const a=document.createElement('a');a.href=url;a.download='dadyar-synthetic-cheque.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 });
