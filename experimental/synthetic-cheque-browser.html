@@ -42,6 +42,8 @@ document.getElementById('generate').addEventListener('click',()=>{
  if(hasCertificate && answers[1].state==='no') conflicts.push('گواهی عدم پرداخت در فهرست مدارک انتخاب شده، اما پاسخ مصاحبه وجود آن را رد می‌کند.');
  if(!hasCertificate && answers[1].state==='yes') conflicts.push('مصاحبه وجود گواهی عدم پرداخت را اعلام می‌کند، اما مدرکی در فهرست انتخاب نشده است.');
  if(unknownDueDate && answers[0].state==='yes') conflicts.push('تاریخ سررسید نامعلوم علامت خورده، اما مصاحبه تاریخ را موجود اعلام می‌کند.');
+ const hasSettlementClaim=evidence.some(e=>e.description==='ادعای تسویه وجه در پرونده فرضی');
+ if(hasSettlementClaim && answers[2].state==='no') conflicts.push('ادعای تسویه در فهرست ادله مخالف انتخاب شده، اما مصاحبه طرح هرگونه ادعای پرداخت یا دفاع را رد می‌کند.');
  const section=(stance)=>evidence.filter(e=>e.stance===stance).map(e=>'• '+e.description).join('\n')||'ثبت نشده';
  report=['دادیار | چک صرفاً فرضی | نسخه آزمایشی آفلاین','نقش: '+role.value+' | هدف: '+purposes[role.value],
  'ادله موافق:\n'+section('موافق'),'ادله مخالف:\n'+section('مخالف'),'نامعلوم:\n'+section('نامعلوم'),
