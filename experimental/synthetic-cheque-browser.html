@@ -17,6 +17,11 @@ const questions=['تاریخ صدور و سررسید فرضی چک چیست؟',
 const purposes={'وکیل':'مصاحبه و تنظیم پیش‌نویس','قاضی':'مقایسه استدلال طرفین، بدون صدور رأی','سردفتر':'بررسی اولیه مدارک، بدون ثبت سند','دادستان':'بررسی ادعا و دفاع، بدون تصمیم قضایی','ضابط':'سامان‌دهی گزارش، بدون اقدام انتظامی'};
 const role=document.getElementById('role'),out=document.getElementById('report'),box=document.getElementById('result');
 let report='';
+// Invalidate an earlier draft as soon as the hypothetical evidence or role changes.
+// Otherwise the download button could export a different case state than the UI.
+function invalidateDraft(){ report=''; out.textContent=''; box.hidden=true; }
+role.addEventListener('change',invalidateDraft);
+for(const checkbox of document.querySelectorAll('input[type=checkbox]')) checkbox.addEventListener('change',invalidateDraft);
 document.getElementById('generate').addEventListener('click',()=>{
  const evidence=[...document.querySelectorAll('input[type=checkbox]:checked')].map(e=>({stance:e.dataset.stance,description:e.value}));
  const section=(stance)=>evidence.filter(e=>e.stance===stance).map(e=>'• '+e.description).join('\n')||'ثبت نشده';
