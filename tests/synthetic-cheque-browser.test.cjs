@@ -156,3 +156,20 @@ test('evidence-free synthetic cheque report remains visible for review but canno
  h.handlers['generate:click']();
  assert.equal(h.get('download').disabled,false);
 });
+
+test('each simulated legal role provides distinct non-authoritative review guidance',()=>{
+ const expected={
+  'وکیل':'تفکیک ادعاهای موکل',
+  'قاضی':'خلأهای اثباتی',
+  'سردفتر':'بدون تنظیم سند رسمی',
+  'دادستان':'پرهیز از انتساب جرم',
+  'ضابط':'بدون صدور دستور'
+ };
+ for(const [role,phrase] of Object.entries(expected)){
+  const h=harness();h.get('role').value=role;h.handlers['generate:click']();
+  const report=h.get('report').textContent;
+  assert.match(report,/گام‌های بررسی متناسب با نقش \(صرفاً آموزشی\):\n• /);
+  assert.ok(report.includes(phrase),role+' guidance missing');
+  assert.match(report,/این متن رأی، سند رسمی یا دستور انتظامی نیست/);
+ }
+});
