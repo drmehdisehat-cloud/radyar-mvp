@@ -110,3 +110,17 @@ test('blocked export explains conflict and clears notice when inputs change',()=
  assert.equal(h.get('download').disabled,false);
  assert.match(h.get('export-status').textContent,/آماده دریافت/);
 });
+
+
+test('settlement evidence contradicting denial of any defense blocks draft export',()=>{
+ const h=harness();
+ h.selects[2].value='no';h.selects[2].selectedIndex=2;
+ h.handlers['generate:click']();
+ assert.match(h.get('report').textContent,/ادعای تسویه در فهرست ادله مخالف انتخاب شده/);
+ assert.equal(h.get('download').disabled,true);
+ h.selects[2].value='yes';h.selects[2].selectedIndex=1;
+ h.handlers['defense:change']();
+ assert.equal(h.get('result').hidden,true);
+ h.handlers['generate:click']();
+ assert.equal(h.get('download').disabled,false);
+});
