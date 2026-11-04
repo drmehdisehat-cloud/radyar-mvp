@@ -94,3 +94,19 @@ test('contradictory interview disables export until corrected and regenerated',(
  h.handlers['generate:click']();
  assert.equal(h.get('download').disabled,false);
 });
+
+
+test('blocked export explains conflict and clears notice when inputs change',()=>{
+ const h=harness();
+ h.inputs.push({checked:true,dataset:{stance:'موافق'},value:'گواهی عدم پرداخت نمونه'});
+ h.selects[1].value='no';h.selects[1].selectedIndex=2;
+ h.handlers['generate:click']();
+ assert.equal(h.get('download').disabled,true);
+ assert.match(h.get('export-status').textContent,/دریافت گزارش به علت تناقض اطلاعات غیرفعال است/);
+ h.handlers['certificate:change']();
+ assert.equal(h.get('export-status').textContent,'');
+ h.selects[1].value='yes';h.selects[1].selectedIndex=1;
+ h.handlers['generate:click']();
+ assert.equal(h.get('download').disabled,false);
+ assert.match(h.get('export-status').textContent,/آماده دریافت/);
+});
