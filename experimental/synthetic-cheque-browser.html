@@ -9,7 +9,12 @@
 <label><input type="checkbox" data-stance="موافق" value="گواهی عدم پرداخت نمونه"> گواهی عدم پرداخت نمونه</label>
 <label><input type="checkbox" data-stance="مخالف" value="ادعای تسویه وجه در پرونده فرضی" checked> ادعای تسویه فرضی</label>
 <label><input type="checkbox" data-stance="نامعلوم" value="تاریخ سررسید در پرونده فرضی مشخص نیست"> تاریخ سررسید نامعلوم</label>
-</fieldset><button id="generate" type="button">ساخت پیش‌نویس غیررسمی</button></section>
+</fieldset>
+<fieldset id="interview"><legend>پرسش‌های تکمیلی سناریوی فرضی</legend>
+<label for="issue-date">تاریخ صدور و سررسید در مدارک نمونه مشخص است؟</label><select id="issue-date" data-question="تاریخ صدور و سررسید چک چیست؟"><option value="unknown">نامعلوم</option><option value="yes">در نمونه درج شده</option><option value="no">در نمونه درج نشده</option></select>
+<label for="certificate">گواهی عدم پرداخت نمونه موجود است؟</label><select id="certificate" data-question="گواهی عدم پرداخت موجود است؟"><option value="unknown">نامعلوم</option><option value="yes">در نمونه موجود است</option><option value="no">در نمونه موجود نیست</option></select>
+<label for="defense">ادعای پرداخت یا دفاعی در سناریو مطرح است؟</label><select id="defense" data-question="آیا ادعای پرداخت یا دفاع دیگری مطرح است؟"><option value="unknown">نامعلوم</option><option value="yes">صرفاً ادعا شده است</option><option value="no">در نمونه مطرح نشده</option></select>
+<p><small>پاسخ‌ها صرفاً وضعیت داده ساختگی هستند و اصالت مدارک را تأیید نمی‌کنند.</small></p></fieldset><button id="generate" type="button">ساخت پیش‌نویس غیررسمی</button></section>
 <section id="result" hidden tabindex="-1" aria-live="polite"><h2>پیش‌نویس برای بازبینی انسانی</h2><pre id="report"></pre><button type="button" id="download">دریافت گزارش متنی</button><p><small>این خروجی رأی، دستور، ثبت رسمی سند یا مشاوره حقوقی قطعی نیست. منابع قانونی و تاریخ اعتبار بررسی نشده‌اند.</small></p></section></main>
 <script>
 'use strict';
@@ -21,13 +26,17 @@ let report='';
 // Otherwise the download button could export a different case state than the UI.
 function invalidateDraft(){ report=''; out.textContent=''; box.hidden=true; }
 role.addEventListener('change',invalidateDraft);
+for(const answer of document.querySelectorAll('#interview select')) answer.addEventListener('change',invalidateDraft);
 for(const checkbox of document.querySelectorAll('input[type=checkbox]')) checkbox.addEventListener('change',invalidateDraft);
 document.getElementById('generate').addEventListener('click',()=>{
  const evidence=[...document.querySelectorAll('input[type=checkbox]:checked')].map(e=>({stance:e.dataset.stance,description:e.value}));
+ const answers=[...document.querySelectorAll('#interview select')].map(el=>({question:el.dataset.question,answer:el.options[el.selectedIndex].textContent,state:el.value}));
+ const unresolved=answers.filter(item=>item.state!=='yes');
  const section=(stance)=>evidence.filter(e=>e.stance===stance).map(e=>'• '+e.description).join('\n')||'ثبت نشده';
  report=['دادیار | چک صرفاً فرضی | نسخه آزمایشی آفلاین','نقش: '+role.value+' | هدف: '+purposes[role.value],
  'ادله موافق:\n'+section('موافق'),'ادله مخالف:\n'+section('مخالف'),'نامعلوم:\n'+section('نامعلوم'),
- 'پرسش‌های تکمیلی:\n'+questions.map(q=>'• '+q).join('\n'),
+ 'وضعیت مصاحبه فرضی:\\n'+answers.map(a=>'• '+a.question+' '+a.answer).join('\\n'),
+ 'پرسش‌های نیازمند تکمیل:\\n'+(unresolved.map(a=>'• '+a.question).join('\\n')||'سه پاسخ نمونه ثبت شده‌اند؛ اصالت و کفایت مدارک همچنان بررسی نشده است.'),
  'منابع قانونی: تأییدنشده؛ هیچ استناد قانونی ارائه نمی‌شود.','هیچ ادعایی احراز نشده است. اصالت مدارک، متن قانون، منبع رسمی و تاریخ اعتبار باید توسط متخصص انسانی بررسی شود.',
  'این متن رأی، سند رسمی یا دستور انتظامی نیست.'].join('\n\n');
  out.textContent=report;box.hidden=false;box.focus();
