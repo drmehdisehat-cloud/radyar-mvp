@@ -77,3 +77,20 @@ test('negative answers are recorded as absent, not mislabelled unanswered',()=>{
  assert.match(report,/موارد اعلام‌شده به‌عنوان ناموجود[^\n]*:\n• تاریخ صدور و سررسید چک چیست؟/);
  assert.doesNotMatch(report,/پرسش‌های بی‌پاسخ:\n• تاریخ صدور/);
 });
+
+
+test('contradictory interview disables export until corrected and regenerated',()=>{
+ const h=harness();
+ h.inputs.push({checked:true,dataset:{stance:'موافق'},value:'گواهی عدم پرداخت نمونه'});
+ h.selects[1].value='no';h.selects[1].selectedIndex=2;
+ h.handlers['generate:click']();
+ assert.equal(h.get('result').hidden,false);
+ assert.equal(h.get('download').disabled,true);
+ assert.match(h.get('report').textContent,/تعارض‌های داده فرضی/);
+ h.selects[1].value='yes';h.selects[1].selectedIndex=1;
+ h.handlers['certificate:change']();
+ assert.equal(h.get('result').hidden,true);
+ assert.equal(h.get('download').disabled,true);
+ h.handlers['generate:click']();
+ assert.equal(h.get('download').disabled,false);
+});
