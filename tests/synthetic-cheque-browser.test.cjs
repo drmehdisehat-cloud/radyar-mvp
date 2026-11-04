@@ -140,3 +140,19 @@ test('privacy reset clears synthetic selections, stale draft and restores keyboa
  assert.equal(h.get('role').focused,true);
  assert.match(h.get('reset-status').textContent,/پاک شدند/);
 });
+
+
+test('evidence-free synthetic cheque report remains visible for review but cannot be exported',()=>{
+ const h=harness();
+ for(const input of h.inputs) input.checked=false;
+ h.handlers['generate:click']();
+ assert.equal(h.get('result').hidden,false);
+ assert.equal(h.get('download').disabled,true);
+ assert.match(h.get('report').textContent,/هیچ مدرک فرضی انتخاب نشده است/);
+ assert.match(h.get('export-status').textContent,/دریافت گزارش به علت تناقض اطلاعات غیرفعال است/);
+ h.inputs[0].checked=true;
+ h.handlers['evidence1:change']();
+ assert.equal(h.get('result').hidden,true);
+ h.handlers['generate:click']();
+ assert.equal(h.get('download').disabled,false);
+});
