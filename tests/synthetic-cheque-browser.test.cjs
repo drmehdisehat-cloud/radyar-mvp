@@ -10,7 +10,7 @@ function harness(){
   {dataset:{question:'گواهی عدم پرداخت موجود است؟'},value:'unknown',selectedIndex:0,options:[{textContent:'نامعلوم'},{textContent:'در نمونه موجود است'},{textContent:'در نمونه موجود نیست'}],addEventListener(name,fn){handlers['certificate:'+name]=fn;}},
   {dataset:{question:'آیا ادعای پرداخت یا دفاع دیگری مطرح است؟'},value:'unknown',selectedIndex:0,options:[{textContent:'نامعلوم'},{textContent:'صرفاً ادعا شده است'},{textContent:'در نمونه مطرح نشده'}],addEventListener(name,fn){handlers['defense:'+name]=fn;}}
  ];
- const document={getElementById:get,querySelectorAll:selector=>selector==='#interview select'?selects:inputs,createElement:()=>({click(){}})};
+ const document={getElementById:get,querySelectorAll:selector=>selector==='#interview select'?selects:selector==='input[type=checkbox]:checked'?inputs.filter(input=>input.checked):inputs,createElement:()=>({click(){}})};
  const script=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
  assert.ok(script,'browser code present');
  vm.runInNewContext(script,{document,URL:{createObjectURL:()=>'',revokeObjectURL(){}},Blob:class{},setTimeout(){}},{timeout:1000});
