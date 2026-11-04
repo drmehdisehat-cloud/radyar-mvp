@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>دادیار | کارگاه آفلاین چک فرضی</title>
+<style>body{font:1rem/1.9 system-ui,sans-serif;background:#f5f6fa;color:#17243b;margin:0}main{max-width:780px;margin:auto;padding:1.2rem}section{background:white;border-radius:16px;padding:1.2rem;margin:1rem 0;box-shadow:0 2px 12px #17243b12}button,select{font:inherit;padding:.5rem;border:1px solid #718096;border-radius:8px}button{background:#dcecfb;cursor:pointer}button:focus-visible,select:focus-visible{outline:3px solid #2469a8}fieldset{border:1px solid #b4bfd0;border-radius:12px;margin:1rem 0}label{display:block;margin:.6rem 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}small{color:#475569}#result[hidden]{display:none}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}</style></head>
+<body><main><h1>کارگاه آزمایشی دادیار: چک فرضی</h1><p role="status">صرفاً داده‌های ازپیش‌ساخته؛ بدون ارسال اطلاعات، هوش مصنوعی، استناد قانونی یا ذخیره در سرور. اطلاعات واقعی وارد نکنید.</p>
+<section><label for="role">نقش کمک‌یار</label><select id="role"><option>وکیل</option><option>قاضی</option><option>سردفتر</option><option>دادستان</option><option>ضابط</option></select>
+<fieldset><legend>کدام مدارک فرضی را در مصاحبه داریم؟</legend>
+<label><input type="checkbox" data-stance="موافق" value="تصویر چک نمونه با شماره ساختگی" checked> تصویر چک نمونه</label>
+<label><input type="checkbox" data-stance="موافق" value="گواهی عدم پرداخت نمونه"> گواهی عدم پرداخت نمونه</label>
+<label><input type="checkbox" data-stance="مخالف" value="ادعای تسویه وجه در پرونده فرضی" checked> ادعای تسویه فرضی</label>
+<label><input type="checkbox" data-stance="نامعلوم" value="تاریخ سررسید در پرونده فرضی مشخص نیست"> تاریخ سررسید نامعلوم</label>
+</fieldset><button id="generate" type="button">ساخت پیش‌نویس غیررسمی</button></section>
+<section id="result" hidden tabindex="-1" aria-live="polite"><h2>پیش‌نویس برای بازبینی انسانی</h2><pre id="report"></pre><button type="button" id="download">دریافت گزارش متنی</button><p><small>این خروجی رأی، دستور، ثبت رسمی سند یا مشاوره حقوقی قطعی نیست. منابع قانونی و تاریخ اعتبار بررسی نشده‌اند.</small></p></section></main>
+<script>
+'use strict';
+const questions=['تاریخ صدور و سررسید فرضی چک چیست؟','گواهی عدم پرداخت فرضی موجود است؟','آیا ادعای پرداخت یا دفاع دیگری مطرح است؟'];
+const purposes={'وکیل':'مصاحبه و تنظیم پیش‌نویس','قاضی':'مقایسه استدلال طرفین، بدون صدور رأی','سردفتر':'بررسی اولیه مدارک، بدون ثبت سند','دادستان':'بررسی ادعا و دفاع، بدون تصمیم قضایی','ضابط':'سامان‌دهی گزارش، بدون اقدام انتظامی'};
+const role=document.getElementById('role'),out=document.getElementById('report'),box=document.getElementById('result');
+let report='';
+document.getElementById('generate').addEventListener('click',()=>{
+ const evidence=[...document.querySelectorAll('input[type=checkbox]:checked')].map(e=>({stance:e.dataset.stance,description:e.value}));
+ const section=(stance)=>evidence.filter(e=>e.stance===stance).map(e=>'• '+e.description).join('\n')||'ثبت نشده';
+ report=['دادیار | چک صرفاً فرضی | نسخه آزمایشی آفلاین','نقش: '+role.value+' | هدف: '+purposes[role.value],
+ 'ادله موافق:\n'+section('موافق'),'ادله مخالف:\n'+section('مخالف'),'نامعلوم:\n'+section('نامعلوم'),
+ 'پرسش‌های تکمیلی:\n'+questions.map(q=>'• '+q).join('\n'),
+ 'منابع قانونی: تأییدنشده؛ هیچ استناد قانونی ارائه نمی‌شود.','هیچ ادعایی احراز نشده است. اصالت مدارک، متن قانون، منبع رسمی و تاریخ اعتبار باید توسط متخصص انسانی بررسی شود.',
+ 'این متن رأی، سند رسمی یا دستور انتظامی نیست.'].join('\n\n');
+ out.textContent=report;box.hidden=false;box.focus();
+});
+document.getElementById('download').addEventListener('click',()=>{
+ if(!report)return;
+ const url=URL.createObjectURL(new Blob(['\uFEFF'+report],{type:'text/plain;charset=utf-8'}));
+ const a=document.createElement('a');a.href=url;a.download='dadyar-synthetic-cheque.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+</script></body></html>
