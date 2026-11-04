@@ -124,3 +124,19 @@ test('settlement evidence contradicting denial of any defense blocks draft expor
  h.handlers['generate:click']();
  assert.equal(h.get('download').disabled,false);
 });
+
+test('privacy reset clears synthetic selections, stale draft and restores keyboard focus',()=>{
+ const h=harness();
+ h.handlers['generate:click']();
+ assert.equal(h.get('result').hidden,false);
+ h.selects[0].selectedIndex=1;
+ h.handlers['reset:click']();
+ assert.equal(h.get('role').selectedIndex,0);
+ assert.ok(h.selects.every(s=>s.selectedIndex===0));
+ assert.ok(h.inputs.every(i=>i.checked===false));
+ assert.equal(h.get('result').hidden,true);
+ assert.equal(h.get('report').textContent,'');
+ assert.equal(h.get('download').disabled,true);
+ assert.equal(h.get('role').focused,true);
+ assert.match(h.get('reset-status').textContent,/پاک شدند/);
+});
