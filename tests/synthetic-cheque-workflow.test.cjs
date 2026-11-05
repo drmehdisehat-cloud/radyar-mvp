@@ -58,3 +58,15 @@ test('review pack tracks every synthetic evidence item without granting verifica
   assert.equal(result.publicationBlocked,true);
   assert.equal(result.workflowState,'NEEDS_MORE_INFORMATION');
 });
+
+test('synthetic workflow rejects contact identifiers without echoing them in CLI output', () => {
+  for (const contact of ['test@example.com', '09123456789', '+989123456789']) {
+    const candidate = {...input, evidence:[{stance:'موافق',description:'فرضی ' + contact}]};
+    assert.throws(() => makeDraft(candidate), /potential_personal_data/);
+    const run = spawnSync(process.execPath,[cli],{input:JSON.stringify(candidate),encoding:'utf8',timeout:3000});
+    assert.equal(run.status,2);
+    assert.equal(run.stdout,'');
+    assert.equal(run.stderr,'invalid_synthetic_input\n');
+    assert.ok(!run.stderr.includes(contact));
+  }
+});
