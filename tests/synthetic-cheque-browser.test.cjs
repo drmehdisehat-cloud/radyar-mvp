@@ -3,7 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const html=fs.readFileSync(path.join(__dirname,'../experimental/synthetic-cheque-browser.html'),'utf8');
 function harness(){
  const handlers={};const elements={};
- const get=id=>elements[id]??=( {value:id==='role'?'وکیل':'',hidden:true,textContent:'',focus(){this.focused=true},addEventListener(name,fn){handlers[id+':'+name]=fn;}});
+ const get=id=>elements[id]??=( {value:id==='role'?'وکیل':'',hidden:true,textContent:'',focus(){this.focused=true},contains(node){return node===this},addEventListener(name,fn){handlers[id+':'+name]=fn;}});
  const inputs=[{checked:true,dataset:{stance:'موافق'},value:'تصویر چک نمونه با شماره ساختگی',addEventListener(name,fn){handlers['evidence1:'+name]=fn;}},{checked:true,dataset:{stance:'مخالف'},value:'ادعای تسویه وجه در پرونده فرضی',addEventListener(name,fn){handlers['evidence2:'+name]=fn;}}];
  const selects=[
   {dataset:{question:'تاریخ صدور و سررسید چک چیست؟'},value:'unknown',selectedIndex:0,options:[{textContent:'نامعلوم'},{textContent:'در نمونه درج شده'},{textContent:'در نمونه درج نشده'}],addEventListener(name,fn){handlers['issue-date:'+name]=fn;}},
