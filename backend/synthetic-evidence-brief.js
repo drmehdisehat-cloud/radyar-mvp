@@ -43,7 +43,19 @@ function createSyntheticEvidenceBrief(input) {
     'دادستان': 'مقایسه ادعا و دفاع، بدون تصمیم قضایی',
     'ضابط': 'سامان‌دهی گزارش فرضی، بدون اقدام انتظامی',
   }[input.role];
+  // Actionable interview handoff, not a legal finding. Missing opposing evidence
+  // and unknown authenticity always remain visible to the reviewer.
+  const handoff = Object.freeze({
+    interviewComplete: forClaim.length > 0 && againstClaim.length > 0 && unresolved.length === 0,
+    nextStep: !forClaim.length ? 'ابتدا ادله فرضی مؤید ادعا را گردآوری کنید.' :
+      !againstClaim.length ? 'پیش از پیش‌نویس، دفاع و ادله احتمالی طرف مقابل را ثبت کنید.' :
+      unresolved.length ? 'ابهام‌های ادله را با پرسش تکمیلی روشن کنید.' :
+      'خلاصه فرضی را برای بازبینی انسانی و تطبیق با منابع رسمی آماده کنید.',
+    publicationBlocked: true,
+    publicationReason: 'منابع رسمی، تاریخ اعتبار و بازبینی انسانی هنوز تأیید نشده‌اند.',
+  });
   return Object.freeze({
+    handoff,
     status: 'SYNTHETIC_ONLY', topic: input.topic, role: input.role,
     purpose: rolePurpose, forClaim, againstClaim, unresolved, gaps, nextQuestions,
     legalSources: [], legalValidity: 'تأییدنشده',
