@@ -24,6 +24,11 @@ const roles=Object.freeze({
 'ضابط':'ترتیب وقایع و منشأ مدارک فرضی را بدون اقدام انتظامی واقعی ثبت کنید.'
 });
 const $=id=>document.getElementById(id);let current='';
+// A role change invalidates any previously generated export to prevent stale attribution.
+$('role').addEventListener('change',()=>{
+ current='';$('report').textContent='';$('download').disabled=true;
+ $('state').textContent='نقش تغییر کرد؛ برای ساخت کاربرگ جدید اقدام کنید.';
+});
 $('generate').addEventListener('click',()=>{
 const role=$('role').value;if(!Object.hasOwn(roles,role))return;
 const lines=[
