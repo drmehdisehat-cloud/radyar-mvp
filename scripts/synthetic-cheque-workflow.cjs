@@ -40,6 +40,16 @@ function makeDraft(input) {
       'این پیش‌نویس رأی، سند رسمی یا دستور انتظامی نیست و نیازمند بازبینی انسانی است.'
     ].join('\n\n'),
     missing: brief.gaps,
+    // Structured, unverified evidence-review tasks for the next human reviewer.
+    // No legal conclusion, provenance verification, or automated approval.
+    reviewTasks: [
+      ...brief.forClaim.map(e => ({ evidenceIndex: e.index, side: 'موافق', verified: false,
+        action: 'اصل مدرک فرضی، منشأ و ارتباط آن با ادعا را توسط انسان بررسی کنید.' })),
+      ...brief.againstClaim.map(e => ({ evidenceIndex: e.index, side: 'مخالف', verified: false,
+        action: 'دفاع احتمالی و اصالت مدرک فرضی را مستقل بررسی کنید.' })),
+      ...brief.unresolved.map(e => ({ evidenceIndex: e.index, side: 'نامعلوم', verified: false,
+        action: 'جهت و اعتبار داده نامعلوم را با پرسش تکمیلی روشن کنید.' }))
+    ],
     legalSources: [],
     publicationBlocked: true,
     publicationReason: brief.handoff.publicationReason,
