@@ -9,6 +9,13 @@ function makeDraft(input) {
       typeof input !== 'object' || Array.isArray(input) ||
       !Array.isArray(input.evidence)) throw new TypeError('synthetic_scope_required');
   const brief = createSyntheticEvidenceBrief(input);
+  const roleGuidance = {
+  "وکیل": "یادداشت مصاحبه وکیل: ادعا و دفاع را جداگانه بررسی و مدارک لازم را برای بازبینی انسانی فهرست کنید.",
+  "قاضی": "کاربرگ شبیه‌سازی قاضی: قوت و ضعف ادله دو طرف را بدون صدور رأی یا تعیین نتیجه مقایسه کنید.",
+  "سردفتر": "چک‌لیست سردفتر: اصالت اسناد و هویت اشخاص صرفاً نیازمند بررسی بعدی است؛ هیچ سندی ثبت نمی‌شود.",
+  "دادستان": "کاربرگ شبیه‌سازی دادستان: عناصر ادعایی و دفاع احتمالی را بدون اتخاذ تصمیم قضایی بررسی کنید.",
+  "ضابط": "گزارش فرضی ضابط: ترتیب وقایع و منشأ ادله را ثبت کنید؛ هیچ اقدام انتظامی انجام نمی‌شود."
+};
   const section = items => items.length
     ? items.map(e => '- ' + e.description).join('\n')
     : '- ثبت نشده';
@@ -16,10 +23,12 @@ function makeDraft(input) {
     status: 'SYNTHETIC_ONLY',
     title: 'پیش‌نویس غیررسمی بررسی چک (صرفاً داده ساختگی)',
     role: brief.role,
+    roleGuidance: roleGuidance[brief.role],
     interview: brief.handoff,
     readyForHumanReview: brief.handoff.interviewComplete,
     workflowState: brief.handoff.interviewComplete ? 'AWAITING_LEGAL_SOURCE_REVIEW' : 'NEEDS_MORE_INFORMATION',
     draft: [
+      roleGuidance[brief.role],
       'وضعیت مصاحبه: ' + (brief.handoff.interviewComplete ? 'ادله دو طرف ثبت شده؛ اصالت هنوز بررسی نشده است.' : 'ناقص؛ این متن صرفاً یادداشت اولیه است.'),
       'اقدام بعدی: ' + brief.handoff.nextStep,
       'موضوع: چک فرضی؛ هیچ ادعایی احراز نشده است.',
