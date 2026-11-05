@@ -81,3 +81,13 @@ test('synthetic workflow rejects Persian and Arabic digit phone contacts, includ
     assert.equal(run.stderr,'invalid_synthetic_input\n');
   }
 });
+
+test('legal review checklist remains entirely unverified and publication stays blocked', () => {
+  const result = makeDraft(input);
+  assert.deepEqual(result.legalReviewChecklist.map(x => x.id),
+    ['official_article','official_publication','effective_date','human_signoff']);
+  assert.ok(result.legalReviewChecklist.every(x => x.verified === false && x.label.length > 15));
+  assert.deepEqual(result.legalSources, []);
+  assert.equal(result.publicationBlocked, true);
+  assert.equal(result.humanReviewRequired, true);
+});
