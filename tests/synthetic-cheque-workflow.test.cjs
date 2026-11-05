@@ -46,3 +46,15 @@ test('each simulated professional role has distinct non-official guidance', () =
   }
   assert.equal(guidance.size, 5);
 });
+
+test('review pack tracks every synthetic evidence item without granting verification', () => {
+  const result = makeDraft({...input, evidence:[
+    ...input.evidence,
+    {stance:'نامعلوم',description:'مدرک مبهم فرضی'}
+  ]});
+  assert.deepEqual(result.reviewTasks.map(t=>t.evidenceIndex),[1,2,3]);
+  assert.deepEqual(result.reviewTasks.map(t=>t.side),['موافق','مخالف','نامعلوم']);
+  assert.ok(result.reviewTasks.every(t=>t.verified===false && t.action.length>10));
+  assert.equal(result.publicationBlocked,true);
+  assert.equal(result.workflowState,'NEEDS_MORE_INFORMATION');
+});
