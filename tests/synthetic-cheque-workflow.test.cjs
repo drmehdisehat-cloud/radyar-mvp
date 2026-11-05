@@ -32,3 +32,17 @@ test('CLI fails closed for non-synthetic or other-topic inputs without echo', ()
     assert.equal(run.stderr,'invalid_synthetic_input\n');
   }
 });
+
+test('each simulated professional role has distinct non-official guidance', () => {
+  const guidance = new Set();
+  for (const role of ['وکیل','قاضی','سردفتر','دادستان','ضابط']) {
+    const result = makeDraft({...input, role});
+    assert.equal(result.role, role);
+    assert.ok(result.draft.startsWith(result.roleGuidance));
+    assert.equal(result.publicationBlocked, true);
+    assert.equal(result.humanReviewRequired, true);
+    assert.deepEqual(result.legalSources, []);
+    guidance.add(result.roleGuidance);
+  }
+  assert.equal(guidance.size, 5);
+});
