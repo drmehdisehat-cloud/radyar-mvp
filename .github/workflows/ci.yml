@@ -64,3 +64,4 @@ jobs:
           test -n "$CHROME_BIN"
           CHROME_BIN="$CHROME_BIN" node --test tests/real-browser-smoke.cjs
           CHROME_BIN="$CHROME_BIN" node --test tests/check-intake-browser.cjs
+          CHROME_BIN="$CHROME_BIN" node --test tests/synthetic-cheque-chromium-e2e.test.cjs
