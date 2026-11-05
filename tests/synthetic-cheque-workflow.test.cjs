@@ -78,6 +78,6 @@ test('synthetic workflow rejects Persian and Arabic digit phone contacts, includ
     const run = spawnSync(process.execPath,[cli],{input:JSON.stringify(candidate),encoding:'utf8',timeout:3000});
     assert.equal(run.status,2);
     assert.equal(run.stdout,'');
-    assert.equal(run.stderr,'invalid_synthetic_input\\n');
+    assert.equal(run.stderr,'invalid_synthetic_input\n');
   }
 });
