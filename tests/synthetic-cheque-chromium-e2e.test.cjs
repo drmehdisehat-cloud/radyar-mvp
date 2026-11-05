@@ -19,6 +19,7 @@ test('canonical synthetic cheque workshop: browser generates, invalidates and bl
     window.addEventListener('load', () => {
       const check = (ok, message) => { if (!ok) throw Error(message); };
       try {
+        check(document.getElementById('download').disabled, 'export enabled before first draft');
         document.getElementById('generate').click();
         check(!document.getElementById('result').hidden, 'draft not shown');
         check(document.getElementById('download').disabled === false, 'initial draft unexpectedly blocked');
