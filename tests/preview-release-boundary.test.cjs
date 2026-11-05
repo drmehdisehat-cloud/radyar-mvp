@@ -22,6 +22,12 @@ test('experimental CI must not deploy or receive repository write permissions', 
   assert.match(workflow, /permissions:\s*\n\s*contents:\s*read\b/);
   assert.doesNotMatch(workflow, /^\s*(?:deploy|deployment|publish):\s*$/m);
   assert.doesNotMatch(workflow, /\b(?:contents|actions|packages):\s*write\b/);
-  assert.match(workflow, /node --test tests\/\*\.test\.cjs/,
-    'Contract tests, including this tripwire, must remain in CI');
+  // The CI explicitly enumerates contract tests to avoid launching Chromium twice.
+  // Require the suite glob, execution of the selected array and this tripwire's inclusion.
+  assert.match(workflow, /tests=\(tests\/\*\.test\.cjs\)/,
+    'CI must discover all committed contract tests');
+  assert.match(workflow, /node --test "\$\{contracts\[@\]\}"/,
+    'CI must execute the selected contract suite');
+  assert.doesNotMatch(workflow, /preview-release-boundary\.test\.cjs[^\n]*\]\]/,
+    'Release boundary tripwire must not be explicitly excluded');
 });
