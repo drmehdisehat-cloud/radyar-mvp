@@ -16,7 +16,12 @@ function makeDraft(input) {
     status: 'SYNTHETIC_ONLY',
     title: 'پیش‌نویس غیررسمی بررسی چک (صرفاً داده ساختگی)',
     role: brief.role,
+    interview: brief.handoff,
+    readyForHumanReview: brief.handoff.interviewComplete,
+    workflowState: brief.handoff.interviewComplete ? 'AWAITING_LEGAL_SOURCE_REVIEW' : 'NEEDS_MORE_INFORMATION',
     draft: [
+      'وضعیت مصاحبه: ' + (brief.handoff.interviewComplete ? 'ادله دو طرف ثبت شده؛ اصالت هنوز بررسی نشده است.' : 'ناقص؛ این متن صرفاً یادداشت اولیه است.'),
+      'اقدام بعدی: ' + brief.handoff.nextStep,
       'موضوع: چک فرضی؛ هیچ ادعایی احراز نشده است.',
       'ادله موافق ادعا:\n' + section(brief.forClaim),
       'ادله مخالف ادعا:\n' + section(brief.againstClaim),
@@ -27,6 +32,8 @@ function makeDraft(input) {
     ].join('\n\n'),
     missing: brief.gaps,
     legalSources: [],
+    publicationBlocked: true,
+    publicationReason: brief.handoff.publicationReason,
     humanReviewRequired: true
   };
 }
