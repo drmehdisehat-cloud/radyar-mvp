@@ -24,9 +24,11 @@ test('canonical synthetic cheque workshop: browser generates, invalidates and bl
         check(!document.getElementById('result').hidden, 'draft not shown');
         check(document.getElementById('download').disabled === false, 'initial draft unexpectedly blocked');
         check(document.getElementById('report').textContent.includes('وظایف بازبینی'), 'review tasks absent');
+        document.getElementById('download').focus();
         document.getElementById('role').value = 'قاضی';
         document.getElementById('role').dispatchEvent(new Event('change'));
         check(document.getElementById('result').hidden && document.getElementById('download').disabled, 'role change retained stale draft');
+        check(document.activeElement === document.getElementById('generate'), 'keyboard focus stranded inside hidden draft');
         document.getElementById('certificate').value = 'no';
         document.querySelector('input[value="گواهی عدم پرداخت نمونه"]').checked = true;
         document.getElementById('generate').click();
