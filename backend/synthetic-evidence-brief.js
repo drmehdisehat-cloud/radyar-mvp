@@ -17,7 +17,7 @@ function createSyntheticEvidenceBrief(input) {
     // This is a limited safeguard, not a guarantee that arbitrary personal data is absent.
     const normalizedContact = item.description.replace(/[۰-۹٠-٩]/gu, digit =>
       String('۰۱۲۳۴۵۶۷۸۹'.indexOf(digit) >= 0 ? '۰۱۲۳۴۵۶۷۸۹'.indexOf(digit) : '٠١٢٣٤٥٦٧٨٩'.indexOf(digit)));
-    if (/(?:[\\w.+-]+@[\\w.-]+\\.[A-Za-z]{2,}|(?:\\+?98|0)[\\s\\-]*9(?:[\\s\\-]*\\d){9})(?!\\d)/u.test(normalizedContact))
+    if (/(?:[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}|(?:\+?98|0)[\s\-]*9(?:[\s\-]*\d){9})(?!\d)/u.test(normalizedContact))
       throw new TypeError('potential_personal_data_' + i);
     return Object.freeze({ index: i + 1, stance: item.stance, description: item.description.trim() });
   });
