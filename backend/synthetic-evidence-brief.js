@@ -15,7 +15,9 @@ function createSyntheticEvidenceBrief(input) {
         /[\r\n\u2028\u2029]/u.test(item.description)) throw new TypeError('invalid_evidence_' + i);
     // Synthetic-only guard: reject common contact identifiers before generating a review pack.
     // This is a limited safeguard, not a guarantee that arbitrary personal data is absent.
-    if (/(?:[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}|(?:\+?98|0)9\d{9})/u.test(item.description))
+    const normalizedContact = item.description.replace(/[۰-۹٠-٩]/gu, digit =>
+      String('۰۱۲۳۴۵۶۷۸۹'.indexOf(digit) >= 0 ? '۰۱۲۳۴۵۶۷۸۹'.indexOf(digit) : '٠١٢٣٤٥٦٧٨٩'.indexOf(digit)));
+    if (/(?:[\\w.+-]+@[\\w.-]+\\.[A-Za-z]{2,}|(?:\\+?98|0)[\\s\\-]*9(?:[\\s\\-]*\\d){9})(?!\\d)/u.test(normalizedContact))
       throw new TypeError('potential_personal_data_' + i);
     return Object.freeze({ index: i + 1, stance: item.stance, description: item.description.trim() });
   });
