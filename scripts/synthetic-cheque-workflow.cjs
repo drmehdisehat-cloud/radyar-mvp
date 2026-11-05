@@ -51,6 +51,13 @@ function makeDraft(input) {
         action: 'جهت و اعتبار داده نامعلوم را با پرسش تکمیلی روشن کنید.' }))
     ],
     legalSources: [],
+    // Human-review handoff: explicit unanswered legal questions, never a citation or approval.
+    legalReviewChecklist: [
+      { id: 'official_article', label: 'متن کامل ماده مرتبط و شماره ماده از منبع رسمی بررسی شود.', verified: false },
+      { id: 'official_publication', label: 'نشانی سند مشخص در منبع رسمی و اصالت انتشار بررسی شود.', verified: false },
+      { id: 'effective_date', label: 'تاریخ لازم‌الاجراشدن و اصلاحات مؤثر در تاریخ واقعه بررسی شود.', verified: false },
+      { id: 'human_signoff', label: 'وکیل یا متخصص انسانی استدلال و ادله هر دو طرف را بازبینی کند.', verified: false }
+    ],
     publicationBlocked: true,
     publicationReason: brief.handoff.publicationReason,
     humanReviewRequired: true
