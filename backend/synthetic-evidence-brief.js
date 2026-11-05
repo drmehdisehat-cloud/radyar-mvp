@@ -13,6 +13,10 @@ function createSyntheticEvidenceBrief(input) {
         !STANCES.has(item.stance) || typeof item.description !== 'string' ||
         !item.description.trim() || item.description.length > 250 ||
         /[\r\n\u2028\u2029]/u.test(item.description)) throw new TypeError('invalid_evidence_' + i);
+    // Synthetic-only guard: reject common contact identifiers before generating a review pack.
+    // This is a limited safeguard, not a guarantee that arbitrary personal data is absent.
+    if (/(?:[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}|(?:\+?98|0)9\d{9})/u.test(item.description))
+      throw new TypeError('potential_personal_data_' + i);
     return Object.freeze({ index: i + 1, stance: item.stance, description: item.description.trim() });
   });
   const forClaim = evidence.filter(e => e.stance === 'موافق');
