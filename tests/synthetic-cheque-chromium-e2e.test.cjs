@@ -7,8 +7,12 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
 test('canonical synthetic cheque workshop: browser generates, invalidates and blocks conflicting drafts', (t) => {
-  const binary = ['/usr/bin/chromium', '/usr/bin/chromium-browser', '/usr/bin/google-chrome'].find(p => fs.existsSync(p));
-  if (!binary) return t.skip('Chromium not installed; run on browser-enabled CI');
+  const candidates = [process.env.CHROME_BIN, '/usr/bin/chromium', '/usr/bin/chromium-browser', '/usr/bin/google-chrome', '/usr/bin/google-chrome-stable'].filter(Boolean);
+  const binary = candidates.find(p => fs.existsSync(p));
+  if (!binary) {
+    if (process.env.CI === 'true') assert.fail('Chromium is required in CI; synthetic cheque E2E must not silently skip');
+    return t.skip('Chromium not installed in local environment');
+  }
   const source = fs.readFileSync(path.join(__dirname, '../experimental/synthetic-cheque-browser.html'), 'utf8');
   assert.ok(source.includes('id="generate"') && source.includes('id="download"'));
   const injected = `<script>
