@@ -42,7 +42,17 @@ jobs:
       - name: Audit full Git history for known secret signatures
         run: node scripts/audit-git-history.cjs
       - name: Run every committed contract test
-        run: node --test tests/*.test.cjs
+        run: |
+          # Browser E2E is run once below with an explicitly verified Chrome binary.
+          # Keep the general contract suite free of duplicate browser launches.
+          shopt -s nullglob
+          tests=(tests/*.test.cjs)
+          contracts=()
+          for test_file in "${tests[@]}"; do
+            [[ "$test_file" == tests/synthetic-cheque-chromium-e2e.test.cjs ]] || contracts+=("$test_file")
+          done
+          test "${#contracts[@]}" -gt 0
+          node --test "${contracts[@]}"
       - name: Audit v1 release blockers (informational; never deploy)
         run: node scripts/check-v1-readiness.cjs
       - name: Audit cheque amendment evidence gaps (research only)
