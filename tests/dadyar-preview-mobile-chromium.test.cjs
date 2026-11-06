@@ -15,6 +15,13 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
   }
   const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
   assert.match(html, /connect-src 'none'/);
+  // A zero-call probe alone misses remote loads attempted before the load handler.
+  // Reject external resource declarations at source level as a second offline gate.
+  assert.match(html, /default-src 'none'/);
+  assert.match(html, /form-action 'none'/);
+  assert.doesNotMatch(html, /<(?:script|link|iframe|img|audio|video|source)\\b[^>]*\\b(?:src|href)\\s*=\\s*['"]?\\s*(?:https?:|\\/\\/)/i);
+  assert.doesNotMatch(html, /\\b(?:fetch|XMLHttpRequest|sendBeacon|WebSocket|EventSource)\\s*\\(/);
+
   const probe = `<script>
   window.addEventListener('load', () => {
     const check=(condition,message)=>{if(!condition)throw Error(message)};
