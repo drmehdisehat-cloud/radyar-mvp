@@ -47,15 +47,15 @@ role.addEventListener('change',invalidateDraft);
 document.getElementById('reset').addEventListener('click',()=>{
  role.selectedIndex=0;
  for(const answer of document.querySelectorAll('#interview select')) answer.selectedIndex=0;
- for(const checkbox of document.querySelectorAll('input[type=checkbox]')) checkbox.checked=false;
+ for(const checkbox of document.querySelectorAll('fieldset input[type=checkbox]')) checkbox.checked=false;
  invalidateDraft();
  document.getElementById('reset-status').textContent='انتخاب‌ها و پیش‌نویس فرضی پاک شدند؛ هیچ داده‌ای به سرور ارسال نشده است.';
  role.focus();
 });
 for(const answer of document.querySelectorAll('#interview select')) answer.addEventListener('change',invalidateDraft);
-for(const checkbox of document.querySelectorAll('input[type=checkbox]')) checkbox.addEventListener('change',invalidateDraft);
+for(const checkbox of document.querySelectorAll('fieldset input[type=checkbox]')) checkbox.addEventListener('change',invalidateDraft);
 document.getElementById('generate').addEventListener('click',()=>{
- const evidence=[...document.querySelectorAll('input[type=checkbox]:checked')].map(e=>({stance:e.dataset.stance,description:e.value}));
+ const evidence=[...document.querySelectorAll('fieldset input[type=checkbox]:checked')].map(e=>({stance:e.dataset.stance,description:e.value}));
  const answers=[...document.querySelectorAll('#interview select')].map(el=>({question:el.dataset.question,answer:el.options[el.selectedIndex].textContent,state:el.value}));
  const unresolved=answers.filter(item=>item.state==='unknown');
  const negativeAnswers=answers.filter(item=>item.state==='no');
