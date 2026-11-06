@@ -37,6 +37,13 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       check(download.disabled,'export without acknowledgement');
       document.getElementById('export-ack').click();
       check(!download.disabled,'completed acknowledged interview blocked');
+      // A successful synthetic export must consume consent, preventing repeated downloads.
+      download.click();
+      check(download.disabled,'export remained enabled after download');
+      check(!document.getElementById('export-ack').checked,'export retained prior human-review acknowledgement');
+      check(document.getElementById('export-status').textContent.includes('مجدداً'),'export confirmation absent');
+      document.getElementById('export-ack').click();
+      check(!download.disabled,'fresh acknowledgement did not re-enable export');
       document.getElementById('defense').value='no';
       document.getElementById('defense').dispatchEvent(new Event('change',{bubbles:true}));
       check(download.disabled && document.getElementById('result').hidden,'stale report export after mutation');
