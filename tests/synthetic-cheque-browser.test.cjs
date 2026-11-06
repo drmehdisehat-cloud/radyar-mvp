@@ -173,3 +173,17 @@ test('each simulated legal role provides distinct non-authoritative review guida
   assert.match(report,/این متن رأی، سند رسمی یا دستور انتظامی نیست/);
  }
 });
+
+test('case completeness summary exposes unresolved facts without claiming legal readiness',()=>{
+ const h=harness();
+ h.handlers['generate:click']();
+ const summary=h.get('report').textContent;
+ assert.match(summary,/وضعیت تکمیل پرونده فرضی: بدون تعارض آشکار/);
+ assert.match(summary,/پرسش‌های بی‌پاسخ: 3/);
+ assert.match(summary,/مدارک انتخابی: 2/);
+ assert.match(summary,/احراز اصالت: صفر/);
+ assert.match(summary,/نتیجه: آماده تصمیم حقوقی نیست/);
+ h.selects[2].value='no';h.selects[2].selectedIndex=2;
+ h.handlers['generate:click']();
+ assert.match(h.get('report').textContent,/وضعیت تکمیل پرونده فرضی: متعارض؛ نیازمند اصلاح اطلاعات/);
+});
