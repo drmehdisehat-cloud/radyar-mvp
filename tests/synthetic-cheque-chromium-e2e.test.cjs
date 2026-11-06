@@ -27,12 +27,15 @@ test('canonical synthetic cheque workshop: browser generates, invalidates and bl
         document.getElementById('certificate').value = 'no';
         document.getElementById('defense').value = 'yes';
         document.getElementById('generate').click();
-        check(!document.getElementById('download').disabled, 'completed consistent interview blocked export');
+        check(document.getElementById('download').disabled, 'export enabled without explicit review acknowledgement');
+        document.getElementById('export-ack').click();
+        check(!document.getElementById('download').disabled, 'completed acknowledged interview blocked export');
         check(document.getElementById('report').textContent.includes('وظایف بازبینی'), 'review tasks absent');
         document.getElementById('download').focus();
         document.getElementById('role').value = 'قاضی';
         document.getElementById('role').dispatchEvent(new Event('change'));
         check(document.getElementById('result').hidden && document.getElementById('download').disabled, 'role change retained stale draft');
+        check(!document.getElementById('export-ack').checked, 'role change retained stale acknowledgement');
         check(document.activeElement === document.getElementById('generate'), 'keyboard focus stranded inside hidden draft');
         document.getElementById('certificate').value = 'no';
         document.querySelector('input[value="گواهی عدم پرداخت نمونه"]').checked = true;
