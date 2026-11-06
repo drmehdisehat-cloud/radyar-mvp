@@ -49,7 +49,7 @@ jobs:
           tests=(tests/*.test.cjs)
           contracts=()
           for test_file in "${tests[@]}"; do
-            [[ "$test_file" == tests/synthetic-cheque-chromium-e2e.test.cjs ]] || contracts+=("$test_file")
+            [[ "$test_file" == tests/synthetic-cheque-chromium-e2e.test.cjs || "$test_file" == tests/dadyar-preview-mobile-chromium.test.cjs ]] || contracts+=("$test_file")
           done
           test "${#contracts[@]}" -gt 0
           node --test "${contracts[@]}"
@@ -75,3 +75,4 @@ jobs:
           CHROME_BIN="$CHROME_BIN" node --test tests/real-browser-smoke.cjs
           CHROME_BIN="$CHROME_BIN" node --test tests/check-intake-browser.cjs
           CHROME_BIN="$CHROME_BIN" node --test tests/synthetic-cheque-chromium-e2e.test.cjs
+          CHROME_BIN="$CHROME_BIN" node --test tests/dadyar-preview-mobile-chromium.test.cjs
