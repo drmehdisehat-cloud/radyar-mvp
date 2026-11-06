@@ -41,6 +41,14 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       document.getElementById('defense').dispatchEvent(new Event('change',{bubbles:true}));
       check(download.disabled && document.getElementById('result').hidden,'stale report export after mutation');
       check(!document.getElementById('export-ack').checked,'acknowledgement persisted after mutation');
+      // Reset must clear all synthetic answers, selected evidence and export consent.
+      document.getElementById('reset').click();
+      check(document.getElementById('result').hidden,'reset left a visible draft');
+      check(download.disabled,'reset left download enabled');
+      check(!document.getElementById('export-ack').checked,'reset retained consent');
+      check([...document.querySelectorAll('#interview select')].every(el=>el.value==='unknown'),'reset retained interview answers');
+      check([...document.querySelectorAll('fieldset input[type=checkbox]')].every(el=>!el.checked),'reset retained synthetic evidence');
+      check(document.activeElement===document.getElementById('role'),'reset did not restore keyboard focus');
       check(calls===0,'application attempted network calls');
       check(performance.getEntriesByType('resource').length===0,'unexpected external resource load');
       window.fetch=originalFetch;XMLHttpRequest.prototype.open=originalOpen;
