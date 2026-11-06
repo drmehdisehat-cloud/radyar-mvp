@@ -22,7 +22,12 @@ test('canonical synthetic cheque workshop: browser generates, invalidates and bl
         check(document.getElementById('download').disabled, 'export enabled before first draft');
         document.getElementById('generate').click();
         check(!document.getElementById('result').hidden, 'draft not shown');
-        check(document.getElementById('download').disabled === false, 'initial draft unexpectedly blocked');
+        check(document.getElementById('download').disabled, 'unanswered interview allowed download');
+        document.getElementById('issue-date').value = 'yes';
+        document.getElementById('certificate').value = 'no';
+        document.getElementById('defense').value = 'yes';
+        document.getElementById('generate').click();
+        check(!document.getElementById('download').disabled, 'completed consistent interview blocked export');
         check(document.getElementById('report').textContent.includes('وظایف بازبینی'), 'review tasks absent');
         document.getElementById('download').focus();
         document.getElementById('role').value = 'قاضی';
