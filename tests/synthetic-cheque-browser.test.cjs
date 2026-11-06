@@ -16,6 +16,9 @@ function harness(){
  vm.runInNewContext(script,{document,URL:{createObjectURL:()=>'',revokeObjectURL(){}},Blob:class{},setTimeout(){}},{timeout:1000});
  return {handlers,elements,inputs,selects,get};
 }
+function answerAll(h){
+ for(const select of h.selects){select.value='yes';select.selectedIndex=1;}
+}
 test('offline cheque interview generates opposing-evidence review draft',()=>{
  const h=harness();h.handlers['generate:click']();
  assert.match(h.get('report').textContent,/تصویر چک نمونه/);
@@ -87,7 +90,7 @@ test('contradictory interview disables export until corrected and regenerated',(
  assert.equal(h.get('result').hidden,false);
  assert.equal(h.get('download').disabled,true);
  assert.match(h.get('report').textContent,/تعارض‌های داده فرضی/);
- h.selects[1].value='yes';h.selects[1].selectedIndex=1;
+ answerAll(h);
  h.handlers['certificate:change']();
  assert.equal(h.get('result').hidden,true);
  assert.equal(h.get('download').disabled,true);
@@ -105,7 +108,7 @@ test('blocked export explains conflict and clears notice when inputs change',()=
  assert.match(h.get('export-status').textContent,/دریافت گزارش به علت تناقض اطلاعات غیرفعال است/);
  h.handlers['certificate:change']();
  assert.equal(h.get('export-status').textContent,'');
- h.selects[1].value='yes';h.selects[1].selectedIndex=1;
+ answerAll(h);
  h.handlers['generate:click']();
  assert.equal(h.get('download').disabled,false);
  assert.match(h.get('export-status').textContent,/آماده دریافت/);
@@ -118,7 +121,7 @@ test('settlement evidence contradicting denial of any defense blocks draft expor
  h.handlers['generate:click']();
  assert.match(h.get('report').textContent,/ادعای تسویه در فهرست ادله مخالف انتخاب شده/);
  assert.equal(h.get('download').disabled,true);
- h.selects[2].value='yes';h.selects[2].selectedIndex=1;
+ answerAll(h);
  h.handlers['defense:change']();
  assert.equal(h.get('result').hidden,true);
  h.handlers['generate:click']();
@@ -151,6 +154,7 @@ test('evidence-free synthetic cheque report remains visible for review but canno
  assert.match(h.get('report').textContent,/هیچ مدرک فرضی انتخاب نشده است/);
  assert.match(h.get('export-status').textContent,/دریافت گزارش به علت تناقض اطلاعات غیرفعال است/);
  h.inputs[0].checked=true;
+ answerAll(h);
  h.handlers['evidence1:change']();
  assert.equal(h.get('result').hidden,true);
  h.handlers['generate:click']();
@@ -216,4 +220,17 @@ test('next action prioritizes conflicts, then unanswered interview questions, wi
  h.selects[2].value='yes';h.selects[2].selectedIndex=1;
  h.handlers['generate:click']();
  assert.match(h.get('report').textContent,/تطبیق مدارک با اصل، اعتبار قانونی و بررسی انسانی همچنان انجام نشده است/);
+});
+
+
+test('unanswered synthetic interview remains viewable but cannot be downloaded',()=>{
+ const h=harness();h.handlers['generate:click']();
+ assert.equal(h.get('result').hidden,false);
+ assert.equal(h.get('download').disabled,true);
+ assert.match(h.get('export-status').textContent,/۳ پرسش نامعلوم|3 پرسش نامعلوم/);
+ answerAll(h);h.handlers['issue-date:change']();
+ assert.equal(h.get('result').hidden,true);
+ h.handlers['generate:click']();
+ assert.equal(h.get('download').disabled,false);
+ assert.match(h.get('export-status').textContent,/آماده دریافت/);
 });
