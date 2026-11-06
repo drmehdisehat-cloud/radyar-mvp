@@ -10,7 +10,16 @@ function harness(){
   {dataset:{question:'گواهی عدم پرداخت موجود است؟'},value:'unknown',selectedIndex:0,options:[{textContent:'نامعلوم'},{textContent:'در نمونه موجود است'},{textContent:'در نمونه موجود نیست'}],addEventListener(name,fn){handlers['certificate:'+name]=fn;}},
   {dataset:{question:'آیا ادعای پرداخت یا دفاع دیگری مطرح است؟'},value:'unknown',selectedIndex:0,options:[{textContent:'نامعلوم'},{textContent:'صرفاً ادعا شده است'},{textContent:'در نمونه مطرح نشده'}],addEventListener(name,fn){handlers['defense:'+name]=fn;}}
  ];
- const document={getElementById:get,querySelectorAll:selector=>selector==='#interview select'?selects:selector==='input[type=checkbox]:checked'?inputs.filter(input=>input.checked):inputs,createElement:()=>({click(){}})};
+ const document={
+  getElementById:get,
+  querySelectorAll(selector){
+   if(selector==='#interview select') return selects;
+   if(selector==='fieldset input[type=checkbox]') return inputs;
+   if(selector==='fieldset input[type=checkbox]:checked') return inputs.filter(input=>input.checked);
+   throw new Error('Unsupported test selector: '+selector);
+  },
+  createElement:()=>({click(){}})
+ };
  const script=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
  assert.ok(script,'browser code present');
  vm.runInNewContext(script,{document,URL:{createObjectURL:()=>'',revokeObjectURL(){}},Blob:class{},setTimeout(){}},{timeout:1000});
@@ -21,6 +30,12 @@ function answerAll(h){
  if(!h.inputs.some(input=>input.checked && input.value==='گواهی عدم پرداخت نمونه')){
   h.selects[1].value='no';h.selects[1].selectedIndex=2;
  }
+}
+function acknowledgeExport(h){
+ assert.equal(h.get('download').disabled,true);
+ assert.equal(h.get('export-ack').checked,false);
+ h.get('export-ack').checked=true;
+ h.handlers['export-ack:change']();
 }
 test('offline cheque interview generates opposing-evidence review draft',()=>{
  const h=harness();h.handlers['generate:click']();
@@ -98,6 +113,7 @@ test('contradictory interview disables export until corrected and regenerated',(
  assert.equal(h.get('result').hidden,true);
  assert.equal(h.get('download').disabled,true);
  h.handlers['generate:click']();
+ acknowledgeExport(h);
  assert.equal(h.get('download').disabled,false);
 });
 
@@ -113,8 +129,9 @@ test('blocked export explains conflict and clears notice when inputs change',()=
  assert.equal(h.get('export-status').textContent,'');
  answerAll(h);
  h.handlers['generate:click']();
+ acknowledgeExport(h);
  assert.equal(h.get('download').disabled,false);
- assert.match(h.get('export-status').textContent,/آماده دریافت/);
+ assert.match(h.get('export-status').textContent,/تأیید بازبینی انسانی را علامت بزنید/);
 });
 
 
@@ -128,6 +145,7 @@ test('settlement evidence contradicting denial of any defense blocks draft expor
  h.handlers['defense:change']();
  assert.equal(h.get('result').hidden,true);
  h.handlers['generate:click']();
+ acknowledgeExport(h);
  assert.equal(h.get('download').disabled,false);
 });
 
@@ -161,6 +179,7 @@ test('evidence-free synthetic cheque report remains visible for review but canno
  h.handlers['evidence1:change']();
  assert.equal(h.get('result').hidden,true);
  h.handlers['generate:click']();
+ acknowledgeExport(h);
  assert.equal(h.get('download').disabled,false);
 });
 
@@ -234,8 +253,9 @@ test('unanswered synthetic interview remains viewable but cannot be downloaded',
  answerAll(h);h.handlers['issue-date:change']();
  assert.equal(h.get('result').hidden,true);
  h.handlers['generate:click']();
+ acknowledgeExport(h);
  assert.equal(h.get('download').disabled,false);
- assert.match(h.get('export-status').textContent,/آماده دریافت/);
+ assert.match(h.get('export-status').textContent,/تأیید بازبینی انسانی را علامت بزنید/);
 });
 
 
