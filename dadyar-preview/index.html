@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; form-action 'none'; base-uri 'none'">
+<title>دادیار | پیش‌نمایش آفلاین چک فرضی</title>
+<style>body{font:1rem/1.9 system-ui,sans-serif;background:#f5f6fa;color:#17243b;margin:0}main{max-width:780px;margin:auto;padding:1.2rem}section{background:white;border-radius:16px;padding:1.2rem;margin:1rem 0;box-shadow:0 2px 12px #17243b12}button,select{font:inherit;padding:.5rem;border:1px solid #718096;border-radius:8px}button{background:#dcecfb;cursor:pointer}button:focus-visible,select:focus-visible{outline:3px solid #2469a8}fieldset{border:1px solid #b4bfd0;border-radius:12px;margin:1rem 0}label{display:block;margin:.6rem 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}small{color:#475569}#result[hidden]{display:none}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}</style></head>
+<body><main><h1>کارگاه آزمایشی دادیار: چک فرضی</h1><p role="status">صرفاً داده‌های ازپیش‌ساخته؛ بدون ارسال اطلاعات، هوش مصنوعی، استناد قانونی یا ذخیره در سرور. اطلاعات واقعی وارد نکنید.</p>
+<section><label for="role">نقش کمک‌یار</label><select id="role"><option>وکیل</option><option>قاضی</option><option>سردفتر</option><option>دادستان</option><option>ضابط</option></select>
+<fieldset><legend>کدام مدارک فرضی را در مصاحبه داریم؟</legend>
+<label><input type="checkbox" data-stance="موافق" value="تصویر چک نمونه با شماره ساختگی" checked> تصویر چک نمونه</label>
+<label><input type="checkbox" data-stance="موافق" value="گواهی عدم پرداخت نمونه"> گواهی عدم پرداخت نمونه</label>
+<label><input type="checkbox" data-stance="مخالف" value="ادعای تسویه وجه در پرونده فرضی" checked> ادعای تسویه فرضی</label>
+<label><input type="checkbox" data-stance="نامعلوم" value="تاریخ سررسید در پرونده فرضی مشخص نیست"> تاریخ سررسید نامعلوم</label>
+</fieldset>
+<fieldset id="interview"><legend>پرسش‌های تکمیلی سناریوی فرضی</legend>
+<label for="issue-date">تاریخ صدور و سررسید در مدارک نمونه مشخص است؟</label><select id="issue-date" data-question="تاریخ صدور و سررسید چک چیست؟"><option value="unknown">نامعلوم</option><option value="yes">در نمونه درج شده</option><option value="no">در نمونه درج نشده</option></select>
+<label for="certificate">گواهی عدم پرداخت نمونه موجود است؟</label><select id="certificate" data-question="گواهی عدم پرداخت موجود است؟"><option value="unknown">نامعلوم</option><option value="yes">در نمونه موجود است</option><option value="no">در نمونه موجود نیست</option></select>
+<label for="defense">ادعای پرداخت یا دفاعی در سناریو مطرح است؟</label><select id="defense" data-question="آیا ادعای پرداخت یا دفاع دیگری مطرح است؟"><option value="unknown">نامعلوم</option><option value="yes">صرفاً ادعا شده است</option><option value="no">در نمونه مطرح نشده</option></select>
+<p><small>پاسخ‌ها صرفاً وضعیت داده ساختگی هستند و اصالت مدارک را تأیید نمی‌کنند.</small></p></fieldset><button id="generate" type="button">ساخت پیش‌نویس غیررسمی</button> <button id="reset" type="button">پاک‌کردن انتخاب‌ها و پیش‌نویس</button><p id="reset-status" role="status" aria-live="polite"></p></section>
+<section id="result" hidden tabindex="-1" aria-live="polite"><h2>پیش‌نویس برای بازبینی انسانی</h2><pre id="report"></pre><label><input type="checkbox" id="export-ack"> تأیید می‌کنم این گزارش فقط داده فرضی دارد و پیش از هر استفاده حقوقی نیازمند بررسی متخصص انسانی است.</label><button type="button" id="download" disabled>دریافت گزارش متنی</button><p id="export-status" role="status" aria-live="polite"></p><p><small>این خروجی رأی، دستور، ثبت رسمی سند یا مشاوره حقوقی قطعی نیست. منابع قانونی و تاریخ اعتبار بررسی نشده‌اند.</small></p></section></main>
+<script>
+'use strict';
+const questions=['تاریخ صدور و سررسید فرضی چک چیست؟','گواهی عدم پرداخت فرضی موجود است؟','آیا ادعای پرداخت یا دفاع دیگری مطرح است؟'];
+const purposes={'وکیل':'مصاحبه و تنظیم پیش‌نویس','قاضی':'مقایسه استدلال طرفین، بدون صدور رأی','سردفتر':'بررسی اولیه مدارک، بدون ثبت سند','دادستان':'بررسی ادعا و دفاع، بدون تصمیم قضایی','ضابط':'سامان‌دهی گزارش، بدون اقدام انتظامی'};
+const roleGuidance={
+ 'وکیل':['تفکیک ادعاهای موکل از اسناد قابل بررسی','فهرست پرسش‌های تکمیلی برای تنظیم پیش‌نویس، بدون تعیین نتیجه دعوا'],
+ 'قاضی':['ثبت جداگانه استدلال موافق و مخالف','مشخص‌کردن خلأهای اثباتی پیش از هر شبیه‌سازی رأی'],
+ 'سردفتر':['فهرست مدارک اعلام‌شده و موارد فاقد تأیید اصالت','ارجاع بررسی صلاحیت و تشریفات به سردفتر انسانی؛ بدون تنظیم سند رسمی'],
+ 'دادستان':['تفکیک ادعای اولیه، پاسخ طرف مقابل و موارد نامعلوم','پرهیز از انتساب جرم یا شبیه‌سازی تصمیم بدون بررسی انسانی'],
+ 'ضابط':['تنظیم فهرست زمانی وقایع و منشأ هر مدرک در مصاحبه بعدی','ثبت موارد نیازمند بررسی بدون صدور دستور یا اقدام انتظامی']
+};
+const role=document.getElementById('role'),out=document.getElementById('report'),box=document.getElementById('result');
+let report='';
+const downloadButton=document.getElementById('download');
+const exportStatus=document.getElementById('export-status');
+const exportAck=document.getElementById('export-ack');
+let exportEligible=false;
+function updateExportPermission(){downloadButton.disabled=!exportEligible || !exportAck.checked;}
+exportAck.addEventListener('change',updateExportPermission);
+// Invalidate an earlier draft as soon as the hypothetical evidence or role changes.
+// Otherwise the download button could export a different case state than the UI.
+function invalidateDraft(){
+ const focusWasInDraft=box.contains(document.activeElement);
+ report=''; out.textContent=''; exportStatus.textContent=''; box.hidden=true; exportEligible=false; exportAck.checked=false; updateExportPermission();
+ // Never strand keyboard focus inside a hidden result after a case-state change.
+ if(focusWasInDraft) document.getElementById('generate').focus();
+}
+role.addEventListener('change',invalidateDraft);
+document.getElementById('reset').addEventListener('click',()=>{
+ role.selectedIndex=0;
+ for(const answer of document.querySelectorAll('#interview select')) answer.selectedIndex=0;
+ for(const checkbox of document.querySelectorAll('fieldset input[type=checkbox]')) checkbox.checked=false;
+ invalidateDraft();
+ document.getElementById('reset-status').textContent='انتخاب‌ها و پیش‌نویس فرضی پاک شدند؛ هیچ داده‌ای به سرور ارسال نشده است.';
+ role.focus();
+});
+for(const answer of document.querySelectorAll('#interview select')) answer.addEventListener('change',invalidateDraft);
+for(const checkbox of document.querySelectorAll('fieldset input[type=checkbox]')) checkbox.addEventListener('change',invalidateDraft);
+document.getElementById('generate').addEventListener('click',()=>{
+ const evidence=[...document.querySelectorAll('fieldset input[type=checkbox]:checked')].map(e=>({stance:e.dataset.stance,description:e.value}));
+ const answers=[...document.querySelectorAll('#interview select')].map(el=>({question:el.dataset.question,answer:el.options[el.selectedIndex].textContent,state:el.value}));
+ const unresolved=answers.filter(item=>item.state==='unknown');
+ const negativeAnswers=answers.filter(item=>item.state==='no');
+ // Surface inconsistent synthetic interview answers instead of silently treating them as verified.
+ const hasCertificate=evidence.some(e=>e.description==='گواهی عدم پرداخت نمونه');
+ const unknownDueDate=evidence.some(e=>e.description==='تاریخ سررسید در پرونده فرضی مشخص نیست');
+ const conflicts=[];
+ if(hasCertificate && answers[1].state==='no') conflicts.push('گواهی عدم پرداخت در فهرست مدارک انتخاب شده، اما پاسخ مصاحبه وجود آن را رد می‌کند.');
+ if(!hasCertificate && answers[1].state==='yes') conflicts.push('مصاحبه وجود گواهی عدم پرداخت را اعلام می‌کند، اما مدرکی در فهرست انتخاب نشده است.');
+ if(unknownDueDate && answers[0].state==='yes') conflicts.push('تاریخ سررسید نامعلوم علامت خورده، اما مصاحبه تاریخ را موجود اعلام می‌کند.');
+ const hasSettlementClaim=evidence.some(e=>e.description==='ادعای تسویه وجه در پرونده فرضی');
+ if(hasSettlementClaim && answers[2].state==='no') conflicts.push('ادعای تسویه در فهرست ادله مخالف انتخاب شده، اما مصاحبه طرح هرگونه ادعای پرداخت یا دفاع را رد می‌کند.');
+ if(evidence.length===0) conflicts.push('هیچ مدرک فرضی انتخاب نشده است؛ برای تولید گزارش قابل دریافت، دست‌کم یک مدرک نمونه انتخاب کنید.');
+ const section=(stance)=>evidence.filter(e=>e.stance===stance).map(e=>'• '+e.description).join('\n')||'ثبت نشده';
+ report=['دادیار | چک صرفاً فرضی | نسخه آزمایشی آفلاین','نقش: '+role.value+' | هدف: '+purposes[role.value],
+ 'ادله موافق:\n'+section('موافق'),'ادله مخالف:\n'+section('مخالف'),'نامعلوم:\n'+section('نامعلوم'),
+ 'تعارض‌های داده فرضی:\n'+(conflicts.map(c=>'• '+c).join('\n')||'تعارض آشکاری میان پاسخ‌های نمونه و فهرست مدارک یافت نشد.'),
+ 'وضعیت مصاحبه فرضی:\n'+answers.map(a=>'• '+a.question+' '+a.answer).join('\n'),
+ 'گام‌های بررسی متناسب با نقش (صرفاً آموزشی):\n'+roleGuidance[role.value].map(g=>'• '+g).join('\n'),
+ 'خط زمانی اولیه پرونده فرضی (بدون احراز تاریخ واقعی):\n• صدور و سررسید: '+answers[0].answer+'؛ تاریخ دقیق نیازمند تطبیق با اصل چک است.\n• گواهی عدم پرداخت: '+answers[1].answer+'؛ تاریخ صدور و ارتباط با چک بررسی نشده است.\n• ادعای پرداخت یا دفاع: '+answers[2].answer+'؛ زمان رویداد و مستندات بررسی نشده است.',
+ 'پرسش‌های بی‌پاسخ:\n'+(unresolved.map(a=>'• '+a.question).join('\n')||'هیچ پرسش بی‌پاسخی در این مصاحبه فرضی باقی نمانده است.'),
+ 'اقدام بعدی پیشنهادی برای تکمیل داده فرضی (بدون نتیجه‌گیری حقوقی):\n'+(conflicts.length?conflicts.map(c=>'• رفع تعارض: '+c).join('\n'):unresolved.length?unresolved.map(a=>'• تکمیل پاسخ: '+a.question).join('\n'):'• پاسخ‌های مصاحبه ثبت شده‌اند؛ تطبیق مدارک با اصل، اعتبار قانونی و بررسی انسانی همچنان انجام نشده است.'),
+ 'موارد اعلام‌شده به‌عنوان ناموجود (نیازمند ارزیابی اثر حقوقی):\n'+(negativeAnswers.map(a=>'• '+a.question).join('\n')||'ثبت نشده'),
+ 'وظایف بازبینی هر مدرک فرضی (هیچ موردی تأیید نشده است):\n'+(evidence.map((e,i)=>'• مدرک '+(i+1)+' ['+e.stance+']: '+e.description+' | اصالت: تأییدنشده | منشأ: بررسی‌نشده | اقدام: تطبیق با اصل و ثبت منشأ توسط متخصص انسانی').join('\n')||'مدرکی برای بازبینی انتخاب نشده است.'),
+ 'فهرست پیگیری متناسب با پاسخ‌های فرضی (بدون تشخیص حقوقی):\n'+[
+  ...(answers[0].state==='yes'?['• تطبیق تاریخ‌های اعلام‌شده با تصویر و اصل چک نمونه؛ تاریخ واقعی احراز نشده است.']:['• دریافت یا روشن‌کردن تاریخ صدور و سررسید در مدارک نمونه؛ هیچ مهلت قانونی محاسبه نشده است.']),
+  ...(answers[1].state==='yes'&&hasCertificate?['• تطبیق مشخصات گواهی نمونه با چک نمونه؛ اصالت و تاریخ صدور بررسی نشده است.']:['• بررسی وجود و مشخصات گواهی عدم پرداخت نمونه؛ نبود آن نتیجه دعوا را تعیین نمی‌کند.']),
+  ...(answers[2].state==='yes'||hasSettlementClaim?['• درخواست مستندات فرضی ادعای تسویه و پاسخ طرف مقابل؛ ادعا اثبات نشده است.']:['• روشن‌کردن وجود یا نبود ادعای پرداخت یا دفاع در مصاحبه فرضی.'])
+ ].join('\n'),
+ 'چک‌لیست تکمیل پرونده (صرفاً آموزشی):\n• اصل چک و مشخصات آن: اصالت و تطبیق با نمونه بررسی نشده است.\n• گواهی عدم پرداخت: وجود، تاریخ و اعتبار آن نیازمند بررسی انسانی است.\n• تاریخ‌های صدور، سررسید و اقدامات بعدی: در مدارک واقعی احراز نشده‌اند.\n• ادعای پرداخت یا تسویه: مستندات موافق و مخالف باید جداگانه بررسی شوند.',
+ 'صلاحیت و مسیر اقدام: تعیین‌نشده؛ تشخیص مرجع صالح، مهلت‌ها و امکان اقدام حقوقی یا کیفری نیازمند بررسی متن قانون معتبر، تاریخ‌ها، محل‌های مرتبط و متخصص انسانی است.',
+ 'وضعیت تکمیل پرونده فرضی: '+(conflicts.length?'متعارض؛ نیازمند اصلاح اطلاعات':'بدون تعارض آشکار در داده‌های انتخابی')+' | پرسش‌های بی‌پاسخ: '+unresolved.length+' | مدارک انتخابی: '+evidence.length+' | احراز اصالت: صفر | بررسی قانون معتبر: انجام‌نشده | نتیجه: آماده تصمیم حقوقی نیست.',
+ 'منابع قانونی: تأییدنشده؛ هیچ استناد قانونی ارائه نمی‌شود.','هیچ ادعایی احراز نشده است. اصالت مدارک، متن قانون، منبع رسمی و تاریخ اعتبار باید توسط متخصص انسانی بررسی شود.',
+ 'این متن رأی، سند رسمی یا دستور انتظامی نیست.'].join('\n\n');
+ out.textContent=report;exportEligible=conflicts.length===0 && unresolved.length===0;exportAck.checked=false;updateExportPermission();
+ exportStatus.textContent=conflicts.length>0?'دریافت گزارش به علت تناقض اطلاعات غیرفعال است. پاسخ‌ها یا مدارک فرضی را اصلاح و پیش‌نویس را دوباره تولید کنید.':unresolved.length>0?'دریافت گزارش تا پاسخ‌گویی به '+unresolved.length+' پرسش نامعلوم غیرفعال است؛ پیش‌نویس برای بررسی روی صفحه باقی می‌ماند.':'برای دریافت پیش‌نویس فرضی، ابتدا تأیید بازبینی انسانی را علامت بزنید.';
+ box.hidden=false;box.focus();
+});
+document.getElementById('download').addEventListener('click',()=>{
+ if(!report || downloadButton.disabled)return;
+ const url=URL.createObjectURL(new Blob(['\uFEFF'+report],{type:'text/plain;charset=utf-8'}));
+ const a=document.createElement('a');a.href=url;a.download='dadyar-synthetic-cheque.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+</script></body></html>
