@@ -201,3 +201,19 @@ test('synthetic cheque timeline records event order without inventing dates',()=
  assert.match(report,/تاریخ صدور و ارتباط با چک بررسی نشده است/);
  assert.doesNotMatch(report,/تاریخ واقعی احراز شده/);
 });
+
+
+test('next action prioritizes conflicts, then unanswered interview questions, without claiming legal readiness',()=>{
+ const h=harness();
+ h.handlers['generate:click']();
+ assert.match(h.get('report').textContent,/اقدام بعدی پیشنهادی[^\n]*:\n• تکمیل پاسخ: تاریخ صدور/);
+ h.selects[2].value='no';h.selects[2].selectedIndex=2;
+ h.handlers['generate:click']();
+ assert.match(h.get('report').textContent,/اقدام بعدی پیشنهادی[^\n]*:\n• رفع تعارض: ادعای تسویه/);
+ assert.doesNotMatch(h.get('report').textContent,/اقدام بعدی پیشنهادی[^\n]*:\n• تکمیل پاسخ:/);
+ h.selects[0].value='yes';h.selects[0].selectedIndex=1;
+ h.selects[1].value='no';h.selects[1].selectedIndex=2;
+ h.selects[2].value='yes';h.selects[2].selectedIndex=1;
+ h.handlers['generate:click']();
+ assert.match(h.get('report').textContent,/تطبیق مدارک با اصل، اعتبار قانونی و بررسی انسانی همچنان انجام نشده است/);
+});
