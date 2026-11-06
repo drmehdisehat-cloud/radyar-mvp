@@ -24,6 +24,13 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       window.fetch=(...args)=>{calls++;return Promise.reject(Error('network forbidden'))};
       const originalOpen=XMLHttpRequest.prototype.open;
       XMLHttpRequest.prototype.open=function(){calls++;throw Error('network forbidden')};
+      // Guard additional browser transports: fetch/XHR alone cannot prove zero API attempts.
+      const originalBeacon=navigator.sendBeacon;
+      navigator.sendBeacon=function(){calls++;return false};
+      const originalWebSocket=window.WebSocket;
+      window.WebSocket=function(){calls++;throw Error('network forbidden')};
+      const originalEventSource=window.EventSource;
+      window.EventSource=function(){calls++;throw Error('network forbidden')};
       // Chromium headless may enforce a minimum viewport width despite --window-size=375.
       // Validate its actual narrow desktop viewport; true mobile emulation needs CDP/device testing.
       check(document.documentElement.clientWidth<=520,'headless narrow viewport exceeds 520px');
@@ -61,6 +68,7 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       check(calls===0,'application attempted network calls');
       check(performance.getEntriesByType('resource').length===0,'unexpected external resource load');
       window.fetch=originalFetch;XMLHttpRequest.prototype.open=originalOpen;
+      navigator.sendBeacon=originalBeacon;window.WebSocket=originalWebSocket;window.EventSource=originalEventSource;
       document.documentElement.dataset.previewGate='PASS';
     } catch(e){document.documentElement.dataset.previewGate='FAIL:'+e.message}
   });
