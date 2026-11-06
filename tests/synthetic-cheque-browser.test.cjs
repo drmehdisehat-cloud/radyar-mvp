@@ -18,6 +18,9 @@ function harness(){
 }
 function answerAll(h){
  for(const select of h.selects){select.value='yes';select.selectedIndex=1;}
+ if(!h.inputs.some(input=>input.checked && input.value==='گواهی عدم پرداخت نمونه')){
+  h.selects[1].value='no';h.selects[1].selectedIndex=2;
+ }
 }
 test('offline cheque interview generates opposing-evidence review draft',()=>{
  const h=harness();h.handlers['generate:click']();
