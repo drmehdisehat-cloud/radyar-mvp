@@ -237,3 +237,23 @@ test('unanswered synthetic interview remains viewable but cannot be downloaded',
  assert.equal(h.get('download').disabled,false);
  assert.match(h.get('export-status').textContent,/آماده دریافت/);
 });
+
+
+test('synthetic follow-up checklist changes with interview facts without inventing legal deadlines',()=>{
+ const h=harness();
+ h.handlers['generate:click']();
+ let report=h.get('report').textContent;
+ assert.match(report,/فهرست پیگیری متناسب با پاسخ‌های فرضی/);
+ assert.match(report,/روشن‌کردن تاریخ صدور و سررسید/);
+ assert.match(report,/بررسی وجود و مشخصات گواهی عدم پرداخت/);
+ assert.match(report,/درخواست مستندات فرضی ادعای تسویه/);
+ h.selects[0].value='yes';h.selects[0].selectedIndex=1;
+ h.selects[1].value='no';h.selects[1].selectedIndex=2;
+ h.selects[2].value='no';h.selects[2].selectedIndex=2;
+ h.inputs[1].checked=false;
+ h.handlers['generate:click']();
+ report=h.get('report').textContent;
+ assert.match(report,/تطبیق تاریخ‌های اعلام‌شده با تصویر و اصل چک/);
+ assert.match(report,/روشن‌کردن وجود یا نبود ادعای پرداخت یا دفاع/);
+ assert.doesNotMatch(report,/مهلت قانونی محاسبه شد/);
+});
