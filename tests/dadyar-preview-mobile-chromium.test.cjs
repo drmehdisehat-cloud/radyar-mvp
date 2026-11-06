@@ -55,6 +55,21 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       check(download.disabled,'export without acknowledgement');
       document.getElementById('export-ack').click();
       check(!download.disabled,'completed acknowledged interview blocked');
+      // Contradictory evidence must invalidate export, even with completed answers.
+      const certificateEvidence=[...document.querySelectorAll('fieldset input[type=checkbox]')].find(el=>el.value==='گواهی عدم پرداخت نمونه');
+      check(!!certificateEvidence,'synthetic certificate evidence fixture missing');
+      certificateEvidence.checked=true;
+      certificateEvidence.dispatchEvent(new Event('change',{bubbles:true}));
+      check(download.disabled && document.getElementById('result').hidden,'evidence mutation retained stale export');
+      document.getElementById('generate').click();
+      check(download.disabled,'contradictory certificate evidence permitted export');
+      check(document.getElementById('export-status').textContent.includes('تناقض'),'contradiction warning absent');
+      certificateEvidence.checked=false;
+      certificateEvidence.dispatchEvent(new Event('change',{bubbles:true}));
+      document.getElementById('generate').click();
+      check(download.disabled,'regenerated report bypassed acknowledgement');
+      document.getElementById('export-ack').click();
+      check(!download.disabled,'resolved contradiction and new acknowledgement did not permit export');
       // A successful synthetic export must consume consent, preventing repeated downloads.
       download.click();
       check(download.disabled,'export remained enabled after download');
