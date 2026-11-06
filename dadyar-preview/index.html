@@ -99,5 +99,8 @@ document.getElementById('download').addEventListener('click',()=>{
  if(!report || downloadButton.disabled)return;
  const url=URL.createObjectURL(new Blob(['\uFEFF'+report],{type:'text/plain;charset=utf-8'}));
  const a=document.createElement('a');a.href=url;a.download='dadyar-synthetic-cheque.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ // A second export requires a fresh explicit human-review acknowledgement.
+ exportAck.checked=false;updateExportPermission();
+ exportStatus.textContent='دریافت فایل متنی فرضی آغاز شد. برای دریافت دوباره، تأیید بازبینی انسانی را مجدداً انتخاب کنید.';
 });
 </script></body></html>
