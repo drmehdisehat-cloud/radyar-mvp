@@ -102,6 +102,15 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       check(document.getElementById('report').textContent.includes('نقش: قاضی'),'regenerated report retained stale role');
       document.getElementById('export-ack').click();
       check(!download.disabled,'fresh review acknowledgement blocked after role change');
+      // Evidence changes must also return keyboard focus from a now-hidden report.
+      document.getElementById('download').focus();
+      check(document.activeElement===download,'evidence focus fixture failed');
+      certificateEvidence.checked=true;
+      certificateEvidence.dispatchEvent(new Event('change',{bubbles:true}));
+      check(document.activeElement===document.getElementById('generate'),'evidence mutation stranded focus in hidden report');
+      check(download.disabled && document.getElementById('result').hidden,'evidence mutation retained export');
+      certificateEvidence.checked=false;
+      certificateEvidence.dispatchEvent(new Event('change',{bubbles:true}));
       // Reset must clear all synthetic answers, selected evidence and export consent.
       document.getElementById('reset').click();
       check(document.getElementById('result').hidden,'reset left a visible draft');
