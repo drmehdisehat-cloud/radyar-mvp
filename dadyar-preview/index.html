@@ -11,6 +11,7 @@
 <label><input type="checkbox" data-stance="مخالف" value="ادعای تسویه وجه در پرونده فرضی" checked> ادعای تسویه فرضی</label>
 <label><input type="checkbox" data-stance="نامعلوم" value="تاریخ سررسید در پرونده فرضی مشخص نیست"> تاریخ سررسید نامعلوم</label>
 </fieldset>
+<label for="free-question">پرسش آزاد درباره چک فرضی (اختیاری، حداکثر ۳۰۰ نویسه؛ اطلاعات واقعی وارد نکنید)</label><textarea id="free-question" maxlength="300" rows="3" style="box-sizing:border-box;width:100%;font:inherit;border:1px solid #718096;border-radius:8px;padding:.5rem" placeholder="مثلاً: در این سناریوی ساختگی چه مدارکی باید بررسی شوند؟"></textarea>
 <fieldset id="interview"><legend>پرسش‌های تکمیلی سناریوی فرضی</legend>
 <label for="issue-date">تاریخ صدور و سررسید در مدارک نمونه مشخص است؟</label><select id="issue-date" data-question="تاریخ صدور و سررسید چک چیست؟"><option value="unknown">نامعلوم</option><option value="yes">در نمونه درج شده</option><option value="no">در نمونه درج نشده</option></select>
 <label for="certificate">گواهی عدم پرداخت نمونه موجود است؟</label><select id="certificate" data-question="گواهی عدم پرداخت موجود است؟"><option value="unknown">نامعلوم</option><option value="yes">در نمونه موجود است</option><option value="no">در نمونه موجود نیست</option></select>
@@ -48,17 +49,20 @@ role.addEventListener('change',invalidateDraft);
 document.getElementById('reset').addEventListener('click',()=>{
  role.selectedIndex=0;
  for(const answer of document.querySelectorAll('#interview select')) answer.selectedIndex=0;
+ document.getElementById('free-question').value='';
  for(const checkbox of document.querySelectorAll('fieldset input[type=checkbox]')) checkbox.checked=false;
  invalidateDraft();
  document.getElementById('reset-status').textContent='انتخاب‌ها و پیش‌نویس فرضی پاک شدند؛ هیچ داده‌ای به سرور ارسال نشده است.';
  role.focus();
 });
 for(const answer of document.querySelectorAll('#interview select')) answer.addEventListener('change',invalidateDraft);
+document.getElementById('free-question').addEventListener('input',invalidateDraft);
 for(const checkbox of document.querySelectorAll('fieldset input[type=checkbox]')) checkbox.addEventListener('change',invalidateDraft);
 document.getElementById('generate').addEventListener('click',()=>{
  const evidence=[...document.querySelectorAll('fieldset input[type=checkbox]:checked')].map(e=>({stance:e.dataset.stance,description:e.value}));
  const answers=[...document.querySelectorAll('#interview select')].map(el=>({question:el.dataset.question,answer:el.options[el.selectedIndex].textContent,state:el.value}));
  const unresolved=answers.filter(item=>item.state==='unknown');
+ const freeQuestion=document.getElementById('free-question').value.trim();
  const negativeAnswers=answers.filter(item=>item.state==='no');
  // Surface inconsistent synthetic interview answers instead of silently treating them as verified.
  const hasCertificate=evidence.some(e=>e.description==='گواهی عدم پرداخت نمونه');
@@ -74,7 +78,7 @@ document.getElementById('generate').addEventListener('click',()=>{
  if(evidence.length>0 && !evidence.some(e=>e.description==='تصویر چک نمونه با شماره ساختگی')) conflicts.push('تصویر چک نمونه انتخاب نشده است؛ ادعای تسویه یا سایر مدارک به‌تنهایی برای دریافت گزارش چک فرضی کافی نیستند.');
  const section=(stance)=>evidence.filter(e=>e.stance===stance).map(e=>'• '+e.description).join('\n')||'ثبت نشده';
  report=['دادیار | چک صرفاً فرضی | نسخه آزمایشی آفلاین','نقش: '+role.value+' | هدف: '+purposes[role.value],
- 'ادله موافق:\n'+section('موافق'),'ادله مخالف:\n'+section('مخالف'),'نامعلوم:\n'+section('نامعلوم'),
+ 'پرسش آزاد کاربر درباره داده ساختگی: '+(freeQuestion||'ثبت نشده')+'\nپاسخ خودکار حقوقی: ارائه نمی‌شود؛ منابع معتبر و بررسی انسانی لازم است.','ادله موافق:\n'+section('موافق'),'ادله مخالف:\n'+section('مخالف'),'نامعلوم:\n'+section('نامعلوم'),
  'تعارض‌های داده فرضی:\n'+(conflicts.map(c=>'• '+c).join('\n')||'تعارض آشکاری میان پاسخ‌های نمونه و فهرست مدارک یافت نشد.'),
  'وضعیت مصاحبه فرضی:\n'+answers.map(a=>'• '+a.question+' '+a.answer).join('\n'),
  'گام‌های بررسی متناسب با نقش (صرفاً آموزشی):\n'+roleGuidance[role.value].map(g=>'• '+g).join('\n'),
