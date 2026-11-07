@@ -111,6 +111,19 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       check(download.disabled && document.getElementById('result').hidden,'evidence mutation retained export');
       certificateEvidence.checked=false;
       certificateEvidence.dispatchEvent(new Event('change',{bubbles:true}));
+      // A selected settlement claim contradicts an interview denying any defense.
+      // Even an explicit acknowledgement must not override this contradiction.
+      const settlement=[...document.querySelectorAll('fieldset input[type=checkbox]')].find(el=>el.value==='ادعای تسویه وجه در پرونده فرضی');
+      check(!!settlement,'synthetic settlement fixture missing');
+      settlement.checked=true;
+      settlement.dispatchEvent(new Event('change',{bubbles:true}));
+      document.getElementById('defense').value='no';
+      document.getElementById('generate').click();
+      check(document.getElementById('report').textContent.includes('ادعای تسویه در فهرست ادله مخالف'),'settlement contradiction missing from draft');
+      document.getElementById('export-ack').click();
+      check(download.disabled,'settlement contradiction bypassed export gate');
+      settlement.checked=false;
+      settlement.dispatchEvent(new Event('change',{bubbles:true}));
       // An empty synthetic evidence set must never become downloadable, even with all answers complete.
       document.getElementById('reset').click();
       document.getElementById('issue-date').value='yes';
