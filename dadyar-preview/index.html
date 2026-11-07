@@ -40,7 +40,7 @@ exportAck.addEventListener('change',updateExportPermission);
 // Otherwise the download button could export a different case state than the UI.
 function invalidateDraft(){
  const focusWasInDraft=box.contains(document.activeElement);
- report=''; out.textContent=''; exportStatus.textContent=''; box.hidden=true; exportEligible=false; exportAck.checked=false; updateExportPermission();
+ report=''; out.textContent=''; exportStatus.textContent=''; document.getElementById('reset-status').textContent=''; box.hidden=true; exportEligible=false; exportAck.checked=false; updateExportPermission();
  // Never strand keyboard focus inside a hidden result after a case-state change.
  if(focusWasInDraft) document.getElementById('generate').focus();
 }
