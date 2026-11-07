@@ -76,11 +76,15 @@ document.getElementById('generate').addEventListener('click',()=>{
  const answers=[...document.querySelectorAll('#interview select')].map(el=>({question:el.dataset.question,answer:el.options[el.selectedIndex].textContent,state:el.value}));
  const unresolved=answers.filter(item=>item.state==='unknown');
  const freeQuestion=document.getElementById('free-question').value.trim();
+ // Fail closed on likely real Iranian mobile numbers or bank card numbers in free text.
+ // This is a local warning, not a guarantee of anonymisation.
+ const hasSensitiveIdentifier=/(?:\+?98|0)?9\d{9}(?!\d)|(?:\d[ -]?){15}\d/.test(freeQuestion);
  const negativeAnswers=answers.filter(item=>item.state==='no');
  // Surface inconsistent synthetic interview answers instead of silently treating them as verified.
  const hasCertificate=evidence.some(e=>e.description==='گواهی عدم پرداخت نمونه');
  const unknownDueDate=evidence.some(e=>e.description==='تاریخ سررسید در پرونده فرضی مشخص نیست');
  const conflicts=[];
+ if(hasSensitiveIdentifier) conflicts.push('پرسش آزاد احتمالاً حاوی شماره تماس یا کارت واقعی است؛ آن را پاک کنید و فقط از داده ساختگی استفاده کنید.');
  if(hasCertificate && answers[1].state==='no') conflicts.push('گواهی عدم پرداخت در فهرست مدارک انتخاب شده، اما پاسخ مصاحبه وجود آن را رد می‌کند.');
  if(!hasCertificate && answers[1].state==='yes') conflicts.push('مصاحبه وجود گواهی عدم پرداخت را اعلام می‌کند، اما مدرکی در فهرست انتخاب نشده است.');
  if(unknownDueDate && answers[0].state==='yes') conflicts.push('تاریخ سررسید نامعلوم علامت خورده، اما مصاحبه تاریخ را موجود اعلام می‌کند.');
@@ -111,7 +115,7 @@ document.getElementById('generate').addEventListener('click',()=>{
  'منابع قانونی: تأییدنشده؛ هیچ استناد قانونی ارائه نمی‌شود.','هیچ ادعایی احراز نشده است. اصالت مدارک، متن قانون، منبع رسمی و تاریخ اعتبار باید توسط متخصص انسانی بررسی شود.',
  'این متن رأی، سند رسمی یا دستور انتظامی نیست.'].join('\n\n');
  out.textContent=report;exportEligible=conflicts.length===0 && unresolved.length===0;exportAck.checked=false;updateExportPermission();
- exportStatus.textContent=evidence.length===0?'دریافت گزارش غیرفعال است: هیچ مدرک فرضی انتخاب نشده است. دست‌کم یک مدرک نمونه انتخاب کنید و پیش‌نویس را دوباره بسازید.':!evidence.some(e=>e.description==='تصویر چک نمونه با شماره ساختگی')?'دریافت گزارش غیرفعال است: تصویر چک نمونه انتخاب نشده است. برای ادامه، مدرک چک فرضی را انتخاب کنید.':conflicts.length>0?'دریافت گزارش به علت تناقض اطلاعات غیرفعال است. پاسخ‌ها یا مدارک فرضی را اصلاح و پیش‌نویس را دوباره تولید کنید.':unresolved.length>0?'دریافت گزارش تا پاسخ‌گویی به '+unresolved.length+' پرسش نامعلوم غیرفعال است؛ پیش‌نویس برای بررسی روی صفحه باقی می‌ماند.':'برای دریافت پیش‌نویس فرضی، ابتدا تأیید بازبینی انسانی را علامت بزنید.';
+ exportStatus.textContent=hasSensitiveIdentifier?'دریافت گزارش غیرفعال است: شناسه حساس احتمالی در پرسش آزاد وجود دارد؛ آن را حذف کنید.':evidence.length===0?'دریافت گزارش غیرفعال است: هیچ مدرک فرضی انتخاب نشده است. دست‌کم یک مدرک نمونه انتخاب کنید و پیش‌نویس را دوباره بسازید.':!evidence.some(e=>e.description==='تصویر چک نمونه با شماره ساختگی')?'دریافت گزارش غیرفعال است: تصویر چک نمونه انتخاب نشده است. برای ادامه، مدرک چک فرضی را انتخاب کنید.':conflicts.length>0?'دریافت گزارش به علت تناقض اطلاعات غیرفعال است. پاسخ‌ها یا مدارک فرضی را اصلاح و پیش‌نویس را دوباره تولید کنید.':unresolved.length>0?'دریافت گزارش تا پاسخ‌گویی به '+unresolved.length+' پرسش نامعلوم غیرفعال است؛ پیش‌نویس برای بررسی روی صفحه باقی می‌ماند.':'برای دریافت پیش‌نویس فرضی، ابتدا تأیید بازبینی انسانی را علامت بزنید.';
  box.hidden=false;box.focus();
 });
 document.getElementById('download').addEventListener('click',()=>{
