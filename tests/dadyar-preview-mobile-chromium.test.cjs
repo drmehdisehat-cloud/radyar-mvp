@@ -81,6 +81,23 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       document.getElementById('defense').dispatchEvent(new Event('change',{bubbles:true}));
       check(download.disabled && document.getElementById('result').hidden,'stale report export after mutation');
       check(!document.getElementById('export-ack').checked,'acknowledgement persisted after mutation');
+      // Changing the simulated professional role must also invalidate the draft
+      // and require a fresh interview generation and human-review acknowledgement.
+      document.getElementById('defense').value='yes';
+      document.getElementById('defense').dispatchEvent(new Event('change',{bubbles:true}));
+      document.getElementById('generate').click();
+      document.getElementById('export-ack').click();
+      check(!download.disabled,'role-change fixture did not enable synthetic export');
+      const role=document.getElementById('role');
+      role.value='قاضی';
+      role.dispatchEvent(new Event('change',{bubbles:true}));
+      check(download.disabled && document.getElementById('result').hidden,'role mutation retained old export');
+      check(!document.getElementById('export-ack').checked,'role mutation retained acknowledgement');
+      document.getElementById('generate').click();
+      check(download.disabled,'new simulated role bypassed review acknowledgement');
+      check(document.getElementById('report').textContent.includes('نقش: قاضی'),'regenerated report retained stale role');
+      document.getElementById('export-ack').click();
+      check(!download.disabled,'fresh review acknowledgement blocked after role change');
       // Reset must clear all synthetic answers, selected evidence and export consent.
       document.getElementById('reset').click();
       check(document.getElementById('result').hidden,'reset left a visible draft');
