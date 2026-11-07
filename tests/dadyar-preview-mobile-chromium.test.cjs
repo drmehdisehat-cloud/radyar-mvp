@@ -124,6 +124,18 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       check(download.disabled,'settlement contradiction bypassed export gate');
       settlement.checked=false;
       settlement.dispatchEvent(new Event('change',{bubbles:true}));
+      // A settlement claim without a synthetic cheque image is insufficient for a cheque report.
+      document.getElementById('reset').click();
+      settlement.checked=true;
+      settlement.dispatchEvent(new Event('change',{bubbles:true}));
+      document.getElementById('issue-date').value='yes';
+      document.getElementById('certificate').value='no';
+      document.getElementById('defense').value='yes';
+      document.getElementById('generate').click();
+      check(document.getElementById('report').textContent.includes('تصویر چک نمونه انتخاب نشده است'),'missing cheque evidence warning absent');
+      document.getElementById('export-ack').click();
+      check(download.disabled,'settlement-only evidence bypassed cheque export gate');
+      check(document.getElementById('export-status').textContent.includes('تصویر چک نمونه انتخاب نشده است'),'missing cheque evidence status absent');
       // An empty synthetic evidence set must never become downloadable, even with all answers complete.
       document.getElementById('reset').click();
       document.getElementById('issue-date').value='yes';
