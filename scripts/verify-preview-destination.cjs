@@ -9,6 +9,8 @@ function sha256(file) {
   return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 }
 function verifyPreview(source, destination) {
+  // A destination symlink can redirect validation away from the intended deployed file.
+  assert.ok(!fs.lstatSync(destination).isSymbolicLink(), 'destination must not be a symbolic link');
   const src = fs.realpathSync(source);
   const dst = fs.realpathSync(destination);
   // Comparing a file to itself does not verify a deployed destination.
