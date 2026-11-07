@@ -11,6 +11,12 @@ function sha256(file) {
 function verifyPreview(source, destination) {
   // A destination symlink can redirect validation away from the intended deployed file.
   assert.ok(!fs.lstatSync(destination).isSymbolicLink(), 'destination must not be a symbolic link');
+  // Reject symlinked parent directories: the apparent preview path could resolve
+  // to another site tree even when index.html itself is a regular file.
+  for (let parent = path.dirname(path.resolve(destination)); ; parent = path.dirname(parent)) {
+    assert.ok(!fs.lstatSync(parent).isSymbolicLink(), 'destination parent must not be a symbolic link');
+    if (parent === path.dirname(parent)) break;
+  }
   const src = fs.realpathSync(source);
   const dst = fs.realpathSync(destination);
   // Comparing a file to itself does not verify a deployed destination.
