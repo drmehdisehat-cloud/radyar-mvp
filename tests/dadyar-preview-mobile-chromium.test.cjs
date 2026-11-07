@@ -161,6 +161,29 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       check(document.getElementById('result').hidden && download.disabled,'free question change retained old report');
       document.getElementById('generate').click();
       check(document.getElementById('report').textContent.includes('نامشخص؛ نیازمند بررسی انسانی'),'unmatched question was falsely classified');
+      // Free-text intake must not allow export of likely real contact or card identifiers.
+      document.getElementById('reset').click();
+      const cheque=[...document.querySelectorAll('fieldset input[type=checkbox]')].find(el=>el.value==='تصویر چک نمونه با شماره ساختگی');
+      cheque.checked=true;
+      document.getElementById('issue-date').value='yes';
+      document.getElementById('certificate').value='no';
+      document.getElementById('defense').value='no';
+      document.getElementById('free-question').value='تماس با 09123456789';
+      document.getElementById('generate').click();
+      check(document.getElementById('report').textContent.includes('شماره تماس یا کارت واقعی'),'privacy warning absent');
+      document.getElementById('export-ack').click();
+      check(download.disabled,'likely phone identifier bypassed export gate');
+      check(document.getElementById('export-status').textContent.includes('شناسه حساس'),'privacy export status absent');
+      document.getElementById('free-question').value='کارت 6037 9912 3456 7890';
+      document.getElementById('free-question').dispatchEvent(new Event('input',{bubbles:true}));
+      document.getElementById('generate').click();
+      document.getElementById('export-ack').click();
+      check(download.disabled,'likely bank card identifier bypassed export gate');
+      document.getElementById('free-question').value='چک فرضی';
+      document.getElementById('free-question').dispatchEvent(new Event('input',{bubbles:true}));
+      document.getElementById('generate').click();
+      document.getElementById('export-ack').click();
+      check(!download.disabled,'safe synthetic question did not restore export');
       // Reset must clear all synthetic answers, selected evidence and export consent.
       document.getElementById('reset').click();
       check(document.getElementById('result').hidden,'reset left a visible draft');
