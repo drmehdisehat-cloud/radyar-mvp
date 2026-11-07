@@ -13,11 +13,11 @@ test('destination verifier accepts exact synthetic offline preview copy and reje
     assert.throws(() => verifyPreview(source, source), /distinct deployed file/);
     const alias = path.join(dir, 'alias.html');
     fs.symlinkSync(source, alias);
-    assert.throws(() => verifyPreview(source, alias), /distinct deployed file/);
+    assert.throws(() => verifyPreview(source, alias), /destination must not be a symbolic link/);
     const linkedDir = path.join(dir, 'linked');
     fs.mkdirSync(linkedDir);
     fs.symlinkSync(source, path.join(linkedDir, 'index.html'));
-    assert.throws(() => verifyPreview(source, path.join(linkedDir, 'index.html')), /distinct deployed file/);
+    assert.throws(() => verifyPreview(source, path.join(linkedDir, 'index.html')), /destination must not be a symbolic link/);
     const hardLinkDir = path.join(dir, 'hard-linked');
     fs.mkdirSync(hardLinkDir);
     const hardLink = path.join(hardLinkDir, 'index.html');
