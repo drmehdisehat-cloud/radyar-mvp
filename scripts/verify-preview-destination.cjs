@@ -11,6 +11,8 @@ function sha256(file) {
 function verifyPreview(source, destination) {
   const src = fs.realpathSync(source);
   const dst = fs.realpathSync(destination);
+  // Comparing a file to itself does not verify a deployed destination.
+  assert.notEqual(dst, src, 'destination must be a distinct deployed file');
   assert.ok(fs.statSync(src).isFile(), 'source must be a regular file');
   assert.ok(fs.statSync(dst).isFile(), 'destination must be a regular file');
   assert.equal(path.basename(src), 'index.html', 'source must be index.html');
