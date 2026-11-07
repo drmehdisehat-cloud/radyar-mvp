@@ -142,6 +142,10 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       check([...document.querySelectorAll('#interview select')].every(el=>el.value==='unknown'),'reset retained interview answers');
       check([...document.querySelectorAll('fieldset input[type=checkbox]')].every(el=>!el.checked),'reset retained synthetic evidence');
       check(document.activeElement===document.getElementById('role'),'reset did not restore keyboard focus');
+      check(document.getElementById('reset-status').textContent.includes('پاک شدند'),'reset confirmation missing');
+      document.getElementById('role').value='قاضی';
+      document.getElementById('role').dispatchEvent(new Event('change',{bubbles:true}));
+      check(document.getElementById('reset-status').textContent==='','stale reset confirmation survived case change');
       check(calls===0,'application attempted network calls');
       check(performance.getEntriesByType('resource').length===0,'unexpected external resource load');
       window.fetch=originalFetch;XMLHttpRequest.prototype.open=originalOpen;
