@@ -19,6 +19,9 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
   // Reject external resource declarations at source level as a second offline gate.
   assert.match(html, /default-src 'none'/);
   assert.match(html, /form-action 'none'/);
+  assert.match(html, /id="free-question"[^>]*maxlength="300"/);
+  assert.match(html, /getElementById\('free-question'\)\.addEventListener\('input',invalidateDraft\)/);
+  assert.match(html, /پاسخ خودکار حقوقی: ارائه نمی‌شود/);
   // Regex literals use single backslashes for word boundaries and whitespace classes.
   // Double escaping here previously made these checks silently miss real URLs/API calls.
   assert.doesNotMatch(html, /<(?:script|link|iframe|img|audio|video|source)\b[^>]*\b(?:src|href)\s*=\s*['"]?\s*(?:https?:|\/\/)/i);
