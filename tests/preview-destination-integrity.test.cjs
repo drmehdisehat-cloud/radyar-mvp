@@ -20,6 +20,10 @@ test('destination verifier accepts exact synthetic offline preview copy and reje
     assert.throws(() => verifyPreview(source, path.join(linkedDir, 'index.html')), /distinct deployed file/);
     const destination = path.join(dir, 'index.html');
     fs.copyFileSync(source, destination);
+    const separateLink = path.join(dir, 'symlinked', 'index.html');
+    fs.mkdirSync(path.dirname(separateLink));
+    fs.symlinkSync(destination, separateLink);
+    assert.throws(() => verifyPreview(source, separateLink), /destination must not be a symbolic link/);
     const result = verifyPreview(source, destination);
     assert.equal(result.matched, true);
     assert.match(result.source_sha256, /^[a-f0-9]{64}$/);
