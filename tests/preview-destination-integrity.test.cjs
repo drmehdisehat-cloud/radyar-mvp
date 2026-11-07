@@ -14,6 +14,10 @@ test('destination verifier accepts exact synthetic offline preview copy and reje
     const alias = path.join(dir, 'alias.html');
     fs.symlinkSync(source, alias);
     assert.throws(() => verifyPreview(source, alias), /distinct deployed file/);
+    const linkedDir = path.join(dir, 'linked');
+    fs.mkdirSync(linkedDir);
+    fs.symlinkSync(source, path.join(linkedDir, 'index.html'));
+    assert.throws(() => verifyPreview(source, path.join(linkedDir, 'index.html')), /distinct deployed file/);
     const destination = path.join(dir, 'index.html');
     fs.copyFileSync(source, destination);
     const result = verifyPreview(source, destination);
