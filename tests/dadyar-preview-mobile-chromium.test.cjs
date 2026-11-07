@@ -89,8 +89,12 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       document.getElementById('export-ack').click();
       check(!download.disabled,'role-change fixture did not enable synthetic export');
       const role=document.getElementById('role');
+      // A keyboard user focused inside the draft must not be stranded in hidden content.
+      document.getElementById('export-ack').focus();
+      check(document.activeElement===document.getElementById('export-ack'),'focus fixture failed');
       role.value='قاضی';
       role.dispatchEvent(new Event('change',{bubbles:true}));
+      check(document.activeElement===document.getElementById('generate'),'hidden draft retained keyboard focus');
       check(download.disabled && document.getElementById('result').hidden,'role mutation retained old export');
       check(!document.getElementById('export-ack').checked,'role mutation retained acknowledgement');
       document.getElementById('generate').click();
