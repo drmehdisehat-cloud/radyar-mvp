@@ -10,6 +10,10 @@ test('destination verifier accepts exact synthetic offline preview copy and reje
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-destination-'));
   try {
     const source = path.resolve(__dirname, '../dadyar-preview/index.html');
+    assert.throws(() => verifyPreview(source, source), /distinct deployed file/);
+    const alias = path.join(dir, 'alias.html');
+    fs.symlinkSync(source, alias);
+    assert.throws(() => verifyPreview(source, alias), /distinct deployed file/);
     const destination = path.join(dir, 'index.html');
     fs.copyFileSync(source, destination);
     const result = verifyPreview(source, destination);
