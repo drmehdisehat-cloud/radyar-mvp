@@ -120,7 +120,7 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       check(document.getElementById('report').textContent.includes('هیچ مدرک فرضی انتخاب نشده است'),'missing-evidence warning absent');
       document.getElementById('export-ack').click();
       check(download.disabled,'empty evidence set bypassed export gate');
-      check(document.getElementById('export-status').textContent.includes('تناقض'),'empty evidence warning absent from status');
+      check(document.getElementById('export-status').textContent.includes('هیچ مدرک فرضی انتخاب نشده است'),'empty evidence warning absent from status');
       // Reset must clear all synthetic answers, selected evidence and export consent.
       document.getElementById('reset').click();
       check(document.getElementById('result').hidden,'reset left a visible draft');
