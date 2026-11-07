@@ -18,6 +18,11 @@ test('destination verifier accepts exact synthetic offline preview copy and reje
     fs.mkdirSync(linkedDir);
     fs.symlinkSync(source, path.join(linkedDir, 'index.html'));
     assert.throws(() => verifyPreview(source, path.join(linkedDir, 'index.html')), /distinct deployed file/);
+    const hardLinkDir = path.join(dir, 'hard-linked');
+    fs.mkdirSync(hardLinkDir);
+    const hardLink = path.join(hardLinkDir, 'index.html');
+    fs.linkSync(source, hardLink);
+    assert.throws(() => verifyPreview(source, hardLink), /hard link to source/);
     const destination = path.join(dir, 'index.html');
     fs.copyFileSync(source, destination);
     const separateLink = path.join(dir, 'symlinked', 'index.html');
