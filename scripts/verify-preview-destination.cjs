@@ -17,6 +17,11 @@ function verifyPreview(source, destination) {
   assert.notEqual(dst, src, 'destination must be a distinct deployed file');
   assert.ok(fs.statSync(src).isFile(), 'source must be a regular file');
   assert.ok(fs.statSync(dst).isFile(), 'destination must be a regular file');
+  // Hard links have distinct paths but share one inode: not an independent deployment.
+  const srcStat = fs.statSync(src);
+  const dstStat = fs.statSync(dst);
+  assert.ok(srcStat.dev !== dstStat.dev || srcStat.ino !== dstStat.ino,
+    'destination must not be a hard link to source');
   assert.equal(path.basename(src), 'index.html', 'source must be index.html');
   assert.equal(path.basename(dst), 'index.html', 'destination must be index.html');
   const sourceHash = sha256(src);
