@@ -13,3 +13,10 @@ test('synthetic export asks for explicit human self-review without implying lega
   assert.match(html, /exportEligible\s*\|\|\s*!exportAck\.checked/);
   assert.match(html, /exportAck\.checked=false;updateExportPermission\(\)/);
 });
+
+
+test('suspected personal identifiers are cleared from the editable offline question field', () => {
+  assert.match(html, /if\(hasSensitiveIdentifier\) document\.getElementById\('free-question'\)\.value='';/);
+  assert.match(html, /const displayQuestion=hasSensitiveIdentifier\?'\[پرسش حاوی شناسه حساس احتمالی/);
+  assert.match(html, /if\(hasSensitiveIdentifier\) conflicts\.push\(/);
+});
