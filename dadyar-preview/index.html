@@ -82,6 +82,8 @@ document.getElementById('generate').addEventListener('click',()=>{
  const hasSensitiveIdentifier=/(?:\+?98|0)?9\d{9}(?!\d)|(?:\d[ -]?){15}\d/.test(normalizedQuestionDigits);
  // Never echo suspected identifiers into the visible draft, even while export is blocked.
  const displayQuestion=hasSensitiveIdentifier?'[پرسش حاوی شناسه حساس احتمالی؛ متن برای حفاظت از حریم خصوصی نمایش داده نمی‌شود]':freeQuestion;
+ // Discard suspected personal identifiers from the editable field as well as the draft.
+ if(hasSensitiveIdentifier) document.getElementById('free-question').value='';
  const negativeAnswers=answers.filter(item=>item.state==='no');
  // Surface inconsistent synthetic interview answers instead of silently treating them as verified.
  const hasCertificate=evidence.some(e=>e.description==='گواهی عدم پرداخت نمونه');
