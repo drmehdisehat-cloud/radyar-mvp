@@ -14,7 +14,13 @@ function assertRestoreEvidence({ archive, restoredRoot, marker, expectedArchiveS
   if (!markerPath.startsWith(root + path.sep)) throw Error('marker escapes restored root');
   if (!fs.statSync(root).isDirectory()) throw Error('restored root is not a directory');
   if (!fs.statSync(archivePath).isFile()) throw Error('archive must be a file');
-  if (fs.lstatSync(markerPath).isSymbolicLink()) throw Error('restore marker must not be a symlink');
+  // Reject symlinks at every path component, not only the final marker.
+  let component = root;
+  for (const part of marker.split(/[\\/]/)) {
+    if (!part || part === '.') continue;
+    component = path.join(component, part);
+    if (fs.lstatSync(component).isSymbolicLink()) throw Error('restore marker path must not contain symlinks');
+  }
   const realMarker = fs.realpathSync(markerPath);
   if (!realMarker.startsWith(root + path.sep) || !fs.statSync(realMarker).isFile()) throw Error('marker not a regular file within restore');
   const actual = hash(archivePath);
