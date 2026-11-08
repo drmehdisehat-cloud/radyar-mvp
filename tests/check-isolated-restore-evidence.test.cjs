@@ -22,3 +22,15 @@ test('isolated restore evidence remains explicitly insufficient for release', t 
  fs.rmSync(path.join(restoredRoot,'index.html'));
  assert.throws(()=>assertRestoreEvidence(args),/ENOENT/);
 });
+
+test('rejects an intermediate symlink even when its target remains inside restored root', t => {
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'dadyar-restore-link-'));
+ t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+ const archive=path.join(dir,'backup.tar.gz'); fs.writeFileSync(archive,'synthetic archive fixture');
+ const root=path.join(dir,'restored'); fs.mkdirSync(root);
+ const actual=path.join(root,'actual'); fs.mkdirSync(actual);
+ fs.writeFileSync(path.join(actual,'index.html'),'synthetic');
+ fs.symlinkSync(actual,path.join(root,'alias'),'dir');
+ const expectedArchiveSha256=crypto.createHash('sha256').update(fs.readFileSync(archive)).digest('hex');
+ assert.throws(()=>assertRestoreEvidence({archive,restoredRoot:root,marker:'alias/index.html',expectedArchiveSha256}),/symlink/);
+});
