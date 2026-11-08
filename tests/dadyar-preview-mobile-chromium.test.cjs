@@ -171,6 +171,7 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       document.getElementById('free-question').value='تماس با 09123456789';
       document.getElementById('generate').click();
       check(document.getElementById('report').textContent.includes('شماره تماس یا کارت واقعی'),'privacy warning absent');
+      check(!document.getElementById('report').textContent.includes('09123456789'),'sensitive mobile echoed in visible draft');
       document.getElementById('export-ack').click();
       check(download.disabled,'likely phone identifier bypassed export gate');
       check(document.getElementById('export-status').textContent.includes('شناسه حساس'),'privacy export status absent');
@@ -190,6 +191,7 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       document.getElementById('generate').click();
       document.getElementById('export-ack').click();
       check(download.disabled,'Arabic-digit bank-card identifier bypassed export gate');
+      check(!document.getElementById('report').textContent.includes('٦٠٣٧ ٩٩١٢ ٣٤٥٦ ٧٨٩٠'),'Arabic-digit card echoed in visible draft');
       document.getElementById('free-question').value='چک فرضی';
       document.getElementById('free-question').dispatchEvent(new Event('input',{bubbles:true}));
       document.getElementById('generate').click();
