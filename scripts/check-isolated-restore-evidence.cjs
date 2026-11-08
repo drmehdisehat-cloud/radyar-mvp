@@ -5,11 +5,22 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 function hash(file) { return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'); }
+function rejectSymlinkComponents(target, label) {
+  let current = path.resolve(target);
+  while (true) {
+    if (fs.lstatSync(current).isSymbolicLink()) throw Error(label + ' path must not contain symlinks');
+    const parent = path.dirname(current);
+    if (parent === current) break;
+    current = parent;
+  }
+}
 function assertRestoreEvidence({ archive, restoredRoot, marker, expectedArchiveSha256 }) {
   if (!/^[a-f0-9]{64}$/i.test(expectedArchiveSha256 || '')) throw Error('expected archive SHA-256 required');
   // A symlinked archive or restore root obscures which storage tree was inspected.
   if (fs.lstatSync(archive).isSymbolicLink()) throw Error('archive must not be a symlink');
   if (fs.lstatSync(restoredRoot).isSymbolicLink()) throw Error('restored root must not be a symlink');
+  rejectSymlinkComponents(archive, 'archive');
+  rejectSymlinkComponents(restoredRoot, 'restored root');
   const archivePath = fs.realpathSync(archive);
   const root = fs.realpathSync(restoredRoot);
   const markerPath = path.resolve(root, marker);
