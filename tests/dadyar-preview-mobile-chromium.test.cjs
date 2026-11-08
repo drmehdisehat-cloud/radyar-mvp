@@ -179,6 +179,17 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       document.getElementById('generate').click();
       document.getElementById('export-ack').click();
       check(download.disabled,'likely bank card identifier bypassed export gate');
+      document.getElementById('free-question').value='تماس با ۰۹۱۲۳۴۵۶۷۸۹';
+      document.getElementById('free-question').dispatchEvent(new Event('input',{bubbles:true}));
+      document.getElementById('generate').click();
+      document.getElementById('export-ack').click();
+      check(download.disabled,'Persian-digit mobile identifier bypassed export gate');
+      check(document.getElementById('export-status').textContent.includes('شناسه حساس'),'Persian-digit privacy warning missing');
+      document.getElementById('free-question').value='بطاقة ٦٠٣٧ ٩٩١٢ ٣٤٥٦ ٧٨٩٠';
+      document.getElementById('free-question').dispatchEvent(new Event('input',{bubbles:true}));
+      document.getElementById('generate').click();
+      document.getElementById('export-ack').click();
+      check(download.disabled,'Arabic-digit bank-card identifier bypassed export gate');
       document.getElementById('free-question').value='چک فرضی';
       document.getElementById('free-question').dispatchEvent(new Event('input',{bubbles:true}));
       document.getElementById('generate').click();
