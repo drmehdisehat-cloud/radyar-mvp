@@ -24,6 +24,9 @@ function assertRestoreEvidence({ archive, restoredRoot, marker, expectedArchiveS
   rejectSymlinkComponents(restoredRoot, 'restored root');
   const archivePath = fs.realpathSync(archive);
   const root = fs.realpathSync(restoredRoot);
+  // The source archive must be outside the isolated restore destination.
+  // Otherwise an in-place directory can masquerade as independent restore evidence.
+  if (archivePath.startsWith(root + path.sep)) throw Error('archive must be outside restored root');
   const markerPath = path.resolve(root, marker);
   if (path.isAbsolute(marker) || marker.split(/[\\/]/).includes('..')) throw Error('marker must be a relative path inside restored root');
   if (!markerPath.startsWith(root + path.sep)) throw Error('marker escapes restored root');
