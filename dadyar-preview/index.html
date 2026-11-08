@@ -78,7 +78,8 @@ document.getElementById('generate').addEventListener('click',()=>{
  const freeQuestion=document.getElementById('free-question').value.trim();
  // Fail closed on likely real Iranian mobile numbers or bank card numbers in free text.
  // This is a local warning, not a guarantee of anonymisation.
- const hasSensitiveIdentifier=/(?:\+?98|0)?9\d{9}(?!\d)|(?:\d[ -]?){15}\d/.test(freeQuestion);
+ const normalizedQuestionDigits=freeQuestion.replace(/[۰-۹]/g,d=>String(d.charCodeAt(0)-0x06F0)).replace(/[٠-٩]/g,d=>String(d.charCodeAt(0)-0x0660));
+ const hasSensitiveIdentifier=/(?:\+?98|0)?9\d{9}(?!\d)|(?:\d[ -]?){15}\d/.test(normalizedQuestionDigits);
  const negativeAnswers=answers.filter(item=>item.state==='no');
  // Surface inconsistent synthetic interview answers instead of silently treating them as verified.
  const hasCertificate=evidence.some(e=>e.description==='گواهی عدم پرداخت نمونه');
