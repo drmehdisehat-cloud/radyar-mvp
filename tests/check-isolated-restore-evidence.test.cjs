@@ -49,3 +49,18 @@ test('rejects symlinked archive and restored root even with valid synthetic hash
  assert.throws(()=>assertRestoreEvidence({...args,archive:archiveLink}),/archive must not be a symlink/);
  assert.throws(()=>assertRestoreEvidence({...args,restoredRoot:rootLink}),/restored root must not be a symlink/);
 });
+
+test('rejects symlinked parent directories for archive and restore root', t => {
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'dadyar-restore-ancestor-'));
+ t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+ const actual=path.join(dir,'actual'); fs.mkdirSync(actual);
+ const archive=path.join(actual,'backup.tar.gz'); fs.writeFileSync(archive,'synthetic archive');
+ const root=path.join(actual,'restored'); fs.mkdirSync(root);
+ fs.writeFileSync(path.join(root,'index.html'),'synthetic marker');
+ const alias=path.join(dir,'alias'); fs.symlinkSync(actual,alias,'dir');
+ const expectedArchiveSha256=crypto.createHash('sha256').update(fs.readFileSync(archive)).digest('hex');
+ const args={archive,restoredRoot:root,marker:'index.html',expectedArchiveSha256};
+ assert.equal(assertRestoreEvidence(args).restore_proven,false);
+ assert.throws(()=>assertRestoreEvidence({...args,archive:path.join(alias,'backup.tar.gz')}),/archive path must not contain symlinks/);
+ assert.throws(()=>assertRestoreEvidence({...args,restoredRoot:path.join(alias,'restored')}),/restored root path must not contain symlinks/);
+});
