@@ -34,3 +34,18 @@ test('rejects an intermediate symlink even when its target remains inside restor
  const expectedArchiveSha256=crypto.createHash('sha256').update(fs.readFileSync(archive)).digest('hex');
  assert.throws(()=>assertRestoreEvidence({archive,restoredRoot:root,marker:'alias/index.html',expectedArchiveSha256}),/symlink/);
 });
+
+test('rejects symlinked archive and restored root even with valid synthetic hash', t => {
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'dadyar-restore-toplink-'));
+ t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+ const archive=path.join(dir,'archive.tar.gz'); fs.writeFileSync(archive,'synthetic archive');
+ const root=path.join(dir,'actual-root'); fs.mkdirSync(root);
+ fs.writeFileSync(path.join(root,'index.html'),'synthetic marker');
+ const archiveLink=path.join(dir,'archive-link.tar.gz'); fs.symlinkSync(archive,archiveLink);
+ const rootLink=path.join(dir,'root-link'); fs.symlinkSync(root,rootLink,'dir');
+ const expectedArchiveSha256=crypto.createHash('sha256').update(fs.readFileSync(archive)).digest('hex');
+ const args={archive,restoredRoot:root,marker:'index.html',expectedArchiveSha256};
+ assert.equal(assertRestoreEvidence(args).restore_proven,false);
+ assert.throws(()=>assertRestoreEvidence({...args,archive:archiveLink}),/archive must not be a symlink/);
+ assert.throws(()=>assertRestoreEvidence({...args,restoredRoot:rootLink}),/restored root must not be a symlink/);
+});
