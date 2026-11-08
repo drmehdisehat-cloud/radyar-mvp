@@ -200,6 +200,14 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       check(!document.getElementById('report').textContent.includes('test.person@example.com'),'suspected email echoed in draft');
       document.getElementById('export-ack').click();
       check(download.disabled,'suspected email bypassed export gate');
+      // A possible ten-digit national ID must not be echoed or exported, including Persian digits.
+      document.getElementById('free-question').value='کد ملی ۰۰۱۲۳۴۵۶۷۸';
+      document.getElementById('free-question').dispatchEvent(new Event('input',{bubbles:true}));
+      document.getElementById('generate').click();
+      check(document.getElementById('free-question').value==='','possible national ID retained in input');
+      check(!document.getElementById('report').textContent.includes('۰۰۱۲۳۴۵۶۷۸'),'possible national ID echoed');
+      document.getElementById('export-ack').click();
+      check(download.disabled,'possible national ID bypassed export gate');
       document.getElementById('free-question').value='چک فرضی';
       document.getElementById('free-question').dispatchEvent(new Event('input',{bubbles:true}));
       document.getElementById('generate').click();
