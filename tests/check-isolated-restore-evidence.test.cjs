@@ -70,3 +70,15 @@ test('rejects symlinked parent directories for archive and restore root', t => {
  assert.throws(()=>assertRestoreEvidence({...args,archive:path.join(alias,'backup.tar.gz')}),/archive path must not contain symlinks/);
  assert.throws(()=>assertRestoreEvidence({...args,restoredRoot:path.join(alias,'restored')}),/restored root path must not contain symlinks/);
 });
+
+
+test('rejects archive stored within purported independent restore tree', t => {
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'dadyar-restore-inplace-'));
+ t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+ const restoredRoot=path.join(dir,'restored'); fs.mkdirSync(restoredRoot);
+ const archive=path.join(restoredRoot,'backup.tar.gz'); fs.writeFileSync(archive,'synthetic archive');
+ const marker=path.join(restoredRoot,'index.html'); fs.writeFileSync(marker,'synthetic marker');
+ const expectedArchiveSha256=crypto.createHash('sha256').update(fs.readFileSync(archive)).digest('hex');
+ const expectedMarkerSha256=crypto.createHash('sha256').update(fs.readFileSync(marker)).digest('hex');
+ assert.throws(()=>assertRestoreEvidence({archive,restoredRoot,marker:'index.html',expectedArchiveSha256,expectedMarkerSha256}),/archive must be outside restored root/);
+});
