@@ -170,7 +170,7 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       document.getElementById('defense').value='no';
       document.getElementById('free-question').value='تماس با 09123456789';
       document.getElementById('generate').click();
-      check(document.getElementById('report').textContent.includes('شماره تماس یا کارت واقعی'),'privacy warning absent');
+      check(document.getElementById('report').textContent.includes('شماره تماس، کارت یا ایمیل واقعی'),'privacy warning absent');
       check(!document.getElementById('report').textContent.includes('09123456789'),'sensitive mobile echoed in visible draft');
       document.getElementById('export-ack').click();
       check(download.disabled,'likely phone identifier bypassed export gate');
@@ -192,6 +192,14 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       document.getElementById('export-ack').click();
       check(download.disabled,'Arabic-digit bank-card identifier bypassed export gate');
       check(!document.getElementById('report').textContent.includes('٦٠٣٧ ٩٩١٢ ٣٤٥٦ ٧٨٩٠'),'Arabic-digit card echoed in visible draft');
+      // Suspected email addresses must not be echoed or exported in an offline draft.
+      document.getElementById('free-question').value='ایمیل test.person@example.com';
+      document.getElementById('free-question').dispatchEvent(new Event('input',{bubbles:true}));
+      document.getElementById('generate').click();
+      check(document.getElementById('free-question').value==='','suspected email was retained in input');
+      check(!document.getElementById('report').textContent.includes('test.person@example.com'),'suspected email echoed in draft');
+      document.getElementById('export-ack').click();
+      check(download.disabled,'suspected email bypassed export gate');
       document.getElementById('free-question').value='چک فرضی';
       document.getElementById('free-question').dispatchEvent(new Event('input',{bubbles:true}));
       document.getElementById('generate').click();
