@@ -76,10 +76,10 @@ document.getElementById('generate').addEventListener('click',()=>{
  const answers=[...document.querySelectorAll('#interview select')].map(el=>({question:el.dataset.question,answer:el.options[el.selectedIndex].textContent,state:el.value}));
  const unresolved=answers.filter(item=>item.state==='unknown');
  const freeQuestion=document.getElementById('free-question').value.trim();
- // Fail closed on likely real Iranian mobile numbers or bank card numbers in free text.
+ // Fail closed on likely real Iranian mobile numbers, national IDs or bank card numbers in free text.
  // This is a local warning, not a guarantee of anonymisation.
  const normalizedQuestionDigits=freeQuestion.replace(/[۰-۹]/g,d=>String(d.charCodeAt(0)-0x06F0)).replace(/[٠-٩]/g,d=>String(d.charCodeAt(0)-0x0660));
- const hasSensitiveIdentifier=/(?:\+?98|0)?9\d{9}(?!\d)|(?:\d[ -]?){15}\d/.test(normalizedQuestionDigits) || /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i.test(freeQuestion);
+ const hasSensitiveIdentifier=/(?:\+?98|0)?9\d{9}(?!\d)|(?:\d[ -]?){15}\d|(?<!\d)\d{10}(?!\d)/.test(normalizedQuestionDigits) || /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i.test(freeQuestion);
  // Never echo suspected identifiers into the visible draft, even while export is blocked.
  const displayQuestion=hasSensitiveIdentifier?'[پرسش حاوی شناسه حساس احتمالی؛ متن برای حفاظت از حریم خصوصی نمایش داده نمی‌شود]':freeQuestion;
  // Discard suspected personal identifiers from the editable field as well as the draft.
@@ -89,7 +89,7 @@ document.getElementById('generate').addEventListener('click',()=>{
  const hasCertificate=evidence.some(e=>e.description==='گواهی عدم پرداخت نمونه');
  const unknownDueDate=evidence.some(e=>e.description==='تاریخ سررسید در پرونده فرضی مشخص نیست');
  const conflicts=[];
- if(hasSensitiveIdentifier) conflicts.push('پرسش آزاد احتمالاً حاوی شماره تماس، کارت یا ایمیل واقعی است؛ آن را پاک کنید و فقط از داده ساختگی استفاده کنید.');
+ if(hasSensitiveIdentifier) conflicts.push('پرسش آزاد احتمالاً حاوی شماره تماس، کد ملی، کارت یا ایمیل واقعی است؛ آن را پاک کنید و فقط از داده ساختگی استفاده کنید.');
  if(hasCertificate && answers[1].state==='no') conflicts.push('گواهی عدم پرداخت در فهرست مدارک انتخاب شده، اما پاسخ مصاحبه وجود آن را رد می‌کند.');
  if(!hasCertificate && answers[1].state==='yes') conflicts.push('مصاحبه وجود گواهی عدم پرداخت را اعلام می‌کند، اما مدرکی در فهرست انتخاب نشده است.');
  if(unknownDueDate && answers[0].state==='yes') conflicts.push('تاریخ سررسید نامعلوم علامت خورده، اما مصاحبه تاریخ را موجود اعلام می‌کند.');
