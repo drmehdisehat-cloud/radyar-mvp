@@ -14,8 +14,9 @@ function rejectSymlinkComponents(target, label) {
     current = parent;
   }
 }
-function assertRestoreEvidence({ archive, restoredRoot, marker, expectedArchiveSha256 }) {
+function assertRestoreEvidence({ archive, restoredRoot, marker, expectedArchiveSha256, expectedMarkerSha256 }) {
   if (!/^[a-f0-9]{64}$/i.test(expectedArchiveSha256 || '')) throw Error('expected archive SHA-256 required');
+  if (!/^[a-f0-9]{64}$/i.test(expectedMarkerSha256 || '')) throw Error('expected restored marker SHA-256 required');
   // A symlinked archive or restore root obscures which storage tree was inspected.
   if (fs.lstatSync(archive).isSymbolicLink()) throw Error('archive must not be a symlink');
   if (fs.lstatSync(restoredRoot).isSymbolicLink()) throw Error('restored root must not be a symlink');
@@ -39,13 +40,15 @@ function assertRestoreEvidence({ archive, restoredRoot, marker, expectedArchiveS
   if (!realMarker.startsWith(root + path.sep) || !fs.statSync(realMarker).isFile()) throw Error('marker not a regular file within restore');
   const actual = hash(archivePath);
   if (actual.toLowerCase() !== expectedArchiveSha256.toLowerCase()) throw Error('archive SHA-256 mismatch');
-  return { archive_sha256: actual, restored_marker_sha256: hash(realMarker), marker, evidence: 'archive-integrity-and-restored-file-only', restore_proven: false };
+  const markerSha256 = hash(realMarker);
+  if (markerSha256.toLowerCase() !== expectedMarkerSha256.toLowerCase()) throw Error('restored marker SHA-256 mismatch');
+  return { archive_sha256: actual, restored_marker_sha256: markerSha256, marker, evidence: 'archive-integrity-and-restored-file-only', restore_proven: false };
 }
 if (require.main === module) {
-  const [archive, restoredRoot, marker, expectedArchiveSha256] = process.argv.slice(2);
+  const [archive, restoredRoot, marker, expectedArchiveSha256, expectedMarkerSha256] = process.argv.slice(2);
   try {
-    if (![archive, restoredRoot, marker, expectedArchiveSha256].every(Boolean)) throw Error('Usage: node scripts/check-isolated-restore-evidence.cjs ARCHIVE RESTORED_ROOT RELATIVE_MARKER EXPECTED_ARCHIVE_SHA256');
-    console.log(JSON.stringify(assertRestoreEvidence({archive, restoredRoot, marker, expectedArchiveSha256})));
+    if (![archive, restoredRoot, marker, expectedArchiveSha256, expectedMarkerSha256].every(Boolean)) throw Error('Usage: node scripts/check-isolated-restore-evidence.cjs ARCHIVE RESTORED_ROOT RELATIVE_MARKER EXPECTED_ARCHIVE_SHA256 EXPECTED_MARKER_SHA256');
+    console.log(JSON.stringify(assertRestoreEvidence({archive, restoredRoot, marker, expectedArchiveSha256, expectedMarkerSha256})));
   } catch (e) { console.error('NOT_READY:', e.message); process.exitCode = 1; }
 }
 module.exports = { assertRestoreEvidence };
