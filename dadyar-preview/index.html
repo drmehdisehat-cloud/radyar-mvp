@@ -80,6 +80,8 @@ document.getElementById('generate').addEventListener('click',()=>{
  // This is a local warning, not a guarantee of anonymisation.
  const normalizedQuestionDigits=freeQuestion.replace(/[۰-۹]/g,d=>String(d.charCodeAt(0)-0x06F0)).replace(/[٠-٩]/g,d=>String(d.charCodeAt(0)-0x0660));
  const hasSensitiveIdentifier=/(?:\+?98|0)?9\d{9}(?!\d)|(?:\d[ -]?){15}\d/.test(normalizedQuestionDigits);
+ // Never echo suspected identifiers into the visible draft, even while export is blocked.
+ const displayQuestion=hasSensitiveIdentifier?'[پرسش حاوی شناسه حساس احتمالی؛ متن برای حفاظت از حریم خصوصی نمایش داده نمی‌شود]':freeQuestion;
  const negativeAnswers=answers.filter(item=>item.state==='no');
  // Surface inconsistent synthetic interview answers instead of silently treating them as verified.
  const hasCertificate=evidence.some(e=>e.description==='گواهی عدم پرداخت نمونه');
@@ -96,7 +98,7 @@ document.getElementById('generate').addEventListener('click',()=>{
  if(evidence.length>0 && !evidence.some(e=>e.description==='تصویر چک نمونه با شماره ساختگی')) conflicts.push('تصویر چک نمونه انتخاب نشده است؛ ادعای تسویه یا سایر مدارک به‌تنهایی برای دریافت گزارش چک فرضی کافی نیستند.');
  const section=(stance)=>evidence.filter(e=>e.stance===stance).map(e=>'• '+e.description).join('\n')||'ثبت نشده';
  report=['دادیار | چک صرفاً فرضی | نسخه آزمایشی آفلاین','نقش: '+role.value+' | هدف: '+purposes[role.value],
- 'پرسش آزاد کاربر درباره داده ساختگی: '+(freeQuestion||'ثبت نشده')+'\nبرچسب‌های موضوعی پیشنهادی (صرفاً واژه‌یابی آفلاین و غیرقطعی): '+classifyQuestion(freeQuestion)+'\nدامنه این کارگاه: فقط چک فرضی؛ موضوعات دیگر در این نسخه تحلیل نمی‌شوند.\nپاسخ خودکار حقوقی: ارائه نمی‌شود؛ منابع معتبر و بررسی انسانی لازم است.','ادله موافق:\n'+section('موافق'),'ادله مخالف:\n'+section('مخالف'),'نامعلوم:\n'+section('نامعلوم'),
+ 'پرسش آزاد کاربر درباره داده ساختگی: '+(displayQuestion||'ثبت نشده')+'\nبرچسب‌های موضوعی پیشنهادی (صرفاً واژه‌یابی آفلاین و غیرقطعی): '+classifyQuestion(freeQuestion)+'\nدامنه این کارگاه: فقط چک فرضی؛ موضوعات دیگر در این نسخه تحلیل نمی‌شوند.\nپاسخ خودکار حقوقی: ارائه نمی‌شود؛ منابع معتبر و بررسی انسانی لازم است.','ادله موافق:\n'+section('موافق'),'ادله مخالف:\n'+section('مخالف'),'نامعلوم:\n'+section('نامعلوم'),
  'تعارض‌های داده فرضی:\n'+(conflicts.map(c=>'• '+c).join('\n')||'تعارض آشکاری میان پاسخ‌های نمونه و فهرست مدارک یافت نشد.'),
  'وضعیت مصاحبه فرضی:\n'+answers.map(a=>'• '+a.question+' '+a.answer).join('\n'),
  'گام‌های بررسی متناسب با نقش (صرفاً آموزشی):\n'+roleGuidance[role.value].map(g=>'• '+g).join('\n'),
