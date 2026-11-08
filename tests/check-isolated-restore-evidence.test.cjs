@@ -1,0 +1,24 @@
+'use strict';
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const crypto = require('node:crypto');
+const { assertRestoreEvidence } = require('../scripts/check-isolated-restore-evidence.cjs');
+test('isolated restore evidence remains explicitly insufficient for release', t => {
+ const dir = fs.mkdtempSync(path.join(os.tmpdir(),'dadyar-restore-'));
+ t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+ const archive=path.join(dir,'backup.tar.gz'); fs.writeFileSync(archive,'synthetic archive fixture');
+ const restoredRoot=path.join(dir,'restored');fs.mkdirSync(restoredRoot);
+ fs.writeFileSync(path.join(restoredRoot,'index.html'),'synthetic restored file');
+ const sha=crypto.createHash('sha256').update(fs.readFileSync(archive)).digest('hex');
+ const args={archive,restoredRoot,marker:'index.html',expectedArchiveSha256:sha};
+ const evidence=assertRestoreEvidence(args);
+ assert.equal(evidence.restore_proven,false);
+ assert.equal(evidence.archive_sha256,sha);
+ assert.throws(()=>assertRestoreEvidence({...args,expectedArchiveSha256:'0'.repeat(64)}),/mismatch/);
+ assert.throws(()=>assertRestoreEvidence({...args,marker:'../backup.tar.gz'}),/relative path/);
+ fs.rmSync(path.join(restoredRoot,'index.html'));
+ assert.throws(()=>assertRestoreEvidence(args),/ENOENT/);
+});
