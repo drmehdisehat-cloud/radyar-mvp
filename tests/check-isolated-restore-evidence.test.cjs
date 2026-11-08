@@ -13,7 +13,10 @@ test('isolated restore evidence remains explicitly insufficient for release', t 
  const restoredRoot=path.join(dir,'restored');fs.mkdirSync(restoredRoot);
  fs.writeFileSync(path.join(restoredRoot,'index.html'),'synthetic restored file');
  const sha=crypto.createHash('sha256').update(fs.readFileSync(archive)).digest('hex');
- const args={archive,restoredRoot,marker:'index.html',expectedArchiveSha256:sha};
+ const expectedMarkerSha256=crypto.createHash('sha256').update(fs.readFileSync(path.join(restoredRoot,'index.html'))).digest('hex');
+ const args={archive,restoredRoot,marker:'index.html',expectedArchiveSha256:sha,expectedMarkerSha256};
+ assert.throws(()=>assertRestoreEvidence({...args,expectedMarkerSha256:'0'.repeat(64)}),/restored marker SHA-256 mismatch/);
+ assert.throws(()=>assertRestoreEvidence({...args,expectedMarkerSha256:undefined}),/expected restored marker SHA-256 required/);
  const evidence=assertRestoreEvidence(args);
  assert.equal(evidence.restore_proven,false);
  assert.equal(evidence.archive_sha256,sha);
@@ -32,7 +35,8 @@ test('rejects an intermediate symlink even when its target remains inside restor
  fs.writeFileSync(path.join(actual,'index.html'),'synthetic');
  fs.symlinkSync(actual,path.join(root,'alias'),'dir');
  const expectedArchiveSha256=crypto.createHash('sha256').update(fs.readFileSync(archive)).digest('hex');
- assert.throws(()=>assertRestoreEvidence({archive,restoredRoot:root,marker:'alias/index.html',expectedArchiveSha256}),/symlink/);
+ const expectedMarkerSha256=crypto.createHash('sha256').update('synthetic').digest('hex');
+ assert.throws(()=>assertRestoreEvidence({archive,restoredRoot:root,marker:'alias/index.html',expectedArchiveSha256,expectedMarkerSha256}),/symlink/);
 });
 
 test('rejects symlinked archive and restored root even with valid synthetic hash', t => {
@@ -44,7 +48,8 @@ test('rejects symlinked archive and restored root even with valid synthetic hash
  const archiveLink=path.join(dir,'archive-link.tar.gz'); fs.symlinkSync(archive,archiveLink);
  const rootLink=path.join(dir,'root-link'); fs.symlinkSync(root,rootLink,'dir');
  const expectedArchiveSha256=crypto.createHash('sha256').update(fs.readFileSync(archive)).digest('hex');
- const args={archive,restoredRoot:root,marker:'index.html',expectedArchiveSha256};
+ const expectedMarkerSha256=crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'index.html'))).digest('hex');
+ const args={archive,restoredRoot:root,marker:'index.html',expectedArchiveSha256,expectedMarkerSha256};
  assert.equal(assertRestoreEvidence(args).restore_proven,false);
  assert.throws(()=>assertRestoreEvidence({...args,archive:archiveLink}),/archive must not be a symlink/);
  assert.throws(()=>assertRestoreEvidence({...args,restoredRoot:rootLink}),/restored root must not be a symlink/);
@@ -59,7 +64,8 @@ test('rejects symlinked parent directories for archive and restore root', t => {
  fs.writeFileSync(path.join(root,'index.html'),'synthetic marker');
  const alias=path.join(dir,'alias'); fs.symlinkSync(actual,alias,'dir');
  const expectedArchiveSha256=crypto.createHash('sha256').update(fs.readFileSync(archive)).digest('hex');
- const args={archive,restoredRoot:root,marker:'index.html',expectedArchiveSha256};
+ const expectedMarkerSha256=crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'index.html'))).digest('hex');
+ const args={archive,restoredRoot:root,marker:'index.html',expectedArchiveSha256,expectedMarkerSha256};
  assert.equal(assertRestoreEvidence(args).restore_proven,false);
  assert.throws(()=>assertRestoreEvidence({...args,archive:path.join(alias,'backup.tar.gz')}),/archive path must not contain symlinks/);
  assert.throws(()=>assertRestoreEvidence({...args,restoredRoot:path.join(alias,'restored')}),/restored root path must not contain symlinks/);
