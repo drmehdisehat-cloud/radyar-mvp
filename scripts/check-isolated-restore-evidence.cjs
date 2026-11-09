@@ -45,6 +45,9 @@ function assertRestoreEvidence({ archive, restoredRoot, marker, expectedArchiveS
   // Reject inode aliasing even when paths and expected hashes look valid.
   const archiveStat = fs.statSync(archivePath);
   const markerStat = fs.statSync(realMarker);
+  // An empty archive or restored marker cannot demonstrate a usable recovery.
+  if (archiveStat.size === 0) throw Error('archive must not be empty');
+  if (markerStat.size === 0) throw Error('restored marker must not be empty');
   if (archiveStat.dev === markerStat.dev && archiveStat.ino === markerStat.ino)
     throw Error('restored marker must not be a hard link to archive');
   const actual = hash(archivePath);
