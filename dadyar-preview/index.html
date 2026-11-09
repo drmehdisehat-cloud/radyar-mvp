@@ -80,7 +80,7 @@ document.getElementById('generate').addEventListener('click',()=>{
  // This is a local warning, not a guarantee of anonymisation.
  const normalizedQuestionDigits=freeQuestion.normalize('NFKC').replace(/[۰-۹]/g,d=>String(d.charCodeAt(0)-0x06F0)).replace(/[٠-٩]/g,d=>String(d.charCodeAt(0)-0x0660)).replace(/(?<=\d)[\u200c\u200d\u200e\u200f\u2060\ufeff]+(?=\d)/g,'');
  const compactIdentifierDigits=normalizedQuestionDigits.replace(/(?<![A-Za-z0-9])IR[ \t\r\n\u00a0\u2007\u2009\u202f\u200c\u200d\u200e\u200f\u2060\ufeff\-–—]+(?=\d)/gi,'IR').replace(/(?<=\d)[ \t\r\n\u00a0\u2007\u2009\u202f\-–—]+(?=\d)/g,'');
- const hasSensitiveIdentifier=/(?:\+?98|0)?9\d{9}(?!\d)|(?:\d[ -]?){15}\d|(?<!\d)\d{10}(?!\d)/.test(compactIdentifierDigits) || /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i.test(freeQuestion) || /(?<![A-Za-z0-9])IR\d{24}(?!\d)/i.test(compactIdentifierDigits) || /(?:https?:\/\/|www\.)[^\s<>]+/i.test(freeQuestion);
+ const hasSensitiveIdentifier=/(?:\+?98|0)?9\d{9}(?!\d)|(?:\d[ -]?){15}\d|(?<!\d)\d{10}(?!\d)/.test(compactIdentifierDigits) || /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i.test(freeQuestion) || /(?<![A-Za-z0-9])IR\d{24}(?!\d)/i.test(compactIdentifierDigits) || /(?:https?:\/\/|www\.)[^\s<>]+|(?<![\p{L}\p{N}_])(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:com|net|org|ir|info|io|co|gov|edu)(?:\/[^\s<>]*)?/iu.test(freeQuestion);
  // Never echo suspected identifiers into the visible draft, even while export is blocked.
  const displayQuestion=hasSensitiveIdentifier?'[پرسش حاوی شناسه حساس احتمالی؛ متن برای حفاظت از حریم خصوصی نمایش داده نمی‌شود]':freeQuestion;
  // Discard suspected personal identifiers from the editable field as well as the draft.
