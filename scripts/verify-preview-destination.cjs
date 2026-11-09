@@ -9,6 +9,13 @@ function sha256(file) {
   return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 }
 function verifyPreview(source, destination) {
+  // Source integrity matters too: a symlinked source or ancestor can redirect
+  // the reviewed artifact to an unrelated tree before the digest comparison.
+  assert.ok(!fs.lstatSync(source).isSymbolicLink(), 'source must not be a symbolic link');
+  for (let parent = path.dirname(path.resolve(source)); ; parent = path.dirname(parent)) {
+    assert.ok(!fs.lstatSync(parent).isSymbolicLink(), 'source parent must not be a symbolic link');
+    if (parent === path.dirname(parent)) break;
+  }
   // A destination symlink can redirect validation away from the intended deployed file.
   assert.ok(!fs.lstatSync(destination).isSymbolicLink(), 'destination must not be a symbolic link');
   // Reject symlinked parent directories: the apparent preview path could resolve
