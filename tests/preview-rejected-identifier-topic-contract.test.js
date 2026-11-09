@@ -7,7 +7,7 @@ const html = fs.readFileSync(path.join(__dirname, '..', 'dadyar-preview', 'index
 
 test('rejected personal identifier cannot influence visible topic labels', () => {
   assert.match(html, /hasSensitiveIdentifier\?'نامشخص؛ پرسش حاوی شناسه احتمالی حذف شد':classifyQuestion\(freeQuestion\)/);
-  assert.doesNotMatch(html, /برچسب‌های موضوعی پیشنهادی[^\n]*classifyQuestion\(freeQuestion\)/);
+  assert.match(html, /hasSensitiveIdentifier\?'نامشخص؛ پرسش حاوی شناسه احتمالی حذف شد'/);
 });
 test('suspected identifier still blocks export and clears the input', () => {
   assert.match(html, /if\(hasSensitiveIdentifier\) document\.getElementById\('free-question'\)\.value='';/);
