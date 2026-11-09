@@ -41,6 +41,12 @@ function assertRestoreEvidence({ archive, restoredRoot, marker, expectedArchiveS
   }
   const realMarker = fs.realpathSync(markerPath);
   if (!realMarker.startsWith(root + path.sep) || !fs.statSync(realMarker).isFile()) throw Error('marker not a regular file within restore');
+  // A hard-linked marker is the archive itself, not an independently restored file.
+  // Reject inode aliasing even when paths and expected hashes look valid.
+  const archiveStat = fs.statSync(archivePath);
+  const markerStat = fs.statSync(realMarker);
+  if (archiveStat.dev === markerStat.dev && archiveStat.ino === markerStat.ino)
+    throw Error('restored marker must not be a hard link to archive');
   const actual = hash(archivePath);
   if (actual.toLowerCase() !== expectedArchiveSha256.toLowerCase()) throw Error('archive SHA-256 mismatch');
   const markerSha256 = hash(realMarker);
