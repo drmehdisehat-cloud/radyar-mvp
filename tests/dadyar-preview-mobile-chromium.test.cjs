@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const crypto = require('node:crypto');
 
 test('deployable offline preview: mobile layout, gated export and zero API calls in real Chromium', (t) => {
   const candidates = [process.env.CHROME_BIN, '/usr/bin/chromium', '/usr/bin/chromium-browser', '/usr/bin/google-chrome', '/usr/bin/google-chrome-stable'].filter(Boolean);
@@ -264,10 +265,17 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
     } catch(e){document.documentElement.dataset.previewGate='FAIL:'+e.message}
   });
   <\/script>`;
+  // The application page uses hash-only CSP. The test-only probe must be explicitly
+  // allowlisted in the temporary fixture; do not weaken the committed preview policy.
+  const probeScript=probe.slice(probe.indexOf('<script>')+8,probe.lastIndexOf('</script>'));
+  assert.ok(probeScript.length>0,'mobile probe script missing');
+  const probeHash=crypto.createHash('sha256').update(probeScript,'utf8').digest('base64');
+  const testHtml=html.replace(/script-src 'sha256-([^']+)';/,(_all,originalHash)=>`script-src 'sha256-${originalHash}' 'sha256-${probeHash}';`);
+  assert.notEqual(testHtml,html,'temporary test CSP did not add the exact probe hash');
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'dadyar-preview-mobile-'));
   try {
     const file=path.join(dir,'index.html');
-    fs.writeFileSync(file,html.replace('</body>',probe+'</body>'));
+    fs.writeFileSync(file,testHtml.replace('</body>',probe+'</body>'));
     const run=spawnSync(chrome,['--headless','--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--window-size=375,812','--virtual-time-budget=2500','--dump-dom','file://'+file],{encoding:'utf8',timeout:15000});
     assert.equal(run.status,0,run.stderr?.slice(-500));
     assert.match(run.stdout,/data-preview-gate="PASS"/,run.stdout.match(/data-preview-gate="[^"]+"/)?.[0]||'probe did not complete');
