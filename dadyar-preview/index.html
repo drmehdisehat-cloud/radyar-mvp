@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; script-src 'sha256-1vNMMBoaxVwgnkd0A9sTbY+68hC6D08BrCBihAB9Hbo='; style-src 'sha256-carNy3yfMJv2XG/HBNKHfmnbUbkpq8IbG3/T33ABAk8='; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; script-src 'sha256-T6sYaBjsnhdsrKH6SMpsk2TA0B8yK5Lzj05Ywa52uh4='; style-src 'sha256-lrzIHO5gcJgWBtnFurwNYbHskiZxSHWg/P7CnNPJT20='; form-action 'none'; base-uri 'none'">
 <title>دادیار | پیش‌نمایش آفلاین چک فرضی</title>
-<style>body{font:1rem/1.9 system-ui,sans-serif;background:#f5f6fa;color:#17243b;margin:0}main{max-width:780px;margin:auto;padding:1.2rem}section{background:white;border-radius:16px;padding:1.2rem;margin:1rem 0;box-shadow:0 2px 12px #17243b12}button,select{font:inherit;min-height:44px;max-width:100%;padding:.5rem;border:1px solid #718096;border-radius:8px}input[type=checkbox]{min-width:22px;min-height:22px;vertical-align:middle}button{background:#dcecfb;cursor:pointer}button:focus-visible,select:focus-visible{outline:3px solid #2469a8}fieldset{border:1px solid #b4bfd0;border-radius:12px;margin:1rem 0}label{display:block;margin:.6rem 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}small{color:#475569}#result[hidden]{display:none}#free-question{box-sizing:border-box;width:100%;font:inherit;border:1px solid #718096;border-radius:8px;padding:.5rem}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}</style></head>
+<style>body{font:1rem/1.9 system-ui,sans-serif;background:#f5f6fa;color:#17243b;margin:0}main{max-width:780px;margin:auto;padding:1.2rem}section{background:white;border-radius:16px;padding:1.2rem;margin:1rem 0;box-shadow:0 2px 12px #17243b12}button,select{font:inherit;min-height:44px;max-width:100%;padding:.5rem;border:1px solid #718096;border-radius:8px}input[type=checkbox]{min-width:22px;min-height:22px;vertical-align:middle}button{background:#dcecfb;cursor:pointer}button:focus-visible,select:focus-visible{outline:3px solid #2469a8}fieldset{border:1px solid #b4bfd0;border-radius:12px;margin:1rem 0}label{display:block;margin:.6rem 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}small{color:#475569}#result[hidden]{display:none}#free-question,#reviewer-name,#review-note{box-sizing:border-box;width:100%;font:inherit;border:1px solid #718096;border-radius:8px;padding:.5rem}#review-note{min-height:4.5rem}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}</style></head>
 <body><main><h1>کارگاه آزمایشی دادیار: چک فرضی</h1><p role="status">صرفاً داده‌های ازپیش‌ساخته؛ بدون ارسال اطلاعات، هوش مصنوعی یا ذخیره در سرور. پاسخ خودکار حقوقی: ارائه نمی‌شود. اطلاعات واقعی وارد نکنید.</p>
 <section><label for="role">نقش کمک‌یار</label><select id="role"><option>وکیل</option><option>قاضی</option><option>سردفتر</option><option>دادستان</option><option>ضابط</option></select>
 <fieldset><legend>کدام مدارک فرضی را در مصاحبه داریم؟</legend>
@@ -17,7 +17,14 @@
 <label for="certificate">گواهی عدم پرداخت نمونه موجود است؟</label><select id="certificate" data-question="گواهی عدم پرداخت موجود است؟"><option value="unknown">نامعلوم</option><option value="yes">در نمونه موجود است</option><option value="no">در نمونه موجود نیست</option></select>
 <label for="defense">ادعای پرداخت یا دفاعی در سناریو مطرح است؟</label><select id="defense" data-question="آیا ادعای پرداخت یا دفاع دیگری مطرح است؟"><option value="unknown">نامعلوم</option><option value="yes">صرفاً ادعا شده است</option><option value="no">در نمونه مطرح نشده</option></select>
 <p><small>پاسخ‌ها صرفاً وضعیت داده ساختگی هستند و اصالت مدارک را تأیید نمی‌کنند.</small></p></fieldset><button id="generate" type="button">ساخت پیش‌نویس غیررسمی</button> <button id="reset" type="button">پاک‌کردن انتخاب‌ها و پیش‌نویس</button><p id="reset-status" role="status" aria-live="polite"></p></section>
-<section id="result" hidden tabindex="-1" aria-live="polite"><h2>پیش‌نویس برای بازبینی انسانی</h2><pre id="report"></pre><label><input type="checkbox" id="export-ack"> تأیید می‌کنم که شخصاً این پیش‌نویس فرضی را بازبینی کرده‌ام؛ این تأیید صرفاً برای دریافت فایل آموزشی است و به معنای تأیید قانونی، اصالت مدارک یا بررسی مستقل متخصص نیست.</label><p><small>در این پیش‌نمایش آفلاین، هویت بازبین احراز نمی‌شود؛ علامت‌زدن فقط اعلام شخصی کاربر است و جایگزین تأیید بازبین مستقل نیست.</small></p><button type="button" id="download" disabled>دریافت گزارش متنی</button><p id="export-status" role="status" aria-live="polite"></p><p><small>این خروجی رأی، دستور، ثبت رسمی سند یا مشاوره حقوقی قطعی نیست. منابع قانونی و تاریخ اعتبار بررسی نشده‌اند.</small></p></section></main>
+<section id="result" hidden tabindex="-1" aria-live="polite"><h2>پیش‌نویس برای بازبینی انسانی</h2><pre id="report"></pre><section id="human-review" aria-labelledby="human-review-title"><h3 id="human-review-title">مرحله بازبینی انسانی</h3><p>پس از مطالعه پیش‌نویس، بازبین باید نام، نتیجه و یادداشت خود را ثبت کند. فقط نتیجه «تأیید» اجازه دریافت فایل آموزشی می‌دهد.</p>
+<label for="reviewer-name">نام بازبین انسانی (ثبت محلی)</label><input id="reviewer-name" type="text" maxlength="80" autocomplete="off" required>
+<label for="review-decision">نتیجه بازبینی</label><select id="review-decision"><option value="pending">در انتظار بازبینی</option><option value="approved">تأیید برای دریافت آموزشی</option><option value="rejected">رد پیش‌نویس</option></select>
+<label for="review-note">یادداشت بازبین (اختیاری، حداکثر ۳۰۰ نویسه)</label><textarea id="review-note" maxlength="300" rows="2"></textarea>
+<label><input type="checkbox" id="export-ack"> من، بازبین انسانی، اعلام می‌کنم پیش‌نویس فرضی را خوانده‌ام و نتیجه زیر را ثبت می‌کنم؛ این اظهار به معنای تأیید قانونی یا احراز اصالت مدارک نیست.</label>
+<button type="button" id="record-review" disabled>ثبت نتیجه بازبینی</button><p id="review-status" role="status" aria-live="polite"></p>
+<p><small>محدودیت مهم: این نسخه کاملاً آفلاین است و هویت بازبین احراز نمی‌شود. نام، تصمیم و زمان فقط اظهار محلی‌اند و جایگزین بازبینی مستقلِ احراز‌شده در سامانه امن نیستند.</small></p></section>
+<button type="button" id="download" disabled>دریافت گزارش متنی</button><p id="export-status" role="status" aria-live="polite"></p><p><small>این خروجی رأی، دستور، ثبت رسمی سند یا مشاوره حقوقی قطعی نیست. منابع قانونی و تاریخ اعتبار بررسی نشده‌اند.</small></p></section></main>
 <script>
 'use strict';
 const questions=['تاریخ صدور و سررسید فرضی چک چیست؟','گواهی عدم پرداخت فرضی موجود است؟','آیا ادعای پرداخت یا دفاع دیگری مطرح است؟'];
@@ -441,14 +448,42 @@ let internalTopicMatches=[];
 const downloadButton=document.getElementById('download');
 const exportStatus=document.getElementById('export-status');
 const exportAck=document.getElementById('export-ack');
+const reviewerName=document.getElementById('reviewer-name');
+const reviewDecision=document.getElementById('review-decision');
+const reviewNote=document.getElementById('review-note');
+const recordReviewButton=document.getElementById('record-review');
+const reviewStatus=document.getElementById('review-status');
 let exportEligible=false;
-function updateExportPermission(){downloadButton.disabled=!exportEligible || !exportAck.checked;}
-exportAck.addEventListener('change',updateExportPermission);
+let reviewRecord=null;
+function updateExportPermission(){
+ const approvedReview=Boolean(reviewRecord && reviewRecord.decision==='approved' && reviewRecord.reportSnapshot===report);
+ downloadButton.disabled=!exportEligible || !exportAck.checked || !approvedReview;
+ recordReviewButton.disabled=!exportEligible || !report || reviewerName.value.trim().length<2 || !['approved','rejected'].includes(reviewDecision.value) || !exportAck.checked || Boolean(reviewRecord);
+}
+function invalidateHumanReview(message='اطلاعات بازبینی تغییر کرد؛ نتیجه قبلی باطل شد. پس از بررسی دوباره ثبت کنید.'){
+ reviewRecord=null;reviewStatus.textContent=message;updateExportPermission();
+}
+exportAck.addEventListener('change',()=>{
+ if(!exportAck.checked) invalidateHumanReview('تأیید بازبینی برداشته شد؛ برای دریافت باید بازبینی تازه ثبت شود.');
+ else updateExportPermission();
+});
+reviewerName.addEventListener('input',()=>invalidateHumanReview());
+reviewDecision.addEventListener('change',()=>invalidateHumanReview());
+reviewNote.addEventListener('input',()=>invalidateHumanReview());
+recordReviewButton.addEventListener('click',()=>{
+ if(recordReviewButton.disabled)return;
+ const decision=reviewDecision.value;
+ reviewRecord={reviewer:reviewerName.value.trim(),decision,note:reviewNote.value.trim(),reviewedAt:new Date().toISOString(),reportSnapshot:report};
+ reviewStatus.textContent=decision==='approved'
+  ? 'بازبینی انسانی با اظهار بازبین ثبت شد؛ هویت بازبین در این نسخه آفلاین احراز نمی‌شود.'
+  : 'بازبینی رد شد؛ دریافت گزارش غیرفعال باقی می‌ماند.';
+ updateExportPermission();
+});
 // Invalidate an earlier draft as soon as the hypothetical evidence or role changes.
 // Otherwise the download button could export a different case state than the UI.
 function invalidateDraft(){
  const focusWasInDraft=box.contains(document.activeElement);
- report=''; internalTopicMatches=[]; out.textContent=''; exportStatus.textContent=''; document.getElementById('reset-status').textContent=''; box.hidden=true; exportEligible=false; exportAck.checked=false; updateExportPermission();
+ report=''; internalTopicMatches=[]; out.textContent=''; exportStatus.textContent=''; reviewRecord=null;reviewerName.value='';reviewDecision.value='pending';reviewNote.value='';reviewStatus.textContent='';document.getElementById('reset-status').textContent=''; box.hidden=true; exportEligible=false; exportAck.checked=false; updateExportPermission();
  // Never strand keyboard focus inside a hidden result after a case-state change.
  if(focusWasInDraft) document.getElementById('generate').focus();
 }
@@ -516,16 +551,26 @@ document.getElementById('generate').addEventListener('click',()=>{
  'وضعیت تکمیل پرونده فرضی: '+(conflicts.length?'متعارض؛ نیازمند اصلاح اطلاعات':'بدون تعارض آشکار در داده‌های انتخابی')+' | پرسش‌های بی‌پاسخ: '+unresolved.length+' | مدارک انتخابی: '+evidence.length+' | احراز اصالت: صفر | بررسی قانون معتبر: انجام‌نشده | نتیجه: آماده تصمیم حقوقی نیست.',
  'منابع قانونی: تأییدنشده؛ هیچ استناد قانونی ارائه نمی‌شود.','هیچ ادعایی احراز نشده است. اصالت مدارک، متن قانون، منبع رسمی و تاریخ اعتبار باید توسط متخصص انسانی بررسی شود.',
  'این متن رأی، سند رسمی یا دستور انتظامی نیست.'].join('\n\n');
- out.textContent=report;exportEligible=conflicts.length===0 && unresolved.length===0;exportAck.checked=false;updateExportPermission();
+ out.textContent=report;exportEligible=conflicts.length===0 && unresolved.length===0;reviewRecord=null;reviewerName.value='';reviewDecision.value='pending';reviewNote.value='';reviewStatus.textContent='';exportAck.checked=false;updateExportPermission();
  exportStatus.textContent=hasSensitiveIdentifier?'دریافت گزارش غیرفعال است: شناسه حساس احتمالی در پرسش آزاد وجود دارد؛ آن را حذف کنید.':evidence.length===0?'دریافت گزارش غیرفعال است: هیچ مدرک فرضی انتخاب نشده است. دست‌کم یک مدرک نمونه انتخاب کنید و پیش‌نویس را دوباره بسازید.':!evidence.some(e=>e.description==='تصویر چک نمونه با شماره ساختگی')?'دریافت گزارش غیرفعال است: تصویر چک نمونه انتخاب نشده است. برای ادامه، مدرک چک فرضی را انتخاب کنید.':conflicts.length>0?'دریافت گزارش به علت تناقض اطلاعات غیرفعال است. پاسخ‌ها یا مدارک فرضی را اصلاح و پیش‌نویس را دوباره تولید کنید.':unresolved.length>0?'دریافت گزارش تا پاسخ‌گویی به '+unresolved.length+' پرسش نامعلوم غیرفعال است؛ پیش‌نویس برای بررسی روی صفحه باقی می‌ماند.':'برای دریافت پیش‌نویس فرضی، ابتدا تأیید بازبینی انسانی را علامت بزنید.';
  box.hidden=false;box.focus();
 });
 document.getElementById('download').addEventListener('click',()=>{
- if(!report || downloadButton.disabled)return;
- const url=URL.createObjectURL(new Blob(['\uFEFF'+report],{type:'text/plain;charset=utf-8'}));
+ if(!report || downloadButton.disabled || !reviewRecord || reviewRecord.reportSnapshot!==report)return;
+ const reviewText=[
+  'ثبت بازبینی انسانی (اظهار محلی؛ هویت احراز نشده)',
+  'نام بازبین: '+reviewRecord.reviewer,
+  'نتیجه بازبینی: '+(reviewRecord.decision==='approved'?'تأیید برای دریافت آموزشی':'رد'),
+  'زمان ثبت بازبینی: '+reviewRecord.reviewedAt,
+  'یادداشت بازبین: '+(reviewRecord.note||'ثبت نشده'),
+  'محدودیت: این اظهار محلی است و تأیید حقوقی یا احراز هویت محسوب نمی‌شود.'
+ ].join('\n');
+ const exportText=report+'\n\n'+reviewText;
+ const url=URL.createObjectURL(new Blob(['\uFEFF'+exportText],{type:'text/plain;charset=utf-8'}));
  const a=document.createElement('a');a.href=url;a.download='dadyar-synthetic-cheque.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
- // A second export requires a fresh explicit human-review acknowledgement.
- exportAck.checked=false;updateExportPermission();
- exportStatus.textContent='دریافت فایل متنی فرضی آغاز شد. برای دریافت دوباره، تأیید بازبینی انسانی را مجدداً انتخاب کنید.';
+ // Consume the approval; a fresh review record is required for another export.
+ reviewRecord=null;exportAck.checked=false;updateExportPermission();
+ reviewStatus.textContent='گزارش دریافت شد؛ برای دریافت دوباره باید بازبینی تازه ثبت شود.';
+ exportStatus.textContent='دریافت فایل متنی فرضی آغاز شد. هیچ داده‌ای به سرور ارسال نشد.';
 });
 </script></body></html>
