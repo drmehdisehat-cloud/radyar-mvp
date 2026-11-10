@@ -66,6 +66,16 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       check(download.disabled,'download initially enabled');
       document.getElementById('generate').click();
       check(download.disabled,'unknown interview allowed download');
+      const freeQuestion=document.getElementById('free-question');
+      freeQuestion.value='در چک و طلاق و اجاره چه مدارکی باید بررسی شود؟';
+      freeQuestion.dispatchEvent(new Event('input',{bubbles:true}));
+      document.getElementById('generate').click();
+      const topicScope=document.getElementById('topic-scope-status');
+      check(topicScope.textContent.includes('چندموضوعی'),'multi-topic free question was not flagged on mobile');
+      check(!/family|property|instruments|طلاق|اجاره/.test(topicScope.textContent),'internal topic labels leaked into mobile preview');
+      check(download.disabled,'multi-topic out-of-scope question bypassed review gate');
+      freeQuestion.value='';
+      freeQuestion.dispatchEvent(new Event('input',{bubbles:true}));
       document.getElementById('issue-date').value='yes';
       document.getElementById('certificate').value='no';
       document.getElementById('defense').value='yes';
