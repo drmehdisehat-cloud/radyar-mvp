@@ -25,7 +25,9 @@ const base = {
     restore_database_user: 'radyar_restore_user',
     production_database_user: 'radyar_live_user',
     restore_target_path: '/srv/isolated/radyar-restore',
+    restore_target_realpath: '/srv/isolated/radyar-restore',
     production_document_root: '/home/site/public_html',
+    production_document_root_realpath: '/home/site/public_html',
     restore_completed_at: '2026-11-09T12:00:00.000Z',
     reviewed_at: '2026-11-09T13:00:00.000Z'
   },
