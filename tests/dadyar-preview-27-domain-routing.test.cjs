@@ -39,7 +39,7 @@ test('free-text router loads all 27 internal legal-domain hints without a topic 
   assert.match(html, /id="free-question"/);
   assert.doesNotMatch(html, /<select[^>]+(?:topic|موضوع)/i);
   assert.doesNotMatch(html, /برچسب‌های موضوعی پیشنهادی/);
-  assert.match(html, /دسته‌بندی داخلی: چندموضوعی و غیرقطعی/);
+  assert.doesNotMatch(html, /دسته‌بندی داخلی:|برچسب‌های موضوعی پیشنهادی/);
 });
 
 test('all 27 taxonomy domains are discoverable from representative synthetic keywords', () => {
