@@ -104,7 +104,7 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       download.click();
       check(download.disabled,'export remained enabled after download');
       check(!document.getElementById('export-ack').checked,'export retained prior human-review acknowledgement');
-      check(document.getElementById('export-status').textContent.includes('مجدداً'),'export confirmation absent');
+      check(document.getElementById('review-status').textContent.includes('برای دریافت دوباره باید بازبینی تازه ثبت شود'),'fresh review requirement after export absent');
       approveReview();
       check(!download.disabled,'fresh acknowledgement did not re-enable export');
       document.getElementById('defense').value='no';
