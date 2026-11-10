@@ -205,7 +205,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  question.dispatchEvent(new Event("input", { bubbles: true }));',
       '  const staleDraftInvalidated = download.disabled && document.getElementById("result").hidden;',
       '  document.getElementById("generate").click();',
-      '  const multiTopicIds = classifyQuestion(question.value).map(item => item.id);'
+      '  const multiTopicIds = classifyQuestion(question.value).map(item => item.id);',
       '  const multiTopicReport = document.getElementById("report").textContent;',
       '  const externalResources = performance.getEntriesByType("resource").map(entry => entry.name).filter(url => /^(?:https?|wss?):/i.test(url));',
       '  return {',
@@ -214,7 +214,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '    mobileUserAgent: /iPhone|Mobile/i.test(navigator.userAgent),',
       '    horizontalOverflow: root.scrollWidth > root.clientWidth + 1,',
       '    initialDisabled, blockedBeforeAcknowledgement, enabledAfterAcknowledgement,',
-      '    reportAfterAcknowledgement, staleDraftInvalidated, multiTopicReport, multiTopicIds,'
+      '    reportAfterAcknowledgement, staleDraftInvalidated, multiTopicReport, multiTopicIds,',
       '    csp: document.querySelector("meta[http-equiv]")?.content || "",',
       '    externalResources',
       '  };',
