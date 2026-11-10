@@ -40,7 +40,7 @@ test('experimental CI push and pull-request scopes are explicit and documented',
     assert.ok(readme.includes(fence + branch + fence), 'README omits pull-request target ' + branch);
   }
 
-  assert.match(readme, /رویداد \`pull_request\` فقط برای PRهایی فعال است/);
+  assert.ok(readme.includes('رویداد ' + fence + 'pull_request' + fence + ' فقط برای PRهایی فعال است'));
   assert.match(workflow, /^permissions:\s*\r?\n  contents: read/m);
   assert.match(workflow, /persist-credentials: false/);
 
