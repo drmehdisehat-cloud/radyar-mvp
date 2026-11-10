@@ -39,6 +39,6 @@ test('preview destination verifier rejects a symlinked production document root'
     const destination = path.join(staging, 'index.html');
     fs.copyFileSync(source, destination);
     fs.symlinkSync(realRoot, rootAlias, 'dir');
-    assert.throws(() => verifyPreview(source, destination, rootAlias), /production document root must be a symbolic link/);
+    assert.throws(() => verifyPreview(source, destination, rootAlias), /production document root must not be a symbolic link/);
   } finally { fs.rmSync(root, { recursive: true, force: true }); }
 });
