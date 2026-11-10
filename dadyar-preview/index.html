@@ -22,17 +22,410 @@
 'use strict';
 const questions=['تاریخ صدور و سررسید فرضی چک چیست؟','گواهی عدم پرداخت فرضی موجود است؟','آیا ادعای پرداخت یا دفاع دیگری مطرح است؟'];
 // Local keyword hints only. They never determine legal rights, routes or outcomes.
-const topicHints=[
- ['چک',/چک|صیاد|گواهی عدم پرداخت/],
- ['سرقت',/سرقت|دزدی|ربودن/],
- ['کلاهبرداری',/کلاهبرداری|فریب مالی/],
- ['مطالبه وجه',/مطالبه وجه|طلب|بدهی/],
- ['طلاق',/طلاق|جدایی زوجین/],
- ['مهریه',/مهریه|صداق/]
+const topicHints = [
+  {
+    "id": "civil",
+    "keywords": [
+      "قرارداد",
+      "بیع",
+      "صلح",
+      "وکالت",
+      "ضمان",
+      "حواله",
+      "رهن",
+      "فسخ",
+      "وجه التزام",
+      "مطالبه وجه",
+      "استرداد ثمن",
+      "دارا شدن بلاجهت"
+    ]
+  },
+  {
+    "id": "property",
+    "keywords": [
+      "اجاره",
+      "موجر",
+      "مستأجر",
+      "تخلیه",
+      "سرقفلی",
+      "خلع ید",
+      "تصرف عدوانی",
+      "افراز",
+      "تفکیک",
+      "پیش فروش ساختمان",
+      "آپارتمان",
+      "مشارکت در ساخت"
+    ]
+  },
+  {
+    "id": "registry",
+    "keywords": [
+      "سند رسمی",
+      "سند مالکیت",
+      "الزام به تنظیم سند",
+      "اجرای ثبت",
+      "دفترخانه",
+      "سردفتر",
+      "ثبت ملک",
+      "تعارض اسناد"
+    ]
+  },
+  {
+    "id": "family",
+    "keywords": [
+      "ازدواج",
+      "نکاح",
+      "طلاق",
+      "مهریه",
+      "نفقه",
+      "حضانت",
+      "ملاقات فرزند",
+      "تمکین",
+      "جهیزیه",
+      "نسب",
+      "فرزندخواندگی",
+      "کودک آزاری"
+    ]
+  },
+  {
+    "id": "succession",
+    "keywords": [
+      "ارث",
+      "وصیت",
+      "ترکه",
+      "انحصار وراثت",
+      "قیمومت",
+      "حجر",
+      "غایب مفقودالاثر",
+      "تحریر ترکه"
+    ]
+  },
+  {
+    "id": "liability",
+    "keywords": [
+      "مسئولیت مدنی",
+      "جبران خسارت",
+      "اتلاف",
+      "تسبیب",
+      "تصادف",
+      "خسارت بدنی",
+      "دیه",
+      "خسارت معنوی"
+    ]
+  },
+  {
+    "id": "civil-procedure",
+    "keywords": [
+      "دادخواست",
+      "صلاحیت دادگاه",
+      "ابلاغ",
+      "تأمین خواسته",
+      "دستور موقت",
+      "تجدیدنظر",
+      "فرجام",
+      "اعاده دادرسی",
+      "داوری",
+      "دادگاه صلح",
+      "شورای حل اختلاف"
+    ]
+  },
+  {
+    "id": "enforcement",
+    "keywords": [
+      "اجراییه",
+      "اجرای حکم",
+      "توقیف اموال",
+      "مزایده",
+      "اعسار",
+      "تقسیط",
+      "مستثنیات دین"
+    ]
+  },
+  {
+    "id": "criminal",
+    "keywords": [
+      "سرقت",
+      "قتل",
+      "کلاهبرداری",
+      "خیانت در امانت",
+      "انتقال مال غیر",
+      "جعل",
+      "ضرب و جرح",
+      "تهدید",
+      "توهین",
+      "دفاع مشروع",
+      "شروع به جرم",
+      "معاونت",
+      "قصاص",
+      "تعزیر"
+    ]
+  },
+  {
+    "id": "criminal-procedure",
+    "keywords": [
+      "شکواییه",
+      "ضابط",
+      "دادسرا",
+      "بازپرس",
+      "کیفرخواست",
+      "قرار منع تعقیب",
+      "قرار تأمین کیفری",
+      "بازداشت موقت",
+      "اجرای احکام کیفری",
+      "آزادی مشروط"
+    ]
+  },
+  {
+    "id": "special-crimes",
+    "keywords": [
+      "مواد مخدر",
+      "پولشویی",
+      "قاچاق",
+      "اختلاس",
+      "ارتشا",
+      "جرم سیاسی",
+      "جرم مطبوعاتی",
+      "جرم نظامی",
+      "جرم انتخاباتی"
+    ]
+  },
+  {
+    "id": "digital",
+    "keywords": [
+      "جرم رایانه ای",
+      "کلاهبرداری اینترنتی",
+      "فیشینگ",
+      "دسترسی غیرمجاز",
+      "داده شخصی",
+      "حریم خصوصی",
+      "امضای الکترونیکی",
+      "فروشگاه اینترنتی"
+    ]
+  },
+  {
+    "id": "commercial",
+    "keywords": [
+      "شرکت تجاری",
+      "سهامدار",
+      "هیئت مدیره",
+      "ثبت شرکت",
+      "ادغام شرکت",
+      "انحلال شرکت",
+      "ورشکستگی",
+      "توقف تاجر",
+      "قرارداد ارفاقی",
+      "تعاونی"
+    ]
+  },
+  {
+    "id": "instruments",
+    "keywords": [
+      "چک",
+      "برگشت چک",
+      "چک تضمینی",
+      "چک صیادی",
+      "سفته",
+      "برات",
+      "ظهرنویسی",
+      "گواهی عدم پرداخت"
+    ]
+  },
+  {
+    "id": "labor",
+    "keywords": [
+      "قرارداد کار",
+      "اخراج",
+      "حقوق معوق",
+      "سنوات",
+      "اضافه کار",
+      "حادثه کار",
+      "بیمه بیکاری",
+      "بازنشستگی",
+      "حق بیمه",
+      "هیئت تشخیص"
+    ]
+  },
+  {
+    "id": "administrative",
+    "keywords": [
+      "دیوان عدالت اداری",
+      "ابطال بخشنامه",
+      "اعتراض اداری",
+      "استخدام دولتی",
+      "تخلف اداری",
+      "گزینش",
+      "پروانه کسب",
+      "مناقصه",
+      "دسترسی آزاد به اطلاعات"
+    ]
+  },
+  {
+    "id": "municipal",
+    "keywords": [
+      "شهرداری",
+      "تخلف ساختمانی",
+      "پایان کار",
+      "تغییر کاربری",
+      "عوارض",
+      "اراضی ملی",
+      "منابع طبیعی",
+      "حریم شهر"
+    ]
+  },
+  {
+    "id": "tax",
+    "keywords": [
+      "مالیات",
+      "ارزش افزوده",
+      "اظهارنامه مالیاتی",
+      "برگ تشخیص",
+      "معافیت مالیاتی",
+      "گمرک",
+      "تعرفه گمرکی",
+      "ترخیص",
+      "واردات",
+      "صادرات"
+    ]
+  },
+  {
+    "id": "finance",
+    "keywords": [
+      "بانک",
+      "تسهیلات بانکی",
+      "سود بانکی",
+      "بیمه نامه",
+      "خسارت بیمه",
+      "بورس",
+      "اوراق بهادار",
+      "ارز",
+      "رمزارز"
+    ]
+  },
+  {
+    "id": "consumer",
+    "keywords": [
+      "حقوق مصرف کننده",
+      "تعزیرات حکومتی",
+      "گرانفروشی",
+      "کم فروشی",
+      "کالای معیوب",
+      "ضمانت کالا",
+      "انحصار",
+      "رقابت",
+      "مجوز صنفی"
+    ]
+  },
+  {
+    "id": "ip",
+    "keywords": [
+      "ثبت برند",
+      "علامت تجاری",
+      "اختراع",
+      "طرح صنعتی",
+      "حق مؤلف",
+      "کپی رایت",
+      "نرم افزار",
+      "رسانه",
+      "مطبوعات"
+    ]
+  },
+  {
+    "id": "public-law",
+    "keywords": [
+      "قانون اساسی",
+      "حق شهروندی",
+      "آزادی اجتماعات",
+      "انتخابات",
+      "نظارت",
+      "شورای نگهبان",
+      "اصل قانون اساسی"
+    ]
+  },
+  {
+    "id": "international",
+    "keywords": [
+      "تابعیت",
+      "اقامت",
+      "مهاجرت",
+      "اتباع خارجی",
+      "استرداد مجرم",
+      "حکم دادگاه خارجی",
+      "تعارض قوانین",
+      "داوری بین المللی",
+      "معاهده"
+    ]
+  },
+  {
+    "id": "health",
+    "keywords": [
+      "قصور پزشکی",
+      "رضایت درمان",
+      "نظام پزشکی",
+      "مسئولیت پزشک",
+      "دارو",
+      "بهداشت",
+      "تخلف انتظامی وکیل"
+    ]
+  },
+  {
+    "id": "environment",
+    "keywords": [
+      "آلودگی",
+      "محیط زیست",
+      "هوای پاک",
+      "حقابه",
+      "حفر چاه",
+      "معدن",
+      "نفت",
+      "برق",
+      "پسماند",
+      "شکار"
+    ]
+  },
+  {
+    "id": "transport",
+    "keywords": [
+      "بارنامه",
+      "حمل کالا",
+      "حمل دریایی",
+      "کشتی",
+      "ترانزیت",
+      "حمل هوایی",
+      "متصدی حمل",
+      "خسارت بار"
+    ]
+  },
+  {
+    "id": "cross-cutting",
+    "keywords": [
+      "وقف",
+      "موقوفه",
+      "اوقاف",
+      "خیریه",
+      "آموزش",
+      "مدرسه",
+      "دانشگاه",
+      "ورزش",
+      "معلولیت",
+      "مستمری",
+      "ایثارگران"
+    ]
+  }
 ];
-function classifyQuestion(text){
- const matches=topicHints.filter(([,pattern])=>pattern.test(text)).map(([name])=>name);
- return matches.length?matches.join('، '):'نامشخص؛ نیازمند بررسی انسانی';
+function normalizeTopicText(value) {
+  return String(value || '').normalize('NFKC')
+    .replace(/[يى]/g, 'ی').replace(/ك/g, 'ک')
+    .replace(/\p{M}/gu, '')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+}
+function classifyQuestion(text) {
+  const normalized = ' ' + normalizeTopicText(text) + ' ';
+  return topicHints.flatMap(domain => {
+    const matches = domain.keywords.filter(keyword =>
+      normalized.includes(' ' + normalizeTopicText(keyword) + ' ')
+    );
+    return matches.length ? [{ id: domain.id, matches }] : [];
+  }).sort((a, b) => b.matches.length - a.matches.length);
 }
 const purposes={'وکیل':'مصاحبه و تنظیم پیش‌نویس','قاضی':'مقایسه استدلال طرفین، بدون صدور رأی','سردفتر':'بررسی اولیه مدارک، بدون ثبت سند','دادستان':'بررسی ادعا و دفاع، بدون تصمیم قضایی','ضابط':'سامان‌دهی گزارش، بدون اقدام انتظامی'};
 const roleGuidance={
@@ -44,6 +437,7 @@ const roleGuidance={
 };
 const role=document.getElementById('role'),out=document.getElementById('report'),box=document.getElementById('result');
 let report='';
+let internalTopicMatches=[];
 const downloadButton=document.getElementById('download');
 const exportStatus=document.getElementById('export-status');
 const exportAck=document.getElementById('export-ack');
@@ -54,7 +448,7 @@ exportAck.addEventListener('change',updateExportPermission);
 // Otherwise the download button could export a different case state than the UI.
 function invalidateDraft(){
  const focusWasInDraft=box.contains(document.activeElement);
- report=''; out.textContent=''; exportStatus.textContent=''; document.getElementById('reset-status').textContent=''; box.hidden=true; exportEligible=false; exportAck.checked=false; updateExportPermission();
+ report=''; internalTopicMatches=[]; out.textContent=''; exportStatus.textContent=''; document.getElementById('reset-status').textContent=''; box.hidden=true; exportEligible=false; exportAck.checked=false; updateExportPermission();
  // Never strand keyboard focus inside a hidden result after a case-state change.
  if(focusWasInDraft) document.getElementById('generate').focus();
 }
@@ -83,6 +477,8 @@ document.getElementById('generate').addEventListener('click',()=>{
  const hasSensitiveIdentifier=/(?:\+?98|0)?9\d{9}(?!\d)|(?:\d[ -]?){15}\d|(?<!\d)\d{10}(?!\d)/.test(compactIdentifierDigits) || /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i.test(freeQuestion) || /(?<![A-Za-z0-9])IR\d{24}(?!\d)/i.test(compactIdentifierDigits) || /(?:https?:\/\/|www\.)[^\s<>]+|(?<![\p{L}\p{N}_])(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z]{2,24})(?:\/[^\s<>]*)?/iu.test(freeQuestion);
  // Never echo suspected identifiers into the visible draft, even while export is blocked.
  const displayQuestion=hasSensitiveIdentifier?'[پرسش حاوی شناسه حساس احتمالی؛ متن برای حفاظت از حریم خصوصی نمایش داده نمی‌شود]':freeQuestion;
+ // Internal-only multi-topic hints; never rendered as user-facing categories or legal conclusions.
+ internalTopicMatches=hasSensitiveIdentifier?[]:classifyQuestion(freeQuestion);
  // Discard suspected personal identifiers from the editable field as well as the draft.
  if(hasSensitiveIdentifier) document.getElementById('free-question').value='';
  const negativeAnswers=answers.filter(item=>item.state==='no');
@@ -101,7 +497,7 @@ document.getElementById('generate').addEventListener('click',()=>{
  if(evidence.length>0 && !evidence.some(e=>e.description==='تصویر چک نمونه با شماره ساختگی')) conflicts.push('تصویر چک نمونه انتخاب نشده است؛ ادعای تسویه یا سایر مدارک به‌تنهایی برای دریافت گزارش چک فرضی کافی نیستند.');
  const section=(stance)=>evidence.filter(e=>e.stance===stance).map(e=>'• '+e.description).join('\n')||'ثبت نشده';
  report=['دادیار | چک صرفاً فرضی | نسخه آزمایشی آفلاین','نقش: '+role.value+' | هدف: '+purposes[role.value],
- 'پرسش آزاد کاربر درباره داده ساختگی: '+(displayQuestion||'ثبت نشده')+'\nبرچسب‌های موضوعی پیشنهادی (صرفاً واژه‌یابی آفلاین و غیرقطعی): '+(hasSensitiveIdentifier?'نامشخص؛ پرسش حاوی شناسه احتمالی حذف شد':classifyQuestion(freeQuestion))+'\nدامنه این کارگاه: فقط چک فرضی؛ موضوعات دیگر در این نسخه تحلیل نمی‌شوند.\nپاسخ خودکار حقوقی: ارائه نمی‌شود؛ منابع معتبر و بررسی انسانی لازم است.','ادله موافق:\n'+section('موافق'),'ادله مخالف:\n'+section('مخالف'),'نامعلوم:\n'+section('نامعلوم'),
+ 'پرسش آزاد کاربر درباره داده ساختگی: '+(displayQuestion||'ثبت نشده')+'\nدسته‌بندی داخلی: چندموضوعی و غیرقطعی؛ جزئیات برچسب‌ها در گزارش نمایش داده نمی‌شود.\nدامنه این پیش‌نمایش: کارگاه چک فرضی؛ پاسخ حقوقی خودکار ارائه نمی‌شود و منابع معتبر و بررسی انسانی لازم است.','ادله موافق:\n'+section('موافق'),'ادله مخالف:\n'+section('مخالف'),'نامعلوم:\n'+section('نامعلوم'),
  'تعارض‌های داده فرضی:\n'+(conflicts.map(c=>'• '+c).join('\n')||'تعارض آشکاری میان پاسخ‌های نمونه و فهرست مدارک یافت نشد.'),
  'وضعیت مصاحبه فرضی:\n'+answers.map(a=>'• '+a.question+' '+a.answer).join('\n'),
  'گام‌های بررسی متناسب با نقش (صرفاً آموزشی):\n'+roleGuidance[role.value].map(g=>'• '+g).join('\n'),
