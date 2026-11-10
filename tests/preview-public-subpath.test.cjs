@@ -78,7 +78,7 @@ test('hard-linked public preview file is rejected', () => sandbox(({source,desti
   assert.throws(() => verifyPublicPreviewSubpath(source, destination, documentRoot, expectedBlob), /hard link/);
 }));
 
-test('wrong path and source inside document root are rejected', () => sandbox(({root,source,destination,documentRoot,expectedBlob}) => {
+test('wrong path and source inside document root are rejected', () => sandbox(({source,destination,documentRoot,expectedBlob}) => {
   const wrongDir = path.join(documentRoot, 'other');
   fs.mkdirSync(wrongDir);
   const wrongDestination = path.join(wrongDir, 'index.html');
@@ -89,6 +89,11 @@ test('wrong path and source inside document root are rejected', () => sandbox(({
   assert.throws(() => verifyPublicPreviewSubpath(inRootSource, destination, documentRoot, gitBlobSha(inRootSource)), /outside production document root/);
 }));
 
-test('wrong reviewed Git blob pin is rejected', () => sandbox(({source,destination,documentRoot}) => {
-  assert.throws(() => verifyPublicPreviewSubpath(source, destination, documentRoot, '0'.repeat(40)), /source differs from pinned reviewed Git blob/);
+test('wrong reviewed Git blob pin is rejected', () => sandbox(({source,destination,documentRoot,expectedBlob}) => {
+  const wrong = expectedBlob === 'f'.repeat(40) ? 'e'.repeat(40) : 'f'.repeat(40);
+  assert.throws(() => verifyPublicPreviewSubpath(source, destination, documentRoot, wrong), /source differs from pinned reviewed Git blob/);
+}));
+
+test('zero Git blob pin is rejected before destination verification', () => sandbox(({source,destination,documentRoot}) => {
+  assert.throws(() => verifyPublicPreviewSubpath(source, destination, documentRoot, '0'.repeat(40)), /expected reviewed source Git blob SHA-1 required/);
 }));
