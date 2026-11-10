@@ -58,6 +58,9 @@ function assertRestoreEvidence({ archive, restoredRoot, productionDocumentRoot, 
   if (markerStat.size === 0) throw Error('restored marker must not be empty');
   if (archiveStat.dev === markerStat.dev && archiveStat.ino === markerStat.ino)
     throw Error('restored marker must not be a hard link to archive');
+  // The marker is a single-file witness. Any additional hard link could alias an unrelated
+  // file outside the isolated tree, so require exactly one directory entry for its inode.
+  if (markerStat.nlink !== 1) throw Error('restored marker must not have hard-link aliases');
   const actual = hash(archivePath);
   if (actual.toLowerCase() !== expectedArchiveSha256.toLowerCase()) throw Error('archive SHA-256 mismatch');
   const markerSha256 = hash(realMarker);
