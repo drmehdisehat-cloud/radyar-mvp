@@ -50,3 +50,11 @@ test('human review metadata is normalized to one line and strips control and bid
   assert.match(html, /reviewer:safeReviewText\(reviewerName\.value,80\)/);
   assert.match(html, /note:safeReviewText\(reviewNote\.value,300\)/);
 });
+
+test('downloaded report preserves the unauthenticated local-review boundary and stays offline', () => {
+  const handler = html.slice(html.indexOf("document.getElementById('download').addEventListener"));
+  assert.ok(handler.includes('const reviewText=['), 'review metadata must be included in the downloaded report');
+  assert.match(handler, /ثبت بازبینی انسانی \(اظهار محلی؛ هویت احراز نشده\)/);
+  assert.match(handler, /محدودیت: این اظهار محلی است و تأیید حقوقی یا احراز هویت محسوب نمی‌شود/);
+  assert.doesNotMatch(handler, /\b(?:fetch|XMLHttpRequest|sendBeacon|localStorage|sessionStorage|indexedDB)\b/);
+});
