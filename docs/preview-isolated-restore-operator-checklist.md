@@ -39,7 +39,7 @@ node scripts/preview-release-preflight.cjs \
   --human-review-verified
 ```
 
-The four switches are explicit operator/reviewer attestations, not machine-verified facts. The CLI only checks schema, consistency and supplied attestations; it performs no network request, file copy, publication or deployment. It rejects evidence paths inside the Git checkout and symlinked evidence paths. Exit code 1 means one or more release blockers remain; exit code 2 means invalid invocation or evidence input. Even `READY_FOR_OWNER_DEPLOYMENT_APPROVAL` is not deployment authorization: the owner must separately approve, and all legal-source and security gates must also pass.
+The four switches are explicit operator/reviewer attestations, not machine-verified facts. The CLI only checks schema, consistency and supplied attestations; it performs no network request, file copy, publication or deployment. It rejects evidence paths inside the Git checkout and symlinked evidence paths. Exit code 1 means structural release blockers remain; exit code 2 means invalid invocation or evidence input; exit code 3 means the evidence JSON shape is internally consistent but independent authenticity checks, live-host verification, legal/security review and owner approval remain outstanding. The tool never emits a release-ready or deployment-authorized status.
 
 ## Preview artifact gate
 

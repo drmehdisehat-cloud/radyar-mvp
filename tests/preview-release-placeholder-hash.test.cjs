@@ -50,6 +50,7 @@ test('preview gate rejects placeholder all-zero SHA-256 even when matched flag i
 
 test('valid-shaped synthetic hashes and manifest only permit owner approval, never auto-deploy', () => {
   const decision = decidePreviewRelease(base);
-  assert.equal(decision.status, 'READY_FOR_OWNER_DEPLOYMENT_APPROVAL');
+  assert.equal(decision.status, 'EVIDENCE_SHAPE_VALID_REQUIRES_EXTERNAL_VERIFICATION');
+  assert.equal(decision.deploymentAuthorized, false);
   assert.deepEqual(decision.blockers, []);
 });

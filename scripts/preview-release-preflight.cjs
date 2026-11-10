@@ -111,10 +111,11 @@ function main(argv) {
       evidenceFilesRead: true,
       attestationFlagsSupplied: args.attestations.size,
       deploymentPerformed: false,
-      note: 'ساختار و اظهارهای ورودی بررسی شدند؛ این ابزار مدرک را مستقل احراز نمی‌کند و هیچ فایلی منتشر یا مستقر نمی‌کند. تأیید مالک و بررسی مستقل همچنان لازم است.'
+      note: 'فقط شکل و سازگاری اظهارهای ورودی بررسی شده است؛ اصالت مدرک، بازیابی واقعی، مقصد زنده، بازبینی مستقل و مجوز مالک احراز نشده‌اند. این ابزار هرگز مجوز انتشار صادر نمی‌کند.'
     };
     process.stdout.write(JSON.stringify(output, null, 2) + '\n');
-    return decision.blockers.length ? 1 : 0;
+    // Exit 3 means the JSON shape passed but external evidence/release approval remain unverified.
+    return decision.blockers.length ? 1 : 3;
   } catch (error) {
     const output = {
       status: 'NOT_READY',

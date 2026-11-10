@@ -48,5 +48,7 @@ test('empty deployment artifact cannot count as verified destination', () => {
   }
 });
 test('nonempty-shaped synthetic evidence only reaches owner approval, never automatic deployment', () => {
-  assert.equal(decidePreviewRelease(baseline).status, 'READY_FOR_OWNER_DEPLOYMENT_APPROVAL');
+  const decision = decidePreviewRelease(baseline);
+  assert.equal(decision.status, 'EVIDENCE_SHAPE_VALID_REQUIRES_EXTERNAL_VERIFICATION');
+  assert.equal(decision.deploymentAuthorized, false);
 });

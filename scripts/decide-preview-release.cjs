@@ -37,8 +37,8 @@ function matchesCanonicalRealpath(inputPath, realpath) {
     inputPath === realpath;
 }
 
-// This is a schema/consistency check for an independently collected operator record,
-// not cryptographic proof. The reviewer must inspect the actual hosting evidence.
+// This is a schema/consistency check for an operator-supplied record, not proof.
+// A structurally complete record must never be labelled release-ready by this module.
 function hasIndependentRestoreAttestation(evidence) {
   if (!evidence || evidence.restore_proven !== true ||
       evidence.evidence !== 'independent-restore-manifest-v1') return false;
@@ -93,8 +93,14 @@ function decidePreviewRelease({ restoreEvidence, destinationEvidence, isolatedRe
   if (zeroApiRequestsVerified !== true) blockers.push('zero API requests not observed');
   if (humanReviewVerified !== true) blockers.push('human review approval missing');
   return Object.freeze({
-    status: blockers.length ? 'NOT_READY' : 'READY_FOR_OWNER_DEPLOYMENT_APPROVAL',
-    blockers
+    status: blockers.length ? 'NOT_READY' : 'EVIDENCE_SHAPE_VALID_REQUIRES_EXTERNAL_VERIFICATION',
+    blockers,
+    externalChecksPending: Object.freeze([
+      'operator-supplied restore and destination attestations have not been independently authenticated',
+      'live HTTPS response, hosting headers, and live mobile behavior have not been verified by this tool',
+      'independent legal/security review and explicit owner approval remain separate requirements'
+    ]),
+    deploymentAuthorized: false
   });
 }
 module.exports = { decidePreviewRelease, hasIndependentRestoreAttestation, hasVerifiedStagingDestination, validGitBlobSha };

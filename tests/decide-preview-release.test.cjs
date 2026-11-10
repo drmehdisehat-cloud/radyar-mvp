@@ -58,8 +58,10 @@ test('complete synthetic manifest and isolated staging path reach owner approval
     restoreEvidence, destinationEvidence, isolatedRestoreVerified:true,
     mobileBrowserVerified:true, zeroApiRequestsVerified:true, humanReviewVerified:true
   });
-  assert.equal(decision.status,'READY_FOR_OWNER_DEPLOYMENT_APPROVAL');
+  assert.equal(decision.status,'EVIDENCE_SHAPE_VALID_REQUIRES_EXTERNAL_VERIFICATION');
   assert.deepEqual(decision.blockers,[]);
+  assert.equal(decision.deploymentAuthorized,false);
+  assert.equal(decision.externalChecksPending.length,3);
 });
 
 test('destination evidence inside production document root is rejected even with matching hashes', () => {

@@ -78,9 +78,11 @@ test('read-only CLI reaches owner-approval state only when all synthetic gates a
   const f = fixture();
   try {
     const result = run(baseArgs(f));
-    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.status, 3, result.stderr);
     const report = JSON.parse(result.stdout);
-    assert.equal(report.status, 'READY_FOR_OWNER_DEPLOYMENT_APPROVAL');
+    assert.equal(report.status, 'EVIDENCE_SHAPE_VALID_REQUIRES_EXTERNAL_VERIFICATION');
+    assert.equal(report.deploymentAuthorized, false);
+    assert.equal(report.externalChecksPending.length, 3);
     assert.deepEqual(report.blockers, []);
     assert.equal(report.evidenceFilesRead, true);
     assert.equal(report.attestationFlagsSupplied, 4);
