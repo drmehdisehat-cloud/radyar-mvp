@@ -4,20 +4,58 @@ const assert = require('node:assert/strict');
 const { decidePreviewRelease } = require('../scripts/decide-preview-release.cjs');
 const hash = 'a'.repeat(64);
 const destinationEvidence = { matched: true, source_sha256: hash, destination_sha256: hash };
+const restoreEvidence = {
+  restore_proven: true,
+  evidence: 'independent-restore-manifest-v1',
+  archive_sha256: 'b'.repeat(64),
+  restored_marker_sha256: 'c'.repeat(64),
+  restore_log_sha256: 'd'.repeat(64),
+  database_probe_sha256: 'e'.repeat(64),
+  restore_exit_code: 0,
+  restore_target_isolated: true,
+  production_database_untouched: true,
+  database_probe_passed: true,
+  outbound_integrations_disabled: true,
+  reviewer_attested: true,
+  restore_target_id: 'synthetic-isolated-target',
+  restore_operator: 'Hosting operator',
+  independent_reviewer: 'Independent reviewer',
+  restore_database_name: 'radyar_restore',
+  production_database_name: 'radyar_live',
+  restore_database_user: 'radyar_restore_user',
+  production_database_user: 'radyar_live_user',
+  restore_target_path: '/srv/isolated/radyar-restore',
+  production_document_root: '/home/site/public_html',
+  restore_completed_at: '2026-11-09T12:00:00.000Z',
+  reviewed_at: '2026-11-09T13:00:00.000Z'
+};
 test('synthetic backup and destination success cannot authorize deployment', () => {
   const decision = decidePreviewRelease({restoreEvidence:{restore_proven:false},destinationEvidence});
   assert.equal(decision.status,'NOT_READY');
-  assert.ok(decision.blockers.includes('independent restore not proven'));
+  assert.ok(decision.blockers.includes('independent restore attestation incomplete or unverified'));
 });
-test('all browser and review flags still fail without real restore proof', () => {
-  const decision = decidePreviewRelease({restoreEvidence:{restore_proven:false},destinationEvidence,isolatedRestoreVerified:true,mobileBrowserVerified:true,zeroApiRequestsVerified:true,humanReviewVerified:true});
+test('all browser and review flags still fail without a complete restore attestation', () => {
+  const decision = decidePreviewRelease({
+    restoreEvidence:{restore_proven:true}, destinationEvidence,
+    isolatedRestoreVerified:true, mobileBrowserVerified:true,
+    zeroApiRequestsVerified:true, humanReviewVerified:true
+  });
   assert.equal(decision.status,'NOT_READY');
 });
-test('tampered destination hash fails even when other flags are true', () => {
-  const decision = decidePreviewRelease({restoreEvidence:{restore_proven:true},destinationEvidence:{...destinationEvidence,destination_sha256:'b'.repeat(64)},isolatedRestoreVerified:true,mobileBrowserVerified:true,zeroApiRequestsVerified:true,humanReviewVerified:true});
+test('tampered destination hash fails even when restore attestation and other flags are complete', () => {
+  const decision = decidePreviewRelease({
+    restoreEvidence, destinationEvidence:{...destinationEvidence,destination_sha256:'f'.repeat(64)},
+    isolatedRestoreVerified:true, mobileBrowserVerified:true,
+    zeroApiRequestsVerified:true, humanReviewVerified:true
+  });
   assert.equal(decision.status,'NOT_READY');
+  assert.ok(decision.blockers.includes('deployed destination integrity not proven'));
 });
-test('only complete independently verified evidence is eligible for owner approval, not automatic publication', () => {
-  const decision = decidePreviewRelease({restoreEvidence:{restore_proven:true},destinationEvidence,isolatedRestoreVerified:true,mobileBrowserVerified:true,zeroApiRequestsVerified:true,humanReviewVerified:true});
+test('complete synthetic manifest shape reaches owner approval only; it is not a deployment', () => {
+  const decision = decidePreviewRelease({
+    restoreEvidence, destinationEvidence, isolatedRestoreVerified:true,
+    mobileBrowserVerified:true, zeroApiRequestsVerified:true, humanReviewVerified:true
+  });
   assert.equal(decision.status,'READY_FOR_OWNER_DEPLOYMENT_APPROVAL');
+  assert.deepEqual(decision.blockers,[]);
 });
