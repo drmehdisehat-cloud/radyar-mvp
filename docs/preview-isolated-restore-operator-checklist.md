@@ -60,3 +60,6 @@ The temporary staging copy above remains outside the production document root. T
 4. Only after that verifier passes, request `https://mehdisehat.ir/dadyar-preview/` from an external browser and repeat the mobile, human-review export, and zero-network checks against the live URL. The filesystem verifier alone does not prove HTTP availability or safe hosting headers.
 
 If the owner cannot provide an isolated cPanel/hosting restore target, separate database/user, and independent reviewer, stop before creating the public directory. The public-subpath verifier is not a substitute for backup recovery or authorization.
+
+
+The release decision engine now requires `restore_target_path === restore_target_realpath` and `production_document_root === production_document_root_realpath`, with both pairs canonical and absolute. If a path resolves differently (including through a symlinked parent), correct the isolated target/path evidence and repeat the independent review; do not weaken this gate.
