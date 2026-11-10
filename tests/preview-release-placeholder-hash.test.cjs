@@ -4,7 +4,31 @@ const assert = require('node:assert/strict');
 const { decidePreviewRelease } = require('../scripts/decide-preview-release.cjs');
 
 const base = {
-  restoreEvidence: { restore_proven: true },
+  restoreEvidence: {
+    restore_proven: true,
+    evidence: 'independent-restore-manifest-v1',
+    archive_sha256: 'b'.repeat(64),
+    restored_marker_sha256: 'c'.repeat(64),
+    restore_log_sha256: 'd'.repeat(64),
+    database_probe_sha256: 'e'.repeat(64),
+    restore_exit_code: 0,
+    restore_target_isolated: true,
+    production_database_untouched: true,
+    database_probe_passed: true,
+    outbound_integrations_disabled: true,
+    reviewer_attested: true,
+    restore_target_id: 'synthetic-isolated-target',
+    restore_operator: 'Hosting operator',
+    independent_reviewer: 'Independent reviewer',
+    restore_database_name: 'radyar_restore',
+    production_database_name: 'radyar_live',
+    restore_database_user: 'radyar_restore_user',
+    production_database_user: 'radyar_live_user',
+    restore_target_path: '/srv/isolated/radyar-restore',
+    production_document_root: '/home/site/public_html',
+    restore_completed_at: '2026-11-09T12:00:00.000Z',
+    reviewed_at: '2026-11-09T13:00:00.000Z'
+  },
   isolatedRestoreVerified: true,
   destinationEvidence: { matched: true, source_sha256: 'a'.repeat(64), destination_sha256: 'a'.repeat(64) },
   mobileBrowserVerified: true,
@@ -22,7 +46,7 @@ test('preview gate rejects placeholder all-zero SHA-256 even when matched flag i
   assert.ok(decision.blockers.includes('deployed destination integrity not proven'));
 });
 
-test('valid-shaped non-placeholder hashes only permit owner approval, never auto-deploy', () => {
+test('valid-shaped synthetic hashes and manifest only permit owner approval, never auto-deploy', () => {
   const decision = decidePreviewRelease(base);
   assert.equal(decision.status, 'READY_FOR_OWNER_DEPLOYMENT_APPROVAL');
   assert.deepEqual(decision.blockers, []);
