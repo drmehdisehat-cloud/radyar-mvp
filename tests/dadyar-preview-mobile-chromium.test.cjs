@@ -170,7 +170,7 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       document.getElementById('defense').value='no';
       document.getElementById('free-question').value='تماس با 09123456789';
       document.getElementById('generate').click();
-      check(document.getElementById('report').textContent.includes('شماره تماس، کارت یا ایمیل واقعی'),'privacy warning absent');
+      check(document.getElementById('report').textContent.includes('شناسه حساس احتمالی'),'privacy warning absent');
       check(!document.getElementById('report').textContent.includes('09123456789'),'sensitive mobile echoed in visible draft');
       document.getElementById('export-ack').click();
       check(download.disabled,'likely phone identifier bypassed export gate');
