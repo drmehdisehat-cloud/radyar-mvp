@@ -27,6 +27,7 @@ function createServer() {
   return http.createServer((req, res) => {
     const rawPath = String(req.url || '').split('?')[0];
     if (req.method !== 'GET' && req.method !== 'HEAD') {
+      req.resume();
       res.writeHead(405, { 'Allow': 'GET, HEAD', 'Cache-Control': 'no-store' });
       res.end();
       return;
@@ -51,12 +52,42 @@ function createServer() {
   });
 }
 
-test('offline Dadyar preview is served at the exact /dadyar-preview/ subpath', async (t) => {
-  const server = createServer();
+function requestRaw(address, method, requestPath, body = '') {
+  return new Promise((resolve, reject) => {
+    const req = http.request({
+      hostname: '127.0.0.1',
+      port: address.port,
+      method,
+      path: requestPath
+    }, (res) => {
+      const chunks = [];
+      res.on('data', chunk => chunks.push(chunk));
+      res.on('end', () => resolve({
+        statusCode: res.statusCode,
+        headers: res.headers,
+        body: Buffer.concat(chunks)
+      }));
+    });
+    req.on('error', reject);
+    if (body) req.write(body);
+    req.end();
+  });
+}
+
+async function listen(server) {
   server.listen(0, '127.0.0.1');
   await once(server, 'listening');
+  return server.address();
+}
+
+function closeAfter(server, t) {
   t.after(() => new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve())));
-  const address = server.address();
+}
+
+test('offline Dadyar preview is served at the exact /dadyar-preview/ subpath', async (t) => {
+  const server = createServer();
+  const address = await listen(server);
+  closeAfter(server, t);
   const base = `http://127.0.0.1:${address.port}`;
 
   for (const route of ['/dadyar-preview/', '/dadyar-preview/index.html']) {
@@ -71,16 +102,18 @@ test('offline Dadyar preview is served at the exact /dadyar-preview/ subpath', a
     assert.equal(response.headers.get('cross-origin-resource-policy'), 'same-origin');
     assert.equal(response.headers.get('set-cookie'), null);
     assert.equal(response.headers.get('location'), null);
-    assert.deepEqual(Buffer.from(await response.arrayBuffer()), html);
+    const body = Buffer.from(await response.arrayBuffer());
+    assert.deepEqual(body, html);
+    const page = body.toString('utf8');
+    assert.match(page, /http-equiv="Content-Security-Policy"/);
+    assert.match(page, /connect-src 'none'/);
   }
 });
 
-test('subpath server refuses root, traversal, encoded separators and non-GET methods', async (t) => {
+test('subpath server refuses raw traversal, encoded separators and non-GET methods', async (t) => {
   const server = createServer();
-  server.listen(0, '127.0.0.1');
-  await once(server, 'listening');
-  t.after(() => new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve())));
-  const base = `http://127.0.0.1:${server.address().port}`;
+  const address = await listen(server);
+  closeAfter(server, t);
 
   for (const route of [
     '/',
@@ -90,23 +123,23 @@ test('subpath server refuses root, traversal, encoded separators and non-GET met
     '/dadyar-preview/%2f..%2findex.html',
     '/%64adyar-preview/'
   ]) {
-    const response = await fetch(base + route, { redirect: 'manual' });
-    assert.equal(response.status, 404, route);
-    assert.equal(response.headers.get('location'), null);
+    // http.request preserves the raw request target; fetch/URL would normalize dot segments.
+    const response = await requestRaw(address, 'GET', route);
+    assert.equal(response.statusCode, 404, route);
+    assert.equal(response.headers.location, undefined);
   }
 
-  const post = await fetch(base + '/dadyar-preview/', { method: 'POST', body: 'synthetic-only' });
-  assert.equal(post.status, 405);
-  assert.equal(post.headers.get('allow'), 'GET, HEAD');
+  const post = await requestRaw(address, 'POST', '/dadyar-preview/', 'synthetic-only');
+  assert.equal(post.statusCode, 405);
+  assert.equal(post.headers.allow, 'GET, HEAD');
 });
 
 test('subpath HEAD response is bodyless and preserves the exact HTML length', async (t) => {
   const server = createServer();
-  server.listen(0, '127.0.0.1');
-  await once(server, 'listening');
-  t.after(() => new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve())));
-  const response = await fetch(`http://127.0.0.1:${server.address().port}/dadyar-preview/`, { method: 'HEAD' });
-  assert.equal(response.status, 200);
-  assert.equal(response.headers.get('content-length'), String(html.length));
-  assert.equal(await response.text(), '');
+  const address = await listen(server);
+  closeAfter(server, t);
+  const response = await requestRaw(address, 'HEAD', '/dadyar-preview/');
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.headers['content-length'], String(html.length));
+  assert.equal(response.body.length, 0);
 });
