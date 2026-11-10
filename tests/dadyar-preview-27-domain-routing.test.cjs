@@ -6,7 +6,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
-const script = html.match(/<script>([\\s\\S]*?)<\\/script>/)?.[1];
+const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 
 function classifier() {
   assert.ok(script, 'inline preview script missing');
@@ -26,7 +26,7 @@ function classifier() {
   };
   const sandbox = { document, URL: {}, Blob: class {}, setTimeout() {} };
   vm.runInNewContext(
-    script + '\\nglobalThis.__classifyQuestion = classifyQuestion; globalThis.__topicHintCount = topicHints.length;',
+    script + '\nglobalThis.__classifyQuestion = classifyQuestion; globalThis.__topicHintCount = topicHints.length;',
     sandbox,
     { timeout: 1000 }
   );
