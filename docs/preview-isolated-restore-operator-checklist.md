@@ -31,3 +31,15 @@ Only after the restore operation and a separate review, prepare a local JSON evi
 4. Run the real Chromium mobile test and record that the preview made zero network/API requests and only allows report export after the explicit human-review acknowledgement. The verifier proves only a safe staged copy; it does not prove that a public deployment occurred or validate a live URL.
 
 Do not publish to `/dadyar-preview/` until the independent restore, destination, browser, zero-network, human-review, legal-source, security, and owner-approval gates are all satisfied. Never change `main`, DNS, production files, or the production database as part of this preview procedure.
+
+
+## Final public subpath verification (after every gate and owner approval)
+
+The temporary staging copy above remains outside the production document root. The requested public URL `/dadyar-preview/` is a separate, post-approval step because its file necessarily lives inside the site's document root.
+
+1. Do not create the public folder until the real isolated restore, independent review, mobile/zero-network checks, legal/security review, and owner approval have all passed.
+2. Add only a new `dadyar-preview` directory directly under the existing document root and place the reviewed `index.html` inside it. Do not replace, edit, or delete any existing site file; do not add `.htaccess`, redirects, symlinks, scripts, uploads, or other files to that directory.
+3. From a trusted working copy outside the document root, run `scripts/verify-public-preview-subpath.cjs SOURCE/index.html DOCUMENT_ROOT/dadyar-preview/index.html DOCUMENT_ROOT EXPECTED_SOURCE_GIT_BLOB_SHA1`. This is read-only. It requires the exact dedicated path, rejects symlink/hard-link aliases, rejects any extra directory entry (including `.htaccess`), pins the source Git blob SHA-1, and compares source/destination SHA-256.
+4. Only after that verifier passes, request `https://mehdisehat.ir/dadyar-preview/` from an external browser and repeat the mobile, human-review export, and zero-network checks against the live URL. The filesystem verifier alone does not prove HTTP availability or safe hosting headers.
+
+If the owner cannot provide an isolated cPanel/hosting restore target, separate database/user, and independent reviewer, stop before creating the public directory. The public-subpath verifier is not a substitute for backup recovery or authorization.
