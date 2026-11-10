@@ -6,8 +6,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
-const style = html.match(/<style>([\\s\\S]*?)<\\/style>/)?.[1];
-const script = html.match(/<script>([\\s\\S]*?)<\\/script>/)?.[1];
+const style = html.match(/<style>([\s\S]*?)<\/style>/)?.[1];
+const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 const csp = html.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/i)?.[1];
 
 function cspHash(source) {
@@ -28,8 +28,8 @@ test('offline preview authorizes only the exact inline script and stylesheet has
 });
 
 test('offline preview has no inline style attributes or remote execution escape hatch', () => {
-  assert.doesNotMatch(html, /<[a-z][^>]*\\sstyle\\s*=/i);
-  assert.doesNotMatch(html, /<script\\b[^>]*\\bsrc\\s*=/i);
-  assert.doesNotMatch(html, /<link\\b[^>]*\\bhref\\s*=\\s*['"]?\\s*(?:https?:|\\/\\/)/i);
-  assert.doesNotMatch(csp, /(?:connect-src|form-action)\\s+[^;]*(?:https?:|\\*|data:)/i);
+  assert.doesNotMatch(html, /<[a-z][^>]*\sstyle\s*=/i);
+  assert.doesNotMatch(html, /<script\b[^>]*\bsrc\s*=/i);
+  assert.doesNotMatch(html, /<link\b[^>]*\bhref\s*=\s*['"]?\s*(?:https?:|\/\/)/i);
+  assert.doesNotMatch(csp, /(?:connect-src|form-action)\s+[^;]*(?:https?:|\*|data:)/i);
 });
