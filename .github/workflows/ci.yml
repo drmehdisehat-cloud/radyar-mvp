@@ -77,3 +77,4 @@ jobs:
           CHROME_BIN="$CHROME_BIN" node --test tests/synthetic-cheque-chromium-e2e.test.cjs
           CHROME_BIN="$CHROME_BIN" node --test tests/dadyar-preview-mobile-chromium.test.cjs
           CHROME_BIN="$CHROME_BIN" node --test tests/dadyar-preview-mobile-device-emulation.test.cjs
+          node --test tests/dadyar-preview-27-domain-routing.test.cjs
