@@ -39,7 +39,7 @@ function assertRestoreEvidence({ archive, restoredRoot, productionDocumentRoot, 
   if (!isOutside(productionRoot, archivePath)) throw Error('archive must be outside production document root');
   // The source archive must also be outside the isolated restore destination.
   if (archivePath.startsWith(root + path.sep)) throw Error('archive must be outside restored root');
-  if (path.isAbsolute(marker) || typeof marker !== 'string' || marker.split(/[\\/]/).includes('..')) throw Error('marker must be a relative path inside restored root');
+  if (typeof marker !== 'string' || path.isAbsolute(marker) || marker.split(/[\\/]/).includes('..')) throw Error('marker must be a relative path inside restored root');
   const markerPath = path.resolve(root, marker);
   if (!markerPath.startsWith(root + path.sep)) throw Error('marker escapes restored root');
   // Reject symlinks at every path component, not only the final marker.
