@@ -4,6 +4,14 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const crypto = require('node:crypto');
+function gitBlobSha(file) {
+  const bytes = fs.readFileSync(file);
+  const digest = crypto.createHash('sha1');
+  digest.update(`blob ${bytes.length}\0`);
+  digest.update(bytes);
+  return digest.digest('hex');
+}
 const { verifyPreview } = require('../scripts/verify-preview-destination.cjs');
 
 test('rejects a symlinked reviewed source even when content matches', t => {
@@ -20,8 +28,9 @@ test('rejects a symlinked reviewed source even when content matches', t => {
   const html = "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; connect-src 'none'; form-action 'none'\"><input id=\"export-ack\"><button id=\"download\" disabled>";
   fs.writeFileSync(path.join(actual, 'index.html'), html);
   fs.writeFileSync(path.join(deployed, 'index.html'), html);
+  const expectedSourceBlobSha = gitBlobSha(path.join(actual, 'index.html'));
   fs.symlinkSync(path.join(actual, 'index.html'), path.join(linked, 'index.html'));
-  assert.throws(() => verifyPreview(path.join(linked, 'index.html'), path.join(deployed, 'index.html'), productionRoot), /source must not be a symbolic link/);
+  assert.throws(() => verifyPreview(path.join(linked, 'index.html'), path.join(deployed, 'index.html'), productionRoot, expectedSourceBlobSha), /source must not be a symbolic link/);
 });
 
 test('rejects symlinked ancestor of reviewed source', t => {
@@ -36,6 +45,7 @@ test('rejects symlinked ancestor of reviewed source', t => {
   fs.mkdirSync(productionRoot);
   fs.writeFileSync(path.join(real, 'index.html'), 'synthetic');
   fs.writeFileSync(path.join(deployed, 'index.html'), 'synthetic');
+  const expectedSourceBlobSha = gitBlobSha(path.join(real, 'index.html'));
   fs.symlinkSync(real, alias, 'dir');
-  assert.throws(() => verifyPreview(path.join(alias, 'index.html'), path.join(deployed, 'index.html'), productionRoot), /source parent must not be a symbolic link/);
+  assert.throws(() => verifyPreview(path.join(alias, 'index.html'), path.join(deployed, 'index.html'), productionRoot, expectedSourceBlobSha), /source parent must not be a symbolic link/);
 });
