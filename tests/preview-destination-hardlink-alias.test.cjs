@@ -10,7 +10,10 @@ const { verifyPublicPreviewSubpath } = require('../scripts/verify-public-preview
 
 function gitBlobSha(file) {
   const bytes = fs.readFileSync(file);
-  return crypto.createHash('sha1').update(`blob ${bytes.length}\\0`).update(bytes).digest('hex');
+  const digest = crypto.createHash('sha1');
+  digest.update('blob ' + bytes.length + String.fromCharCode(0));
+  digest.update(bytes);
+  return digest.digest('hex');
 }
 function fixture(t, mode) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-destination-hardlink-'));
