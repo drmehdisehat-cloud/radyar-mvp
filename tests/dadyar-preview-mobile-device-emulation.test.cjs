@@ -254,9 +254,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.ok(snapshot.multiTopicIds.includes('family'), 'family hint missing from internal multi-topic routing');
     assert.doesNotMatch(snapshot.multiTopicReport, /دسته‌بندی داخلی:|برچسب‌های موضوعی پیشنهادی/);
     for (const topicId of snapshot.multiTopicIds) {
-      const escapedId = topicId.replace(/[.*+?^${}()|[\\]\\]/g, '\\    assert.doesNotMatch(snapshot.multiTopicReport, /دسته‌بندی داخلی:|چندموضوعی|برچسب‌های موضوعی پیشنهادی/);
-    assert.doesNotMatch(snapshot.multiTopicReport, /برچسب‌های موضوعی پیشنهادی/);');
-      assert.doesNotMatch(snapshot.multiTopicReport, new RegExp('\\\\b' + escapedId + '\\\\b', 'i'),
+      assert.equal(snapshot.multiTopicReport.includes(topicId), false,
         'internal topic identifier leaked into the user-facing report: ' + topicId);
     }
     assert.match(snapshot.csp, /connect-src 'none'/);
