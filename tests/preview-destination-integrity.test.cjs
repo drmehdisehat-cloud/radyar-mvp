@@ -45,6 +45,7 @@ test('destination verifier accepts exact synthetic offline preview copy and reje
     const result = verifyPreview(source, destination, productionRoot, expectedSourceBlobSha);
     assert.equal(result.matched, true);
     assert.equal(result.source_blob_sha1, expectedSourceBlobSha);
+    assert.equal(result.expected_source_blob_sha1, expectedSourceBlobSha);
     assert.match(result.source_sha256, /^[a-f0-9]{64}$/);
     assert.equal(result.source_sha256, result.destination_sha256);
     assert.equal(result.destination_outside_document_root, true);

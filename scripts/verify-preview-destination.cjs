@@ -60,7 +60,7 @@ function verifyPreview(source, destination, productionDocumentRoot, expectedSour
   assert.match(html, /form-action 'none'/);
   assert.match(html, /id="export-ack"/);
   assert.match(html, /id="download" disabled/);
-  return { source_blob_sha1: sourceBlobSha, source_sha256: sourceHash, destination_sha256: destinationHash,
+  return { source_blob_sha1: sourceBlobSha, expected_source_blob_sha1: expectedSourceBlobSha, source_sha256: sourceHash, destination_sha256: destinationHash,
     destination_realpath: dst, production_document_root_realpath: protectedRoot,
     destination_outside_document_root: true, matched: true };
 }

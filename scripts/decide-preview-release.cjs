@@ -6,6 +6,11 @@
 const path = require('node:path');
 const EMPTY_SHA256 = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
 const SHA256 = /^[a-f0-9]{64}$/i;
+const GIT_BLOB_SHA1 = /^[a-f0-9]{40}$/i;
+
+function validGitBlobSha(value) {
+  return typeof value === 'string' && GIT_BLOB_SHA1.test(value) && !/^0{40}$/i.test(value);
+}
 
 function validSha(value) {
   return typeof value === 'string' && SHA256.test(value) &&
@@ -58,6 +63,8 @@ function hasIndependentRestoreAttestation(evidence) {
 
 function hasVerifiedStagingDestination(evidence) {
   if (!evidence || evidence.matched !== true || evidence.destination_outside_document_root !== true) return false;
+  if (!validGitBlobSha(evidence.source_blob_sha1) || !validGitBlobSha(evidence.expected_source_blob_sha1) ||
+      evidence.source_blob_sha1.toLowerCase() !== evidence.expected_source_blob_sha1.toLowerCase()) return false;
   if (!validSha(evidence.source_sha256) || !validSha(evidence.destination_sha256) || evidence.source_sha256.toLowerCase() !== evidence.destination_sha256.toLowerCase()) return false;
   if (typeof evidence.destination_realpath !== 'string' || typeof evidence.production_document_root_realpath !== 'string' || !path.isAbsolute(evidence.destination_realpath) || !path.isAbsolute(evidence.production_document_root_realpath)) return false;
   if (path.resolve(evidence.destination_realpath) !== evidence.destination_realpath || path.resolve(evidence.production_document_root_realpath) !== evidence.production_document_root_realpath) return false;
@@ -78,4 +85,4 @@ function decidePreviewRelease({ restoreEvidence, destinationEvidence, isolatedRe
     blockers
   });
 }
-module.exports = { decidePreviewRelease, hasIndependentRestoreAttestation, hasVerifiedStagingDestination };
+module.exports = { decidePreviewRelease, hasIndependentRestoreAttestation, hasVerifiedStagingDestination, validGitBlobSha };

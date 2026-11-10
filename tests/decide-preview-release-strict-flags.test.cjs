@@ -32,7 +32,7 @@ const restoreEvidence = {
 };
 const valid = {
   restoreEvidence,
-  destinationEvidence: { matched: true, source_sha256: sha, destination_sha256: sha, destination_realpath: '/srv/isolated-staging/dadyar-preview/index.html', production_document_root_realpath: '/home/site/public_html', destination_outside_document_root: true },
+  destinationEvidence: { matched: true, source_blob_sha1: '1'.repeat(40), expected_source_blob_sha1: '1'.repeat(40), source_sha256: sha, destination_sha256: sha, destination_realpath: '/srv/isolated-staging/dadyar-preview/index.html', production_document_root_realpath: '/home/site/public_html', destination_outside_document_root: true },
   isolatedRestoreVerified: true,
   mobileBrowserVerified: true,
   zeroApiRequestsVerified: true,
@@ -51,12 +51,29 @@ test('destination cannot be accepted with missing, malformed, empty or nonmatchi
   for (const bad of ['', 'a'.repeat(63), 'g'.repeat(64), '0'.repeat(64), null]) {
     const result = decidePreviewRelease({
       ...valid,
-      destinationEvidence: { matched: true, source_sha256: bad, destination_sha256: bad }
+      destinationEvidence: { matched: true, source_blob_sha1: '1'.repeat(40), expected_source_blob_sha1: '1'.repeat(40), source_sha256: bad, destination_sha256: bad }
     });
     assert.equal(result.status, 'NOT_READY');
     assert.ok(result.blockers.includes('preview destination is not verified outside production document root'));
   }
 });
+test('destination cannot pass without the pinned reviewed Git blob SHA-1', () => {
+  const invalidCases = [
+    { source_blob_sha1: undefined },
+    { source_blob_sha1: '0'.repeat(40), expected_source_blob_sha1: '0'.repeat(40) },
+    { source_blob_sha1: 'g'.repeat(40), expected_source_blob_sha1: 'g'.repeat(40) },
+    { source_blob_sha1: '1'.repeat(40), expected_source_blob_sha1: '2'.repeat(40) }
+  ];
+  for (const patch of invalidCases) {
+    const result = decidePreviewRelease({
+      ...valid,
+      destinationEvidence: { ...valid.destinationEvidence, ...patch }
+    });
+    assert.equal(result.status, 'NOT_READY');
+    assert.ok(result.blockers.includes('preview destination is not verified outside production document root'));
+  }
+});
+
 test('bare restore boolean and old archive-checker output cannot authorize deployment', () => {
   for (const restoreEvidence of [
     { restore_proven: true },

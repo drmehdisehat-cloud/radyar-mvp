@@ -3,7 +3,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { decidePreviewRelease } = require('../scripts/decide-preview-release.cjs');
 const hash = 'a'.repeat(64);
-const destinationEvidence = { matched: true, source_sha256: hash, destination_sha256: hash, destination_realpath: '/srv/isolated-staging/dadyar-preview/index.html', production_document_root_realpath: '/home/site/public_html', destination_outside_document_root: true };
+const destinationEvidence = { matched: true, source_blob_sha1: '1'.repeat(40), expected_source_blob_sha1: '1'.repeat(40), source_sha256: hash, destination_sha256: hash, destination_realpath: '/srv/isolated-staging/dadyar-preview/index.html', production_document_root_realpath: '/home/site/public_html', destination_outside_document_root: true };
 const restoreEvidence = {
   restore_proven: true,
   evidence: 'independent-restore-manifest-v1',
