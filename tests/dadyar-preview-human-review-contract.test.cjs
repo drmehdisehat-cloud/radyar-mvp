@@ -3,6 +3,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const vm = require('node:vm');
 const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
 
 test('synthetic report download requires a named human reviewer and an explicit approval record', () => {
@@ -30,11 +31,22 @@ test('review edits and case edits invalidate the prior approval before another e
   assert.match(html, /reviewDecision\.addEventListener\('change',\(\)=>invalidateHumanReview\(\)\)/);
   assert.match(html, /reviewNote\.addEventListener\('input',\(\)=>invalidateHumanReview\(\)\)/);
   assert.match(html, /reviewRecord=null;reviewerName\.value='';reviewDecision\.value='pending'/);
-  assert.match(html, /reviewStatus\.textContent='گزارش دریافت شد؛ برای دریافت دوباره باید بازبینی تازه ثبت شود'/);
+  assert.match(html, /reviewStatus\.textContent='گزارش دریافت شد؛ برای دریافت دوباره باید بازبینی تازه ثبت شود\\.?'/);
 });
 
 test('suspected personal identifiers are cleared from the editable offline question field', () => {
   assert.match(html, /if\(hasSensitiveIdentifier\) document\.getElementById\('free-question'\)\.value='';/);
   assert.match(html, /const displayQuestion=hasSensitiveIdentifier\?'نامشخص؛ شناسه حساس احتمالی شناسایی شد و متن ورودی حذف شد':freeQuestion/);
   assert.match(html, /if\(hasSensitiveIdentifier\) conflicts\.push\(/);
+});
+
+test('human review metadata is normalized to one line and strips control and bidi characters', () => {
+  const helper = html.match(/function safeReviewText\\(value,max\\)\\{[\\s\\S]*?\\n\\}/)?.[0];
+  assert.ok(helper, 'review metadata sanitizer missing');
+  const sanitize = vm.runInNewContext('(' + helper + ')');
+  assert.equal(sanitize('یادداشت اول\\nنتیجه بازبینی: رد\\u202e', 300), 'یادداشت اول نتیجه بازبینی: رد');
+  assert.equal(sanitize('نام\\u200fبازبین\\u0000', 80), 'نامبازبین');
+  assert.equal(sanitize('الف'.repeat(90), 80), 'الف'.repeat(80));
+  assert.match(html, /reviewer:safeReviewText\\(reviewerName\\.value,80\\)/);
+  assert.match(html, /note:safeReviewText\\(reviewNote\\.value,300\\)/);
 });

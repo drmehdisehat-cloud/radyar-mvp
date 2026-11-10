@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; script-src 'sha256-Bihl94QtFAeePsT0BLyTf+foRBcZiq8nAQFKkZoCY08='; style-src 'sha256-lrzIHO5gcJgWBtnFurwNYbHskiZxSHWg/P7CnNPJT20='; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; script-src 'sha256-zYkV8d/7GiFWO0IhlUbgoPhU2Myq8aoeTQnjh2oXMmM='; style-src 'sha256-lrzIHO5gcJgWBtnFurwNYbHskiZxSHWg/P7CnNPJT20='; form-action 'none'; base-uri 'none'">
 <title>دادیار | پیش‌نمایش آفلاین چک فرضی</title>
 <style>body{font:1rem/1.9 system-ui,sans-serif;background:#f5f6fa;color:#17243b;margin:0}main{max-width:780px;margin:auto;padding:1.2rem}section{background:white;border-radius:16px;padding:1.2rem;margin:1rem 0;box-shadow:0 2px 12px #17243b12}button,select{font:inherit;min-height:44px;max-width:100%;padding:.5rem;border:1px solid #718096;border-radius:8px}input[type=checkbox]{min-width:22px;min-height:22px;vertical-align:middle}button{background:#dcecfb;cursor:pointer}button:focus-visible,select:focus-visible{outline:3px solid #2469a8}fieldset{border:1px solid #b4bfd0;border-radius:12px;margin:1rem 0}label{display:block;margin:.6rem 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}small{color:#475569}#result[hidden]{display:none}#free-question,#reviewer-name,#review-note{box-sizing:border-box;width:100%;font:inherit;border:1px solid #718096;border-radius:8px;padding:.5rem}#review-note{min-height:4.5rem}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}</style></head>
 <body><main><h1>کارگاه آزمایشی دادیار: چک فرضی</h1><p role="status">صرفاً داده‌های ازپیش‌ساخته؛ بدون ارسال اطلاعات، هوش مصنوعی یا ذخیره در سرور. پاسخ خودکار حقوقی: ارائه نمی‌شود. اطلاعات واقعی وارد نکنید.</p>
@@ -455,10 +455,16 @@ const recordReviewButton=document.getElementById('record-review');
 const reviewStatus=document.getElementById('review-status');
 let exportEligible=false;
 let reviewRecord=null;
+function safeReviewText(value,max){
+ return String(value||'').normalize('NFC')
+  .replace(/[\r\n\u2028\u2029]+/g,' ')
+  .replace(/[\u0000-\u001f\u007f-\u009f\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/g,'')
+  .replace(/\s+/g,' ').trim().slice(0,max);
+}
 function updateExportPermission(){
  const approvedReview=Boolean(reviewRecord && reviewRecord.decision==='approved' && reviewRecord.reportSnapshot===report);
  downloadButton.disabled=!exportEligible || !exportAck.checked || !approvedReview;
- recordReviewButton.disabled=!exportEligible || !report || reviewerName.value.trim().length<2 || !['approved','rejected'].includes(reviewDecision.value) || !exportAck.checked || Boolean(reviewRecord);
+ recordReviewButton.disabled=!exportEligible || !report || safeReviewText(reviewerName.value,80).length<2 || !['approved','rejected'].includes(reviewDecision.value) || !exportAck.checked || Boolean(reviewRecord);
 }
 function invalidateHumanReview(message='اطلاعات بازبینی تغییر کرد؛ نتیجه قبلی باطل شد. پس از بررسی دوباره ثبت کنید.'){
  reviewRecord=null;reviewStatus.textContent=message;updateExportPermission();
@@ -473,7 +479,7 @@ reviewNote.addEventListener('input',()=>invalidateHumanReview());
 recordReviewButton.addEventListener('click',()=>{
  if(recordReviewButton.disabled)return;
  const decision=reviewDecision.value;
- reviewRecord={reviewer:reviewerName.value.trim(),decision,note:reviewNote.value.trim(),reviewedAt:new Date().toISOString(),reportSnapshot:report};
+ reviewRecord={reviewer:safeReviewText(reviewerName.value,80),decision,note:safeReviewText(reviewNote.value,300),reviewedAt:new Date().toISOString(),reportSnapshot:report};
  reviewStatus.textContent=decision==='approved'
   ? 'بازبینی انسانی با اظهار بازبین ثبت شد؛ هویت بازبین در این نسخه آفلاین احراز نمی‌شود.'
   : 'بازبینی رد شد؛ دریافت گزارش غیرفعال باقی می‌ماند.';
