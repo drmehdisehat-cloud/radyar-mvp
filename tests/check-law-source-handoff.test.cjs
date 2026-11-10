@@ -83,3 +83,27 @@ test('original-law gazette dates are kept separate from unverified amendment eff
   assert.equal(handoff.humanReviewer, null);
   assert.equal(handoff.releaseSourceEligible, false);
 });
+
+
+test('latest official Qavanin metadata recheck stays limited to the original act and does not clear amendment gates', () => {
+  const observation = handoff.latestOfficialMetadataRecheck;
+  assert.equal(observation.observedAt, '2026-11-10');
+  assert.equal(observation.sourceType, 'primary-official-qavanin-attribute-page');
+  assert.equal(new URL(observation.url).hostname, 'qavanin.ir');
+  assert.equal(observation.retrievalResult, 'retrieved');
+  assert.equal(observation.lawTitleShown, 'قانون صدور چك');
+  assert.equal(observation.approvalDateShown, '1355/04/16');
+  assert.equal(observation.notificationNumberShown, '33206');
+  assert.equal(observation.notificationAuthorityShown, 'نخست وزير');
+  assert.equal(observation.originalOfficialGazetteNumberShown, '9210');
+  assert.equal(observation.originalOfficialGazetteDateShown, '1355/05/19');
+  assert.equal(observation.originalEffectiveDateShown, '1355/06/04');
+  assert.equal(observation.lastStatusShown, 'اصلاحي 1403/03/30');
+  assert.equal(observation.consolidatedTextRecheck.retrievalResult, 'request-timeout');
+  assert.equal(observation.amendmentPublicationDatesVerified, false);
+  assert.equal(observation.amendmentEffectiveDatesVerified, false);
+  assert.equal(observation.currentConsolidatedTextVerified, false);
+  assert.equal(observation.humanReviewer, null);
+  assert.equal(observation.humanReviewedAt, null);
+  assert.equal(observation.releaseSourceEligible, false);
+});
