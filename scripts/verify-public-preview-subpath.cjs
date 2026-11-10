@@ -7,7 +7,7 @@ function sha256(file) { return crypto.createHash('sha256').update(fs.readFileSyn
 function gitBlobSha(file) {
   const bytes = fs.readFileSync(file);
   const digest = crypto.createHash('sha1');
-  digest.update(`blob ${bytes.length}\0`);
+  digest.update(`blob ${bytes.length}\\0`);
   digest.update(bytes);
   return digest.digest('hex');
 }
@@ -47,6 +47,7 @@ function verifyPublicPreviewSubpath(source, destination, productionDocumentRoot,
   assert.ok(fs.statSync(expectedDestination).isFile(), 'public destination must be a regular file');
   const srcStat = fs.statSync(src), dstStat = fs.statSync(expectedDestination);
   assert.ok(srcStat.dev !== dstStat.dev || srcStat.ino !== dstStat.ino, 'public destination must not be a hard link to source');
+  assert.equal(dstStat.nlink, 1, 'public destination must not have hard-link aliases');
   assert.equal(path.basename(src), 'index.html', 'source must be index.html');
   const sourceBlobSha = gitBlobSha(src);
   assert.equal(sourceBlobSha.toLowerCase(), expectedSourceBlobSha.toLowerCase(), 'source differs from pinned reviewed Git blob');
