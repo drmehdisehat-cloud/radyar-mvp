@@ -5,17 +5,33 @@ const fs = require('node:fs');
 const path = require('node:path');
 const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
 
-test('synthetic export asks for explicit human self-review without implying legal certification', () => {
-  const label = html.match(/<label>\s*<input[^>]*id="export-ack"[^>]*>([^<]+)<\/label>/);
-  assert.ok(label, 'human-review acknowledgement label missing');
-  assert.match(label[1], /شخصاً.*بازبینی کرده‌ام/);
-  assert.match(label[1], /به معنای تأیید قانونی.*نیست/);
-  assert.match(html, /هویت بازبین احراز نمی‌شود/);
-  assert.match(html, /جایگزین تأیید بازبین مستقل نیست/);
+test('synthetic report download requires a named human reviewer and an explicit approval record', () => {
+  const label = html.match(/<label><input type="checkbox" id="export-ack"[^>]*>([^<]+)<\/label>/);
+  assert.ok(label, 'human reviewer attestation missing');
+  assert.match(label[1], /بازبین انسانی/);
+  assert.match(html, /id="reviewer-name"[^>]*maxlength="80"/);
+  assert.match(html, /id="review-decision"/);
+  assert.match(html, /option value="approved"/);
+  assert.match(html, /option value="rejected"/);
+  assert.match(html, /id="record-review"[^>]*disabled/);
+  assert.match(html, /reviewRecord\.decision==='approved'/);
+  assert.match(html, /reviewRecord\.reportSnapshot===report/);
+  assert.match(html, /reviewedAt:new Date\(\)\.toISOString\(\)/);
+  assert.match(html, /reviewRecord=null/);
+  assert.match(html, /نام بازبین:/);
+  assert.match(html, /زمان ثبت بازبینی:/);
+  assert.match(html, /هویت بازبین در این نسخه آفلاین احراز نمی‌شود/);
+  assert.match(html, /ثبت بازبینی انسانی \(اظهار محلی؛ هویت احراز نشده\)/);
   assert.match(html, /exportEligible\s*\|\|\s*!exportAck\.checked/);
-  assert.match(html, /exportAck\.checked=false;updateExportPermission\(\)/);
 });
 
+test('review edits and case edits invalidate the prior approval before another export', () => {
+  assert.match(html, /reviewerName\.addEventListener\('input',\(\)=>invalidateHumanReview\(\)\)/);
+  assert.match(html, /reviewDecision\.addEventListener\('change',\(\)=>invalidateHumanReview\(\)\)/);
+  assert.match(html, /reviewNote\.addEventListener\('input',\(\)=>invalidateHumanReview\(\)\)/);
+  assert.match(html, /reviewRecord=null;reviewerName\.value='';reviewDecision\.value='pending'/);
+  assert.match(html, /reviewStatus\.textContent='گزارش دریافت شد؛ برای دریافت دوباره باید بازبینی تازه ثبت شود'/);
+});
 
 test('suspected personal identifiers are cleared from the editable offline question field', () => {
   assert.match(html, /if\(hasSensitiveIdentifier\) document\.getElementById\('free-question'\)\.value='';/);
