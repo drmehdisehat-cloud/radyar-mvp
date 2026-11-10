@@ -49,7 +49,7 @@ test('tampered destination hash fails even when restore attestation and other fl
     zeroApiRequestsVerified:true, humanReviewVerified:true
   });
   assert.equal(decision.status,'NOT_READY');
-  assert.ok(decision.blockers.includes('deployed destination integrity not proven'));
+  assert.ok(decision.blockers.includes('preview destination is not verified outside production document root'));
 });
 test('complete synthetic manifest and isolated staging path reach owner approval only; they are not a deployment', () => {
   const decision = decidePreviewRelease({

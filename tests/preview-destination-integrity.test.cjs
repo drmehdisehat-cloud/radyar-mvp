@@ -12,7 +12,7 @@ test('destination verifier accepts exact synthetic offline preview copy and reje
     const productionRoot = path.join(dir, 'production-root');
     fs.mkdirSync(productionRoot);
     const source = path.resolve(__dirname, '../dadyar-preview/index.html');
-    assert.throws(() => verifyPreview(source, source, productionRoot), /distinct deployed file/);
+    assert.throws(() => verifyPreview(source, source, productionRoot), /distinct staged file/);
     const alias = path.join(dir, 'alias.html');
     fs.symlinkSync(source, alias);
     assert.throws(() => verifyPreview(source, alias, productionRoot), /destination must not be a symbolic link/);

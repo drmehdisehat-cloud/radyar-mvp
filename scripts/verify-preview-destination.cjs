@@ -8,11 +8,14 @@ const assert = require('node:assert/strict');
 function sha256(file) { return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'); }
 function assertNoSymlinkComponents(target, label) {
   let current = path.resolve(target);
+  let leaf = true;
   while (true) {
-    assert.ok(!fs.lstatSync(current).isSymbolicLink(), label + ' path must not contain symlinks');
+    const message = leaf ? label + ' must not be a symbolic link' : label + ' parent must not be a symbolic link';
+    assert.ok(!fs.lstatSync(current).isSymbolicLink(), message);
     const parent = path.dirname(current);
     if (parent === current) break;
     current = parent;
+    leaf = false;
   }
 }
 function isOutside(root, target) {
