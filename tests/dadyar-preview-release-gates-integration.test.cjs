@@ -18,7 +18,8 @@ function fixture(t) {
   const root = path.join(dir, 'isolated-restore');
   const sourceDir = path.join(dir, 'reviewed-source');
   const destinationDir = path.join(dir, 'dadyar-preview');
-  for (const d of [root, sourceDir, destinationDir]) fs.mkdirSync(d);
+  const productionRoot = path.join(dir, 'production-root');
+  for (const d of [root, sourceDir, destinationDir, productionRoot]) fs.mkdirSync(d);
   fs.writeFileSync(archive, 'synthetic archive, not a real backup');
   fs.writeFileSync(path.join(root, 'index.html'), 'synthetic restored marker');
   const source = path.join(sourceDir, 'index.html');
@@ -28,19 +29,19 @@ function fixture(t) {
   const restoreArgs = {archive, restoredRoot:root, marker:'index.html',
     expectedArchiveSha256:sha(fs.readFileSync(archive)),
     expectedMarkerSha256:sha(fs.readFileSync(path.join(root, 'index.html')))};
-  return {restoreArgs, source, destination};
+  return {restoreArgs, source, destination, productionRoot};
 }
 test('synthetic gates both pass, but never claim restore proof', t => {
   const f = fixture(t);
   const restore = assertRestoreEvidence(f.restoreArgs);
-  const deployed = verifyPreview(f.source, f.destination);
+  const deployed = verifyPreview(f.source, f.destination, f.productionRoot);
   assert.equal(restore.restore_proven, false);
   assert.equal(deployed.matched, true);
   assert.equal(deployed.source_sha256, deployed.destination_sha256);
 });
 test('valid destination cannot compensate for mismatched backup evidence', t => {
   const f = fixture(t);
-  assert.equal(verifyPreview(f.source, f.destination).matched, true);
+  assert.equal(verifyPreview(f.source, f.destination, f.productionRoot).matched, true);
   assert.throws(() => assertRestoreEvidence({...f.restoreArgs,
     expectedArchiveSha256:sha('wrong archive')}), /archive SHA-256 mismatch/);
 });
@@ -48,5 +49,5 @@ test('valid backup evidence cannot compensate for modified deployed HTML', t => 
   const f = fixture(t);
   assert.equal(assertRestoreEvidence(f.restoreArgs).restore_proven, false);
   fs.appendFileSync(f.destination, '<!-- modified -->');
-  assert.throws(() => verifyPreview(f.source, f.destination), /destination differs from reviewed source/);
+  assert.throws(() => verifyPreview(f.source, f.destination, f.productionRoot), /destination differs from reviewed source/);
 });

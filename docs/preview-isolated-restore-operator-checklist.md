@@ -27,7 +27,7 @@ Only after the restore operation and a separate review, prepare a local JSON evi
 
 1. Pin the exact reviewed commit SHA and `dadyar-preview/index.html` blob SHA. Build/prepare only that reviewed static preview; no API or authentication secrets.
 2. Copy the reviewed file to a distinct, non-public temporary destination outside the production document root until owner approval.
-3. Run `scripts/verify-preview-destination.cjs SOURCE/index.html DESTINATION/index.html`. The destination must be a regular file, not a symlink or hard link, and its SHA-256 must exactly match the reviewed source.
-4. Run the real Chromium mobile test and record that the preview made zero network/API requests and only allows report export after the explicit human-review acknowledgement.
+3. Run `scripts/verify-preview-destination.cjs SOURCE/index.html STAGING_DESTINATION/index.html PRODUCTION_DOCUMENT_ROOT`. The verifier requires an absolute, existing production document root, rejects symlinks in the root and destination ancestry, and refuses any destination inside that protected root. It also rejects hard links and requires an exact SHA-256 match with the reviewed source.
+4. Run the real Chromium mobile test and record that the preview made zero network/API requests and only allows report export after the explicit human-review acknowledgement. The verifier proves only a safe staged copy; it does not prove that a public deployment occurred or validate a live URL.
 
 Do not publish to `/dadyar-preview/` until the independent restore, destination, browser, zero-network, human-review, legal-source, security, and owner-approval gates are all satisfied. Never change `main`, DNS, production files, or the production database as part of this preview procedure.

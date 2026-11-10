@@ -56,15 +56,20 @@ function hasIndependentRestoreAttestation(evidence) {
   return true;
 }
 
+function hasVerifiedStagingDestination(evidence) {
+  if (!evidence || evidence.matched !== true || evidence.destination_outside_document_root !== true) return false;
+  if (!validSha(evidence.source_sha256) || !validSha(evidence.destination_sha256) || evidence.source_sha256.toLowerCase() !== evidence.destination_sha256.toLowerCase()) return false;
+  if (typeof evidence.destination_realpath !== 'string' || typeof evidence.production_document_root_realpath !== 'string' || !path.isAbsolute(evidence.destination_realpath) || !path.isAbsolute(evidence.production_document_root_realpath)) return false;
+  if (path.resolve(evidence.destination_realpath) !== evidence.destination_realpath || path.resolve(evidence.production_document_root_realpath) !== evidence.production_document_root_realpath) return false;
+  return outsideDocumentRoot(evidence.destination_realpath, evidence.production_document_root_realpath);
+}
+
 function decidePreviewRelease({ restoreEvidence, destinationEvidence, isolatedRestoreVerified = false, mobileBrowserVerified = false, zeroApiRequestsVerified = false, humanReviewVerified = false } = {}) {
   const blockers = [];
   if (!hasIndependentRestoreAttestation(restoreEvidence) || isolatedRestoreVerified !== true)
     blockers.push('independent restore attestation incomplete or unverified');
-  if (destinationEvidence?.matched !== true ||
-      !validSha(destinationEvidence?.source_sha256) ||
-      !validSha(destinationEvidence?.destination_sha256) ||
-      destinationEvidence.source_sha256 !== destinationEvidence.destination_sha256)
-    blockers.push('deployed destination integrity not proven');
+  if (!hasVerifiedStagingDestination(destinationEvidence))
+    blockers.push('preview destination is not verified outside production document root');
   if (mobileBrowserVerified !== true) blockers.push('real mobile browser test missing');
   if (zeroApiRequestsVerified !== true) blockers.push('zero API requests not observed');
   if (humanReviewVerified !== true) blockers.push('human review approval missing');
@@ -73,4 +78,4 @@ function decidePreviewRelease({ restoreEvidence, destinationEvidence, isolatedRe
     blockers
   });
 }
-module.exports = { decidePreviewRelease, hasIndependentRestoreAttestation };
+module.exports = { decidePreviewRelease, hasIndependentRestoreAttestation, hasVerifiedStagingDestination };

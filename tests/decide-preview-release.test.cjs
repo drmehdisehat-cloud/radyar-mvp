@@ -3,7 +3,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { decidePreviewRelease } = require('../scripts/decide-preview-release.cjs');
 const hash = 'a'.repeat(64);
-const destinationEvidence = { matched: true, source_sha256: hash, destination_sha256: hash };
+const destinationEvidence = { matched: true, source_sha256: hash, destination_sha256: hash, destination_realpath: '/srv/isolated-staging/dadyar-preview/index.html', production_document_root_realpath: '/home/site/public_html', destination_outside_document_root: true };
 const restoreEvidence = {
   restore_proven: true,
   evidence: 'independent-restore-manifest-v1',
@@ -51,11 +51,17 @@ test('tampered destination hash fails even when restore attestation and other fl
   assert.equal(decision.status,'NOT_READY');
   assert.ok(decision.blockers.includes('deployed destination integrity not proven'));
 });
-test('complete synthetic manifest shape reaches owner approval only; it is not a deployment', () => {
+test('complete synthetic manifest and isolated staging path reach owner approval only; they are not a deployment', () => {
   const decision = decidePreviewRelease({
     restoreEvidence, destinationEvidence, isolatedRestoreVerified:true,
     mobileBrowserVerified:true, zeroApiRequestsVerified:true, humanReviewVerified:true
   });
   assert.equal(decision.status,'READY_FOR_OWNER_DEPLOYMENT_APPROVAL');
   assert.deepEqual(decision.blockers,[]);
+});
+
+test('destination evidence inside production document root is rejected even with matching hashes', () => {
+  const decision = decidePreviewRelease({ restoreEvidence, destinationEvidence: { ...destinationEvidence, destination_realpath: '/home/site/public_html/dadyar-preview/index.html' }, isolatedRestoreVerified:true, mobileBrowserVerified:true, zeroApiRequestsVerified:true, humanReviewVerified:true });
+  assert.equal(decision.status, 'NOT_READY');
+  assert.ok(decision.blockers.includes('preview destination is not verified outside production document root'));
 });

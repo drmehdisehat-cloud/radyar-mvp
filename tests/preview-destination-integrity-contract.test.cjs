@@ -13,43 +13,45 @@ function sandbox(fn) {
   try {
     const sourceDir = path.join(root, 'source');
     const destDir = path.join(root, 'destination');
+    const productionRoot = path.join(root, 'production-root');
     fs.mkdirSync(sourceDir);
     fs.mkdirSync(destDir);
+    fs.mkdirSync(productionRoot);
     const source = path.join(sourceDir, 'index.html');
     const destination = path.join(destDir, 'index.html');
     fs.writeFileSync(source, fixture);
-    return fn({ root, source, destination, destDir });
+    return fn({ root, source, destination, destDir, productionRoot });
   } finally { fs.rmSync(root, { recursive: true, force: true }); }
 }
 
-test('independent identical preview files pass with matching digests', () => sandbox(({source, destination}) => {
+test('independent identical preview files pass with matching digests', () => sandbox(({source, destination, productionRoot}) => {
   fs.copyFileSync(source, destination);
-  const result = verifyPreview(source, destination);
+  const result = verifyPreview(source, destination, productionRoot);
   assert.equal(result.matched, true);
   assert.match(result.source_sha256, /^[a-f0-9]{64}$/);
   assert.equal(result.source_sha256, result.destination_sha256);
 }));
 
-test('modified destination is rejected even when both files are HTML', () => sandbox(({source, destination}) => {
+test('modified destination is rejected even when both files are HTML', () => sandbox(({source, destination, productionRoot}) => {
   fs.writeFileSync(destination, fixture + '<p>changed</p>');
-  assert.throws(() => verifyPreview(source, destination), /destination differs/);
+  assert.throws(() => verifyPreview(source, destination, productionRoot), /destination differs/);
 }));
 
-test('hard-linked destination is not independent deployment evidence', () => sandbox(({source, destination}) => {
+test('hard-linked destination is not independent deployment evidence', () => sandbox(({source, destination, productionRoot}) => {
   fs.linkSync(source, destination);
-  assert.throws(() => verifyPreview(source, destination), /hard link/);
+  assert.throws(() => verifyPreview(source, destination, productionRoot), /hard link/);
 }));
 
-test('symlinked destination ancestor is rejected', () => sandbox(({root, source, destDir}) => {
+test('symlinked destination ancestor is rejected', () => sandbox(({root, source, destDir, productionRoot}) => {
   const alias = path.join(root, 'alias');
   fs.symlinkSync(destDir, alias, 'dir');
   fs.copyFileSync(source, path.join(destDir, 'index.html'));
-  assert.throws(() => verifyPreview(source, path.join(alias, 'index.html')), /symbolic link/);
+  assert.throws(() => verifyPreview(source, path.join(alias, 'index.html'), productionRoot), /symbolic link/);
 }));
 
-test('symlinked source ancestor is rejected', () => sandbox(({root, source, destination}) => {
+test('symlinked source ancestor is rejected', () => sandbox(({root, source, destination, productionRoot}) => {
   const alias = path.join(root, 'source-alias');
   fs.symlinkSync(path.dirname(source), alias, 'dir');
   fs.copyFileSync(source, destination);
-  assert.throws(() => verifyPreview(path.join(alias, 'index.html'), destination), /symbolic link/);
+  assert.throws(() => verifyPreview(path.join(alias, 'index.html'), destination, productionRoot), /symbolic link/);
 }));

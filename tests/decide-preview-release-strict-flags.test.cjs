@@ -32,7 +32,7 @@ const restoreEvidence = {
 };
 const valid = {
   restoreEvidence,
-  destinationEvidence: { matched: true, source_sha256: sha, destination_sha256: sha },
+  destinationEvidence: { matched: true, source_sha256: sha, destination_sha256: sha, destination_realpath: '/srv/isolated-staging/dadyar-preview/index.html', production_document_root_realpath: '/home/site/public_html', destination_outside_document_root: true },
   isolatedRestoreVerified: true,
   mobileBrowserVerified: true,
   zeroApiRequestsVerified: true,
@@ -54,7 +54,7 @@ test('destination cannot be accepted with missing, malformed, empty or nonmatchi
       destinationEvidence: { matched: true, source_sha256: bad, destination_sha256: bad }
     });
     assert.equal(result.status, 'NOT_READY');
-    assert.ok(result.blockers.includes('deployed destination integrity not proven'));
+    assert.ok(result.blockers.includes('preview destination is not verified outside production document root'));
   }
 });
 test('bare restore boolean and old archive-checker output cannot authorize deployment', () => {
