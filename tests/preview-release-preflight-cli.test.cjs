@@ -74,7 +74,7 @@ function baseArgs(f) {
   ];
 }
 
-test('read-only CLI reaches owner-approval state only when all synthetic gates are supplied', () => {
+test('read-only CLI reports shape-only status when synthetic gates are supplied', () => {
   const f = fixture();
   try {
     const result = run(baseArgs(f));
@@ -87,7 +87,7 @@ test('read-only CLI reaches owner-approval state only when all synthetic gates a
     assert.equal(report.evidenceFilesRead, true);
     assert.equal(report.attestationFlagsSupplied, 4);
     assert.equal(report.deploymentPerformed, false);
-    assert.match(report.note, /مستقل احراز نمی‌کند/);
+    assert.match(report.note, /اصالت مدرک، بازیابی واقعی/);
   } finally {
     fs.rmSync(f.directory, { recursive: true, force: true });
   }
