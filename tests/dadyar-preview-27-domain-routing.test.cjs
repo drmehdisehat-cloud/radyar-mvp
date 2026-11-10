@@ -70,6 +70,13 @@ test('free text can map one question to multiple internal domains', () => {
   assert.equal(classify('موضوع نامرتبط و بی‌کلیدواژه').length, 0);
 });
 
+test('Arabic Yeh and Kaf variants normalize before matching Persian legal hints', () => {
+  const { classify } = classifier();
+  const ids = Array.from(classify('چك صیادی و جرم رايانه ای'), item => item.id);
+  assert.ok(ids.includes('instruments'));
+  assert.ok(ids.includes('digital'));
+});
+
 test('sensitive free text is not exposed through the generated report copy', () => {
   assert.match(html, /internalTopicMatches=hasSensitiveIdentifier\?\[\]:classifyQuestion\(freeQuestion\)/);
   assert.doesNotMatch(html, /برچسب‌های موضوعی پیشنهادی/);
