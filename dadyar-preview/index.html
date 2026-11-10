@@ -476,7 +476,7 @@ document.getElementById('generate').addEventListener('click',()=>{
  const compactIdentifierDigits=normalizedQuestionDigits.replace(/(?<![A-Za-z0-9])IR[ \t\r\n\u00a0\u2007\u2009\u202f\u200c\u200d\u200e\u200f\u2060\ufeff\-–—]+(?=\d)/gi,'IR').replace(/(?<=\d)[ \t\r\n\u00a0\u2007\u2009\u202f\-–—]+(?=\d)/g,'');
  const hasSensitiveIdentifier=/(?:\+?98|0)?9\d{9}(?!\d)|(?:\d[ -]?){15}\d|(?<!\d)\d{10}(?!\d)/.test(compactIdentifierDigits) || /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i.test(freeQuestion) || /(?<![A-Za-z0-9])IR\d{24}(?!\d)/i.test(compactIdentifierDigits) || /(?:https?:\/\/|www\.)[^\s<>]+|(?<![\p{L}\p{N}_])(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z]{2,24})(?:\/[^\s<>]*)?/iu.test(freeQuestion);
  // Never echo suspected identifiers into the visible draft, even while export is blocked.
- const displayQuestion=hasSensitiveIdentifier?'نامشخص؛ متن ورودی به علت احتمال شناسه حساس حذف شد':freeQuestion;
+ const displayQuestion=hasSensitiveIdentifier?'نامشخص؛ شناسه حساس احتمالی شناسایی شد و متن ورودی حذف شد':freeQuestion;
  // Internal-only multi-topic hints; never rendered as user-facing categories or legal conclusions.
  internalTopicMatches=hasSensitiveIdentifier?[]:classifyQuestion(freeQuestion);
  // Discard suspected personal identifiers from the editable field as well as the draft.
