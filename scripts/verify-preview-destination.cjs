@@ -9,7 +9,7 @@ function sha256(file) { return crypto.createHash('sha256').update(fs.readFileSyn
 function gitBlobSha(file) {
   const bytes = fs.readFileSync(file);
   const digest = crypto.createHash('sha1');
-  digest.update(`blob ${bytes.length}\0`);
+  digest.update(`blob ${bytes.length}\\0`);
   digest.update(bytes);
   return digest.digest('hex');
 }
@@ -47,6 +47,7 @@ function verifyPreview(source, destination, productionDocumentRoot, expectedSour
   assert.ok(fs.statSync(dst).isFile(), 'destination must be a regular file');
   const srcStat = fs.statSync(src), dstStat = fs.statSync(dst);
   assert.ok(srcStat.dev !== dstStat.dev || srcStat.ino !== dstStat.ino, 'destination must not be a hard link to source');
+  assert.equal(dstStat.nlink, 1, 'destination must not have hard-link aliases');
   assert.equal(path.basename(src), 'index.html', 'source must be index.html');
   assert.equal(path.basename(dst), 'index.html', 'destination must be index.html');
   const sourceBlobSha = gitBlobSha(src);
