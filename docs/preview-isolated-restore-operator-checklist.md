@@ -5,10 +5,10 @@
 ## Independent restore gate (operator in authenticated cPanel/hosting session)
 
 1. Record backup identifier, creation timestamp, size in bytes, and SHA-256 of the **actual downloaded archive**. Never commit the archive, credentials, logs containing client data, or secrets.
-2. Prepare an isolated, access-restricted restore target **outside the production document root**, with a separate database and database user if the backup includes a database. Verify available disk space and ensure no production hostnames or outbound integrations can be reached.
+2. Prepare an isolated, access-restricted restore target **outside the production document root**, with a separate database and database user if the backup includes a database. Keep the downloaded archive itself outside the production document root too. The evidence checker now requires both absolute paths and rejects either one if it resolves inside the live web root. Verify available disk space and ensure no production hostnames or outbound integrations can be reached.
 3. Restore the archive into that target using the hosting provider's supported restore mechanism. Do **not** point the restore at production or overwrite production files. If the hosting interface offers only in-place restore, stop and arrange an isolated hosting account or sandbox first.
 4. Record the restore command/tool version, exit status, timestamp, target directory, file count, and a redacted error summary. Confirm representative restored files can be read and, when relevant, the isolated database opens. A copied archive or a same-inode hard link is not a restore.
-5. Validate archive and restored-marker hashes with `scripts/check-isolated-restore-evidence.cjs`. Its output deliberately has `restore_proven:false`: it checks archive/file integrity only and cannot establish that a restore operation actually ran.
+5. Validate archive and restored-marker hashes and both path boundaries with `scripts/check-isolated-restore-evidence.cjs ARCHIVE RESTORED_ROOT PRODUCTION_DOCUMENT_ROOT RELATIVE_MARKER EXPECTED_ARCHIVE_SHA256 EXPECTED_MARKER_SHA256`. Its output deliberately has `restore_proven:false`: it checks archive/file integrity only and cannot establish that a restore operation actually ran.
 
 ## Independent operator attestation (prepare outside Git)
 

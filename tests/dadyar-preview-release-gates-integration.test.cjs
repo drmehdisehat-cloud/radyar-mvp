@@ -1,6 +1,5 @@
 'use strict';
-// Synthetic integration gate: both independent backup-evidence and deployed-file
-// integrity checks must pass. Passing this test is NOT a real restore or release.
+// Synthetic integration gate: these fixtures never prove a real restore or release.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -12,7 +11,7 @@ const { verifyPreview } = require('../scripts/verify-preview-destination.cjs');
 function gitBlobSha(file) {
   const bytes = fs.readFileSync(file);
   const digest = crypto.createHash('sha1');
-  digest.update(`blob ${bytes.length}\0`);
+  digest.update(`blob ${bytes.length}\\0`);
   digest.update(bytes);
   return digest.digest('hex');
 }
@@ -34,10 +33,10 @@ function fixture(t) {
   fs.writeFileSync(source, preview);
   fs.writeFileSync(destination, preview);
   const expectedSourceBlobSha = gitBlobSha(source);
-  const restoreArgs = {archive, restoredRoot:root, marker:'index.html',
-    expectedArchiveSha256:sha(fs.readFileSync(archive)),
-    expectedMarkerSha256:sha(fs.readFileSync(path.join(root, 'index.html')))};
-  return {restoreArgs, source, destination, productionRoot, expectedSourceBlobSha};
+  const restoreArgs = { archive, restoredRoot: root, productionDocumentRoot: productionRoot,
+    marker: 'index.html', expectedArchiveSha256: sha(fs.readFileSync(archive)),
+    expectedMarkerSha256: sha(fs.readFileSync(path.join(root, 'index.html'))) };
+  return { restoreArgs, source, destination, productionRoot, expectedSourceBlobSha };
 }
 test('synthetic gates both pass, but never claim restore proof', t => {
   const f = fixture(t);
@@ -50,12 +49,13 @@ test('synthetic gates both pass, but never claim restore proof', t => {
 test('valid destination cannot compensate for mismatched backup evidence', t => {
   const f = fixture(t);
   assert.equal(verifyPreview(f.source, f.destination, f.productionRoot, f.expectedSourceBlobSha).matched, true);
-  assert.throws(() => assertRestoreEvidence({...f.restoreArgs,
-    expectedArchiveSha256:sha('wrong archive')}), /archive SHA-256 mismatch/);
+  assert.throws(() => assertRestoreEvidence({ ...f.restoreArgs,
+    expectedArchiveSha256: sha('wrong archive') }), /archive SHA-256 mismatch/);
 });
 test('valid backup evidence cannot compensate for modified deployed HTML', t => {
   const f = fixture(t);
   assert.equal(assertRestoreEvidence(f.restoreArgs).restore_proven, false);
   fs.appendFileSync(f.destination, '<!-- modified -->');
-  assert.throws(() => verifyPreview(f.source, f.destination, f.productionRoot, f.expectedSourceBlobSha), /destination differs from reviewed source/);
+  assert.throws(() => verifyPreview(f.source, f.destination, f.productionRoot, f.expectedSourceBlobSha),
+    /destination differs from reviewed source/);
 });
