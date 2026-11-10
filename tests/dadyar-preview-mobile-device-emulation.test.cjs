@@ -199,7 +199,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '    horizontalOverflow: root.scrollWidth > root.clientWidth + 1,',
       '    initialDisabled, blockedBeforeAcknowledgement, enabledAfterAcknowledgement,',
       '    reportAfterAcknowledgement, staleDraftInvalidated, multiTopicReport,',
-      '    csp: document.querySelector("meta[http-equiv=\\\\"Content-Security-Policy\\\\"]")?.content || "",',
+      '    csp: document.querySelector("meta[http-equiv]")?.content || "",',
       '    externalResources',
       '  };',
       '})()'
@@ -231,9 +231,16 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.deepEqual(remoteRequests, [], 'preview attempted a remote network request');
   } finally {
     try { client?.socket.close(); } catch {}
-    if (child.exitCode === null) child.kill('SIGTERM');
-    await delay(250);
-    if (child.exitCode === null) child.kill('SIGKILL');
+    if (child.exitCode === null) {
+      const gracefulExit = new Promise(resolve => child.once('exit', resolve));
+      child.kill('SIGTERM');
+      await Promise.race([gracefulExit, delay(1000)]);
+    }
+    if (child.exitCode === null) {
+      const forcedExit = new Promise(resolve => child.once('exit', resolve));
+      child.kill('SIGKILL');
+      await Promise.race([forcedExit, delay(1000)]);
+    }
     fs.rmSync(userData, { recursive: true, force: true });
   }
 });
