@@ -31,6 +31,20 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
   window.addEventListener('load', () => {
     const check=(condition,message)=>{if(!condition)throw Error(message)};
     try {
+      const approveReview=()=>{
+        const reviewer=document.getElementById('reviewer-name');
+        reviewer.value='بازبین آزمون';
+        reviewer.dispatchEvent(new Event('input',{bubbles:true}));
+        const decision=document.getElementById('review-decision');
+        decision.value='approved';
+        decision.dispatchEvent(new Event('change',{bubbles:true}));
+        const note=document.getElementById('review-note');
+        note.value='بازبینی داده ساختگی';
+        note.dispatchEvent(new Event('input',{bubbles:true}));
+        const acknowledgement=document.getElementById('export-ack');
+        if(!acknowledgement.checked) acknowledgement.click();
+        document.getElementById('record-review').click();
+      };
       let calls=0;
       const originalFetch=window.fetch;
       window.fetch=(...args)=>{calls++;return Promise.reject(Error('network forbidden'))};
@@ -55,9 +69,21 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       document.getElementById('certificate').value='no';
       document.getElementById('defense').value='yes';
       document.getElementById('generate').click();
-      check(download.disabled,'export without acknowledgement');
+      check(download.disabled,'export without human review');
+      check(document.getElementById('record-review').disabled,'review registration enabled before reviewer declaration');
+      // A rejected review must never authorize download.
+      const reviewerField=document.getElementById('reviewer-name');
+      reviewerField.value='بازبین آزمون';
+      reviewerField.dispatchEvent(new Event('input',{bubbles:true}));
+      const decisionField=document.getElementById('review-decision');
+      decisionField.value='rejected';
+      decisionField.dispatchEvent(new Event('change',{bubbles:true}));
       document.getElementById('export-ack').click();
-      check(!download.disabled,'completed acknowledged interview blocked');
+      document.getElementById('record-review').click();
+      check(download.disabled,'rejected human review permitted export');
+      approveReview();
+      check(!download.disabled,'approved human review did not enable export');
+      check(document.getElementById('review-status').textContent.includes('هویت بازبین در این نسخه آفلاین احراز نمی‌شود'),'review identity limitation missing');
       // Contradictory evidence must invalidate export, even with completed answers.
       const certificateEvidence=[...document.querySelectorAll('fieldset input[type=checkbox]')].find(el=>el.value==='گواهی عدم پرداخت نمونه');
       check(!!certificateEvidence,'synthetic certificate evidence fixture missing');
@@ -71,14 +97,14 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       certificateEvidence.dispatchEvent(new Event('change',{bubbles:true}));
       document.getElementById('generate').click();
       check(download.disabled,'regenerated report bypassed acknowledgement');
-      document.getElementById('export-ack').click();
+      approveReview();
       check(!download.disabled,'resolved contradiction and new acknowledgement did not permit export');
       // A successful synthetic export must consume consent, preventing repeated downloads.
       download.click();
       check(download.disabled,'export remained enabled after download');
       check(!document.getElementById('export-ack').checked,'export retained prior human-review acknowledgement');
       check(document.getElementById('export-status').textContent.includes('مجدداً'),'export confirmation absent');
-      document.getElementById('export-ack').click();
+      approveReview();
       check(!download.disabled,'fresh acknowledgement did not re-enable export');
       document.getElementById('defense').value='no';
       document.getElementById('defense').dispatchEvent(new Event('change',{bubbles:true}));
@@ -89,7 +115,7 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       document.getElementById('defense').value='yes';
       document.getElementById('defense').dispatchEvent(new Event('change',{bubbles:true}));
       document.getElementById('generate').click();
-      document.getElementById('export-ack').click();
+      approveReview();
       check(!download.disabled,'role-change fixture did not enable synthetic export');
       const role=document.getElementById('role');
       // A keyboard user focused inside the draft must not be stranded in hidden content.
@@ -103,7 +129,7 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       document.getElementById('generate').click();
       check(download.disabled,'new simulated role bypassed review acknowledgement');
       check(document.getElementById('report').textContent.includes('نقش: قاضی'),'regenerated report retained stale role');
-      document.getElementById('export-ack').click();
+      approveReview();
       check(!download.disabled,'fresh review acknowledgement blocked after role change');
       // Evidence changes must also return keyboard focus from a now-hidden report.
       document.getElementById('download').focus();
@@ -123,7 +149,7 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       document.getElementById('defense').value='no';
       document.getElementById('generate').click();
       check(document.getElementById('report').textContent.includes('ادعای تسویه در فهرست ادله مخالف'),'settlement contradiction missing from draft');
-      document.getElementById('export-ack').click();
+      approveReview();
       check(download.disabled,'settlement contradiction bypassed export gate');
       settlement.checked=false;
       settlement.dispatchEvent(new Event('change',{bubbles:true}));
@@ -136,7 +162,7 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       document.getElementById('defense').value='yes';
       document.getElementById('generate').click();
       check(document.getElementById('report').textContent.includes('تصویر چک نمونه انتخاب نشده است'),'missing cheque evidence warning absent');
-      document.getElementById('export-ack').click();
+      approveReview();
       check(download.disabled,'settlement-only evidence bypassed cheque export gate');
       check(document.getElementById('export-status').textContent.includes('تصویر چک نمونه انتخاب نشده است'),'missing cheque evidence status absent');
       // An empty synthetic evidence set must never become downloadable, even with all answers complete.
@@ -146,7 +172,7 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       document.getElementById('defense').value='no';
       document.getElementById('generate').click();
       check(document.getElementById('report').textContent.includes('هیچ مدرک فرضی انتخاب نشده است'),'missing-evidence warning absent');
-      document.getElementById('export-ack').click();
+      approveReview();
       check(download.disabled,'empty evidence set bypassed export gate');
       check(document.getElementById('export-status').textContent.includes('هیچ مدرک فرضی انتخاب نشده است'),'empty evidence warning absent from status');
       // Offline topic hints stay internal: assert their IDs without rendering labels in the report.
@@ -177,24 +203,24 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       document.getElementById('generate').click();
       check(document.getElementById('report').textContent.includes('شناسه حساس احتمالی'),'privacy warning absent');
       check(!document.getElementById('report').textContent.includes('09123456789'),'sensitive mobile echoed in visible draft');
-      document.getElementById('export-ack').click();
+      approveReview();
       check(download.disabled,'likely phone identifier bypassed export gate');
       check(document.getElementById('export-status').textContent.includes('شناسه حساس'),'privacy export status absent');
       document.getElementById('free-question').value='کارت 6037 9912 3456 7890';
       document.getElementById('free-question').dispatchEvent(new Event('input',{bubbles:true}));
       document.getElementById('generate').click();
-      document.getElementById('export-ack').click();
+      approveReview();
       check(download.disabled,'likely bank card identifier bypassed export gate');
       document.getElementById('free-question').value='تماس با ۰۹۱۲۳۴۵۶۷۸۹';
       document.getElementById('free-question').dispatchEvent(new Event('input',{bubbles:true}));
       document.getElementById('generate').click();
-      document.getElementById('export-ack').click();
+      approveReview();
       check(download.disabled,'Persian-digit mobile identifier bypassed export gate');
       check(document.getElementById('export-status').textContent.includes('شناسه حساس'),'Persian-digit privacy warning missing');
       document.getElementById('free-question').value='بطاقة ٦٠٣٧ ٩٩١٢ ٣٤٥٦ ٧٨٩٠';
       document.getElementById('free-question').dispatchEvent(new Event('input',{bubbles:true}));
       document.getElementById('generate').click();
-      document.getElementById('export-ack').click();
+      approveReview();
       check(download.disabled,'Arabic-digit bank-card identifier bypassed export gate');
       check(!document.getElementById('report').textContent.includes('٦٠٣٧ ٩٩١٢ ٣٤٥٦ ٧٨٩٠'),'Arabic-digit card echoed in visible draft');
       // Suspected email addresses must not be echoed or exported in an offline draft.
@@ -203,7 +229,7 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       document.getElementById('generate').click();
       check(document.getElementById('free-question').value==='','suspected email was retained in input');
       check(!document.getElementById('report').textContent.includes('test.person@example.com'),'suspected email echoed in draft');
-      document.getElementById('export-ack').click();
+      approveReview();
       check(download.disabled,'suspected email bypassed export gate');
       // A possible ten-digit national ID must not be echoed or exported, including Persian digits.
       document.getElementById('free-question').value='کد ملی ۰۰۱۲۳۴۵۶۷۸';
@@ -211,12 +237,12 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       document.getElementById('generate').click();
       check(document.getElementById('free-question').value==='','possible national ID retained in input');
       check(!document.getElementById('report').textContent.includes('۰۰۱۲۳۴۵۶۷۸'),'possible national ID echoed');
-      document.getElementById('export-ack').click();
+      approveReview();
       check(download.disabled,'possible national ID bypassed export gate');
       document.getElementById('free-question').value='چک فرضی';
       document.getElementById('free-question').dispatchEvent(new Event('input',{bubbles:true}));
       document.getElementById('generate').click();
-      document.getElementById('export-ack').click();
+      approveReview();
       check(!download.disabled,'safe synthetic question did not restore export');
       // Reset must clear all synthetic answers, selected evidence and export consent.
       document.getElementById('reset').click();
