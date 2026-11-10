@@ -93,6 +93,15 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       check(topicScope.textContent.includes('موضوع مشخصی شناسایی نشد'),'unclassified free question was not marked uncertain');
       approveReview();
       check(download.disabled,'unclassified free question bypassed export scope gate');
+      // A question classified only as cheque remains eligible after human review.
+      freeQuestion.value='در خصوص چک چه مدارکی لازم است؟';
+      freeQuestion.dispatchEvent(new Event('input',{bubbles:true}));
+      document.getElementById('generate').click();
+      check(topicScope.textContent.includes('هم‌راستاست'),'cheque-only question was not recognized as in scope');
+      approveReview();
+      check(!download.disabled,'cheque-only question was incorrectly blocked by scope guard');
+      download.click();
+      check(download.disabled,'cheque-only export did not consume its approval');
       freeQuestion.value='';
       freeQuestion.dispatchEvent(new Event('input',{bubbles:true}));
       document.getElementById('generate').click();
