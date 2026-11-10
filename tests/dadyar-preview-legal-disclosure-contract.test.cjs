@@ -10,7 +10,9 @@ test('synthetic cheque preview does not imply verified legal authority or real p
   assert.match(html, /منابع قانونی: تأییدنشده؛ هیچ استناد قانونی ارائه نمی‌شود/);
   assert.match(html, /تاریخ واقعی احراز نشده است/);
   assert.match(html, /این متن رأی، سند رسمی یا دستور انتظامی نیست/);
-  assert.match(html, /نقش کمک‌یار/);
+  assert.match(html, /نقش شبیه‌سازی آموزشی/);
+  assert.match(html, /id="role-simulation-notice" role="note"/);
+  assert.match(html, /هیچ سمت، اختیار یا اثر حقوقی واقعی ایجاد نمی‌کنند/);
   assert.match(html, /اطلاعات واقعی وارد نکنید/);
   assert.doesNotMatch(html, /<a\b/i, 'unreviewed legal links must not be presented as sources');
 });
