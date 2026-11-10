@@ -10,6 +10,8 @@ test('synthetic export asks for explicit human self-review without implying lega
   assert.ok(label, 'human-review acknowledgement label missing');
   assert.match(label[1], /شخصاً.*بازبینی کرده‌ام/);
   assert.match(label[1], /به معنای تأیید قانونی.*نیست/);
+  assert.match(html, /هویت بازبین احراز نمی‌شود/);
+  assert.match(html, /جایگزین تأیید بازبین مستقل نیست/);
   assert.match(html, /exportEligible\s*\|\|\s*!exportAck\.checked/);
   assert.match(html, /exportAck\.checked=false;updateExportPermission\(\)/);
 });
