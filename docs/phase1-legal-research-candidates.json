@@ -51,7 +51,28 @@
       "effectiveDate": null,
       "amendmentsCheckedAt": null,
       "humanReviewer": null,
-      "status": "needs-official-verification"
+      "status": "needs-official-verification",
+      "officialSourceCandidates": [
+        {
+          "title": "قانون اصلاح قانون صدور چک مصوب ۱۳۹۷/۰۸/۱۳",
+          "url": "https://rc.majlis.ir/fa/law/show/1091223",
+          "sourceType": "official-legislative-portal-candidate",
+          "status": "candidate-not-retrieved-or-human-reviewed"
+        },
+        {
+          "title": "قانون اصلاح قانون صدور چک مصوب ۱۴۰۰/۰۱/۲۹",
+          "url": "https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689",
+          "sourceType": "official-legislation-portal-candidate",
+          "status": "candidate-not-retrieved-or-human-reviewed"
+        },
+        {
+          "title": "متن تنقیحی قانون صدور چک با اصلاحات بعدی",
+          "url": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
+          "sourceType": "official-consolidated-text-candidate",
+          "status": "candidate-not-retrieved-or-human-reviewed"
+        }
+      ],
+      "sourceDiscoveryNote": "این پیوندها فقط سرنخ پژوهشی‌اند. در ۲۰۲۶-۱۱-۱۰ بازیابی مستقیم متن از پورتال‌های رسمی در این اجرا کامل نشد؛ تاریخ لازم‌الاجراشدن، نسخه حاکم بر تاریخ رویداد، متن کامل و بازبینی انسانی عمداً خالی مانده‌اند. این موارد در پوشش منابع یا آمادگی انتشار محاسبه نمی‌شوند."
     },
     {
       "id": "debt",
