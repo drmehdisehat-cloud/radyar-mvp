@@ -48,5 +48,24 @@ test('experimental CI push and pull-request scopes are explicit and documented',
   assert.ok(jobsSection, 'jobs section missing');
   const jobNames = Array.from(jobsSection.matchAll(/^  ([a-zA-Z0-9_-]+):\s*$/gm), item => item[1]);
   assert.deepEqual(jobNames, ['verify-existing-frontend'], 'unexpected job added; review deployment boundary');
-  assert.doesNotMatch(jobsSection, /^      - name:.*deploy/im, 'deployment step must not enter stage-0 CI');
+
+  const stepNames = Array.from(jobsSection.matchAll(/^      - name:\s*(.+)$/gm), item => item[1].trim());
+  assert.ok(!stepNames.some(name => /^(?:deploy|publish|upload|release)\b/i.test(name)),
+    'a deployment or publication step must not enter stage-0 CI');
+
+  // Informational text such as "never deploy" is not itself a deployment action.
+  const executableWorkflow = workflow
+    .split(/\r?\n/)
+    .filter(line => !line.trimStart().startsWith('#'))
+    .join('\n');
+
+  assert.doesNotMatch(executableWorkflow,
+    /^\s+- uses:\s*[^\n]*(?:actions-gh-pages|deploy-pages|scp-action|ssh-action)\b/im,
+    'a deployment action must not enter stage-0 CI');
+  assert.doesNotMatch(executableWorkflow,
+    /^\s{10,}(?:rsync|scp|sftp|ftp|ssh|npm\s+publish|wrangler\s+deploy|vercel\s+--prod|netlify\s+deploy|firebase\s+deploy|aws\s+s3\s+sync)\b/im,
+    'a deployment command must not enter stage-0 CI');
+  assert.doesNotMatch(executableWorkflow,
+    /^\s{10,}curl\b[^\n]*(?:--upload-file|\s-T\s|--request\s+PUT)\b/im,
+    'an HTTP upload command must not enter stage-0 CI');
 });
