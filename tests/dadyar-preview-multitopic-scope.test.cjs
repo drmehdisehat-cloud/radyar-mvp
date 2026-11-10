@@ -7,14 +7,14 @@ const vm = require('node:vm');
 const crypto = require('node:crypto');
 
 const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
-const hintsSource = html.match(/const topicHints = (\\[[\\s\\S]*?\\n\\]);\\nfunction normalizeTopicText/)?.[1];
-const helpersSource = html.match(/function normalizeTopicText\\(value\\) \\{[\\s\\S]*?function describeTopicScope\\(matches, question\\) \\{[\\s\\S]*?\\n\\}/)?.[0];
+const hintsSource = html.match(/const topicHints = (\[[\s\S]*?\n\]);\nfunction normalizeTopicText/)?.[1];
+const helpersSource = html.match(/function normalizeTopicText\(value\) \{[\s\S]*?function describeTopicScope\(matches, question\) \{[\s\S]*?\n\}/)?.[0];
 
 function helpers() {
   assert.ok(hintsSource, '27-domain hint table missing');
   assert.ok(helpersSource, 'topic classifier helpers missing');
   return vm.runInNewContext(
-    'const topicHints = ' + hintsSource + ';\\n' + helpersSource + ';\\n({ topicHints, classifyQuestion, describeTopicScope })'
+    'const topicHints = ' + hintsSource + ';\n' + helpersSource + ';\n({ topicHints, classifyQuestion, describeTopicScope })'
   );
 }
 
@@ -51,16 +51,16 @@ test('a cheque-only question stays within scope and an empty question is not mis
 });
 
 test('the browser uses internal matches for a neutral scope notice and clears stale notices', () => {
-  assert.match(html, /const topicScopeStatus=document\\.getElementById\\('topic-scope-status'\\)/);
-  assert.match(html, /describeTopicScope\\(internalTopicMatches,freeQuestion\\)/);
-  assert.match(html, /topicScopeStatus\\.textContent=topicScopeMessage/);
-  assert.match(html, /topicScopeStatus\\.textContent=''/);
+  assert.match(html, /const topicScopeStatus=document\.getElementById\('topic-scope-status'\)/);
+  assert.match(html, /describeTopicScope\(internalTopicMatches,freeQuestion\)/);
+  assert.match(html, /topicScopeStatus\.textContent=topicScopeMessage/);
+  assert.match(html, /topicScopeStatus\.textContent=''/);
   assert.match(html, /دامنه بررسی پرسش آزاد:/);
-  assert.doesNotMatch(html, /topicScopeStatus\\.textContent[^;]*(?:family|property|instruments)/);
+  assert.doesNotMatch(html, /topicScopeStatus\.textContent[^;]*(?:family|property|instruments)/);
 });
 
 test('the CSP script hash matches the exact inline script bytes', () => {
-  const script = html.match(/<script>([\\s\\S]*?)<\\/script>/)?.[1];
+  const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
   const declared = html.match(/script-src 'sha256-([^']+)'/)?.[1];
   assert.ok(script && declared, 'inline script or CSP hash missing');
   const actual = crypto.createHash('sha256').update(script, 'utf8').digest('base64');
