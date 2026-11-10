@@ -156,7 +156,7 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       const internalTopicIds=classifyQuestion(document.getElementById('free-question').value).map(item=>item.id);
       const routedReport=document.getElementById('report').textContent;
       check(internalTopicIds.includes('instruments') && internalTopicIds.includes('family'),'multi-topic offline hints absent from internal router');
-      check(routedReport.includes('دسته‌بندی داخلی: چندموضوعی و غیرقطعی'),'internal routing disclosure missing');
+      check(!routedReport.includes('دسته‌بندی داخلی:') && !routedReport.includes('برچسب‌های موضوعی پیشنهادی'),'internal topic routing leaked into user-facing report');
       check(!routedReport.includes('برچسب‌های موضوعی پیشنهادی'),'internal topic labels leaked into report');
       check(routedReport.includes('دامنه این پیش‌نمایش: کارگاه چک فرضی'),'preview scope warning absent');
       check(routedReport.includes('پاسخ خودکار حقوقی: ارائه نمی‌شود'),'offline hints impersonated legal AI');
