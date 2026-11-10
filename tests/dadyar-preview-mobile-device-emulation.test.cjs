@@ -8,6 +8,21 @@ const { spawn } = require('node:child_process');
 const { pathToFileURL } = require('node:url');
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+async function waitForChildExit(child, timeoutMs) {
+  if (child.exitCode !== null || child.signalCode !== null) return true;
+  return Promise.race([
+    new Promise(resolve => child.once('exit', () => resolve(true))),
+    delay(timeoutMs).then(() => false)
+  ]);
+}
+function signalChromiumTree(child, signal) {
+  try {
+    if (process.platform !== 'win32' && child.pid) process.kill(-child.pid, signal);
+    else if (child.exitCode === null && child.signalCode === null) child.kill(signal);
+  } catch (error) {
+    if (error.code !== 'ESRCH') throw error;
+  }
+}
 
 async function waitForDevToolsPort(file, child, timeoutMs = 10000) {
   const deadline = Date.now() + timeoutMs;
@@ -116,7 +131,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     '--remote-allow-origins=*',
     '--user-data-dir=' + userData,
     'about:blank'
-  ], { stdio: ['ignore', 'ignore', 'pipe'] });
+  ], { stdio: ['ignore', 'ignore', 'pipe'], detached: process.platform !== 'win32' });
 
   let stderr = '';
   child.stderr.on('data', chunk => { stderr = (stderr + chunk.toString()).slice(-1500); });
@@ -231,16 +246,21 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.deepEqual(remoteRequests, [], 'preview attempted a remote network request');
   } finally {
     try { client?.socket.close(); } catch {}
-    if (child.exitCode === null) {
-      const gracefulExit = new Promise(resolve => child.once('exit', resolve));
-      child.kill('SIGTERM');
-      await Promise.race([gracefulExit, delay(1000)]);
+    // Chromium may leave renderer/zygote children holding profile files after its
+    // browser parent exits. Terminate the isolated process group before removing it.
+    if (child.exitCode === null && child.signalCode === null) {
+      signalChromiumTree(child, 'SIGTERM');
+      await waitForChildExit(child, 1500);
     }
-    if (child.exitCode === null) {
-      const forcedExit = new Promise(resolve => child.once('exit', resolve));
-      child.kill('SIGKILL');
-      await Promise.race([forcedExit, delay(1000)]);
+    // Kill any remaining descendants in the detached process group, even if the
+    // browser parent has already exited.
+    if (process.platform !== 'win32' && child.pid) {
+      signalChromiumTree(child, 'SIGKILL');
+    } else if (child.exitCode === null && child.signalCode === null) {
+      signalChromiumTree(child, 'SIGKILL');
     }
-    fs.rmSync(userData, { recursive: true, force: true });
+    await waitForChildExit(child, 1000);
+    await delay(100);
+    fs.rmSync(userData, { recursive: true, force: true, maxRetries: 8, retryDelay: 100 });
   }
 });
