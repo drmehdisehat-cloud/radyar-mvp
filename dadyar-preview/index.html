@@ -4,7 +4,7 @@
 <title>دادیار | پیش‌نمایش آفلاین چک فرضی</title>
 <style>body{font:1rem/1.9 system-ui,sans-serif;background:#f5f6fa;color:#17243b;margin:0}main{max-width:780px;margin:auto;padding:1.2rem}section{background:white;border-radius:16px;padding:1.2rem;margin:1rem 0;box-shadow:0 2px 12px #17243b12}button,select{font:inherit;min-height:44px;max-width:100%;padding:.5rem;border:1px solid #718096;border-radius:8px}input[type=checkbox]{min-width:22px;min-height:22px;vertical-align:middle}button{background:#dcecfb;cursor:pointer}button:focus-visible,select:focus-visible{outline:3px solid #2469a8}fieldset{border:1px solid #b4bfd0;border-radius:12px;margin:1rem 0}label{display:block;margin:.6rem 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}small{color:#475569}#result[hidden]{display:none}#free-question,#reviewer-name,#review-note{box-sizing:border-box;width:100%;font:inherit;border:1px solid #718096;border-radius:8px;padding:.5rem}#review-note{min-height:4.5rem}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}</style></head>
 <body><main><h1>کارگاه آزمایشی دادیار: چک فرضی</h1><p role="status">صرفاً داده‌های ازپیش‌ساخته؛ بدون ارسال اطلاعات، هوش مصنوعی یا ذخیره در سرور. پاسخ خودکار حقوقی: ارائه نمی‌شود. اطلاعات واقعی وارد نکنید.</p>
-<section><label for="role">نقش کمک‌یار</label><select id="role"><option>وکیل</option><option>قاضی</option><option>سردفتر</option><option>دادستان</option><option>ضابط</option></select>
+<section><label for="role">نقش شبیه‌سازی آموزشی</label><p id="role-simulation-notice" role="note">نقش‌های وکیل، قاضی، دادستان، ضابط و سردفتر در این پیش‌نمایش صرفاً شبیه‌سازی آموزشی‌اند؛ هیچ سمت، اختیار یا اثر حقوقی واقعی ایجاد نمی‌کنند.</p><select id="role"><option>وکیل</option><option>قاضی</option><option>سردفتر</option><option>دادستان</option><option>ضابط</option></select>
 <fieldset><legend>کدام مدارک فرضی را در مصاحبه داریم؟</legend>
 <label><input type="checkbox" data-stance="موافق" value="تصویر چک نمونه با شماره ساختگی" checked> تصویر چک نمونه</label>
 <label><input type="checkbox" data-stance="موافق" value="گواهی عدم پرداخت نمونه"> گواهی عدم پرداخت نمونه</label>
@@ -443,6 +443,7 @@ function describeTopicScope(matches, question) {
   if (hasCheque) return 'پرسش آزاد با دامنه چک فرضی هم‌راستاست؛ تشخیص صرفاً کلیدواژه‌ای و غیرقطعی است.';
   return 'از پرسش آزاد موضوع مشخصی شناسایی نشد؛ متن را روشن‌تر کنید. این تشخیص قطعی نیست.';
 }
+const roleSimulationNotice='نقش‌های وکیل، قاضی، دادستان، ضابط و سردفتر در این پیش‌نمایش صرفاً شبیه‌سازی آموزشی‌اند؛ هیچ سمت، اختیار یا اثر حقوقی واقعی ایجاد نمی‌کنند.';
 const purposes={'وکیل':'مصاحبه و تنظیم پیش‌نویس','قاضی':'مقایسه استدلال طرفین، بدون صدور رأی','سردفتر':'بررسی اولیه مدارک، بدون ثبت سند','دادستان':'بررسی ادعا و دفاع، بدون تصمیم قضایی','ضابط':'سامان‌دهی گزارش، بدون اقدام انتظامی'};
 const roleGuidance={
  'وکیل':['تفکیک ادعاهای موکل از اسناد قابل بررسی','فهرست پرسش‌های تکمیلی برای تنظیم پیش‌نویس، بدون تعیین نتیجه دعوا'],
@@ -551,7 +552,7 @@ document.getElementById('generate').addEventListener('click',()=>{
  // A settlement claim alone is not a cheque record: require the synthetic cheque fixture before export.
  if(evidence.length>0 && !evidence.some(e=>e.description==='تصویر چک نمونه با شماره ساختگی')) conflicts.push('تصویر چک نمونه انتخاب نشده است؛ ادعای تسویه یا سایر مدارک به‌تنهایی برای دریافت گزارش چک فرضی کافی نیستند.');
  const section=(stance)=>evidence.filter(e=>e.stance===stance).map(e=>'• '+e.description).join('\n')||'ثبت نشده';
- report=['دادیار | چک صرفاً فرضی | نسخه آزمایشی آفلاین','نقش: '+role.value+' | هدف: '+purposes[role.value],
+ report=['دادیار | چک صرفاً فرضی | نسخه آزمایشی آفلاین','نقش: '+role.value+' | هدف: '+purposes[role.value],roleSimulationNotice,
  'پرسش آزاد کاربر درباره داده ساختگی: '+(displayQuestion||'ثبت نشده')+'\nدامنه بررسی پرسش آزاد: '+topicScopeMessage+'\nدامنه این پیش‌نمایش: کارگاه چک فرضی؛ پاسخ خودکار حقوقی: ارائه نمی‌شود. منابع معتبر و بررسی انسانی لازم است.','ادله موافق:\n'+section('موافق'),'ادله مخالف:\n'+section('مخالف'),'نامعلوم:\n'+section('نامعلوم'),
  'تعارض‌های داده فرضی:\n'+(conflicts.map(c=>'• '+c).join('\n')||'تعارض آشکاری میان پاسخ‌های نمونه و فهرست مدارک یافت نشد.'),
  'وضعیت مصاحبه فرضی:\n'+answers.map(a=>'• '+a.question+' '+a.answer).join('\n'),
