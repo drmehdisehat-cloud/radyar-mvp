@@ -197,8 +197,16 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  }',
       '  document.getElementById("generate").click();',
       '  const blockedBeforeAcknowledgement = download.disabled;',
+      '  const reviewer = document.getElementById("reviewer-name");',
+      '  reviewer.value = "بازبین آزمون"; reviewer.dispatchEvent(new Event("input", { bubbles: true }));',
+      '  const decision = document.getElementById("review-decision");',
+      '  decision.value = "approved"; decision.dispatchEvent(new Event("change", { bubbles: true }));',
+      '  const note = document.getElementById("review-note");',
+      '  note.value = "بازبینی داده ساختگی"; note.dispatchEvent(new Event("input", { bubbles: true }));',
       '  document.getElementById("export-ack").click();',
-      '  const enabledAfterAcknowledgement = !download.disabled;',
+      '  document.getElementById("record-review").click();',
+      '  const enabledAfterHumanReview = !download.disabled;',
+      '  const reviewStatus = document.getElementById("review-status").textContent;',
       '  const reportAfterAcknowledgement = document.getElementById("report").textContent;',
       '  const question = document.getElementById("free-question");',
       '  question.value = "چک و مهریه در این مثال چه موضوعاتی هستند؟";',
@@ -213,7 +221,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '    maxTouchPoints: navigator.maxTouchPoints, coarsePointer: matchMedia("(pointer: coarse)").matches,',
       '    mobileUserAgent: /iPhone|Mobile/i.test(navigator.userAgent),',
       '    horizontalOverflow: root.scrollWidth > root.clientWidth + 1,',
-      '    initialDisabled, blockedBeforeAcknowledgement, enabledAfterAcknowledgement,',
+      '    initialDisabled, blockedBeforeAcknowledgement, enabledAfterHumanReview, reviewStatus,',
       '    reportAfterAcknowledgement, staleDraftInvalidated, multiTopicReport, multiTopicIds,',
       '    csp: document.querySelector("meta[http-equiv]")?.content || "",',
       '    externalResources',
@@ -238,7 +246,8 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.equal(snapshot.horizontalOverflow, false, 'mobile layout has horizontal overflow');
     assert.equal(snapshot.initialDisabled, true, 'download was initially enabled');
     assert.equal(snapshot.blockedBeforeAcknowledgement, true, 'report exported before human acknowledgement');
-    assert.equal(snapshot.enabledAfterAcknowledgement, true, 'human acknowledgement did not enable report download');
+    assert.equal(snapshot.enabledAfterHumanReview, true, 'approved human review did not enable report download');
+    assert.match(snapshot.reviewStatus, /هویت بازبین در این نسخه آفلاین احراز نمی‌شود/);
     assert.match(snapshot.reportAfterAcknowledgement, /منابع قانونی: تأییدنشده/);
     assert.equal(snapshot.staleDraftInvalidated, true, 'editing free question retained a stale draft');
     assert.ok(snapshot.multiTopicIds.includes('instruments'), 'cheque hint missing from internal multi-topic routing');
