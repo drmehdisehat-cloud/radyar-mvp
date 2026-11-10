@@ -17,6 +17,6 @@ test('synthetic export asks for explicit human self-review without implying lega
 
 test('suspected personal identifiers are cleared from the editable offline question field', () => {
   assert.match(html, /if\(hasSensitiveIdentifier\) document\.getElementById\('free-question'\)\.value='';/);
-  assert.match(html, /const displayQuestion=hasSensitiveIdentifier\?'\[پرسش حاوی شناسه حساس احتمالی/);
+  assert.match(html, /const displayQuestion=hasSensitiveIdentifier\\?'نامشخص؛ متن ورودی به علت احتمال شناسه حساس حذف شد':freeQuestion/);
   assert.match(html, /if\(hasSensitiveIdentifier\) conflicts\.push\(/);
 });

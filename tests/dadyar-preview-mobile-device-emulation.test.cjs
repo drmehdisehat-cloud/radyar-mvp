@@ -205,6 +205,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  question.dispatchEvent(new Event("input", { bubbles: true }));',
       '  const staleDraftInvalidated = download.disabled && document.getElementById("result").hidden;',
       '  document.getElementById("generate").click();',
+      '  const multiTopicIds = classifyQuestion(question.value).map(item => item.id);'
       '  const multiTopicReport = document.getElementById("report").textContent;',
       '  const externalResources = performance.getEntriesByType("resource").map(entry => entry.name).filter(url => /^(?:https?|wss?):/i.test(url));',
       '  return {',
@@ -213,7 +214,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '    mobileUserAgent: /iPhone|Mobile/i.test(navigator.userAgent),',
       '    horizontalOverflow: root.scrollWidth > root.clientWidth + 1,',
       '    initialDisabled, blockedBeforeAcknowledgement, enabledAfterAcknowledgement,',
-      '    reportAfterAcknowledgement, staleDraftInvalidated, multiTopicReport,',
+      '    reportAfterAcknowledgement, staleDraftInvalidated, multiTopicReport, multiTopicIds,'
       '    csp: document.querySelector("meta[http-equiv]")?.content || "",',
       '    externalResources',
       '  };',
@@ -240,7 +241,10 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.equal(snapshot.enabledAfterAcknowledgement, true, 'human acknowledgement did not enable report download');
     assert.match(snapshot.reportAfterAcknowledgement, /منابع قانونی: تأییدنشده/);
     assert.equal(snapshot.staleDraftInvalidated, true, 'editing free question retained a stale draft');
-    assert.match(snapshot.multiTopicReport, /چک، مهریه/, 'multi-topic offline hints did not detect both topics');
+    assert.ok(snapshot.multiTopicIds.includes('instruments'), 'cheque hint missing from internal multi-topic routing');
+    assert.ok(snapshot.multiTopicIds.includes('family'), 'family hint missing from internal multi-topic routing');
+    assert.match(snapshot.multiTopicReport, /دسته‌بندی داخلی: چندموضوعی و غیرقطعی/);
+    assert.doesNotMatch(snapshot.multiTopicReport, /برچسب‌های موضوعی پیشنهادی/);
     assert.match(snapshot.csp, /connect-src 'none'/);
     assert.deepEqual(snapshot.externalResources, []);
     assert.deepEqual(remoteRequests, [], 'preview attempted a remote network request');
