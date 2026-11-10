@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; script-src 'sha256-zYkV8d/7GiFWO0IhlUbgoPhU2Myq8aoeTQnjh2oXMmM='; style-src 'sha256-lrzIHO5gcJgWBtnFurwNYbHskiZxSHWg/P7CnNPJT20='; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; script-src 'sha256-RGvUA8epZrGaPhud1XDB8ymcFrVPgM8zzQLmSzNsIW8='; style-src 'sha256-lrzIHO5gcJgWBtnFurwNYbHskiZxSHWg/P7CnNPJT20='; form-action 'none'; base-uri 'none'">
 <title>دادیار | پیش‌نمایش آفلاین چک فرضی</title>
 <style>body{font:1rem/1.9 system-ui,sans-serif;background:#f5f6fa;color:#17243b;margin:0}main{max-width:780px;margin:auto;padding:1.2rem}section{background:white;border-radius:16px;padding:1.2rem;margin:1rem 0;box-shadow:0 2px 12px #17243b12}button,select{font:inherit;min-height:44px;max-width:100%;padding:.5rem;border:1px solid #718096;border-radius:8px}input[type=checkbox]{min-width:22px;min-height:22px;vertical-align:middle}button{background:#dcecfb;cursor:pointer}button:focus-visible,select:focus-visible{outline:3px solid #2469a8}fieldset{border:1px solid #b4bfd0;border-radius:12px;margin:1rem 0}label{display:block;margin:.6rem 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}small{color:#475569}#result[hidden]{display:none}#free-question,#reviewer-name,#review-note{box-sizing:border-box;width:100%;font:inherit;border:1px solid #718096;border-radius:8px;padding:.5rem}#review-note{min-height:4.5rem}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}</style></head>
 <body><main><h1>کارگاه آزمایشی دادیار: چک فرضی</h1><p role="status">صرفاً داده‌های ازپیش‌ساخته؛ بدون ارسال اطلاعات، هوش مصنوعی یا ذخیره در سرور. پاسخ خودکار حقوقی: ارائه نمی‌شود. اطلاعات واقعی وارد نکنید.</p>
@@ -17,7 +17,7 @@
 <label for="certificate">گواهی عدم پرداخت نمونه موجود است؟</label><select id="certificate" data-question="گواهی عدم پرداخت موجود است؟"><option value="unknown">نامعلوم</option><option value="yes">در نمونه موجود است</option><option value="no">در نمونه موجود نیست</option></select>
 <label for="defense">ادعای پرداخت یا دفاعی در سناریو مطرح است؟</label><select id="defense" data-question="آیا ادعای پرداخت یا دفاع دیگری مطرح است؟"><option value="unknown">نامعلوم</option><option value="yes">صرفاً ادعا شده است</option><option value="no">در نمونه مطرح نشده</option></select>
 <p><small>پاسخ‌ها صرفاً وضعیت داده ساختگی هستند و اصالت مدارک را تأیید نمی‌کنند.</small></p></fieldset><button id="generate" type="button">ساخت پیش‌نویس غیررسمی</button> <button id="reset" type="button">پاک‌کردن انتخاب‌ها و پیش‌نویس</button><p id="reset-status" role="status" aria-live="polite"></p></section>
-<section id="result" hidden tabindex="-1" aria-live="polite"><h2>پیش‌نویس برای بازبینی انسانی</h2><pre id="report"></pre><section id="human-review" aria-labelledby="human-review-title"><h3 id="human-review-title">مرحله بازبینی انسانی</h3><p>پس از مطالعه پیش‌نویس، بازبین باید نام، نتیجه و یادداشت خود را ثبت کند. فقط نتیجه «تأیید» اجازه دریافت فایل آموزشی می‌دهد.</p>
+<section id="result" hidden tabindex="-1" aria-live="polite"><h2>پیش‌نویس برای بازبینی انسانی</h2><p id="topic-scope-status" role="status" aria-live="polite"></p><pre id="report"></pre><section id="human-review" aria-labelledby="human-review-title"><h3 id="human-review-title">مرحله بازبینی انسانی</h3><p>پس از مطالعه پیش‌نویس، بازبین باید نام، نتیجه و یادداشت خود را ثبت کند. فقط نتیجه «تأیید» اجازه دریافت فایل آموزشی می‌دهد.</p>
 <label for="reviewer-name">نام بازبین انسانی (ثبت محلی)</label><input id="reviewer-name" type="text" maxlength="80" autocomplete="off" required>
 <label for="review-decision">نتیجه بازبینی</label><select id="review-decision"><option value="pending">در انتظار بازبینی</option><option value="approved">تأیید برای دریافت آموزشی</option><option value="rejected">رد پیش‌نویس</option></select>
 <label for="review-note">یادداشت بازبین (اختیاری، حداکثر ۳۰۰ نویسه)</label><textarea id="review-note" maxlength="300" rows="2"></textarea>
@@ -434,6 +434,15 @@ function classifyQuestion(text) {
     return matches.length ? [{ id: domain.id, matches }] : [];
   }).sort((a, b) => b.matches.length - a.matches.length);
 }
+function describeTopicScope(matches, question) {
+  if (!String(question || '').trim()) return 'پرسش آزاد ثبت نشده است؛ طبقه‌بندی موضوعی انجام نشد.';
+  const hasCheque = matches.some(topic => topic.id === 'instruments');
+  const hasOtherTopic = matches.some(topic => topic.id !== 'instruments');
+  if (hasCheque && hasOtherTopic) return 'پرسش آزاد چندموضوعی تشخیص داده شد؛ این پیش‌نمایش فقط سناریوی چک فرضی را پوشش می‌دهد و موضوع دیگر را تحلیل نمی‌کند. برچسب‌های داخلی نمایش داده نمی‌شوند.';
+  if (hasOtherTopic) return 'پرسش آزاد خارج از دامنه این پیش‌نمایش چک فرضی است؛ این نسخه درباره موضوع دیگر تحلیل ارائه نمی‌کند. برچسب‌های داخلی نمایش داده نمی‌شوند.';
+  if (hasCheque) return 'پرسش آزاد با دامنه چک فرضی هم‌راستاست؛ تشخیص صرفاً کلیدواژه‌ای و غیرقطعی است.';
+  return 'از پرسش آزاد موضوع مشخصی شناسایی نشد؛ متن را روشن‌تر کنید. این تشخیص قطعی نیست.';
+}
 const purposes={'وکیل':'مصاحبه و تنظیم پیش‌نویس','قاضی':'مقایسه استدلال طرفین، بدون صدور رأی','سردفتر':'بررسی اولیه مدارک، بدون ثبت سند','دادستان':'بررسی ادعا و دفاع، بدون تصمیم قضایی','ضابط':'سامان‌دهی گزارش، بدون اقدام انتظامی'};
 const roleGuidance={
  'وکیل':['تفکیک ادعاهای موکل از اسناد قابل بررسی','فهرست پرسش‌های تکمیلی برای تنظیم پیش‌نویس، بدون تعیین نتیجه دعوا'],
@@ -445,6 +454,7 @@ const roleGuidance={
 const role=document.getElementById('role'),out=document.getElementById('report'),box=document.getElementById('result');
 let report='';
 let internalTopicMatches=[];
+const topicScopeStatus=document.getElementById('topic-scope-status');
 const downloadButton=document.getElementById('download');
 const exportStatus=document.getElementById('export-status');
 const exportAck=document.getElementById('export-ack');
@@ -489,7 +499,7 @@ recordReviewButton.addEventListener('click',()=>{
 // Otherwise the download button could export a different case state than the UI.
 function invalidateDraft(){
  const focusWasInDraft=box.contains(document.activeElement);
- report=''; internalTopicMatches=[]; out.textContent=''; exportStatus.textContent=''; reviewRecord=null;reviewerName.value='';reviewDecision.value='pending';reviewNote.value='';reviewStatus.textContent='';document.getElementById('reset-status').textContent=''; box.hidden=true; exportEligible=false; exportAck.checked=false; updateExportPermission();
+ report=''; internalTopicMatches=[]; topicScopeStatus.textContent=''; out.textContent=''; exportStatus.textContent=''; reviewRecord=null;reviewerName.value='';reviewDecision.value='pending';reviewNote.value='';reviewStatus.textContent='';document.getElementById('reset-status').textContent=''; box.hidden=true; exportEligible=false; exportAck.checked=false; updateExportPermission();
  // Never strand keyboard focus inside a hidden result after a case-state change.
  if(focusWasInDraft) document.getElementById('generate').focus();
 }
@@ -520,6 +530,8 @@ document.getElementById('generate').addEventListener('click',()=>{
  const displayQuestion=hasSensitiveIdentifier?'نامشخص؛ شناسه حساس احتمالی شناسایی شد و متن ورودی حذف شد':freeQuestion;
  // Internal-only multi-topic hints; never rendered as user-facing categories or legal conclusions.
  internalTopicMatches=hasSensitiveIdentifier?[]:classifyQuestion(freeQuestion);
+ const topicScopeMessage=hasSensitiveIdentifier?'پرسش آزاد به دلیل احتمال شناسه حساس بررسی نشد.':describeTopicScope(internalTopicMatches,freeQuestion);
+ topicScopeStatus.textContent=topicScopeMessage;
  // Discard suspected personal identifiers from the editable field as well as the draft.
  if(hasSensitiveIdentifier) document.getElementById('free-question').value='';
  const negativeAnswers=answers.filter(item=>item.state==='no');
@@ -538,7 +550,7 @@ document.getElementById('generate').addEventListener('click',()=>{
  if(evidence.length>0 && !evidence.some(e=>e.description==='تصویر چک نمونه با شماره ساختگی')) conflicts.push('تصویر چک نمونه انتخاب نشده است؛ ادعای تسویه یا سایر مدارک به‌تنهایی برای دریافت گزارش چک فرضی کافی نیستند.');
  const section=(stance)=>evidence.filter(e=>e.stance===stance).map(e=>'• '+e.description).join('\n')||'ثبت نشده';
  report=['دادیار | چک صرفاً فرضی | نسخه آزمایشی آفلاین','نقش: '+role.value+' | هدف: '+purposes[role.value],
- 'پرسش آزاد کاربر درباره داده ساختگی: '+(displayQuestion||'ثبت نشده')+'\nدامنه این پیش‌نمایش: کارگاه چک فرضی؛ پاسخ خودکار حقوقی: ارائه نمی‌شود. منابع معتبر و بررسی انسانی لازم است.','ادله موافق:\n'+section('موافق'),'ادله مخالف:\n'+section('مخالف'),'نامعلوم:\n'+section('نامعلوم'),
+ 'پرسش آزاد کاربر درباره داده ساختگی: '+(displayQuestion||'ثبت نشده')+'\nدامنه بررسی پرسش آزاد: '+topicScopeMessage+'\nدامنه این پیش‌نمایش: کارگاه چک فرضی؛ پاسخ خودکار حقوقی: ارائه نمی‌شود. منابع معتبر و بررسی انسانی لازم است.','ادله موافق:\n'+section('موافق'),'ادله مخالف:\n'+section('مخالف'),'نامعلوم:\n'+section('نامعلوم'),
  'تعارض‌های داده فرضی:\n'+(conflicts.map(c=>'• '+c).join('\n')||'تعارض آشکاری میان پاسخ‌های نمونه و فهرست مدارک یافت نشد.'),
  'وضعیت مصاحبه فرضی:\n'+answers.map(a=>'• '+a.question+' '+a.answer).join('\n'),
  'گام‌های بررسی متناسب با نقش (صرفاً آموزشی):\n'+roleGuidance[role.value].map(g=>'• '+g).join('\n'),
