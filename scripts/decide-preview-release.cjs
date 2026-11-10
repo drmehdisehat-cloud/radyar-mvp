@@ -29,6 +29,14 @@ function outsideDocumentRoot(target, documentRoot) {
   return relative === '..' || relative.startsWith('..' + path.sep) || path.isAbsolute(relative);
 }
 
+function matchesCanonicalRealpath(inputPath, realpath) {
+  return typeof inputPath === 'string' && typeof realpath === 'string' &&
+    path.isAbsolute(inputPath) && path.isAbsolute(realpath) &&
+    path.resolve(inputPath) === inputPath &&
+    path.resolve(realpath) === realpath &&
+    inputPath === realpath;
+}
+
 // This is a schema/consistency check for an independently collected operator record,
 // not cryptographic proof. The reviewer must inspect the actual hosting evidence.
 function hasIndependentRestoreAttestation(evidence) {
@@ -55,7 +63,11 @@ function hasIndependentRestoreAttestation(evidence) {
       evidence.production_database_name.trim().toLowerCase()) return false;
   if (evidence.restore_database_user.trim().toLowerCase() ===
       evidence.production_database_user.trim().toLowerCase()) return false;
-  if (!outsideDocumentRoot(evidence.restore_target_path, evidence.production_document_root)) return false;
+  // Require the operator's canonical realpath observations, not merely lexical paths.
+  // This rejects a symlink alias that appears outside the web root but resolves inside it.
+  if (!matchesCanonicalRealpath(evidence.restore_target_path, evidence.restore_target_realpath) ||
+      !matchesCanonicalRealpath(evidence.production_document_root, evidence.production_document_root_realpath) ||
+      !outsideDocumentRoot(evidence.restore_target_realpath, evidence.production_document_root_realpath)) return false;
   if (!validUtc(evidence.restore_completed_at) || !validUtc(evidence.reviewed_at)) return false;
   if (Date.parse(evidence.reviewed_at) < Date.parse(evidence.restore_completed_at)) return false;
   return true;

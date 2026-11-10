@@ -17,11 +17,11 @@ Only after the restore operation and a separate review, prepare a local JSON evi
 - `evidence: "independent-restore-manifest-v1"` and literal `restore_proven: true`.
 - Non-empty SHA-256 values: `archive_sha256`, `restored_marker_sha256`, `restore_log_sha256`, and `database_probe_sha256`.
 - `restore_exit_code: 0`, `restore_target_isolated: true`, `production_database_untouched: true`, `database_probe_passed: true`, `outbound_integrations_disabled: true`, and `reviewer_attested: true`.
-- A distinct `restore_target_id`; `restore_target_path` outside `production_document_root`; separate `restore_database_name` / `restore_database_user` from the production database and user.
+- A distinct `restore_target_id`; `restore_target_path` must exactly equal the canonical absolute `restore_target_realpath`, and `production_document_root` must exactly equal the canonical absolute `production_document_root_realpath`. Both pairs must be captured from the actual resolved paths (for example, `realpath` / `pwd -P`), and the resolved restore target must be outside the resolved production document root. Do not substitute a symlink alias or a merely lexical path. The local integrity checker emits `restored_root_realpath` and `production_document_root_realpath`; transfer those observed values into the attestation only after the independent operator confirms them against the hosting environment. Keep separate `restore_database_name` / `restore_database_user` from the production database and user.
 - Different non-empty `restore_operator` and `independent_reviewer` values.
 - Valid UTC timestamps `restore_completed_at` and `reviewed_at`, with review no earlier than restore completion.
 
-**Important:** this is a schema and consistency check, not a cryptographic signature or independent proof by itself. The reviewer must inspect the actual cPanel/hosting restore record, isolated database probe, and target paths. A synthetic manifest is never release evidence.
+**Important:** this is a schema and consistency check, not a cryptographic signature or independent proof by itself. The canonical realpath fields close a lexical-path/symlink-alias gap, but they remain operator-supplied observations. The reviewer must inspect the actual cPanel/hosting restore record, isolated database probe, and resolved target paths. A synthetic manifest is never release evidence.
 
 ## Read-only release preflight CLI
 

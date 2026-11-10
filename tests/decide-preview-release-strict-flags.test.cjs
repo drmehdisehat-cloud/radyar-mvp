@@ -26,7 +26,9 @@ const restoreEvidence = {
   restore_database_user: 'radyar_restore_user',
   production_database_user: 'radyar_live_user',
   restore_target_path: '/srv/isolated/radyar-restore',
+  restore_target_realpath: '/srv/isolated/radyar-restore',
   production_document_root: '/home/site/public_html',
+  production_document_root_realpath: '/home/site/public_html',
   restore_completed_at: '2026-11-09T12:00:00.000Z',
   reviewed_at: '2026-11-09T13:00:00.000Z'
 };
@@ -106,8 +108,11 @@ test('restore attestation rejects missing hashes, failed restore, or missing iso
 });
 test('restore attestation rejects production paths, shared databases and non-independent reviewers', () => {
   const invalidCases = [
-    { restore_target_path: '/home/site/public_html/restore' },
-    { restore_target_path: '/home/site/public_html' },
+    { restore_target_path: '/home/site/public_html/restore', restore_target_realpath: '/home/site/public_html/restore' },
+    { restore_target_path: '/home/site/public_html', restore_target_realpath: '/home/site/public_html' },
+    { restore_target_path: '/srv/restore-alias', restore_target_realpath: '/home/site/public_html/restore' },
+    { restore_target_path: '/srv/isolated/radyar-restore', restore_target_realpath: '/home/site/public_html/restore' },
+    { production_document_root: '/home/site/public_html-alias', production_document_root_realpath: '/home/site/public_html' },
     { restore_database_name: 'radyar_live' },
     { restore_database_user: 'radyar_live_user' },
     { independent_reviewer: 'Hosting operator' },
@@ -117,6 +122,19 @@ test('restore attestation rejects production paths, shared databases and non-ind
   for (const patch of invalidCases) {
     const result = decidePreviewRelease({ ...valid, restoreEvidence: { ...restoreEvidence, ...patch } });
     assert.equal(result.status, 'NOT_READY', JSON.stringify(patch));
+    assert.ok(result.blockers.includes('independent restore attestation incomplete or unverified'));
+  }
+});
+
+
+test('restore attestation requires canonical realpaths and rejects symlink-like path aliases', () => {
+  const missingTargetRealpath = { ...valid.restoreEvidence };
+  delete missingTargetRealpath.restore_target_realpath;
+  const missingRootRealpath = { ...valid.restoreEvidence };
+  delete missingRootRealpath.production_document_root_realpath;
+  for (const restoreEvidence of [missingTargetRealpath, missingRootRealpath]) {
+    const result = decidePreviewRelease({ ...valid, restoreEvidence });
+    assert.equal(result.status, 'NOT_READY');
     assert.ok(result.blockers.includes('independent restore attestation incomplete or unverified'));
   }
 });
