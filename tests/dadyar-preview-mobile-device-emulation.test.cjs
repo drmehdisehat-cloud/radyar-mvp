@@ -252,8 +252,13 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.equal(snapshot.staleDraftInvalidated, true, 'editing free question retained a stale draft');
     assert.ok(snapshot.multiTopicIds.includes('instruments'), 'cheque hint missing from internal multi-topic routing');
     assert.ok(snapshot.multiTopicIds.includes('family'), 'family hint missing from internal multi-topic routing');
-    assert.doesNotMatch(snapshot.multiTopicReport, /دسته‌بندی داخلی:|چندموضوعی|برچسب‌های موضوعی پیشنهادی/);
-    assert.doesNotMatch(snapshot.multiTopicReport, /برچسب‌های موضوعی پیشنهادی/);
+    assert.doesNotMatch(snapshot.multiTopicReport, /دسته‌بندی داخلی:|برچسب‌های موضوعی پیشنهادی/);
+    for (const topicId of snapshot.multiTopicIds) {
+      const escapedId = topicId.replace(/[.*+?^${}()|[\\]\\]/g, '\\    assert.doesNotMatch(snapshot.multiTopicReport, /دسته‌بندی داخلی:|چندموضوعی|برچسب‌های موضوعی پیشنهادی/);
+    assert.doesNotMatch(snapshot.multiTopicReport, /برچسب‌های موضوعی پیشنهادی/);');
+      assert.doesNotMatch(snapshot.multiTopicReport, new RegExp('\\\\b' + escapedId + '\\\\b', 'i'),
+        'internal topic identifier leaked into the user-facing report: ' + topicId);
+    }
     assert.match(snapshot.csp, /connect-src 'none'/);
     assert.deepEqual(snapshot.externalResources, []);
     assert.deepEqual(remoteRequests, [], 'preview attempted a remote network request');
