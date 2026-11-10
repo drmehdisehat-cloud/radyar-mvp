@@ -14,7 +14,7 @@ const USAGE = [
   '    --zero-api-requests-verified --human-review-verified',
   '',
   'Evidence files must be outside the Git checkout. This is a read-only schema/attestation check;',
-  'it does not authenticate reviewers, independently prove a restore, publish files, or deploy.'
+  'it never deploys; it does not authenticate reviewers, independently prove a restore, or publish files.'
 ].join('\n');
 
 const FLAG_NAMES = new Set([
