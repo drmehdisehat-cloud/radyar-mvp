@@ -13,6 +13,6 @@ test('experimental preview branch must trigger push CI without deploy permission
 });
 test('CI must execute real Chromium mobile preview test and contract suite', () => {
   assert.match(workflow, /node --test "\$\{contracts\[@\]\}"/);
-  assert.match(workflow, /CHROME_BIN="\$CHROME_BIN" node --test tests\/dadyar-preview-mobile-chromium\.test\.cjs/);
+  assert.match(workflow, /CHROME_BIN="\$CHROME_BIN" node --test tests\/dadyar-preview-mobile-chromium\.test\.cjs/);\n  assert.match(workflow, /CHROME_BIN="\$CHROME_BIN" node --test tests\/dadyar-preview-mobile-device-emulation\.test\.cjs/);\n  assert.match(workflow, /tests\/dadyar-preview-mobile-device-emulation\.test\.cjs \\\]\\] \\|\\| contracts/);
   assert.match(workflow, /test -n "\$CHROME_BIN"/);
 });

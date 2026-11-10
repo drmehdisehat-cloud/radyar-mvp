@@ -65,7 +65,7 @@ test('rejects symlinked parent directories for archive and restore root', t => {
   const alias = path.join(f.dir, 'alias');
   fs.symlinkSync(actual, alias, 'dir');
   assert.throws(() => assertRestoreEvidence({ ...f.args, archive: path.join(alias, 'backup.tar.gz') }), /archive path must not contain symlinks/);
-  assert.throws(() => assertRestoreEvidence({ ...f.args, restoredRoot: path.join(alias, 'restored') }), /restored root path must not contain symlinks/);
+  assert.throws(() => assertRestoreEvidence({ ...f.args, archive, restoredRoot: path.join(alias, 'restored') }), /restored root path must not contain symlinks/);
 });
 test('rejects archive stored within purported independent restore tree', t => {
   const f = fixture(t, 'dadyar-restore-inplace-');
