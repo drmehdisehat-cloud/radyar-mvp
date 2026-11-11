@@ -10,18 +10,15 @@ const { once } = require('node:events');
 
 const htmlPath = path.resolve(__dirname, '..', 'dadyar-preview', 'index.html');
 const html = fs.readFileSync(htmlPath);
-const contentSecurityPolicy = [
-  "default-src 'none'",
-  "connect-src 'none'",
-  "img-src 'none'",
-  "font-src 'none'",
-  "object-src 'none'",
-  "frame-src 'none'",
-  "script-src 'unsafe-inline'",
-  "style-src 'unsafe-inline'",
-  "form-action 'none'",
-  "base-uri 'none'"
-].join('; ');
+const htmlText = html.toString('utf8');
+const cspMatch = htmlText.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/i);
+assert.ok(cspMatch, 'preview must declare its committed CSP meta policy');
+const contentSecurityPolicy = cspMatch[1];
+assert.doesNotMatch(contentSecurityPolicy, /'unsafe-inline'/i,
+  'HTTP fixture must not weaken the hash-only inline policy');
+assert.match(contentSecurityPolicy, /connect-src 'none'/);
+assert.match(contentSecurityPolicy, /form-action 'none'/);
+assert.match(contentSecurityPolicy, /base-uri 'none'/);
 
 function createServer() {
   return http.createServer((req, res) => {
@@ -42,6 +39,7 @@ function createServer() {
       'Content-Type': 'text/html; charset=utf-8',
       'Content-Length': String(html.length),
       'Cache-Control': 'no-store',
+      // Mirror the actual reviewed HTML policy; never substitute unsafe-inline in CI.
       'Content-Security-Policy': contentSecurityPolicy,
       'X-Content-Type-Options': 'nosniff',
       'Referrer-Policy': 'no-referrer',
@@ -84,7 +82,7 @@ function closeAfter(server, t) {
   t.after(() => new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve())));
 }
 
-test('offline Dadyar preview is served at the exact /dadyar-preview/ subpath', async (t) => {
+test('offline Dadyar preview is served at the exact /dadyar-preview/ subpath with the reviewed CSP', async (t) => {
   const server = createServer();
   const address = await listen(server);
   closeAfter(server, t);
@@ -96,6 +94,7 @@ test('offline Dadyar preview is served at the exact /dadyar-preview/ subpath', a
     assert.equal(response.headers.get('content-type'), 'text/html; charset=utf-8');
     assert.equal(response.headers.get('cache-control'), 'no-store');
     assert.equal(response.headers.get('content-security-policy'), contentSecurityPolicy);
+    assert.doesNotMatch(response.headers.get('content-security-policy'), /'unsafe-inline'/i);
     assert.equal(response.headers.get('x-content-type-options'), 'nosniff');
     assert.equal(response.headers.get('referrer-policy'), 'no-referrer');
     assert.equal(response.headers.get('permissions-policy'), 'camera=(), microphone=(), geolocation=()');
