@@ -58,3 +58,32 @@ test('downloaded report preserves the unauthenticated local-review boundary and 
   assert.match(handler, /محدودیت: این اظهار محلی است و تأیید حقوقی یا احراز هویت محسوب نمی‌شود/);
   assert.doesNotMatch(handler, /\b(?:fetch|XMLHttpRequest|sendBeacon|localStorage|sessionStorage|indexedDB)\b/);
 });
+
+test('editing review metadata clears prior approval and requires fresh explicit acknowledgement', () => {
+  const permission = html.match(/function updateExportPermission\\(\\)\\{[\\s\\S]*?\\n\\}/)?.[0];
+  const invalidator = html.match(/function invalidateHumanReview\\([\\s\\S]*?\\n\\s*\\}/)?.[0];
+  assert.ok(permission, 'export permission function missing');
+  assert.ok(invalidator, 'human-review invalidator missing');
+  const state = {
+    report: 'synthetic draft',
+    exportEligible: true,
+    reviewRecord: { decision: 'approved', reportSnapshot: 'synthetic draft' },
+    exportAck: { checked: true },
+    reviewerName: { value: 'بازبین نمونه' },
+    reviewDecision: { value: 'approved' },
+    reviewNote: { value: '' },
+    recordReviewButton: { disabled: false },
+    downloadButton: { disabled: false },
+    reviewStatus: { textContent: '' },
+    safeReviewText: (value, max) => String(value || '').slice(0, max)
+  };
+  vm.runInNewContext(permission + '\\n' + invalidator + '\\ninvalidateHumanReview();', state);
+  assert.equal(state.reviewRecord, null);
+  assert.equal(state.exportAck.checked, false);
+  assert.equal(state.downloadButton.disabled, true);
+  assert.equal(state.recordReviewButton.disabled, true);
+  state.exportAck.checked = true;
+  vm.runInNewContext('updateExportPermission();', state);
+  assert.equal(state.recordReviewButton.disabled, false);
+  assert.equal(state.downloadButton.disabled, true);
+});
