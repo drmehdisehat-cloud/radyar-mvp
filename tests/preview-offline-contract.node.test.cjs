@@ -30,6 +30,8 @@ test('export requires explicit review and revokes permission after edits and dow
 test('synthetic cheque report disclaims unverified legal sources and blocks unsupported export', () => {
   assert.match(html, /منابع قانونی: تأییدنشده/);
   assert.match(html, /تصویر چک نمونه با شماره ساختگی/);
-  assert.match(html, /hasSensitiveIdentifier\?'نامشخص/);
+  assert.match(html, /const displayQuestion=hasSensitiveIdentifier\s*\?\s*'نامشخص/);
+  assert.match(html, /freeQuestionField\.value='';/);
+  assert.match(html, /متن خام پرسش آزاد برای حفظ حریم خصوصی در گزارش درج نمی‌شود/);
   assert.match(html, /هیچ استناد قانونی ارائه نمی‌شود/);
 });

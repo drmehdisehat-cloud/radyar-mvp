@@ -37,7 +37,7 @@ test('review edits and case edits invalidate the prior approval before another e
 test('suspected personal identifiers are cleared from the editable offline question field', () => {
   assert.match(html, /freeQuestionField\.value='';/);
   assert.match(html, /متن خام پرسش آزاد برای حفظ حریم خصوصی در گزارش درج نمی‌شود/);
-  assert.match(html, /const displayQuestion=hasSensitiveIdentifier\?'نامشخص؛ شناسه حساس احتمالی شناسایی شد و متن ورودی حذف شد':freeQuestion/);
+  assert.match(html, /const displayQuestion=hasSensitiveIdentifier\s*\?\s*'نامشخص؛ شناسه حساس احتمالی شناسایی شد و متن ورودی حذف شد'/);
   assert.match(html, /if\(hasSensitiveIdentifier\) conflicts\.push\(/);
 });
 

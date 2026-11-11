@@ -12,6 +12,7 @@ test('offline cheque intake strips zero-width separators between identifier digi
   const suspect=s=>/(?:\+?98|0)?9\d{9}(?!\d)|(?:\d[ -]?){15}\d|(?<!\d)\d{10}(?!\d)/.test(normalize(s));
   for(const value of ['۰۹۱۲‌۳۴۵‌۶۷۸۹','۱۲۳۴۵‌۶۷۸۹۰','٠٩١٢‍٣٤٥‍٦٧٨٩','0912\u20603456789']) assert.equal(suspect(value),true,value);
   assert.equal(suspect('چک فرضی با دو مدرک'),false);
-  assert.match(html,/if\(hasSensitiveIdentifier\) document\.getElementById\('free-question'\)\.value=''/);
+  assert.match(html,/freeQuestionField\.value='';/);
+  assert.match(html,/متن خام پرسش آزاد برای حفظ حریم خصوصی در گزارش درج نمی‌شود/);
   assert.match(html,/exportEligible=conflicts\.length===0 && unresolved\.length===0/);
 });

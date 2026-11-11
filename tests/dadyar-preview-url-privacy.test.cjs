@@ -6,7 +6,7 @@ const path = require('node:path');
 const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
 test('synthetic cheque preview rejects external URLs before export', () => {
   assert.match(html, /const hasSensitiveIdentifier=[^\n]*https\?:/);
-  assert.match(html, /const displayQuestion=hasSensitiveIdentifier\?/);
+  assert.match(html, /const displayQuestion=hasSensitiveIdentifier\s*\?/);
   assert.match(html, /متن خام پرسش آزاد برای حفظ حریم خصوصی در گزارش درج نمی‌شود/);
   assert.match(html, /freeQuestionField\.value='';/);
   assert.doesNotMatch(html, /:freeQuestion;/);

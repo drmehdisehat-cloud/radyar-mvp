@@ -9,7 +9,8 @@ const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'
 test('offline cheque preview detects grouped identifiers before report export', () => {
   assert.match(html, /const compactIdentifierDigits=normalizedQuestionDigits\.replace\(/);
   assert.match(html, /hasSensitiveIdentifier=.*\.test\(compactIdentifierDigits\)/);
-  assert.match(html, /if\(hasSensitiveIdentifier\) document\.getElementById\('free-question'\)\.value=''/);
+  assert.match(html, /freeQuestionField\.value='';/);
+  assert.match(html, /متن خام پرسش آزاد برای حفظ حریم خصوصی در گزارش درج نمی‌شود/);
   assert.match(html, /exportEligible=conflicts\.length===0 && unresolved\.length===0/);
   const normalize = new Function('freeQuestion',
     html.match(/const normalizedQuestionDigits=([^;]+);/)[0] + '\n' +
