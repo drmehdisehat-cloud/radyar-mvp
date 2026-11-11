@@ -23,7 +23,7 @@ function fixture(t, mode) {
   fs.mkdirSync(documentRoot);
   fs.mkdirSync(checkout);
   const source = path.join(checkout, 'index.html');
-  fs.writeFileSync(source, '<!doctype html><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; connect-src \'none\'; form-action \'none\'"><input id="export-ack"><button id="download" disabled>Download</button>');
+  fs.writeFileSync(source, '<!doctype html><meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; connect-src \'none\'; form-action \'none\'"><input id="export-ack"><button id="download" disabled>Download</button>');
   const expectedBlob = gitBlobSha(source);
   let destination;
   if (mode === 'staged') {
