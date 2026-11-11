@@ -139,6 +139,19 @@ test('rejects a document identifier that does not match the official URL', () =>
   assert.ok(validateSourceVersion(mismatched, AS_OF).issues.includes('not_a_direct_allowlisted_official_document_url'));
 });
 
+test('matches document identifiers as exact path or query values, not substrings', () => {
+  const exactPath = verified({
+    documentId: '1001',
+    officialDocumentUrl: 'https://rrk.ir/notice/1001'
+  });
+  const substringPath = verified({
+    documentId: '1001',
+    officialDocumentUrl: 'https://rrk.ir/notice/10010'
+  });
+  assert.equal(validateSourceVersion(exactPath, AS_OF).eligible, true);
+  assert.equal(validateSourceVersion(substringPath, AS_OF).eligible, false);
+});
+
 test('rejects non-official hosts and portal homepages as direct citations', () => {
   const unofficial = verified({ officialDocumentUrl: 'https://example.com/law/1001' });
   const homepage = verified({ officialDocumentUrl: 'https://qavanin.ir/' });
