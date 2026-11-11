@@ -8,8 +8,8 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
-const hintsSource = html.match(/const topicHints = (\\[[\\s\\S]*?\\n\\]);\\nfunction normalizeTopicText/)?.[1];
-const helperSource = html.match(/function normalizeTopicText\\(value\\) \\{[\\s\\S]*?function describeTopicScope\\(matches, question\\) \\{[\\s\\S]*?\\n\\}/)?.[0];
+const hintsSource = html.match(/const topicHints = (\[[\s\S]*?\n\]);\nfunction normalizeTopicText/)?.[1];
+const helperSource = html.match(/function normalizeTopicText\(value\) \{[\s\S]*?function describeTopicScope\(matches, question\) \{[\s\S]*?\n\}/)?.[0];
 const privacyStart = html.indexOf(' const normalizedQuestionDigits=');
 const privacyEnd = html.indexOf(' const questionOutsideChequeScope=', privacyStart);
 const privacySource = privacyStart >= 0 && privacyEnd > privacyStart ? html.slice(privacyStart, privacyEnd) : '';
@@ -22,10 +22,10 @@ function summarize(raw) {
   const status = { textContent: '' };
   const sandbox = { freeQuestion: raw, freeQuestionField: field, topicScopeStatus: status };
   vm.runInNewContext(
-    'const topicHints = ' + hintsSource + ';\\n' +
-    helperSource + ';\\n' +
-    'let internalTopicMatches = [];\\n' +
-    privacySource + ';\\n' +
+    'const topicHints = ' + hintsSource + ';\n' +
+    helperSource + ';\n' +
+    'let internalTopicMatches = [];\n' +
+    privacySource + ';\n' +
     'globalThis.result = { displayQuestion, topicScopeMessage, fieldValue: freeQuestionField.value, matches: internalTopicMatches };',
     sandbox,
     { timeout: 1000 }
@@ -60,6 +60,6 @@ test('the generated report consumes only the privacy-safe display summary, never
   assert.ok(reportStart >= 0 && reportEnd > reportStart, 'report construction block missing');
   const reportSource = html.slice(reportStart, reportEnd);
   assert.match(reportSource, /displayQuestion/);
-  assert.doesNotMatch(reportSource, /\\bfreeQuestion\\b/);
-  assert.match(html, /freeQuestionField\\.value='';/);
+  assert.doesNotMatch(reportSource, /\bfreeQuestion\b/);
+  assert.match(html, /freeQuestionField\.value='';/);
 });
