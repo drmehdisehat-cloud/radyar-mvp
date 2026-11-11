@@ -94,3 +94,9 @@ test('editing review metadata clears prior approval and requires fresh explicit 
   assert.equal(state.recordReviewButton.disabled, false);
   assert.equal(state.downloadButton.disabled, true);
 });
+
+test('downloaded review timestamp is explicitly identified as the untrusted local device clock', () => {
+  const handler = html.slice(html.indexOf("document.getElementById('download').addEventListener"));
+  assert.match(handler, /زمان ثبت بازبینی \(ساعت محلی دستگاه؛ قابل راستی‌آزمایی مستقل نیست\):/);
+  assert.match(html, /زمان ثبت نیز از ساعت محلی دستگاه گرفته می‌شود و مهر زمانی معتبر یا قابل راستی‌آزمایی مستقل نیست/);
+});
