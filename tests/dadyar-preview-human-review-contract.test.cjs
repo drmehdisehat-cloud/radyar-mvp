@@ -20,7 +20,7 @@ test('synthetic report download requires a named human reviewer and an explicit 
   assert.match(html, /reviewedAt:new Date\(\)\.toISOString\(\)/);
   assert.match(html, /reviewRecord=null/);
   assert.match(html, /نام بازبین:/);
-  assert.match(html, /زمان ثبت بازبینی:/);
+  assert.match(html, /زمان ثبت بازبینی \(ساعت محلی دستگاه؛ قابل راستی‌آزمایی مستقل نیست\):/);
   assert.match(html, /هویت بازبین در این نسخه آفلاین احراز نمی‌شود/);
   assert.match(html, /ثبت بازبینی انسانی \(اظهار محلی؛ هویت احراز نشده\)/);
   assert.match(html, /exportEligible\s*\|\|\s*!exportAck\.checked/);
