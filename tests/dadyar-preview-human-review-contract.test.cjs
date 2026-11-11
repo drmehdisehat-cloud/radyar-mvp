@@ -20,7 +20,7 @@ test('synthetic report download requires a named human reviewer and an explicit 
   assert.match(html, /reviewedAt:new Date\(\)\.toISOString\(\)/);
   assert.match(html, /reviewRecord=null/);
   assert.match(html, /نام بازبین:/);
-  assert.match(html, /زمان ثبت بازبینی \(ساعت محلی دستگاه؛ قابل راستی‌آزمایی مستقل نیست\):/);
+  assert.match(html, /زمان ثبت بازبینی \(مبنای ساعت دستگاه؛ نمایش UTC؛ قابل راستی‌آزمایی مستقل نیست\):/);
   assert.match(html, /هویت بازبین در این نسخه آفلاین احراز نمی‌شود/);
   assert.match(html, /ثبت بازبینی انسانی \(اظهار محلی؛ هویت احراز نشده\)/);
   assert.match(html, /exportEligible\s*\|\|\s*!exportAck\.checked/);
@@ -97,6 +97,6 @@ test('editing review metadata clears prior approval and requires fresh explicit 
 
 test('downloaded review timestamp is explicitly identified as the untrusted local device clock', () => {
   const handler = html.slice(html.indexOf("document.getElementById('download').addEventListener"));
-  assert.match(handler, /زمان ثبت بازبینی \(ساعت محلی دستگاه؛ قابل راستی‌آزمایی مستقل نیست\):/);
-  assert.match(html, /زمان ثبت نیز از ساعت محلی دستگاه گرفته می‌شود و مهر زمانی معتبر یا قابل راستی‌آزمایی مستقل نیست/);
+  assert.match(handler, /زمان ثبت بازبینی \(مبنای ساعت دستگاه؛ نمایش UTC؛ قابل راستی‌آزمایی مستقل نیست\):/);
+  assert.match(html, /زمان ثبت با ساعت دستگاه ایجاد و در گزارش به قالب UTC تبدیل می‌شود؛ ساعت دستگاه قابل راستی‌آزمایی مستقل نیست و این زمان مهر زمانی معتبر محسوب نمی‌شود/);
 });
