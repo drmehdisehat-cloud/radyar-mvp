@@ -19,7 +19,7 @@ function verified(overrides = {}) {
     instrumentId: 'synthetic-statute-01',
     instrumentType: 'law',
     title: 'قانون فرضی برای آزمون نسخه‌بندی',
-    documentId: 'SYNTH-001',
+    documentId: '1001',
     officialDocumentUrl: 'https://qavanin.ir/Law/TreeText/?IDS=1001',
     status: 'verified',
     publicationDate: '2024-01-10',
@@ -76,6 +76,7 @@ test('uses the new version exactly at an amendment effective-date boundary', () 
     effectiveTo: null,
     publicationDate: '2024-06-15',
     textSha256: HASH_B,
+    documentId: '1002',
     officialDocumentUrl: 'https://qavanin.ir/Law/TreeText/?IDS=1002',
     humanReview: {
       reviewer: 'بازبین حقوقی دوم',
@@ -132,6 +133,12 @@ test('rejects future retrieval and review observations relative to the requested
   assert.ok(result.rejected[0].reasons.includes('future_reviewed_at'));
 });
 
+test('rejects a document identifier that does not match the official URL', () => {
+  const mismatched = verified({ documentId: '9999' });
+  assert.equal(validateSourceVersion(mismatched, AS_OF).eligible, false);
+  assert.ok(validateSourceVersion(mismatched, AS_OF).issues.includes('not_a_direct_allowlisted_official_document_url'));
+});
+
 test('rejects non-official hosts and portal homepages as direct citations', () => {
   const unofficial = verified({ officialDocumentUrl: 'https://example.com/law/1001' });
   const homepage = verified({ officialDocumentUrl: 'https://qavanin.ir/' });
@@ -150,7 +157,7 @@ test('fails closed when two verified versions overlap on the same event date', (
 
 test('registry audit rejects duplicate version identifiers', () => {
   const first = verified({ id: 'duplicate' });
-  const second = verified({ id: 'duplicate', officialDocumentUrl: 'https://qavanin.ir/Law/TreeText/?IDS=1002' });
+  const second = verified({ id: 'duplicate', documentId: '1002', officialDocumentUrl: 'https://qavanin.ir/Law/TreeText/?IDS=1002' });
   const audit = auditVersionRegistry([first, second], AS_OF);
   assert.equal(audit.valid, false);
   assert.ok(audit.issues.includes('duplicate_id:duplicate'));
