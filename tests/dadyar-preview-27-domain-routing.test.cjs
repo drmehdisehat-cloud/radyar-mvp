@@ -85,10 +85,10 @@ test('sensitive free text is not exposed through the generated report copy', () 
 
 test('free-text routing collapses repeated whitespace and line breaks without losing multi-topic matches', () => {
   const { classify } = classifier();
-  const spaced = Array.from(classify('چک   تضمینی\\nاجاره'), item => item.id);
+  const spaced = Array.from(classify('چک   تضمینی\nاجاره'), item => item.id);
   assert.ok(spaced.includes('instruments'));
   assert.ok(spaced.includes('property'));
-  const halfSpace = Array.from(classify('جرم\\u200cرایانه\\u200cای و فیشینگ'), item => item.id);
+  const halfSpace = Array.from(classify('جرم\u200cرایانه\u200cای و فیشینگ'), item => item.id);
   assert.ok(halfSpace.includes('digital'));
 });
 
