@@ -82,3 +82,19 @@ test('sensitive free text is not exposed through the generated report copy', () 
   assert.doesNotMatch(html, /برچسب‌های موضوعی پیشنهادی/);
   assert.match(html, /if\(hasSensitiveIdentifier\) document\.getElementById\('free-question'\)\.value='';/);
 });
+
+test('free-text routing collapses repeated whitespace and line breaks without losing multi-topic matches', () => {
+  const { classify } = classifier();
+  const spaced = Array.from(classify('چک   تضمینی\\nاجاره'), item => item.id);
+  assert.ok(spaced.includes('instruments'));
+  assert.ok(spaced.includes('property'));
+  const halfSpace = Array.from(classify('جرم\\u200cرایانه\\u200cای و فیشینگ'), item => item.id);
+  assert.ok(halfSpace.includes('digital'));
+});
+
+test('single-word hints do not match as substrings inside unrelated words', () => {
+  const { classify } = classifier();
+  const ids = Array.from(classify('چکمه چرمی و ارزاق روزانه'), item => item.id);
+  assert.ok(!ids.includes('instruments'));
+  assert.ok(!ids.includes('finance'));
+});
