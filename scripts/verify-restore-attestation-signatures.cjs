@@ -75,10 +75,30 @@ function readExternalFile(file, label, maxBytes) {
   }
   const real = fs.realpathSync(file);
   if (isInside(REPO_ROOT, real)) throw new Error(label + '_must_be_outside_git_checkout');
-  const stat = fs.statSync(real);
-  if (!stat.isFile()) throw new Error(label + '_must_be_regular_file');
-  if (stat.size === 0 || stat.size > maxBytes) throw new Error(label + '_size_invalid');
-  return fs.readFileSync(real);
+  // Reject hard-link aliases as well as symlinks: an external pathname must not
+  // expose the same inode as a file elsewhere (including inside this checkout).
+  if (!Number.isInteger(fs.constants.O_NOFOLLOW)) throw new Error(label + '_nofollow_open_unavailable');
+  const fd = fs.openSync(real, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+  try {
+    const before = fs.fstatSync(fd, { bigint: true });
+    if (!before.isFile()) throw new Error(label + '_must_be_regular_file');
+    if (before.nlink !== 1n) throw new Error(label + '_must_not_have_hard_link_aliases');
+    if (before.size === 0n || before.size > BigInt(maxBytes)) throw new Error(label + '_size_invalid');
+    const pathStat = fs.statSync(real, { bigint: true });
+    if (pathStat.dev !== before.dev || pathStat.ino !== before.ino) {
+      throw new Error(label + '_changed_during_open');
+    }
+    const bytes = fs.readFileSync(fd);
+    const after = fs.fstatSync(fd, { bigint: true });
+    if (after.dev !== before.dev || after.ino !== before.ino ||
+        after.size !== before.size || after.mtimeNs !== before.mtimeNs ||
+        after.ctimeNs !== before.ctimeNs || BigInt(bytes.length) !== before.size) {
+      throw new Error(label + '_changed_during_read');
+    }
+    return bytes;
+  } finally {
+    fs.closeSync(fd);
+  }
 }
 
 function parseArgs(argv) {
