@@ -50,7 +50,7 @@ function metaContent(html, name) {
 }
 
 function metaCsp(html) {
-  const match = html.match(/<meta\\s+http-equiv=["']Content-Security-Policy["']\\s+content=["']([^"']*)["']/i);
+  const match = html.match(/<meta\s+http-equiv=["']Content-Security-Policy["']\s+content=["']([^"']*)["']/i);
   return match ? match[1] : '';
 }
 
@@ -63,7 +63,7 @@ function verifyPreviewResponse({ statusCode, headers = {}, body, expectedSha256,
   if (!bytes.length || bytes.length > MAX_BODY_BYTES) throw new Error('preview_body_empty_or_too_large');
   const html = bytes.toString('utf8');
   if (!Buffer.from(html, 'utf8').equals(bytes)) throw new Error('preview_body_must_be_valid_utf8');
-  if (!/^text\\/html(?:\\s*;|$)/i.test(header(headers, 'content-type'))) {
+  if (!/^text\/html(?:\s*;|$)/i.test(header(headers, 'content-type'))) {
     throw new Error('preview_content_type_must_be_html');
   }
   if (header(headers, 'x-content-type-options').trim().toLowerCase() !== 'nosniff') {
@@ -72,11 +72,11 @@ function verifyPreviewResponse({ statusCode, headers = {}, body, expectedSha256,
   if (header(headers, 'set-cookie')) throw new Error('static_preview_must_not_set_cookies');
 
   const robots = (header(headers, 'x-robots-tag') + ' ' + metaContent(html, 'robots')).toLowerCase();
-  if (!/\\bnoindex\\b/.test(robots) || !/\\bnofollow\\b/.test(robots)) {
+  if (!/\bnoindex\b/.test(robots) || !/\bnofollow\b/.test(robots)) {
     throw new Error('preview_must_be_noindex_nofollow');
   }
   const referrer = (header(headers, 'referrer-policy') + ' ' + metaContent(html, 'referrer')).toLowerCase();
-  if (!/\\bno-referrer\\b/.test(referrer)) throw new Error('preview_must_disable_referrer');
+  if (!/\bno-referrer\b/.test(referrer)) throw new Error('preview_must_disable_referrer');
   const csp = header(headers, 'content-security-policy') || metaCsp(html);
   for (const directive of ["default-src 'none'", "connect-src 'none'", "form-action 'none'"]) {
     if (!csp.toLowerCase().includes(directive)) throw new Error('preview_csp_missing:' + directive);
@@ -157,13 +157,13 @@ function fetchPreview(urlValue, expectedSha256, expectedGitBlobSha1, {
 if (require.main === module) {
   const [url, expectedSha256, expectedGitBlobSha1] = process.argv.slice(2);
   if (!url || !expectedSha256 || !expectedGitBlobSha1) {
-    process.stderr.write('Usage: node scripts/verify-public-preview-http.cjs https://mehdisehat.ir/dadyar-preview/ EXPECTED_SHA256 EXPECTED_GIT_BLOB_SHA1\\n');
+    process.stderr.write('Usage: node scripts/verify-public-preview-http.cjs https://mehdisehat.ir/dadyar-preview/ EXPECTED_SHA256 EXPECTED_GIT_BLOB_SHA1\n');
     process.exitCode = 2;
   } else {
     fetchPreview(url, expectedSha256, expectedGitBlobSha1)
-      .then(result => process.stdout.write(JSON.stringify(result, null, 2) + '\\n'))
+      .then(result => process.stdout.write(JSON.stringify(result, null, 2) + '\n'))
       .catch(error => {
-        process.stderr.write('NOT_VERIFIED: ' + String(error && error.message || 'preview_probe_failed') + '\\n');
+        process.stderr.write('NOT_VERIFIED: ' + String(error && error.message || 'preview_probe_failed') + '\n');
         process.exitCode = 1;
       });
   }
