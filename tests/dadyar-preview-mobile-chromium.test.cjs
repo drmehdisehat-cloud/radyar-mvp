@@ -79,8 +79,10 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       check(topicScope.textContent.includes('چندموضوعی'),'multi-topic free question was not flagged on mobile');
       check(!/family|property|instruments|طلاق|اجاره/.test(topicScope.textContent),'internal topic labels leaked into mobile preview');
       approveReview();
-      check(document.getElementById('record-review').disabled,'multi-topic out-of-scope question allowed a review approval');
-      check(download.disabled,'multi-topic out-of-scope question bypassed export scope gate');
+      check(document.getElementById('record-review').disabled,'multi-topic review record was not consumed');
+      check(!download.disabled,'multi-topic cheque question was incorrectly blocked from the cheque-only synthetic report');
+      check(document.getElementById('export-status').textContent.includes('هیچ داده‌ای به سرور ارسال نشد')===false,
+        'unexpected status text in multi-topic preview');
       freeQuestion.value='طلاق و مهریه چه اقدامی لازم دارد؟';
       freeQuestion.dispatchEvent(new Event('input',{bubbles:true}));
       document.getElementById('generate').click();
