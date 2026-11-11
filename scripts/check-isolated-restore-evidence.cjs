@@ -56,7 +56,9 @@ function assertRestoreEvidence({ archive, restoredRoot, productionDocumentRoot, 
 
   // Open each file with O_NOFOLLOW, require a single-link regular file, and hash the bytes
   // through the descriptor while checking inode/size/timestamps before and after the read.
-  // This closes the previous lstat/readFileSync pathname race for the evidence files.
+  // This reduces final-component and read-time substitution risks. Parent-directory
+  // trust still depends on the isolated host and its permissions; Node path APIs do
+  // not pin every ancestor with openat-style directory handles.
   const archiveEvidence = readStableRegularFile(archivePath, 'archive');
   const markerEvidence = readStableRegularFile(realMarker, 'restored marker');
   if (archiveEvidence.stat.dev === markerEvidence.stat.dev &&
