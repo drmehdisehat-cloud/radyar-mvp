@@ -29,7 +29,7 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
   assert.doesNotMatch(html, /\b(?:fetch|XMLHttpRequest|sendBeacon|WebSocket|EventSource)\s*\(/);
 
   const probe = `<script>
-  document.addEventListener('DOMContentLoaded', () => {
+  (() => {
     const check=(condition,message)=>{if(!condition)throw Error(message)};
     try {
       const approveReview=()=>{
@@ -308,7 +308,7 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       navigator.sendBeacon=originalBeacon;window.WebSocket=originalWebSocket;window.EventSource=originalEventSource;
       document.documentElement.dataset.previewGate='PASS';
     } catch(e){document.documentElement.dataset.previewGate='FAIL:'+e.message}
-  }, { once: true });
+  })();
   <\/script>`;
   // The application page uses hash-only CSP. The test-only probe must be explicitly
   // allowlisted in the temporary fixture; do not weaken the committed preview policy.
