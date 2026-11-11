@@ -54,6 +54,10 @@ function verifyPublicPreviewSubpath(source, destination, productionDocumentRoot,
   const sourceHash = sha256(src), destinationHash = sha256(expectedDestination);
   assert.equal(destinationHash, sourceHash, 'public destination differs from reviewed source');
   const html = fs.readFileSync(expectedDestination, 'utf8');
+  assert.match(html, /<meta\s+name="robots"\s+content="noindex,nofollow,noarchive"\s*\/?>/i,
+    'public preview must opt out of indexing, following and archiving');
+  assert.match(html, /<meta\s+name="referrer"\s+content="no-referrer"\s*\/?>/i,
+    'public preview must suppress referrer disclosure');
   assert.match(html, /http-equiv="Content-Security-Policy"/);
   assert.match(html, /default-src 'none'/);
   assert.match(html, /connect-src 'none'/);

@@ -97,3 +97,25 @@ test('wrong reviewed Git blob pin is rejected', () => sandbox(({source,destinati
 test('zero Git blob pin is rejected before destination verification', () => sandbox(({source,destination,documentRoot}) => {
   assert.throws(() => verifyPublicPreviewSubpath(source, destination, documentRoot, '0'.repeat(40)), /expected reviewed source Git blob SHA-1 required/);
 }));
+
+test('public preview verifier rejects a source that permits indexing even when its Git pin matches', () => sandbox(({source,destination,documentRoot}) => {
+  const html = fs.readFileSync(source, 'utf8').replace(
+    '<meta name="robots" content="noindex,nofollow,noarchive">',
+    '<meta name="robots" content="index,follow">'
+  );
+  fs.writeFileSync(source, html);
+  fs.copyFileSync(source, destination);
+  assert.throws(() => verifyPublicPreviewSubpath(source, destination, documentRoot, gitBlobSha(source)),
+    /opt out of indexing/);
+}));
+
+test('public preview verifier rejects a permissive referrer policy even when its Git pin matches', () => sandbox(({source,destination,documentRoot}) => {
+  const html = fs.readFileSync(source, 'utf8').replace(
+    '<meta name="referrer" content="no-referrer">',
+    '<meta name="referrer" content="strict-origin">'
+  );
+  fs.writeFileSync(source, html);
+  fs.copyFileSync(source, destination);
+  assert.throws(() => verifyPublicPreviewSubpath(source, destination, documentRoot, gitBlobSha(source)),
+    /suppress referrer disclosure/);
+}));
