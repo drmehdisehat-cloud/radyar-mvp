@@ -7,7 +7,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
-const script = html.match(/<script>([\\s\\S]*?)<\\/script>/)?.[1];
+const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 assert.ok(script, 'offline preview script must exist');
 
 function harness() {
@@ -171,10 +171,10 @@ test('actual offline preview contains free-text intake, multi-topic hints and a 
   assert.match(html, /id="free-question"/);
   assert.match(html, /connect-src 'none'/);
   assert.match(html, /default-src 'none'/);
-  assert.doesNotMatch(html, /\\bfetch\\s*\\(|XMLHttpRequest|WebSocket|<form\\b/i);
-  assert.doesNotMatch(html, /<(?:script|link|iframe|img|audio|video|source)\\b[^>]*\\b(?:src|href)\\s*=\\s*['"]?\\s*(?:https?:|\\/\\/)/i);
-  const topicHintsSource = script.match(/const topicHints = \\[([\\s\\S]*?)\\n\\];/)?.[1] || '';
-  assert.equal((topicHintsSource.match(/"id"\\s*:/g) || []).length, 27);
+  assert.doesNotMatch(html, /\bfetch\s*\(|XMLHttpRequest|WebSocket|<form\b/i);
+  assert.doesNotMatch(html, /<(?:script|link|iframe|img|audio|video|source)\b[^>]*\b(?:src|href)\s*=\s*['"]?\s*(?:https?:|\/\/)/i);
+  const topicHintsSource = script.match(/const topicHints = \[([\s\S]*?)\n\];/)?.[1] || '';
+  assert.equal((topicHintsSource.match(/"id"\s*:/g) || []).length, 27);
 });
 
 test('actual preview permits one report only after an approved local human-review record', () => {
