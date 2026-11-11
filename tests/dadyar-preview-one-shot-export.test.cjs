@@ -68,7 +68,8 @@ test('approved review exports exactly once and consumes the approval', () => {
   applyActualPermissionFunction(state);
   assert.equal(state.downloadButton.disabled, false);
 
-  vm.runInNewContext(handlerSource, state);
+  const downloadHandler = vm.runInNewContext('(function(){\n' + handlerSource + '\n})', state);
+  downloadHandler();
 
   assert.equal(state.downloads.length, 1);
   assert.equal(state.anchor.download, 'dadyar-synthetic-cheque.txt');
@@ -85,7 +86,7 @@ test('approved review exports exactly once and consumes the approval', () => {
   assert.match(state.reviewStatus.textContent, /بازبینی تازه/);
   assert.equal(state.revoked[0], 'blob:synthetic-report');
 
-  vm.runInNewContext(handlerSource, state);
+  downloadHandler();
   assert.equal(state.downloads.length, 1, 'a second download must be blocked until a fresh review');
 });
 
