@@ -63,3 +63,16 @@ If the owner cannot provide an isolated cPanel/hosting restore target, separate 
 
 
 The release decision engine now requires `restore_target_path === restore_target_realpath` and `production_document_root === production_document_root_realpath`, with both pairs canonical and absolute. If a path resolves differently (including through a symlinked parent), correct the isolated target/path evidence and repeat the independent review; do not weaken this gate.
+
+## Live HTTPS verification of the dedicated preview URL
+
+Run this only **after** the independent restore evidence and destination-file checks above have passed and the owner has explicitly approved placing the reviewed static file in the dedicated `dadyar-preview` directory. This command performs one read-only HTTPS GET; it does not upload, change DNS, follow redirects, send credentials, or deploy anything.
+
+```sh
+node scripts/verify-public-preview-http.cjs \
+  https://mehdisehat.ir/dadyar-preview/ \
+  EXPECTED_SOURCE_SHA256 \
+  EXPECTED_SOURCE_GIT_BLOB_SHA1
+```
+
+Use the SHA-256 and Git blob SHA-1 from the exact reviewed source file, not values copied from an earlier build. A successful result must report HTTP 200, matching hashes, HTML content type, `nosniff`, `noindex/nofollow`, `no-referrer`, a restrictive CSP, and no cookies. Any redirect, changed body, missing security property, timeout, or TLS/DNS failure is `NOT_VERIFIED`. This live probe is operational evidence only; it does not replace the independent backup restore, authenticated human review, legal/security sign-off, or explicit owner release approval.
