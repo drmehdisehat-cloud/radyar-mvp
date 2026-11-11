@@ -50,7 +50,7 @@ function metaContent(html, name) {
 }
 
 function metaCsp(html) {
-  const match = html.match(/<meta\s+http-equiv=["']Content-Security-Policy["']\s+content=["']([^"']*)["']/i);
+  const match = html.match(/<meta\\s+http-equiv="Content-Security-Policy"\\s+content="([^"]*)"/i);
   return match ? match[1] : '';
 }
 
