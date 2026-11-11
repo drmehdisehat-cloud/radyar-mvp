@@ -10,6 +10,14 @@ on:
     branches:
       - main
       - dadyar/mvp-sync-028
+
+# Keep only the newest verification run for each ref. Rapid fix/test commits
+# previously accumulated queued push runs; superseded runs add no release value.
+# This affects CI scheduling only and never deploys or cancels runs on other refs.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 jobs:
