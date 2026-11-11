@@ -8,7 +8,7 @@ const crypto = require('node:crypto');
 function gitBlobSha(file) {
   const bytes = fs.readFileSync(file);
   const digest = crypto.createHash('sha1');
-  digest.update(`blob ${bytes.length}\0`);
+  digest.update(`blob ${bytes.length}\\0`);
   digest.update(bytes);
   return digest.digest('hex');
 }
@@ -34,6 +34,9 @@ test('destination verifier accepts exact synthetic offline preview copy and reje
     const hardLink = path.join(hardLinkDir, 'index.html');
     fs.linkSync(source, hardLink);
     assert.throws(() => verifyPreview(source, hardLink, productionRoot, expectedSourceBlobSha), /hard link to source/);
+    // The hard-link rejection case must not contaminate later independent
+    // digest-mismatch checks: the source must return to its single-link state.
+    fs.unlinkSync(hardLink);
     const destination = path.join(dir, 'index.html');
     fs.copyFileSync(source, destination);
     assert.throws(() => verifyPreview(source, destination, productionRoot), /expected reviewed source Git blob SHA-1 required/);
