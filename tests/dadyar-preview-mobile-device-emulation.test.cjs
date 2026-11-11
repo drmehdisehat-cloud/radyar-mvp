@@ -216,7 +216,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  const multiTopicIds = classifyQuestion(question.value).map(item => item.id);',
       '  const multiTopicReport = document.getElementById("report").textContent;',
       '  const multiTopicExportEligible = exportEligible;',
-      '  const multiTopicExportStatus = document.getElementById("export-status").textContent;',
+      '  const multiTopicScopeStatus = document.getElementById("topic-scope-status").textContent;',
       '  const externalResources = performance.getEntriesByType("resource").map(entry => entry.name).filter(url => /^(?:https?|wss?):/i.test(url));',
       '  return {',
       '    width: innerWidth, height: innerHeight, screenWidth: screen.width, devicePixelRatio,',
@@ -225,7 +225,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '    horizontalOverflow: root.scrollWidth > root.clientWidth + 1,',
       '    initialDisabled, blockedBeforeAcknowledgement, enabledAfterHumanReview, reviewStatus,',
       '    reportAfterAcknowledgement, staleDraftInvalidated, multiTopicReport, multiTopicIds,',
-      '    multiTopicExportEligible, multiTopicExportStatus,',
+      '    multiTopicExportEligible, multiTopicScopeStatus,',
       '    csp: document.querySelector("meta[http-equiv]")?.content || "",',
       '    externalResources',
       '  };',
@@ -257,8 +257,10 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.ok(snapshot.multiTopicIds.includes('family'), 'family hint missing from internal multi-topic routing');
     assert.equal(snapshot.multiTopicExportEligible, true,
       'a free question containing cheque plus another topic must remain eligible for the cheque-only synthetic report');
-    assert.match(snapshot.multiTopicExportStatus, /چندموضوعی/,
+    assert.match(snapshot.multiTopicScopeStatus, /چندموضوعی/,
       'the user must be told that non-cheque topics are not analyzed in this preview');
+    assert.match(snapshot.multiTopicScopeStatus, /موضوع دیگر را تحلیل نمی‌کند/,
+      'the multi-topic scope limitation must remain explicit');
     assert.doesNotMatch(snapshot.multiTopicReport, /دسته‌بندی داخلی:|برچسب‌های موضوعی پیشنهادی/);
     for (const topicId of snapshot.multiTopicIds) {
       assert.equal(snapshot.multiTopicReport.includes(topicId), false,
