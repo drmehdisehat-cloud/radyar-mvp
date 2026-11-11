@@ -81,39 +81,39 @@ The dedicated public directory is required to contain only `index.html`; do not 
 
 ## Two-party cryptographic seal for the restore manifest (integrity only)
 
-The manifest can be signed by two different Ed25519 keypairs: the restore operator and the independent reviewer. This makes later changes to the manifest detectable. It does **not** prove that a restore actually happened, establish the signers' real-world identities, or authorize deployment. The verifier deliberately reports \`restore_operation_independently_verified: false\` and \`deployment_authorized: false\`.
+The manifest can be signed by two different Ed25519 keypairs: the restore operator and the independent reviewer. This makes later changes to the manifest detectable. It does **not** prove that a restore actually happened, establish the signers' real-world identities, or authorize deployment. The verifier deliberately reports `restore_operation_independently_verified: false` and `deployment_authorized: false`.
 
 Keep both private keys, the manifest, canonical payload, signatures, and raw hosting logs outside Git and outside the public document root. Never send private keys to ChatGPT or commit them. The owner must verify the two public-key SHA-256 fingerprints through a separate trusted channel before treating either key as belonging to the named person; the tool currently reports key fingerprints but does not pin them to an owner-approved trust store.
 
 Generate separate keys on the operator's and reviewer's own trusted machines:
 
-\`\`\`sh
+```sh
 openssl genpkey -algorithm ED25519 -out operator-private.pem
 openssl pkey -in operator-private.pem -pubout -out operator-public.pem
 # The independent reviewer generates a separate reviewer-private.pem / reviewer-public.pem pair.
-\`\`\`
+```
 
 After the real restore and independent inspection, create the manifest outside the checkout using the schema above. Canonicalize it, then have each signer sign the exact same canonical bytes with their own private key:
 
-\`\`\`sh
-node scripts/verify-restore-attestation-signatures.cjs \\
-  --canonicalize --manifest /secure/local/restore-manifest.json \\
+```sh
+node scripts/verify-restore-attestation-signatures.cjs \
+  --canonicalize --manifest /secure/local/restore-manifest.json \
   > /secure/local/restore-manifest.canonical.json
 
-openssl pkeyutl -sign -rawin -inkey /secure/local/operator-private.pem \\
-  -in /secure/local/restore-manifest.canonical.json \\
+openssl pkeyutl -sign -rawin -inkey /secure/local/operator-private.pem \
+  -in /secure/local/restore-manifest.canonical.json \
   -out /secure/local/operator.sig
 
-openssl pkeyutl -sign -rawin -inkey /secure/local/reviewer-private.pem \\
-  -in /secure/local/restore-manifest.canonical.json \\
+openssl pkeyutl -sign -rawin -inkey /secure/local/reviewer-private.pem \
+  -in /secure/local/restore-manifest.canonical.json \
   -out /secure/local/reviewer.sig
 
-node scripts/verify-restore-attestation-signatures.cjs \\
-  --manifest /secure/local/restore-manifest.json \\
-  --operator-public-key /secure/local/operator-public.pem \\
-  --operator-signature /secure/local/operator.sig \\
-  --reviewer-public-key /secure/local/reviewer-public.pem \\
+node scripts/verify-restore-attestation-signatures.cjs \
+  --manifest /secure/local/restore-manifest.json \
+  --operator-public-key /secure/local/operator-public.pem \
+  --operator-signature /secure/local/operator.sig \
+  --reviewer-public-key /secure/local/reviewer-public.pem \
   --reviewer-signature /secure/local/reviewer.sig
-\`\`\`
+```
 
-The signature files are raw 64-byte Ed25519 signatures. The verifier rejects identical public keys, malformed signatures, a modified manifest, incomplete restore fields, symlinked evidence paths, and evidence files inside the Git checkout. Its \`SIGNATURES_VERIFIED_UNTRUSTED_KEY_IDENTITY\` status means only that both supplied keys verify the same canonical manifest. The owner must separately authenticate the public-key fingerprints and the reviewer must inspect the actual isolated restore log and database probe. Even after signature verification, keep the release blocked until the real restore, destination, mobile/zero-network, legal/security, and owner-approval gates pass.
+The signature files are raw 64-byte Ed25519 signatures. The verifier rejects identical public keys, malformed signatures, a modified manifest, incomplete restore fields, symlinked evidence paths, and evidence files inside the Git checkout. Its `SIGNATURES_VERIFIED_UNTRUSTED_KEY_IDENTITY` status means only that both supplied keys verify the same canonical manifest. The owner must separately authenticate the public-key fingerprints and the reviewer must inspect the actual isolated restore log and database probe. Even after signature verification, keep the release blocked until the real restore, destination, mobile/zero-network, legal/security, and owner-approval gates pass.
