@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
-const { canonicalizeManifest } = require('../scripts/verify-restore-attestation-signatures.cjs');
+const { canonicalizeManifest, readExternalFile } = require('../scripts/verify-restore-attestation-signatures.cjs');
 
 const SCRIPT = path.join(__dirname, '../scripts/verify-restore-attestation-pinned.cjs');
 const digest = value => crypto.createHash('sha256').update(value).digest('hex');
@@ -165,6 +165,17 @@ test('rejects evidence files located inside the Git checkout', t => {
   const result = run(args);
   assert.equal(result.status, 1);
   assert.match(JSON.parse(result.stdout).error, /outside_git_checkout/);
+});
+
+test('rejects an external hard-link alias to a file inside the Git checkout', t => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-pinned-hardlink-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const alias = path.join(directory, 'external-manifest.json');
+  fs.linkSync(__filename, alias);
+  assert.throws(
+    () => readExternalFile(alias, 'manifest', 64 * 1024),
+    /manifest_must_not_have_hard_link_aliases/
+  );
 });
 
 test('help text states the independent fingerprint and non-authorization limits', () => {
