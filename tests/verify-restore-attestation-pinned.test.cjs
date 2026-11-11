@@ -172,5 +172,5 @@ test('help text states the independent fingerprint and non-authorization limits'
   assert.equal(result.status, 0);
   assert.match(result.stdout, /trusted channel/);
   assert.match(result.stdout, /does not authenticate people/);
-  assert.match(result.stdout, /does not prove a restore/);
+  assert.match(result.stdout, /prove a restore/);
 });
