@@ -314,13 +314,17 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
   // allowlisted in the temporary fixture; do not weaken the committed preview policy.
   const probeScript=probe.slice(probe.indexOf('<script>')+8,probe.lastIndexOf('</script>'));
   assert.ok(probeScript.length>0,'mobile probe script missing');
-  const probeHash=crypto.createHash('sha256').update(probeScript,'utf8').digest('base64');
-  const testHtml=html.replace(/script-src 'sha256-([^']+)';/,(_all,originalHash)=>`script-src 'sha256-${originalHash}' 'sha256-${probeHash}';`);
-  assert.notEqual(testHtml,html,'temporary test CSP did not add the exact probe hash');
+  const originalScript=html.match(/<script>([\\s\\S]*?)<\\/script>/)?.[1];
+  assert.ok(originalScript,'application inline script missing');
+  const combinedScript=originalScript+'\\n'+probeScript;
+  const combinedHash=crypto.createHash('sha256').update(combinedScript,'utf8').digest('base64');
+  const testHtml=html.replace(originalScript,combinedScript)
+    .replace(/script-src 'sha256-[^']+';/,`script-src 'sha256-${combinedHash}';`);
+  assert.notEqual(testHtml,html,'temporary test fixture did not bind the combined script hash');
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'dadyar-preview-mobile-'));
   try {
     const file=path.join(dir,'index.html');
-    fs.writeFileSync(file,testHtml.replace('</body>',probe+'</body>'));
+    fs.writeFileSync(file,testHtml);
     const run=spawnSync(chrome,['--headless','--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--window-size=375,812','--virtual-time-budget=2500','--dump-dom','file://'+file],{encoding:'utf8',timeout:15000});
     assert.equal(run.status,0,run.stderr?.slice(-500));
     assert.match(run.stdout,/data-preview-gate="PASS"/,(run.stdout.match(/data-preview-gate="[^"]+"/)?.[0]||'probe did not complete')+'\n'+(run.stderr||'').slice(-4000));
