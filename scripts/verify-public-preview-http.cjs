@@ -45,7 +45,7 @@ function verifyTargetUrl(value) {
 
 function metaContent(html, name) {
   const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const match = html.match(new RegExp('<meta\\s+name=["\\']' + escaped + '["\\']\\s+content=["\\']([^"\\']*)["\\']', 'i'));
+  const match = html.match(new RegExp('<meta\\s+name="' + escaped + '"\\s+content="([^"]*)"', 'i'));
   return match ? match[1] : '';
 }
 
