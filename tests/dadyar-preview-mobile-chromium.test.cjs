@@ -214,21 +214,29 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       check(download.disabled,'empty evidence set bypassed export gate');
       check(document.getElementById('export-status').textContent.includes('هیچ مدرک فرضی انتخاب نشده است'),'empty evidence warning absent from status');
       // Offline topic hints stay internal: assert their IDs without rendering labels in the report.
-      document.getElementById('free-question').value='آیا چک و مهریه در این مثال مرتبط هستند؟';
-      document.getElementById('free-question').dispatchEvent(new Event('input',{bubbles:true}));
+      const freeQuestion=document.getElementById('free-question');
+      const multiTopicRawQuestion='آیا چک و مهریه در این مثال مرتبط هستند؟';
+      freeQuestion.value=multiTopicRawQuestion;
+      freeQuestion.dispatchEvent(new Event('input',{bubbles:true}));
+      const internalTopicIds=classifyQuestion(freeQuestion.value).map(item=>item.id);
       document.getElementById('generate').click();
-      const internalTopicIds=classifyQuestion(document.getElementById('free-question').value).map(item=>item.id);
       const routedReport=document.getElementById('report').textContent;
+      check(freeQuestion.value==='','raw free question remained in the editable field after local routing');
+      check(!routedReport.includes(multiTopicRawQuestion),'raw free question was copied into the report');
+      check(routedReport.includes('متن خام پرسش آزاد برای حفظ حریم خصوصی در گزارش درج نمی‌شود'),'free-text privacy notice missing from report');
       check(internalTopicIds.includes('instruments') && internalTopicIds.includes('family'),'multi-topic offline hints absent from internal router');
       check(!routedReport.includes('دسته‌بندی داخلی:') && !routedReport.includes('برچسب‌های موضوعی پیشنهادی'),'internal topic routing leaked into user-facing report');
       check(!routedReport.includes('برچسب‌های موضوعی پیشنهادی'),'internal topic labels leaked into report');
       check(routedReport.includes('دامنه این پیش‌نمایش: کارگاه چک فرضی'),'preview scope warning absent');
       check(routedReport.includes('پاسخ خودکار حقوقی: ارائه نمی‌شود'),'offline hints impersonated legal AI');
-      document.getElementById('free-question').value='موضوعی بی‌ارتباط';
-      document.getElementById('free-question').dispatchEvent(new Event('input',{bubbles:true}));
+      const unmatchedQuestion=document.getElementById('free-question');
+      unmatchedQuestion.value='موضوعی بی‌ارتباط';
+      unmatchedQuestion.dispatchEvent(new Event('input',{bubbles:true}));
       check(document.getElementById('result').hidden && download.disabled,'free question change retained old report');
+      const unmatchedTopicCount=classifyQuestion(unmatchedQuestion.value).length;
       document.getElementById('generate').click();
-      check(classifyQuestion(document.getElementById('free-question').value).length===0,'unmatched question was falsely classified');
+      check(unmatchedTopicCount===0,'unmatched question was falsely classified');
+      check(unmatchedQuestion.value==='','unmatched raw question remained in the editable field');
       check(!document.getElementById('report').textContent.includes('برچسب‌های موضوعی پیشنهادی'),'unmatched question exposed internal labels');
       // Free-text intake must not allow export of likely real contact or card identifiers.
       document.getElementById('reset').click();

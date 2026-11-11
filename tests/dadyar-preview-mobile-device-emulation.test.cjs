@@ -209,11 +209,14 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  const reviewStatus = document.getElementById("review-status").textContent;',
       '  const reportAfterAcknowledgement = document.getElementById("report").textContent;',
       '  const question = document.getElementById("free-question");',
-      '  question.value = "چک و مهریه در این مثال چه موضوعاتی هستند؟";',
+      '  const multiTopicRawQuestion = "چک و مهریه در این مثال چه موضوعاتی هستند؟";',
+      '  question.value = multiTopicRawQuestion;',
       '  question.dispatchEvent(new Event("input", { bubbles: true }));',
       '  const staleDraftInvalidated = download.disabled && document.getElementById("result").hidden;',
-      '  document.getElementById("generate").click();',
       '  const multiTopicIds = classifyQuestion(question.value).map(item => item.id);',
+      '  document.getElementById("generate").click();',
+      '  const multiTopicInputCleared = question.value === "";',
+      '  const multiTopicRawQuestionEchoed = document.getElementById("report").textContent.includes(multiTopicRawQuestion);',
       '  const multiTopicReport = document.getElementById("report").textContent;',
       '  const multiTopicExportEligible = exportEligible;',
       '  const multiTopicScopeStatus = document.getElementById("topic-scope-status").textContent;',
@@ -225,7 +228,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '    horizontalOverflow: root.scrollWidth > root.clientWidth + 1,',
       '    initialDisabled, blockedBeforeAcknowledgement, enabledAfterHumanReview, reviewStatus,',
       '    reportAfterAcknowledgement, staleDraftInvalidated, multiTopicReport, multiTopicIds,',
-      '    multiTopicExportEligible, multiTopicScopeStatus,',
+      '    multiTopicExportEligible, multiTopicScopeStatus, multiTopicInputCleared, multiTopicRawQuestionEchoed,',
       '    csp: document.querySelector("meta[http-equiv]")?.content || "",',
       '    externalResources',
       '  };',
@@ -257,6 +260,9 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.ok(snapshot.multiTopicIds.includes('family'), 'family hint missing from internal multi-topic routing');
     assert.equal(snapshot.multiTopicExportEligible, true,
       'a free question containing cheque plus another topic must remain eligible for the cheque-only synthetic report');
+    assert.equal(snapshot.multiTopicInputCleared, true, 'raw free text remained in the editable field after local routing');
+    assert.equal(snapshot.multiTopicRawQuestionEchoed, false, 'raw free text was copied into the report');
+    assert.match(snapshot.multiTopicReport, /متن خام پرسش آزاد برای حفظ حریم خصوصی در گزارش درج نمی‌شود/);
     assert.match(snapshot.multiTopicScopeStatus, /چندموضوعی/,
       'the user must be told that non-cheque topics are not analyzed in this preview');
     assert.match(snapshot.multiTopicScopeStatus, /موضوع دیگر را تحلیل نمی‌کند/,

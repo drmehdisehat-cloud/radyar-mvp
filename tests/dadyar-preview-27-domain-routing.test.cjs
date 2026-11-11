@@ -77,10 +77,12 @@ test('Arabic Yeh and Kaf variants normalize before matching Persian legal hints'
   assert.ok(ids.includes('digital'));
 });
 
-test('sensitive free text is not exposed through the generated report copy', () => {
+test('free text is classified locally then removed before it can enter the report', () => {
   assert.match(html, /internalTopicMatches=hasSensitiveIdentifier\?\[\]:classifyQuestion\(freeQuestion\)/);
+  assert.match(html, /متن خام پرسش آزاد برای حفظ حریم خصوصی در گزارش درج نمی‌شود/);
+  assert.match(html, /freeQuestionField\.value='';/);
+  assert.doesNotMatch(html, /:freeQuestion;/);
   assert.doesNotMatch(html, /برچسب‌های موضوعی پیشنهادی/);
-  assert.match(html, /if\(hasSensitiveIdentifier\) document\.getElementById\('free-question'\)\.value='';/);
 });
 
 test('free-text routing collapses repeated whitespace and line breaks without losing multi-topic matches', () => {

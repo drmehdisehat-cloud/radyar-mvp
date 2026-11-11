@@ -7,7 +7,9 @@ const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'
 test('synthetic cheque preview rejects external URLs before export', () => {
   assert.match(html, /const hasSensitiveIdentifier=[^\n]*https\?:/);
   assert.match(html, /const displayQuestion=hasSensitiveIdentifier\?/);
-  assert.match(html, /if\(hasSensitiveIdentifier\) document\.getElementById\('free-question'\)\.value=''/);
+  assert.match(html, /متن خام پرسش آزاد برای حفظ حریم خصوصی در گزارش درج نمی‌شود/);
+  assert.match(html, /freeQuestionField\.value='';/);
+  assert.doesNotMatch(html, /:freeQuestion;/);
   assert.match(html, /exportEligible=conflicts\.length===0 && unresolved\.length===0/);
   assert.match(html, /if\(hasSensitiveIdentifier\) conflicts\.push/);
 });
