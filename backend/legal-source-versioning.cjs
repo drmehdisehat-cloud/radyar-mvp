@@ -30,13 +30,20 @@ function safeOfficialDocumentUrl(value, documentId) {
   }
   let url;
   try { url = new URL(value); } catch { return false; }
+  const resource = url.pathname + url.search;
+  const documentIdMatches = resource.includes(documentId) ||
+    resource.includes(encodeURIComponent(documentId));
+  const qavaninIdMatches = url.hostname.toLowerCase() !== 'qavanin.ir' ||
+    url.searchParams.get('IDS') === documentId;
   return url.protocol === 'https:' &&
     OFFICIAL_HOSTS.has(url.hostname.toLowerCase()) &&
     (!url.port || url.port === '443') &&
     !url.username && !url.password &&
     url.pathname !== '/' &&
     !url.hash &&
-    !/[\u0000-\u0020\u007f]/u.test(value);
+    documentIdMatches &&
+    qavaninIdMatches &&
+    !/[\\u0000-\\u0020\\u007f]/u.test(value);
 }
 
 function validateSourceVersion(record, asOfDate) {
