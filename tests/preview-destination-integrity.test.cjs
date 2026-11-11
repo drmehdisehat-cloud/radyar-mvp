@@ -8,7 +8,7 @@ const crypto = require('node:crypto');
 function gitBlobSha(file) {
   const bytes = fs.readFileSync(file);
   const digest = crypto.createHash('sha1');
-  digest.update(`blob ${bytes.length}\\0`);
+  digest.update(`blob ${bytes.length}\0`);
   digest.update(bytes);
   return digest.digest('hex');
 }
