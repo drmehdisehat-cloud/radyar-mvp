@@ -40,3 +40,22 @@ test('unrelated external hard link cannot masquerade as an independently restore
     expectedMarkerSha256: sha('synthetic external source')
   }), /hard-link aliases/);
 });
+
+test('archive hard-linked outside the isolated evidence tree is rejected', t => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-restore-archive-alias-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const restoredRoot = path.join(dir, 'restored');
+  const productionDocumentRoot = path.join(dir, 'public_html');
+  fs.mkdirSync(restoredRoot); fs.mkdirSync(productionDocumentRoot);
+  const archive = path.join(dir, 'backup.tar.gz');
+  const alias = path.join(dir, 'archive-alias.bin');
+  fs.writeFileSync(archive, 'synthetic archive only');
+  fs.linkSync(archive, alias);
+  const marker = path.join(restoredRoot, 'index.html');
+  fs.writeFileSync(marker, 'synthetic restored marker');
+  assert.throws(() => assertRestoreEvidence({
+    archive, restoredRoot, productionDocumentRoot, marker: 'index.html',
+    expectedArchiveSha256: sha('synthetic archive only'),
+    expectedMarkerSha256: sha('synthetic restored marker')
+  }), /archive must not have hard-link aliases/);
+});
