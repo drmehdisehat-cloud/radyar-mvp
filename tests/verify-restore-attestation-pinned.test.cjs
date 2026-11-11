@@ -135,7 +135,9 @@ test('rejects malformed or missing fingerprint pins before reading evidence', t 
   const bad = run(malformed);
   assert.equal(bad.status, 2);
   assert.match(JSON.parse(bad.stdout).error, /invalid_sha256_fingerprint/);
-  const missing = argsFor(bundle).filter(value => value !== '--expected-reviewer-public-key-sha256');
+  const missing = argsFor(bundle);
+  const missingIndex = missing.indexOf('--expected-reviewer-public-key-sha256');
+  missing.splice(missingIndex, 2);
   const absent = run(missing);
   assert.equal(absent.status, 2);
   assert.match(JSON.parse(absent.stdout).error, /required_argument_missing/);
