@@ -45,6 +45,6 @@ The output therefore deliberately retains:
 - `restore_operation_independently_verified: false`
 - `deployment_authorized: false`
 
-All input files must be absolute-path regular files outside the Git checkout, with no symlink in their path. The command reads evidence only; it does not connect to cPanel, perform a restore, contact the website, or deploy anything.
+All input files must be absolute-path regular files outside the Git checkout, with no symlink in their path and exactly one hard link (`st_nlink = 1`). The verifier opens files with `O_NOFOLLOW`, checks the opened inode against the resolved path, and rejects changes to inode, size, modification time or change time during the read. These checks reduce pathname and hard-link substitution risks; they are not a substitute for a trusted isolated host. The command reads evidence only; it does not connect to cPanel, perform a restore, contact the website, or deploy anything.
 
 The test fixture uses only synthetic keys, manifest values, and temporary files. It is not restore evidence.
