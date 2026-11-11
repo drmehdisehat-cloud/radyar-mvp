@@ -51,6 +51,10 @@ function verifyPreview(source, destination, productionDocumentRoot, expectedSour
   assert.notEqual(dst, src, 'destination must be a distinct staged file');
   assert.equal(path.basename(src), 'index.html', 'source must be index.html');
   assert.equal(path.basename(dst), 'index.html', 'destination must be index.html');
+  const sourcePathStat = fs.lstatSync(src, { bigint: true });
+  const destinationPathStat = fs.lstatSync(dst, { bigint: true });
+  assert.ok(sourcePathStat.dev !== destinationPathStat.dev || sourcePathStat.ino !== destinationPathStat.ino,
+    'destination must not be a hard link to source; hard-link aliases are forbidden');
 
   // Stable descriptor reads reject symlinks, hard-link aliases, non-regular files,
   // and content/metadata changes during hashing. Destination remains outside web root.
