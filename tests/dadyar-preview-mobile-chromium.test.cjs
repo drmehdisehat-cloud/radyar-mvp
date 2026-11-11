@@ -29,7 +29,7 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
   assert.doesNotMatch(html, /\b(?:fetch|XMLHttpRequest|sendBeacon|WebSocket|EventSource)\s*\(/);
 
   const probe = `<script>
-  window.addEventListener('load', () => {
+  document.addEventListener('DOMContentLoaded', () => {
     const check=(condition,message)=>{if(!condition)throw Error(message)};
     try {
       const approveReview=()=>{
@@ -308,7 +308,7 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       navigator.sendBeacon=originalBeacon;window.WebSocket=originalWebSocket;window.EventSource=originalEventSource;
       document.documentElement.dataset.previewGate='PASS';
     } catch(e){document.documentElement.dataset.previewGate='FAIL:'+e.message}
-  });
+  }, { once: true });
   <\/script>`;
   // The application page uses hash-only CSP. The test-only probe must be explicitly
   // allowlisted in the temporary fixture; do not weaken the committed preview policy.
@@ -323,6 +323,6 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
     fs.writeFileSync(file,testHtml.replace('</body>',probe+'</body>'));
     const run=spawnSync(chrome,['--headless','--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--window-size=375,812','--virtual-time-budget=2500','--dump-dom','file://'+file],{encoding:'utf8',timeout:15000});
     assert.equal(run.status,0,run.stderr?.slice(-500));
-    assert.match(run.stdout,/data-preview-gate="PASS"/,run.stdout.match(/data-preview-gate="[^"]+"/)?.[0]||'probe did not complete');
+    assert.match(run.stdout,/data-preview-gate="PASS"/,(run.stdout.match(/data-preview-gate="[^"]+"/)?.[0]||'probe did not complete')+'\n'+(run.stderr||'').slice(-4000));
   } finally {fs.rmSync(dir,{recursive:true,force:true})}
 });
