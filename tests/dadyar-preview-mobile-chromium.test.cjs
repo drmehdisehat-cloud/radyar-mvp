@@ -314,12 +314,15 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
   // allowlisted in the temporary fixture; do not weaken the committed preview policy.
   const probeScript=probe.slice(probe.indexOf('<script>')+8,probe.lastIndexOf('</script>'));
   assert.ok(probeScript.length>0,'mobile probe script missing');
-  const originalScript=html.match(/<script>([\\s\\S]*?)<\\/script>/)?.[1];
-  assert.ok(originalScript,'application inline script missing');
-  const combinedScript=originalScript+'\\n'+probeScript;
+  const scriptTagStart=html.indexOf('<script>');
+  const scriptBodyStart=scriptTagStart+8;
+  const scriptTagEnd=html.indexOf('</script>',scriptBodyStart);
+  assert.ok(scriptTagStart>=0 && scriptTagEnd>scriptBodyStart,'application inline script missing');
+  const originalScript=html.slice(scriptBodyStart,scriptTagEnd);
+  const combinedScript=originalScript+String.fromCharCode(10)+probeScript;
   const combinedHash=crypto.createHash('sha256').update(combinedScript,'utf8').digest('base64');
-  const testHtml=html.replace(originalScript,combinedScript)
-    .replace(/script-src 'sha256-[^']+';/,`script-src 'sha256-${combinedHash}';`);
+  const combinedHtml=html.slice(0,scriptBodyStart)+combinedScript+html.slice(scriptTagEnd);
+  const testHtml=combinedHtml.replace(/script-src 'sha256-[^']+';/,`script-src 'sha256-${combinedHash}';`);
   assert.notEqual(testHtml,html,'temporary test fixture did not bind the combined script hash');
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'dadyar-preview-mobile-'));
   try {
