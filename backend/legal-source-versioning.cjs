@@ -30,9 +30,11 @@ function safeOfficialDocumentUrl(value, documentId) {
   }
   let url;
   try { url = new URL(value); } catch { return false; }
-  const resource = url.pathname + url.search;
-  const documentIdMatches = resource.includes(documentId) ||
-    resource.includes(encodeURIComponent(documentId));
+  const pathSegments = url.pathname.split('/').filter(Boolean).map(segment => {
+    try { return decodeURIComponent(segment); } catch { return segment; }
+  });
+  const queryValues = Array.from(url.searchParams.values());
+  const documentIdMatches = pathSegments.includes(documentId) || queryValues.includes(documentId);
   const qavaninIdMatches = url.hostname.toLowerCase() !== 'qavanin.ir' ||
     url.searchParams.get('IDS') === documentId;
   return url.protocol === 'https:' &&
