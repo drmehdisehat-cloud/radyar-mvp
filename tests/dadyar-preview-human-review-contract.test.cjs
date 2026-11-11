@@ -64,8 +64,8 @@ test('editing review metadata clears prior approval and requires fresh explicit 
   const invalidatorStart = html.indexOf('function invalidateHumanReview(');
   assert.ok(permissionStart >= 0, 'export permission function missing');
   assert.ok(invalidatorStart > permissionStart, 'human-review invalidator missing');
-  const permissionEnd = html.indexOf('\n }', permissionStart);
-  const invalidatorEnd = html.indexOf('\n }', invalidatorStart);
+  const permissionEnd = html.indexOf('\n}', permissionStart);
+  const invalidatorEnd = html.indexOf('\n}', invalidatorStart);
   assert.ok(permissionEnd > permissionStart, 'export permission function end missing');
   assert.ok(invalidatorEnd > invalidatorStart, 'human-review invalidator end missing');
   const permission = html.slice(permissionStart, permissionEnd + 3);
