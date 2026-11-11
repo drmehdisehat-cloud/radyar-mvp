@@ -19,7 +19,7 @@ test('archive hard-linked into restored tree cannot impersonate restored marker'
   fs.linkSync(archive, path.join(restoredRoot, 'index.html'));
   assert.throws(() => assertRestoreEvidence({ archive, restoredRoot, productionDocumentRoot,
     marker: 'index.html', expectedArchiveSha256: sha('synthetic archive only'),
-    expectedMarkerSha256: sha('synthetic archive only') }), /hard link to archive/);
+    expectedMarkerSha256: sha('synthetic archive only') }), /hard-link aliases/);
 });
 
 test('unrelated external hard link cannot masquerade as an independently restored marker', t => {
