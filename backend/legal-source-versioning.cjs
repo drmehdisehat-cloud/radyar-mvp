@@ -43,7 +43,10 @@ function safeOfficialDocumentUrl(value, documentId) {
     !url.hash &&
     documentIdMatches &&
     qavaninIdMatches &&
-    !/[\\u0000-\\u0020\\u007f]/u.test(value);
+    !Array.from(value).some(character => {
+      const code = character.codePointAt(0);
+      return code <= 0x20 || code === 0x7f;
+    });
 }
 
 function validateSourceVersion(record, asOfDate) {
