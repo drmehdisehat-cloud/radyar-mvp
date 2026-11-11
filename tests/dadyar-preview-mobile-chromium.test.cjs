@@ -81,8 +81,8 @@ test('deployable offline preview: mobile layout, gated export and zero API calls
       approveReview();
       check(document.getElementById('record-review').disabled,'multi-topic review record was not consumed');
       check(!download.disabled,'multi-topic cheque question was incorrectly blocked from the cheque-only synthetic report');
-      check(document.getElementById('export-status').textContent.includes('هیچ داده‌ای به سرور ارسال نشد')===false,
-        'unexpected status text in multi-topic preview');
+      check(document.getElementById('report').textContent.includes('موضوع دیگر را تحلیل نمی‌کند'),
+        'multi-topic scope warning missing from the generated cheque report');
       freeQuestion.value='طلاق و مهریه چه اقدامی لازم دارد؟';
       freeQuestion.dispatchEvent(new Event('input',{bubbles:true}));
       document.getElementById('generate').click();
