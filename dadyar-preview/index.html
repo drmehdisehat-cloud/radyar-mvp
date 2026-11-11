@@ -535,7 +535,7 @@ document.getElementById('generate').addEventListener('click',()=>{
  topicScopeStatus.textContent=topicScopeMessage;
  // Discard suspected personal identifiers from the editable field as well as the draft.
  if(hasSensitiveIdentifier) document.getElementById('free-question').value='';
- const questionOutsideChequeScope=Boolean(freeQuestion) && !(internalTopicMatches.length===1 && internalTopicMatches[0].id==='instruments');
+ const questionOutsideChequeScope=Boolean(freeQuestion) && !internalTopicMatches.some(topic=>topic.id==='instruments');
  const negativeAnswers=answers.filter(item=>item.state==='no');
  // Surface inconsistent synthetic interview answers instead of silently treating them as verified.
  const hasCertificate=evidence.some(e=>e.description==='گواهی عدم پرداخت نمونه');
