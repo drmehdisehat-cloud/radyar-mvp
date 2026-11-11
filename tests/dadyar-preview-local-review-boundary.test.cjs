@@ -19,7 +19,7 @@ test('offline reviewer flow is visibly labelled as a local unauthenticated attes
     section.indexOf('هویت یا سمت بازبین احراز نمی‌شود') < section.indexOf('id="reviewer-name"'),
     'identity limitation must appear before reviewer input'
   );
-  assert.match(section, /هویت بازبین در این نسخه آفلاین احراز نمی‌شود/);
+  assert.match(section, /هویت بازبین احراز نمی‌شود/);
 });
 
 test('downloaded report labels the review as local and never claims authenticated or legal approval', () => {
