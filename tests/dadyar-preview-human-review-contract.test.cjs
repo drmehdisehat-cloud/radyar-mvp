@@ -60,10 +60,16 @@ test('downloaded report preserves the unauthenticated local-review boundary and 
 });
 
 test('editing review metadata clears prior approval and requires fresh explicit acknowledgement', () => {
-  const permission = html.match(/function updateExportPermission\\(\\)\\{[\\s\\S]*?\\n\\}/)?.[0];
-  const invalidator = html.match(/function invalidateHumanReview\\([\\s\\S]*?\\n\\s*\\}/)?.[0];
-  assert.ok(permission, 'export permission function missing');
-  assert.ok(invalidator, 'human-review invalidator missing');
+  const permissionStart = html.indexOf('function updateExportPermission(){');
+  const invalidatorStart = html.indexOf('function invalidateHumanReview(');
+  assert.ok(permissionStart >= 0, 'export permission function missing');
+  assert.ok(invalidatorStart > permissionStart, 'human-review invalidator missing');
+  const permissionEnd = html.indexOf('\n }', permissionStart);
+  const invalidatorEnd = html.indexOf('\n }', invalidatorStart);
+  assert.ok(permissionEnd > permissionStart, 'export permission function end missing');
+  assert.ok(invalidatorEnd > invalidatorStart, 'human-review invalidator end missing');
+  const permission = html.slice(permissionStart, permissionEnd + 3);
+  const invalidator = html.slice(invalidatorStart, invalidatorEnd + 3);
   const state = {
     report: 'synthetic draft',
     exportEligible: true,
@@ -77,7 +83,7 @@ test('editing review metadata clears prior approval and requires fresh explicit 
     reviewStatus: { textContent: '' },
     safeReviewText: (value, max) => String(value || '').slice(0, max)
   };
-  vm.runInNewContext(permission + '\\n' + invalidator + '\\ninvalidateHumanReview();', state);
+  vm.runInNewContext(permission + '\n' + invalidator + '\ninvalidateHumanReview();', state);
   assert.equal(state.reviewRecord, null);
   assert.equal(state.exportAck.checked, false);
   assert.equal(state.downloadButton.disabled, true);
