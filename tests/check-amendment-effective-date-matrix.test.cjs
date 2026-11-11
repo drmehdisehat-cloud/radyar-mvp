@@ -85,3 +85,25 @@ test('1403 article-7 monetary adjustment is not misclassified as a parliamentary
   assert.equal(matrix.legalConclusionPermitted, false);
   assert.match(adjustment.reviewTask, /not classify this as a parliamentary amendment/i);
 });
+
+test('1397 and 1400 primary-source leads remain unverified after official portal timeouts', () => {
+  const byYear = Object.fromEntries(matrix.amendments.map(item => [item.label, item]));
+  const expected = {
+    '1397': 'https://rc.majlis.ir/fa/law/show/1091223',
+    '1400': 'https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689'
+  };
+  for (const [year, url] of Object.entries(expected)) {
+    const item = byYear[year];
+    const observation = item.candidatePrimaryDocumentObservation;
+    assert.equal(observation.url, url);
+    assert.equal(observation.directFetchAttempt.result, 'timeout');
+    assert.equal(observation.directFetchAttempt.retrieved, false);
+    assert.equal(observation.legalTextImported, false);
+    assert.equal(observation.independentPrimaryAmendmentTextVerified, false);
+    assert.equal(item.independentPrimaryAmendmentTextVerified, false);
+    assert.equal(item.officialGazettePublicationDate, null);
+    assert.equal(item.effectiveDate, null);
+  }
+  assert.equal(matrix.releaseSourceEligible, false);
+  assert.equal(matrix.legalConclusionPermitted, false);
+});
