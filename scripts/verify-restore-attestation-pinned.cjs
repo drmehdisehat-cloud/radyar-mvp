@@ -7,6 +7,7 @@ const {
   verifyRestoreAttestationSignatures,
   readExternalFile
 } = require('./verify-restore-attestation-signatures.cjs');
+const { parseJsonRejectDuplicateKeys } = require('./strict-json.cjs');
 
 const SHA256_HEX = /^[a-f0-9]{64}$/i;
 const FLAGS = [
@@ -120,7 +121,7 @@ function main(argv) {
   try {
     const v = args.values;
     const manifestBytes = readExternalFile(v['--manifest'], 'manifest', 64 * 1024);
-    const manifest = JSON.parse(manifestBytes.toString('utf8'));
+    const manifest = parseJsonRejectDuplicateKeys(manifestBytes.toString('utf8'));
     if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) {
       throw new Error('manifest_must_be_json_object');
     }
