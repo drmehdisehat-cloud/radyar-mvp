@@ -3,6 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { decidePreviewRelease } = require('./decide-preview-release.cjs');
+const { readStableRegularFile } = require('./stable-file-integrity.cjs');
 
 const REPO_ROOT = path.resolve(__dirname, '..');
 const MAX_EVIDENCE_BYTES = 64 * 1024;
@@ -45,12 +46,16 @@ function readEvidence(flag, file) {
   assertNoSymlinkComponents(file);
   const realPath = fs.realpathSync(file);
   if (isInside(REPO_ROOT, realPath)) throw new Error(flag + '_must_be_outside_git_checkout');
-  const stat = fs.statSync(realPath);
-  if (!stat.isFile()) throw new Error(flag + '_must_be_regular_file');
-  if (stat.size > MAX_EVIDENCE_BYTES) throw new Error(flag + '_exceeds_64KiB');
+  // Read evidence through a no-follow descriptor, reject hard-link aliases,
+  // enforce the size budget before allocating bytes, and verify the file did
+  // not change while being read.
+  const stable = readStableRegularFile(realPath, flag, {
+    includeBytes: true,
+    maxBytes: MAX_EVIDENCE_BYTES
+  });
   let value;
   try {
-    value = JSON.parse(fs.readFileSync(realPath, 'utf8'));
+    value = JSON.parse(stable.bytes.toString('utf8'));
   } catch {
     throw new Error(flag + '_is_not_valid_json');
   }
