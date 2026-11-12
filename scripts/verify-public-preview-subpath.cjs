@@ -3,9 +3,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const assert = require('node:assert/strict');
-function sha256(file) { return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'); }
-function gitBlobSha(file) {
-  const bytes = fs.readFileSync(file);
+const { readStableRegularFile } = require('./stable-file-integrity.cjs');
+
+function gitBlobSha(bytes) {
   const digest = crypto.createHash('sha1');
   digest.update('blob ' + bytes.length + String.fromCharCode(0));
   digest.update(bytes);
@@ -43,20 +43,21 @@ function verifyPublicPreviewSubpath(source, destination, productionDocumentRoot,
   const entries = fs.readdirSync(previewDirectory).sort();
   assert.deepEqual(entries, ['index.html'], 'dedicated preview directory must contain only index.html; no .htaccess or extra files');
   assert.ok(isOutside(root, src), 'reviewed source must remain outside production document root');
-  assert.ok(fs.statSync(src).isFile(), 'source must be a regular file');
-  assert.ok(fs.statSync(expectedDestination).isFile(), 'public destination must be a regular file');
-  const srcStat = fs.statSync(src), dstStat = fs.statSync(expectedDestination);
-  assert.ok(srcStat.dev !== dstStat.dev || srcStat.ino !== dstStat.ino, 'public destination must not be a hard link to source');
-  assert.equal(dstStat.nlink, 1, 'public destination must not have hard-link aliases');
   assert.equal(path.basename(src), 'index.html', 'source must be index.html');
-  const sourceBlobSha = gitBlobSha(src);
+
+  // Hash both files through stable, no-follow descriptors. This rejects empty,
+  // non-regular, symlinked or hard-linked files and detects metadata/content
+  // changes during the read instead of relying on path-based readFileSync.
+  const sourceRead = readStableRegularFile(src, 'source', { includeBytes: true });
+  const destinationRead = readStableRegularFile(expectedDestination, 'destination', { includeBytes: true });
+  const sourceBlobSha = gitBlobSha(sourceRead.bytes);
   assert.equal(sourceBlobSha.toLowerCase(), expectedSourceBlobSha.toLowerCase(), 'source differs from pinned reviewed Git blob');
-  const sourceHash = sha256(src), destinationHash = sha256(expectedDestination);
-  assert.equal(destinationHash, sourceHash, 'public destination differs from reviewed source');
-  const html = fs.readFileSync(expectedDestination, 'utf8');
-  assert.match(html, /<meta\s+name="robots"\s+content="noindex,nofollow,noarchive"\s*\/?>/i,
+  assert.equal(destinationRead.sha256, sourceRead.sha256, 'public destination differs from reviewed source');
+
+  const html = destinationRead.bytes.toString('utf8');
+  assert.match(html, /<meta\\s+name="robots"\\s+content="noindex,nofollow,noarchive"\\s*\\/?>/i,
     'public preview must opt out of indexing, following and archiving');
-  assert.match(html, /<meta\s+name="referrer"\s+content="no-referrer"\s*\/?>/i,
+  assert.match(html, /<meta\\s+name="referrer"\\s+content="no-referrer"\\s*\\/?>/i,
     'public preview must suppress referrer disclosure');
   assert.match(html, /http-equiv="Content-Security-Policy"/);
   assert.match(html, /default-src 'none'/);
@@ -71,8 +72,8 @@ function verifyPublicPreviewSubpath(source, destination, productionDocumentRoot,
     destination_within_dedicated_preview_directory: true,
     source_blob_sha1: sourceBlobSha,
     expected_source_blob_sha1: expectedSourceBlobSha,
-    source_sha256: sourceHash,
-    destination_sha256: destinationHash,
+    source_sha256: sourceRead.sha256,
+    destination_sha256: destinationRead.sha256,
     destination_realpath: expectedDestination,
     preview_directory_realpath: previewDirectory,
     preview_directory_entries: entries,
