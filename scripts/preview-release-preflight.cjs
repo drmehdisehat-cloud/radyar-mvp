@@ -13,6 +13,7 @@ const USAGE = [
   '    --destination-evidence ABSOLUTE_JSON_PATH',
   '    --isolated-restore-verified --mobile-browser-verified',
   '    --zero-api-requests-verified --human-review-verified',
+  '    --authenticated-human-review-attested',
   '',
   'Evidence files must be outside the Git checkout. This is a read-only schema/attestation check;',
   'it never deploys; it does not authenticate reviewers, independently prove a restore, or publish files.'

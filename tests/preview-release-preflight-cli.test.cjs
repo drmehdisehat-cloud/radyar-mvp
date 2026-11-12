@@ -83,7 +83,7 @@ test('read-only CLI reports shape-only status when synthetic gates are supplied'
     const report = JSON.parse(result.stdout);
     assert.equal(report.status, 'EVIDENCE_SHAPE_VALID_REQUIRES_EXTERNAL_VERIFICATION');
     assert.equal(report.deploymentAuthorized, false);
-    assert.equal(report.externalChecksPending.length, 3);
+    assert.equal(report.externalChecksPending.length, 4);
     assert.deepEqual(report.blockers, []);
     assert.equal(report.evidenceFilesRead, true);
     assert.equal(report.attestationFlagsSupplied, 5);
