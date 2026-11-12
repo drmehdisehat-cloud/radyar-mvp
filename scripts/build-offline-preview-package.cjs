@@ -2,6 +2,9 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const { readStableRegularFile } = require('./stable-file-integrity.cjs');
+
+const MAX_PREVIEW_BYTES = 1024 * 1024;
 
 function fail(message) { throw new Error(message); }
 function inside(parent, candidate) {
@@ -38,17 +41,20 @@ function buildOfflinePreviewPackage(destinationArg, options = {}) {
     fail('The package destination must be outside the repository.');
   }
 
-  const sourceStat = fs.lstatSync(sourcePath);
-  if (!sourceStat.isFile() || sourceStat.isSymbolicLink() || sourceStat.nlink !== 1) {
-    fail('Preview source must be a regular, non-symlink file with one link.');
-  }
   const realRoot = fs.realpathSync(repoRoot);
+  // Read the pinned source through a no-follow descriptor. This rejects symlinked
+  // ancestors, hard-link aliases, non-regular files, oversized inputs and files
+  // whose inode/size/timestamps change while the bytes are being hashed.
+  const sourceRead = readStableRegularFile(sourcePath, 'preview source', {
+    includeBytes: true,
+    maxBytes: MAX_PREVIEW_BYTES
+  });
   const realSource = fs.realpathSync(sourcePath);
   if (!inside(realRoot, realSource)) {
     fail('Preview source resolves outside the repository.');
   }
 
-  const sourceBytes = fs.readFileSync(sourcePath);
+  const sourceBytes = sourceRead.bytes;
   const html = sourceBytes.toString('utf8');
   if (!Buffer.from(html, 'utf8').equals(sourceBytes)) fail('Preview source is not valid UTF-8.');
   const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1] || '';
@@ -88,6 +94,11 @@ function buildOfflinePreviewPackage(destinationArg, options = {}) {
   if (fs.existsSync(destination)) fail('Package destination already exists; refusing overwrite.');
 
   fs.mkdirSync(destination, { mode: 0o700 });
+  const destinationStat = fs.lstatSync(destination);
+  if (!destinationStat.isDirectory() || destinationStat.isSymbolicLink() ||
+      fs.realpathSync(destination) !== destination) {
+    fail('Package destination must be a canonical, non-symlink directory.');
+  }
   const metadata = {
     package: 'dadyar-offline-preview-handoff',
     source_commit: commit,
@@ -125,9 +136,15 @@ function buildOfflinePreviewPackage(destinationArg, options = {}) {
   writeExclusive(path.join(destination, 'PREVIEW-METADATA.json'),
     Buffer.from(JSON.stringify(metadata, null, 2) + '\n', 'utf8'));
 
+  function readPackageFile(name) {
+    return readStableRegularFile(path.join(destination, name), 'package file ' + name, {
+      includeBytes: true,
+      maxBytes: MAX_PREVIEW_BYTES
+    }).bytes;
+  }
   const names = ['PREVIEW-METADATA.json', 'README-fa.txt', 'index.html'];
   const manifest = names.map(name => {
-    const bytes = fs.readFileSync(path.join(destination, name));
+    const bytes = readPackageFile(name);
     return sha256(bytes) + '  ' + name;
   }).join('\n') + '\n';
   writeExclusive(path.join(destination, 'SHA256SUMS'), Buffer.from(manifest, 'utf8'));
@@ -137,13 +154,17 @@ function buildOfflinePreviewPackage(destinationArg, options = {}) {
   if (JSON.stringify(actualNames) !== JSON.stringify(expectedNames)) {
     fail('Unexpected file set in preview package.');
   }
+  const manifestReadback = readPackageFile('SHA256SUMS');
+  if (!manifestReadback.equals(Buffer.from(manifest, 'utf8'))) {
+    fail('Package manifest readback mismatch.');
+  }
   for (const line of manifest.trimEnd().split('\n')) {
     const [expectedHash, name] = line.split(/\s{2}/);
-    if (sha256(fs.readFileSync(path.join(destination, name))) !== expectedHash) {
+    if (sha256(readPackageFile(name)) !== expectedHash) {
       fail('Package readback hash mismatch: ' + name);
     }
   }
-  if (!fs.readFileSync(path.join(destination, 'index.html')).equals(sourceBytes)) {
+  if (!readPackageFile('index.html').equals(sourceBytes)) {
     fail('Packaged preview differs from the checked source.');
   }
   return {
