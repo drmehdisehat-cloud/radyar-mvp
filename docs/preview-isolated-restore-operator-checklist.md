@@ -30,17 +30,7 @@ After collecting the real restore manifest and destination-verifier output, plac
 Run from a trusted checkout:
 
 ```sh
-node scripts/preview-release-preflight.cjs \\
-  --restore-evidence /secure/local/restore-manifest.json \\
-  --destination-evidence /secure/local/destination-evidence.json \\
-  --review-attestation /secure/local/review-attestation.json \\
-  --review-trust-store /secure/local/review-trust-store.json \\
-  --expected-source-commit 40_HEX \\
-  --expected-artifact-sha256 64_HEX \\
-  --isolated-restore-verified \\
-  --mobile-browser-verified \\
-  --zero-api-requests-verified \\
-  --human-review-verified
+node scripts/preview-release-preflight.cjs --restore-evidence /secure/local/restore-manifest.json --destination-evidence /secure/local/destination-evidence.json --review-attestation /secure/local/review-attestation.json --review-trust-store /secure/local/review-trust-store.json --expected-source-commit 40_HEX --expected-artifact-sha256 64_HEX --isolated-restore-verified --mobile-browser-verified --zero-api-requests-verified --human-review-verified
 ```
 
 The four boolean switches are explicit operator/reviewer attestations, not independently measured facts. The signed review is checked against the supplied trust store and bound to the exact source commit and artifact SHA-256. The trust-store origin, real-world reviewer identity, and key ownership still require independent verification through an owner-approved channel. Do not pass the removed `--authenticated-human-review-attested` boolean option: the current CLI rejects it because a bare assertion cannot authenticate a reviewer.
