@@ -80,9 +80,22 @@ function verifyPreviewResponse({ statusCode, headers = {}, body, expectedSha256,
     throw new Error('preview_missing_cross_origin_resource_policy');
   }
   const permissions = header(headers, 'permissions-policy').toLowerCase().replace(/\s+/g, '');
-  for (const directive of ['camera=()', 'microphone=()', 'geolocation=()']) {
-    if (!permissions.split(',').includes(directive)) {
-      throw new Error('preview_permissions_policy_missing:' + directive);
+  const permissionDirectives = new Map();
+  for (const entry of permissions.split(',').map(value => value.trim()).filter(Boolean)) {
+    const match = /^([a-z-]+)=\(([^()]*)\)$/.exec(entry);
+    if (!match) throw new Error('preview_permissions_policy_invalid');
+    const name = match[1];
+    if (permissionDirectives.has(name)) {
+      throw new Error('preview_permissions_policy_duplicate:' + name);
+    }
+    permissionDirectives.set(name, match[2]);
+  }
+  for (const name of ['camera', 'microphone', 'geolocation']) {
+    if (!permissionDirectives.has(name)) {
+      throw new Error('preview_permissions_policy_missing:' + name);
+    }
+    if (permissionDirectives.get(name) !== '') {
+      throw new Error('preview_permissions_policy_not_restricted:' + name);
     }
   }
 
@@ -134,6 +147,7 @@ function verifyPreviewResponse({ statusCode, headers = {}, body, expectedSha256,
     nofollow: true,
     noReferrer: true,
     connectSrcNone: true,
+    restrictedPermissionsPolicy: true,
     cookiesSet: false
   });
 }
