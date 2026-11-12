@@ -29,7 +29,7 @@ test('synthetic report download requires a named human reviewer and an explicit 
 test('review edits and case edits invalidate the prior approval before another export', () => {
   assert.match(html, /reviewerName\.addEventListener\('input',\(\)=>invalidateHumanReview\(\)\)/);
   assert.match(html, /reviewDecision\.addEventListener\('change',\(\)=>invalidateHumanReview\(\)\)/);
-  assert.match(html, /reviewNote\.addEventListener\('input',\(\)=>invalidateHumanReview\(\)\)/);
+  assert.match(html, /reviewNote\.addEventListener\('input',\(\)=>invalidateHumanReview\(\)\)/);\n  assert.match(html, /safeReviewText\(reviewNote\.value,300\)\.length<12/);
   assert.match(html, /reviewRecord=null;reviewerName\.value='';reviewDecision\.value='pending'/);
   assert.match(html, /reviewStatus\.textContent='گزارش دریافت شد؛ برای دریافت دوباره باید بازبینی تازه ثبت شود\.?'/);
 });
@@ -89,10 +89,19 @@ test('editing review metadata clears prior approval and requires fresh explicit 
   assert.equal(state.exportAck.checked, false);
   assert.equal(state.downloadButton.disabled, true);
   assert.equal(state.recordReviewButton.disabled, true);
+  state.reviewNote.value = '12345678901';
   state.exportAck.checked = true;
   vm.runInNewContext('updateExportPermission();', state);
-  assert.equal(state.recordReviewButton.disabled, false);
+  assert.equal(state.recordReviewButton.disabled, true, 'eleven-character note must not enable review');
   assert.equal(state.downloadButton.disabled, true);
+
+  state.reviewNote.value = '123456789012';
+  vm.runInNewContext('invalidateHumanReview();', state);
+  assert.equal(state.exportAck.checked, false, 'editing the note must reset acknowledgement');
+  state.exportAck.checked = true;
+  vm.runInNewContext('updateExportPermission();', state);
+  assert.equal(state.recordReviewButton.disabled, false, 'twelve-character note plus fresh acknowledgement enables review');
+  assert.equal(state.downloadButton.disabled, true, 'review approval is still required before export');
 });
 
 test('downloaded review timestamp is explicitly identified as the untrusted local device clock', () => {
