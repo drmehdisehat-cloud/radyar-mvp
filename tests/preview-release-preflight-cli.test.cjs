@@ -318,7 +318,7 @@ test('malformed UTF-8 evidence is rejected before JSON parsing', () => {
 test('operator restore checklist documents only supported signed preflight options', () => {
   const guide = fs.readFileSync(path.join(__dirname, '../docs/preview-isolated-restore-operator-checklist.md'), 'utf8');
   const start = guide.indexOf('node scripts/preview-release-preflight.cjs');
-  const end = guide.indexOf('\\n```', start);
+  const end = guide.indexOf('\n```', start);
   assert.ok(start >= 0 && end > start, 'preflight command example must be present');
   const command = guide.slice(start, end);
   assert.doesNotMatch(command, /--authenticated-human-review-attested/);
