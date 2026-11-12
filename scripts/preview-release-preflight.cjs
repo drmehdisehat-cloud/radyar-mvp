@@ -22,7 +22,8 @@ const FLAG_NAMES = new Set([
   '--isolated-restore-verified',
   '--mobile-browser-verified',
   '--zero-api-requests-verified',
-  '--human-review-verified'
+  '--human-review-verified',
+  '--authenticated-human-review-attested'
 ]);
 
 function isInside(parent, target) {
@@ -109,14 +110,15 @@ function main(argv) {
       isolatedRestoreVerified: args.attestations.has('--isolated-restore-verified'),
       mobileBrowserVerified: args.attestations.has('--mobile-browser-verified'),
       zeroApiRequestsVerified: args.attestations.has('--zero-api-requests-verified'),
-      humanReviewVerified: args.attestations.has('--human-review-verified')
+      humanReviewVerified: args.attestations.has('--human-review-verified'),
+      authenticatedHumanReviewAttested: args.attestations.has('--authenticated-human-review-attested')
     });
     const output = {
       ...decision,
       evidenceFilesRead: true,
       attestationFlagsSupplied: args.attestations.size,
       deploymentPerformed: false,
-      note: 'فقط شکل و سازگاری اظهارهای ورودی بررسی شده است؛ اصالت مدرک، بازیابی واقعی، مقصد زنده، بازبینی مستقل و مجوز مالک احراز نشده‌اند. این ابزار هرگز مجوز انتشار صادر نمی‌کند.'
+      note: 'فقط شکل و سازگاری اظهارهای ورودی بررسی شده است؛ اصالت مدرک، بازیابی واقعی، مقصد زنده، احراز هویت مستقل بازبین و مجوز مالک احراز نشده‌اند. این ابزار هرگز مجوز انتشار صادر نمی‌کند.'
     };
     process.stdout.write(JSON.stringify(output, null, 2) + '\n');
     // Exit 3 means the JSON shape passed but external evidence/release approval remain unverified.

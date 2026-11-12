@@ -83,7 +83,7 @@ function hasVerifiedStagingDestination(evidence) {
   return outsideDocumentRoot(evidence.destination_realpath, evidence.production_document_root_realpath);
 }
 
-function decidePreviewRelease({ restoreEvidence, destinationEvidence, isolatedRestoreVerified = false, mobileBrowserVerified = false, zeroApiRequestsVerified = false, humanReviewVerified = false } = {}) {
+function decidePreviewRelease({ restoreEvidence, destinationEvidence, isolatedRestoreVerified = false, mobileBrowserVerified = false, zeroApiRequestsVerified = false, humanReviewVerified = false, authenticatedHumanReviewAttested = false } = {}) {
   const blockers = [];
   if (!hasIndependentRestoreAttestation(restoreEvidence) || isolatedRestoreVerified !== true)
     blockers.push('independent restore attestation incomplete or unverified');
@@ -92,11 +92,13 @@ function decidePreviewRelease({ restoreEvidence, destinationEvidence, isolatedRe
   if (mobileBrowserVerified !== true) blockers.push('real mobile browser test missing');
   if (zeroApiRequestsVerified !== true) blockers.push('zero API requests not observed');
   if (humanReviewVerified !== true) blockers.push('human review approval missing');
+  if (authenticatedHumanReviewAttested !== true) blockers.push('authenticated human reviewer attestation missing');
   return Object.freeze({
     status: blockers.length ? 'NOT_READY' : 'EVIDENCE_SHAPE_VALID_REQUIRES_EXTERNAL_VERIFICATION',
     blockers,
     externalChecksPending: Object.freeze([
       'operator-supplied restore and destination attestations have not been independently authenticated',
+      'reviewer identity and approval have not been independently authenticated against a trusted identity source',
       'live HTTPS response, hosting headers, and live mobile behavior have not been verified by this tool',
       'independent legal/security review and explicit owner approval remain separate requirements'
     ]),

@@ -40,7 +40,7 @@ test('all browser and review flags still fail without a complete restore attesta
   const decision = decidePreviewRelease({
     restoreEvidence:{restore_proven:true}, destinationEvidence,
     isolatedRestoreVerified:true, mobileBrowserVerified:true,
-    zeroApiRequestsVerified:true, humanReviewVerified:true
+    zeroApiRequestsVerified:true, humanReviewVerified:true, authenticatedHumanReviewAttested:true
   });
   assert.equal(decision.status,'NOT_READY');
 });
@@ -48,7 +48,7 @@ test('tampered destination hash fails even when restore attestation and other fl
   const decision = decidePreviewRelease({
     restoreEvidence, destinationEvidence:{...destinationEvidence,destination_sha256:'f'.repeat(64)},
     isolatedRestoreVerified:true, mobileBrowserVerified:true,
-    zeroApiRequestsVerified:true, humanReviewVerified:true
+    zeroApiRequestsVerified:true, humanReviewVerified:true, authenticatedHumanReviewAttested:true
   });
   assert.equal(decision.status,'NOT_READY');
   assert.ok(decision.blockers.includes('preview destination is not verified outside production document root'));
@@ -56,7 +56,7 @@ test('tampered destination hash fails even when restore attestation and other fl
 test('complete synthetic manifest and isolated staging path reach owner approval only; they are not a deployment', () => {
   const decision = decidePreviewRelease({
     restoreEvidence, destinationEvidence, isolatedRestoreVerified:true,
-    mobileBrowserVerified:true, zeroApiRequestsVerified:true, humanReviewVerified:true
+    mobileBrowserVerified:true, zeroApiRequestsVerified:true, humanReviewVerified:true, authenticatedHumanReviewAttested:true
   });
   assert.equal(decision.status,'EVIDENCE_SHAPE_VALID_REQUIRES_EXTERNAL_VERIFICATION');
   assert.deepEqual(decision.blockers,[]);
@@ -65,7 +65,7 @@ test('complete synthetic manifest and isolated staging path reach owner approval
 });
 
 test('destination evidence inside production document root is rejected even with matching hashes', () => {
-  const decision = decidePreviewRelease({ restoreEvidence, destinationEvidence: { ...destinationEvidence, destination_realpath: '/home/site/public_html/dadyar-preview/index.html' }, isolatedRestoreVerified:true, mobileBrowserVerified:true, zeroApiRequestsVerified:true, humanReviewVerified:true });
+  const decision = decidePreviewRelease({ restoreEvidence, destinationEvidence: { ...destinationEvidence, destination_realpath: '/home/site/public_html/dadyar-preview/index.html' }, isolatedRestoreVerified:true, mobileBrowserVerified:true, zeroApiRequestsVerified:true, humanReviewVerified:true, authenticatedHumanReviewAttested:true });
   assert.equal(decision.status, 'NOT_READY');
   assert.ok(decision.blockers.includes('preview destination is not verified outside production document root'));
 });

@@ -70,7 +70,8 @@ function baseArgs(f) {
     '--isolated-restore-verified',
     '--mobile-browser-verified',
     '--zero-api-requests-verified',
-    '--human-review-verified'
+    '--human-review-verified',
+    '--authenticated-human-review-attested'
   ];
 }
 
@@ -85,9 +86,25 @@ test('read-only CLI reports shape-only status when synthetic gates are supplied'
     assert.equal(report.externalChecksPending.length, 3);
     assert.deepEqual(report.blockers, []);
     assert.equal(report.evidenceFilesRead, true);
-    assert.equal(report.attestationFlagsSupplied, 4);
+    assert.equal(report.attestationFlagsSupplied, 5);
     assert.equal(report.deploymentPerformed, false);
     assert.match(report.note, /اصالت مدرک، بازیابی واقعی/);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
+
+test('local review approval alone cannot satisfy the authenticated-review release gate', () => {
+  const f = fixture();
+  try {
+    const args = baseArgs(f).filter(arg => arg !== '--authenticated-human-review-attested');
+    const result = run(args);
+    assert.equal(result.status, 1, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.status, 'NOT_READY');
+    assert.ok(report.blockers.includes('authenticated human reviewer attestation missing'));
+    assert.equal(report.deploymentPerformed, false);
   } finally {
     fs.rmSync(f.directory, { recursive: true, force: true });
   }
