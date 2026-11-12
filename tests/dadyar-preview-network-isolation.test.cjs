@@ -103,7 +103,7 @@ const cspDirectives = Object.fromEntries(csp.split(';').map(part => {
   return [name, values];
 }));
 function cspHash(source) {
-  return 'sha256-' + crypto.createHash('sha256').update(source).digest('base64');
+  return "'sha256-" + crypto.createHash('sha256').update(source).digest('base64') + "'";
 }
 
 test('CSP pins the exact inline script and style bytes', () => {
