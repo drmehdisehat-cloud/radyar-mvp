@@ -2,6 +2,7 @@
 // Local, read-only release preflight. This script never deploys or writes evidence.
 const fs = require('node:fs');
 const path = require('node:path');
+const { TextDecoder } = require('node:util');
 const { decidePreviewRelease } = require('./decide-preview-release.cjs');
 const { readStableRegularFile } = require('./stable-file-integrity.cjs');
 const { verifyHumanReviewAttestation } = require('./verify-human-review-attestation.cjs');
@@ -66,9 +67,15 @@ function readEvidence(flag, file) {
     includeBytes: true,
     maxBytes: MAX_EVIDENCE_BYTES
   });
+  let decoded;
+  try {
+    decoded = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(stable.bytes);
+  } catch {
+    throw new Error(flag + '_is_not_valid_utf8');
+  }
   let value;
   try {
-    value = JSON.parse(stable.bytes.toString('utf8'));
+    value = JSON.parse(decoded);
   } catch {
     throw new Error(flag + '_is_not_valid_json');
   }
