@@ -193,7 +193,7 @@ test('actual preview permits one report only after an approved local human-revie
   assert.equal(h.get('export-ack').checked, false);
 });
 
-test('review cannot be recorded without a meaningful review note', () => {
+test('review note enforces the exact twelve-character minimum before approval', () => {
   const h = harness();
   generateEligibleDraft(h);
   h.get('reviewer-name').value = 'بازبین آزمایشی';
@@ -202,9 +202,24 @@ test('review cannot be recorded without a meaningful review note', () => {
   h.fire('review-decision', 'change');
   h.get('export-ack').checked = true;
   h.fire('export-ack', 'change');
-  assert.equal(h.get('record-review').disabled, true);
+  assert.equal(h.get('record-review').disabled, true, 'empty note must block review');
   assert.equal(h.get('download').disabled, true);
-  assert.equal(h.downloads.length, 0);
+
+  h.get('review-note').value = '12345678901';
+  h.fire('review-note', 'input');
+  h.get('export-ack').checked = true;
+  h.fire('export-ack', 'change');
+  assert.equal(h.get('record-review').disabled, true, 'eleven characters must remain below the minimum');
+
+  h.get('review-note').value = '123456789012';
+  h.fire('review-note', 'input');
+  assert.equal(h.get('export-ack').checked, false, 'editing the note must reset acknowledgement');
+  h.get('export-ack').checked = true;
+  h.fire('export-ack', 'change');
+  assert.equal(h.get('record-review').disabled, false, 'twelve characters should satisfy the minimum');
+  h.fire('record-review', 'click');
+  assert.equal(h.get('download').disabled, false, 'approved review with a qualifying note should enable export');
+  assert.equal(h.downloads.length, 0, 'recording review must not auto-download a report');
 });
 
 test('rejected local review never enables report download', () => {
