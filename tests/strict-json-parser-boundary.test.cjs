@@ -20,11 +20,16 @@ test('accepts representative valid JSON exactly as JSON.parse does', () => {
   }
 });
 
-test('accepts exactly 64 nested arrays and rejects 65', () => {
+test('accepts exactly 64 nested arrays and objects and rejects 65', () => {
   const accepted = '['.repeat(64) + '0' + ']'.repeat(64);
   assert.deepStrictEqual(parse(accepted), JSON.parse(accepted));
   const rejected = '['.repeat(65) + '0' + ']'.repeat(65);
   assert.throws(() => parse(rejected), /json_nesting_too_deep/);
+
+  const acceptedObjects = '{"level":'.repeat(64) + '0' + '}'.repeat(64);
+  assert.deepStrictEqual(parse(acceptedObjects), JSON.parse(acceptedObjects));
+  const rejectedObjects = '{"level":'.repeat(65) + '0' + '}'.repeat(65);
+  assert.throws(() => parse(rejectedObjects), /json_nesting_too_deep/);
 });
 
 test('rejects malformed JSON grammar and trailing content', () => {
