@@ -55,7 +55,7 @@ test('rejects directories as evidence files', t => {
 });
 
 test('rejects evidence stored inside the Git checkout', () => {
-  assert.throws(() => readEvidence('--restore-evidence', __filename), /must be outside git checkout/);
+  assert.throws(() => readEvidence('--restore-evidence', __filename), /must_be_outside_git_checkout/);
 });
 
 test('stable reader rejects invalid and exceeded byte limits', t => {
