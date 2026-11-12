@@ -108,6 +108,7 @@ function baseArgs(f) {
     '--review-trust-store', f.trustStoreFile,
     '--expected-source-commit', f.sourceCommit,
     '--expected-artifact-sha256', f.sourceHash,
+    '--expected-review-trust-store-sha256', digest(fs.readFileSync(f.trustStoreFile)),
     '--isolated-restore-verified',
     '--mobile-browser-verified',
     '--zero-api-requests-verified',
@@ -136,8 +137,57 @@ test('read-only CLI verifies a signed synthetic review but still requires extern
     assert.equal(report.attestationFlagsSupplied, 4);
     assert.equal(report.reviewAttestation.verified, true);
     assert.equal(report.reviewAttestation.subject, 'synthetic-reviewer-01');
+    assert.equal(report.reviewAttestation.trustStoreSha256, digest(fs.readFileSync(f.trustStoreFile)));
     assert.equal(report.deploymentPerformed, false);
     assert.match(report.note, /منشأ مستقل trust store/);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
+test('a missing owner-pinned trust-store digest cannot authenticate a reviewer', () => {
+  const f = fixture();
+  try {
+    const args = removeValuePair(baseArgs(f), '--expected-review-trust-store-sha256');
+    const result = run(args);
+    assert.equal(result.status, 1, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.reviewAttestation.verified, false);
+    assert.equal(report.reviewAttestation.reason, 'review_trust_store_digest_required');
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
+test('a substituted trust store is rejected when its bytes differ from the owner-pinned digest', () => {
+  const f = fixture();
+  try {
+    const args = baseArgs(f);
+    const index = args.indexOf('--expected-review-trust-store-sha256') + 1;
+    args[index] = 'f'.repeat(64);
+    const result = run(args);
+    assert.equal(result.status, 1, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.reviewAttestation.verified, false);
+    assert.equal(report.reviewAttestation.reason, 'review_trust_store_digest_mismatch');
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
+test('malformed or all-zero trust-store digest is rejected', () => {
+  const f = fixture();
+  try {
+    const args = baseArgs(f);
+    const index = args.indexOf('--expected-review-trust-store-sha256') + 1;
+    args[index] = 'not-a-sha256';
+    const result = run(args);
+    assert.equal(result.status, 1, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.reviewAttestation.reason, 'invalid_expected_review_trust_store_sha256');
+    assert.equal(report.deploymentPerformed, false);
   } finally {
     fs.rmSync(f.directory, { recursive: true, force: true });
   }
@@ -330,6 +380,7 @@ test('operator restore checklist documents only supported signed preflight optio
     '--review-trust-store',
     '--expected-source-commit',
     '--expected-artifact-sha256',
+    '--expected-review-trust-store-sha256',
     '--isolated-restore-verified',
     '--mobile-browser-verified',
     '--zero-api-requests-verified',
