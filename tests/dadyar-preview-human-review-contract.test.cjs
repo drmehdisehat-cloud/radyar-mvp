@@ -29,7 +29,8 @@ test('synthetic report download requires a named human reviewer and an explicit 
 test('review edits and case edits invalidate the prior approval before another export', () => {
   assert.match(html, /reviewerName\.addEventListener\('input',\(\)=>invalidateHumanReview\(\)\)/);
   assert.match(html, /reviewDecision\.addEventListener\('change',\(\)=>invalidateHumanReview\(\)\)/);
-  assert.match(html, /reviewNote\.addEventListener\('input',\(\)=>invalidateHumanReview\(\)\)/);\n  assert.match(html, /safeReviewText\(reviewNote\.value,300\)\.length<12/);
+  assert.match(html, /reviewNote\.addEventListener\('input',\(\)=>invalidateHumanReview\(\)\)/);
+  assert.match(html, /safeReviewText\(reviewNote\.value,300\)\.length<12/);
   assert.match(html, /reviewRecord=null;reviewerName\.value='';reviewDecision\.value='pending'/);
   assert.match(html, /reviewStatus\.textContent='گزارش دریافت شد؛ برای دریافت دوباره باید بازبینی تازه ثبت شود\.?'/);
 });
