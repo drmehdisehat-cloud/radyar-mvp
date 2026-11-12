@@ -24,7 +24,12 @@ const expectedSha256 = sha256(body);
 const expectedGitBlobSha1 = gitBlobSha1(body);
 const headers = {
   'content-type': 'text/html; charset=utf-8',
-  'x-content-type-options': 'nosniff'
+  'cache-control': 'no-store',
+  'content-security-policy': "default-src 'none'; connect-src 'none'; form-action 'none'; frame-ancestors 'none'",
+  'x-content-type-options': 'nosniff',
+  'x-frame-options': 'DENY',
+  'cross-origin-resource-policy': 'same-origin',
+  'permissions-policy': 'camera=(), microphone=(), geolocation=()'
 };
 
 function verify(overrides = {}) {
@@ -94,6 +99,29 @@ test('requires noindex, nofollow, no-referrer and a restrictive CSP', () => {
   assert.throws(() => verify({ body: withoutReferrer }), /preview_must_disable_referrer/);
   const withoutCsp = Buffer.from(html.replace("connect-src 'none'; ", ''));
   assert.throws(() => verify({ body: withoutCsp }), /preview_csp_missing:connect-src 'none'/);
+});
+
+test('requires response-header frame protection; a meta CSP cannot supply frame-ancestors', () => {
+  const withoutHeader = { ...headers };
+  delete withoutHeader['content-security-policy'];
+  assert.throws(() => verify({ headers: withoutHeader }), /preview_missing_http_csp_header/);
+
+  const withoutFrameAncestors = {
+    ...headers,
+    'content-security-policy': "default-src 'none'; connect-src 'none'; form-action 'none'"
+  };
+  assert.throws(() => verify({ headers: withoutFrameAncestors }), /preview_http_csp_missing:frame-ancestors/);
+});
+
+test('requires no-store, X-Frame-Options, CORP and restrictive Permissions-Policy headers', () => {
+  for (const [name, value, error] of [
+    ['cache-control', 'public, max-age=3600', /preview_missing_no_store_header/],
+    ['x-frame-options', 'SAMEORIGIN', /preview_missing_x_frame_options_deny/],
+    ['cross-origin-resource-policy', 'cross-origin', /preview_missing_cross_origin_resource_policy/],
+    ['permissions-policy', 'camera=(), microphone=()', /preview_permissions_policy_missing:geolocation/]
+  ]) {
+    assert.throws(() => verify({ headers: { ...headers, [name]: value } }), error);
+  }
 });
 
 test('rejects empty, oversized, invalid UTF-8 and missing hash pins', () => {

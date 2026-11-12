@@ -14,6 +14,7 @@ const htmlText = html.toString('utf8');
 const cspMatch = htmlText.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/i);
 assert.ok(cspMatch, 'preview must declare its committed CSP meta policy');
 const contentSecurityPolicy = cspMatch[1];
+const responseContentSecurityPolicy = contentSecurityPolicy + "; frame-ancestors 'none'";
 assert.doesNotMatch(contentSecurityPolicy, /'unsafe-inline'/i,
   'HTTP fixture must not weaken the hash-only inline policy');
 assert.match(contentSecurityPolicy, /connect-src 'none'/);
@@ -40,8 +41,9 @@ function createServer() {
       'Content-Length': String(html.length),
       'Cache-Control': 'no-store',
       // Mirror the actual reviewed HTML policy; never substitute unsafe-inline in CI.
-      'Content-Security-Policy': contentSecurityPolicy,
+      'Content-Security-Policy': responseContentSecurityPolicy,
       'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
       'Referrer-Policy': 'no-referrer',
       'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
       'Cross-Origin-Resource-Policy': 'same-origin'
@@ -93,7 +95,9 @@ test('offline Dadyar preview is served at the exact /dadyar-preview/ subpath wit
     assert.equal(response.status, 200, route);
     assert.equal(response.headers.get('content-type'), 'text/html; charset=utf-8');
     assert.equal(response.headers.get('cache-control'), 'no-store');
-    assert.equal(response.headers.get('content-security-policy'), contentSecurityPolicy);
+    assert.equal(response.headers.get('content-security-policy'), responseContentSecurityPolicy);
+    assert.match(response.headers.get('content-security-policy'), /frame-ancestors 'none'/);
+    assert.equal(response.headers.get('x-frame-options'), 'DENY');
     assert.doesNotMatch(response.headers.get('content-security-policy'), /'unsafe-inline'/i);
     assert.equal(response.headers.get('x-content-type-options'), 'nosniff');
     assert.equal(response.headers.get('referrer-policy'), 'no-referrer');

@@ -70,16 +70,48 @@ function verifyPreviewResponse({ statusCode, headers = {}, body, expectedSha256,
     throw new Error('preview_missing_nosniff_header');
   }
   if (header(headers, 'set-cookie')) throw new Error('static_preview_must_not_set_cookies');
+  if (!header(headers, 'cache-control').toLowerCase().split(',').some(value => value.trim() === 'no-store')) {
+    throw new Error('preview_missing_no_store_header');
+  }
+  if (header(headers, 'x-frame-options').trim().toLowerCase() !== 'deny') {
+    throw new Error('preview_missing_x_frame_options_deny');
+  }
+  if (header(headers, 'cross-origin-resource-policy').trim().toLowerCase() !== 'same-origin') {
+    throw new Error('preview_missing_cross_origin_resource_policy');
+  }
+  const permissions = header(headers, 'permissions-policy').toLowerCase().replace(/\\s+/g, '');
+  for (const directive of ['camera=()', 'microphone=()', 'geolocation=()']) {
+    if (!permissions.split(',').includes(directive)) {
+      throw new Error('preview_permissions_policy_missing:' + directive);
+    }
+  }
 
   const robots = (header(headers, 'x-robots-tag') + ' ' + metaContent(html, 'robots')).toLowerCase();
-  if (!/\bnoindex\b/.test(robots) || !/\bnofollow\b/.test(robots)) {
+  if (!/\\bnoindex\\b/.test(robots) || !/\\bnofollow\\b/.test(robots)) {
     throw new Error('preview_must_be_noindex_nofollow');
   }
   const referrer = (header(headers, 'referrer-policy') + ' ' + metaContent(html, 'referrer')).toLowerCase();
-  if (!/\bno-referrer\b/.test(referrer)) throw new Error('preview_must_disable_referrer');
-  const csp = header(headers, 'content-security-policy') || metaCsp(html);
-  for (const directive of ["default-src 'none'", "connect-src 'none'", "form-action 'none'"]) {
-    if (!csp.toLowerCase().includes(directive)) throw new Error('preview_csp_missing:' + directive);
+  if (!/\\bno-referrer\\b/.test(referrer)) throw new Error('preview_must_disable_referrer');
+  const responseCsp = header(headers, 'content-security-policy');
+  if (!responseCsp) throw new Error('preview_missing_http_csp_header');
+  const hasDirective = (policy, name, expected) => policy.split(';').some(part => {
+    const tokens = part.trim().split(/\\s+/);
+    const directiveName = tokens.shift();
+    return directiveName && directiveName.toLowerCase() === name &&
+      tokens.join(' ').toLowerCase() === expected;
+  });
+  if (!hasDirective(responseCsp, 'frame-ancestors', "'none'")) {
+    throw new Error("preview_http_csp_missing:frame-ancestors 'none'");
+  }
+  const csp = [responseCsp, metaCsp(html)].filter(Boolean).join('; ');
+  for (const [name, expected] of [
+    ['default-src', "'none'"],
+    ['connect-src', "'none'"],
+    ['form-action', "'none'"]
+  ]) {
+    if (!hasDirective(csp, name, expected)) {
+      throw new Error('preview_csp_missing:' + name + ' ' + expected);
+    }
   }
 
   const actualSha256 = sha256(bytes);
