@@ -95,7 +95,7 @@ function verifyPreviewResponse({ statusCode, headers = {}, body, expectedSha256,
   const responseCsp = header(headers, 'content-security-policy');
   if (!responseCsp) throw new Error('preview_missing_http_csp_header');
   const hasDirective = (policy, name, expected) => policy.split(';').some(part => {
-    const tokens = part.trim().split(/\s+/);
+    const tokens = part.trim().split(/\\s+/);
     const directiveName = tokens.shift();
     return directiveName && directiveName.toLowerCase() === name &&
       tokens.join(' ').toLowerCase() === expected;

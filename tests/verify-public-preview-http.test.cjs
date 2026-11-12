@@ -25,7 +25,7 @@ const expectedGitBlobSha1 = gitBlobSha1(body);
 const headers = {
   'content-type': 'text/html; charset=utf-8',
   'cache-control': 'no-store',
-  'content-security-policy': "default-src 'none'; connect-src 'none'; form-action 'none'; frame-ancestors 'none'",
+  'content-security-policy': "frame-ancestors 'none'",
   'x-content-type-options': 'nosniff',
   'x-frame-options': 'DENY',
   'cross-origin-resource-policy': 'same-origin',
