@@ -2,6 +2,7 @@
 // Local, read-only release preflight. This script never deploys or writes evidence.
 const fs = require('node:fs');
 const path = require('node:path');
+const crypto = require('node:crypto');
 const { TextDecoder } = require('node:util');
 const { decidePreviewRelease } = require('./decide-preview-release.cjs');
 const { readStableRegularFile } = require('./stable-file-integrity.cjs');
@@ -15,6 +16,7 @@ const USAGE = [
   '    --destination-evidence ABSOLUTE_JSON_PATH',
   '    --review-attestation ABSOLUTE_JSON_PATH --review-trust-store ABSOLUTE_JSON_PATH',
   '    --expected-source-commit 40_HEX --expected-artifact-sha256 64_HEX',
+  '    --expected-review-trust-store-sha256 64_HEX',
   '    --isolated-restore-verified --mobile-browser-verified',
   '    --zero-api-requests-verified --human-review-verified',
   '',
@@ -36,7 +38,8 @@ const VALUE_NAMES = new Set([
   '--review-attestation',
   '--review-trust-store',
   '--expected-source-commit',
-  '--expected-artifact-sha256'
+  '--expected-artifact-sha256',
+  '--expected-review-trust-store-sha256'
 ]);
 
 function isInside(parent, target) {
@@ -55,7 +58,7 @@ function assertNoSymlinkComponents(target) {
   }
 }
 
-function readEvidence(flag, file) {
+function readEvidenceRecord(flag, file) {
   if (!path.isAbsolute(file)) throw new Error(flag + '_must_be_absolute');
   assertNoSymlinkComponents(file);
   const realPath = fs.realpathSync(file);
@@ -82,7 +85,11 @@ function readEvidence(flag, file) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new Error(flag + '_must_contain_a_json_object');
   }
-  return value;
+  return { value, sha256: stable.sha256 };
+}
+
+function readEvidence(flag, file) {
+  return readEvidenceRecord(flag, file).value;
 }
 
 function parseArgs(argv) {
@@ -137,16 +144,33 @@ function main(argv) {
     const trustPath = args.paths['--review-trust-store'];
     const expectedSourceCommit = args.values['--expected-source-commit'];
     const expectedArtifactSha256 = args.values['--expected-artifact-sha256'];
-    if (reviewPath && trustPath && expectedSourceCommit && expectedArtifactSha256) {
+    const expectedTrustStoreSha256 = args.values['--expected-review-trust-store-sha256'];
+    const hasCoreReviewInputs = reviewPath && trustPath && expectedSourceCommit && expectedArtifactSha256;
+    if (hasCoreReviewInputs && expectedTrustStoreSha256) {
       const attestation = readEvidence('--review-attestation', reviewPath);
-      const trustStore = readEvidence('--review-trust-store', trustPath);
-      review = verifyHumanReviewAttestation({
-        attestation,
-        trustStore,
-        expectedSourceCommit,
-        expectedArtifactSha256
-      });
-    } else if (reviewPath || trustPath || expectedSourceCommit || expectedArtifactSha256) {
+      const trustStoreRecord = readEvidenceRecord('--review-trust-store', trustPath);
+      if (!/^[a-f0-9]{64}$/i.test(expectedTrustStoreSha256) || /^0{64}$/i.test(expectedTrustStoreSha256)) {
+        review = { verified: false, reason: 'invalid_expected_review_trust_store_sha256' };
+      } else {
+        const expectedDigest = Buffer.from(expectedTrustStoreSha256, 'hex');
+        const actualDigest = Buffer.from(trustStoreRecord.sha256, 'hex');
+        if (!crypto.timingSafeEqual(expectedDigest, actualDigest)) {
+          review = { verified: false, reason: 'review_trust_store_digest_mismatch' };
+        } else {
+          review = {
+            ...verifyHumanReviewAttestation({
+              attestation,
+              trustStore: trustStoreRecord.value,
+              expectedSourceCommit,
+              expectedArtifactSha256
+            }),
+            trustStoreSha256: trustStoreRecord.sha256
+          };
+        }
+      }
+    } else if (hasCoreReviewInputs && !expectedTrustStoreSha256) {
+      review = { verified: false, reason: 'review_trust_store_digest_required' };
+    } else if (reviewPath || trustPath || expectedSourceCommit || expectedArtifactSha256 || expectedTrustStoreSha256) {
       review = { verified: false, reason: 'review_attestation_trust_store_and_target_required' };
     }
 
@@ -169,7 +193,8 @@ function main(argv) {
         subject: review.subject,
         reviewId: review.reviewId,
         reviewedAt: review.reviewedAt,
-        expiresAt: review.expiresAt
+        expiresAt: review.expiresAt,
+        trustStoreSha256: review.trustStoreSha256
       } : { verified: false, reason: review.reason },
       deploymentPerformed: false,
       note: 'فقط امضای دیجیتال و سازگاری ساختاری اظهار بازبینی با کلید عمومی ارائه‌شده بررسی شده است؛ منشأ مستقل trust store، هویت واقعی صاحب کلید، بازیابی واقعی بکاپ، مقصد زنده و مجوز مالک احراز نشده‌اند. این ابزار هرگز مجوز انتشار صادر نمی‌کند.'
@@ -187,4 +212,4 @@ function main(argv) {
   }
 }
 if (require.main === module) process.exitCode = main(process.argv.slice(2));
-module.exports = { main, parseArgs, readEvidence };
+module.exports = { main, parseArgs, readEvidence, readEvidenceRecord };
