@@ -10,7 +10,7 @@ const { verifyPublicPreviewSubpath } = require('../scripts/verify-public-preview
 function gitBlobSha(file) {
   const bytes = fs.readFileSync(file);
   const digest = crypto.createHash('sha1');
-  digest.update(`blob ${bytes.length}\\0`);
+  digest.update('blob ' + bytes.length + String.fromCharCode(0));
   digest.update(bytes);
   return digest.digest('hex');
 }
@@ -48,7 +48,7 @@ test('dedicated public /dadyar-preview/ file passes only with exact reviewed byt
 }));
 
 test('modified public preview bytes are rejected', () => sandbox(({source,destination,documentRoot,expectedBlob}) => {
-  fs.appendFileSync(destination, '\\n<!-- changed -->');
+  fs.appendFileSync(destination, '\n<!-- changed -->');
   assert.throws(() => verifyPublicPreviewSubpath(source, destination, documentRoot, expectedBlob), /public destination differs/);
 }));
 
