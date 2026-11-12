@@ -112,29 +112,30 @@ test('downloaded review timestamp is explicitly identified as the untrusted loca
 });
 
 
+
 test('offline preview contains no browser network, worker, storage or form-submission primitives', () => {
-  const script = html.match(/<script>([\\s\\S]*?)<\\/script>/)?.[1];
+  const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
   assert.ok(script, 'offline preview script missing');
   const forbidden = [
-    /\\bfetch\\s*\\(/,
-    /\\bXMLHttpRequest\\b/,
-    /\\bWebSocket\\b/,
-    /\\bEventSource\\b/,
-    /\\bWebTransport\\b/,
-    /\\bSharedWorker\\b/,
-    /\\bWorker\\b/,
-    /\\bimportScripts\\s*\\(/,
-    /\\bnavigator\\s*\\.\\s*sendBeacon\\b/,
-    /\\bnavigator\\s*\\.\\s*serviceWorker\\b/,
-    /\\b(?:localStorage|sessionStorage|indexedDB)\\b/,
-    /\\bdocument\\s*\\.\\s*cookie\\b/
+    /\bfetch\s*\(/,
+    /\bXMLHttpRequest\b/,
+    /\bWebSocket\b/,
+    /\bEventSource\b/,
+    /\bWebTransport\b/,
+    /\bSharedWorker\b/,
+    /\bWorker\b/,
+    /\bimportScripts\s*\(/,
+    /\bnavigator\s*\.\s*sendBeacon\b/,
+    /\bnavigator\s*\.\s*serviceWorker\b/,
+    /\b(?:localStorage|sessionStorage|indexedDB)\b/,
+    /\bdocument\s*\.\s*cookie\b/
   ];
   for (const pattern of forbidden) {
     assert.doesNotMatch(script, pattern, 'offline preview must not gain a network or persistent-state capability');
   }
-  assert.doesNotMatch(html, /<form\\b|<iframe\\b|<script\\b[^>]+src\\s*=/i);
-  assert.doesNotMatch(html, /<(?:link|img|audio|video|source)\\b[^>]*\\b(?:src|href)\\s*=\\s*['"]?\\s*(?:https?:|\\/\\/)/i);
-  assert.doesNotMatch(html, /@import\\s+url\\s*\\(|url\\s*\\(\\s*['"]?\\s*(?:https?:|\\/\\/)/i);
+  assert.doesNotMatch(html, /<form\b|<iframe\b|<script\b[^>]+src\s*=/i);
+  assert.doesNotMatch(html, /<(?:link|img|audio|video|source)\b[^>]*\b(?:src|href)\s*=\s*['"]?\s*(?:https?:|\/\/)/i);
+  assert.doesNotMatch(html, /@import\s+url\s*\(|url\s*\(\s*['"]?\s*(?:https?:|\/\/)/i);
   assert.match(html, /connect-src 'none'/);
   assert.match(html, /form-action 'none'/);
 });
