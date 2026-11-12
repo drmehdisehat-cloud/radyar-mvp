@@ -433,7 +433,16 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
       '    control.value = value;',
       '    control.dispatchEvent(new Event("change", { bubbles: true }));',
       '  }',
+      '  const question = document.getElementById("free-question");',
+      '  const multiTopicRawQuestion = "چک و مهریه در این مثال چه موضوعاتی هستند؟";',
+      '  question.value = multiTopicRawQuestion;',
+      '  question.dispatchEvent(new Event("input", { bubbles: true }));',
+      '  const multiTopicIds = classifyQuestion(question.value).map(item => item.id);',
       '  document.getElementById("generate").click();',
+      '  const multiTopicInputCleared = question.value === "";',
+      '  const multiTopicRawQuestionEchoed = document.getElementById("report").textContent.includes(multiTopicRawQuestion);',
+      '  const multiTopicExportEligible = exportEligible;',
+      '  const multiTopicScopeStatus = document.getElementById("topic-scope-status").textContent;',
       '  const blockedBeforeReview = download.disabled;',
       '  const reviewer = document.getElementById("reviewer-name");',
       '  reviewer.value = "بازبین آزمون"; reviewer.dispatchEvent(new Event("input", { bubbles: true }));',
@@ -448,6 +457,15 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
       '  const visibleReport = document.getElementById("report").textContent;',
       '  download.click();',
       '  const disabledAfterExport = download.disabled;',
+      '  const sensitiveRawQuestion = "چک فرضی با شماره تماس 09123456789";',
+      '  question.value = sensitiveRawQuestion;',
+      '  question.dispatchEvent(new Event("input", { bubbles: true }));',
+      '  document.getElementById("generate").click();',
+      '  const sensitiveInputCleared = question.value === "";',
+      '  const sensitiveRawQuestionEchoed = document.getElementById("report").textContent.includes("09123456789");',
+      '  const sensitiveVisibleReport = document.getElementById("report").textContent;',
+      '  const sensitiveExportBlocked = download.disabled && !exportEligible;',
+      '  const sensitiveStatus = document.getElementById("export-status").textContent;',
       '  const allowedDocumentUrl = ' + JSON.stringify(previewUrl) + ';',
       '  const allowedFaviconUrl = ' + JSON.stringify(faviconUrl) + ';',
       '  const resourceRequests = performance.getEntriesByType("resource").map(entry => entry.name).filter(url => /^(?:https?|wss?):/i.test(url) && url !== allowedDocumentUrl && url !== allowedFaviconUrl);',
@@ -457,6 +475,8 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
       '    mobileUserAgent: /iPhone|Mobile/i.test(navigator.userAgent),',
       '    horizontalOverflow: root.scrollWidth > root.clientWidth + 1,',
       '    initiallyDisabled, blockedBeforeReview, enabledAfterReview, disabledAfterExport,',
+      '    multiTopicIds, multiTopicInputCleared, multiTopicRawQuestionEchoed, multiTopicExportEligible, multiTopicScopeStatus,',
+      '    sensitiveInputCleared, sensitiveRawQuestionEchoed, sensitiveVisibleReport, sensitiveExportBlocked, sensitiveStatus,',
       '    reviewStatus, visibleReport, resourceRequests',
       '  };',
       '})()'
@@ -479,6 +499,17 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
     assert.equal(snapshot.blockedBeforeReview, true);
     assert.equal(snapshot.enabledAfterReview, true);
     assert.equal(snapshot.disabledAfterExport, true, 'export must consume the local review acknowledgement');
+    assert.ok(snapshot.multiTopicIds.includes('instruments'), 'cheque hint missing from HTTP preview routing');
+    assert.ok(snapshot.multiTopicIds.includes('family'), 'family hint missing from HTTP preview routing');
+    assert.equal(snapshot.multiTopicInputCleared, true, 'raw multi-topic question remained in the editable field');
+    assert.equal(snapshot.multiTopicRawQuestionEchoed, false, 'raw multi-topic question leaked into the report');
+    assert.equal(snapshot.multiTopicExportEligible, true, 'cheque plus another topic should retain the scoped synthetic cheque workflow');
+    assert.match(snapshot.multiTopicScopeStatus, /چندموضوعی/);
+    assert.equal(snapshot.sensitiveInputCleared, true, 'sensitive free text remained in the editable field');
+    assert.equal(snapshot.sensitiveRawQuestionEchoed, false, 'sensitive phone number leaked into the report');
+    assert.doesNotMatch(snapshot.sensitiveVisibleReport, /09123456789/);
+    assert.equal(snapshot.sensitiveExportBlocked, true, 'sensitive free text must block report export');
+    assert.match(snapshot.sensitiveStatus, /شناسه حساس/);
     assert.match(snapshot.reviewStatus, /هویت بازبین در این نسخه آفلاین احراز نمی‌شود/);
     assert.match(snapshot.visibleReport, /منابع قانونی: تأییدنشده/);
     assert.deepEqual(snapshot.resourceRequests, []);
@@ -511,6 +542,8 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
     assert.match(downloadedReport, /نام بازبین: بازبین آزمون/);
     assert.match(downloadedReport, /نتیجه بازبینی: تأیید برای دریافت آموزشی/);
     assert.match(downloadedReport, /یادداشت بازبین: بازبینی داده ساختگی/);
+    assert.match(downloadedReport, /پرسش آزاد چندموضوعی تشخیص داده شد/);
+    assert.doesNotMatch(downloadedReport, /چک و مهریه در این مثال چه موضوعاتی هستند/);
     assert.match(downloadedReport, /هویت احراز نشده/);
     assert.match(downloadedReport, /منابع قانونی: تأییدنشده/);
   } finally {
