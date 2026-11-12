@@ -160,6 +160,8 @@ function approveLocalReview(h) {
   h.fire('reviewer-name', 'input');
   h.get('review-decision').value = 'approved';
   h.fire('review-decision', 'change');
+  h.get('review-note').value = 'بررسی تعارض مدارک و محدودیت منبع';
+  h.fire('review-note', 'input');
   assert.equal(h.get('record-review').disabled, true, 'review cannot be recorded before explicit acknowledgement');
   h.get('export-ack').checked = true;
   h.fire('export-ack', 'change');
@@ -170,6 +172,7 @@ function approveLocalReview(h) {
 test('actual offline preview contains free-text intake, multi-topic hints and a hard no-network boundary', () => {
   assert.match(html, /id="free-question"/);
   assert.match(html, /connect-src 'none'/);
+  assert.match(html, /id="review-note" minlength="12" maxlength="300" rows="2" required/);
   assert.match(html, /default-src 'none'/);
   assert.doesNotMatch(html, /\bfetch\s*\(|XMLHttpRequest|WebSocket|<form\b/i);
   assert.doesNotMatch(html, /<(?:script|link|iframe|img|audio|video|source)\b[^>]*\b(?:src|href)\s*=\s*['"]?\s*(?:https?:|\/\/)/i);
@@ -190,6 +193,20 @@ test('actual preview permits one report only after an approved local human-revie
   assert.equal(h.get('export-ack').checked, false);
 });
 
+test('review cannot be recorded without a meaningful review note', () => {
+  const h = harness();
+  generateEligibleDraft(h);
+  h.get('reviewer-name').value = 'بازبین آزمایشی';
+  h.fire('reviewer-name', 'input');
+  h.get('review-decision').value = 'approved';
+  h.fire('review-decision', 'change');
+  h.get('export-ack').checked = true;
+  h.fire('export-ack', 'change');
+  assert.equal(h.get('record-review').disabled, true);
+  assert.equal(h.get('download').disabled, true);
+  assert.equal(h.downloads.length, 0);
+});
+
 test('rejected local review never enables report download', () => {
   const h = harness();
   generateEligibleDraft(h);
@@ -197,6 +214,8 @@ test('rejected local review never enables report download', () => {
   h.fire('reviewer-name', 'input');
   h.get('review-decision').value = 'rejected';
   h.fire('review-decision', 'change');
+  h.get('review-note').value = 'مدرک اصلی برای تطبیق ارائه نشده است';
+  h.fire('review-note', 'input');
   h.get('export-ack').checked = true;
   h.fire('export-ack', 'change');
   h.fire('record-review', 'click');
