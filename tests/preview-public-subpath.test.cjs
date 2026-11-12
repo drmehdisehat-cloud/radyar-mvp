@@ -10,7 +10,7 @@ const { verifyPublicPreviewSubpath } = require('../scripts/verify-public-preview
 function gitBlobSha(file) {
   const bytes = fs.readFileSync(file);
   const digest = crypto.createHash('sha1');
-  digest.update(`blob ${bytes.length}\0`);
+  digest.update(`blob ${bytes.length}\\0`);
   digest.update(bytes);
   return digest.digest('hex');
 }
@@ -48,7 +48,7 @@ test('dedicated public /dadyar-preview/ file passes only with exact reviewed byt
 }));
 
 test('modified public preview bytes are rejected', () => sandbox(({source,destination,documentRoot,expectedBlob}) => {
-  fs.appendFileSync(destination, '\n<!-- changed -->');
+  fs.appendFileSync(destination, '\\n<!-- changed -->');
   assert.throws(() => verifyPublicPreviewSubpath(source, destination, documentRoot, expectedBlob), /public destination differs/);
 }));
 
@@ -75,7 +75,27 @@ test('symlinked public preview file is rejected', () => sandbox(({source,destina
 test('hard-linked public preview file is rejected', () => sandbox(({source,destination,documentRoot,expectedBlob}) => {
   fs.unlinkSync(destination);
   fs.linkSync(source, destination);
-  assert.throws(() => verifyPublicPreviewSubpath(source, destination, documentRoot, expectedBlob), /hard link/);
+  assert.throws(() => verifyPublicPreviewSubpath(source, destination, documentRoot, expectedBlob), /hard-link aliases|hard link/);
+}));
+
+test('hard-link alias outside the preview directory is rejected for the public destination', () => sandbox(({root,source,destination,documentRoot,expectedBlob}) => {
+  fs.linkSync(destination, path.join(root, 'destination-alias.html'));
+  assert.throws(() => verifyPublicPreviewSubpath(source, destination, documentRoot, expectedBlob), /destination must not have hard-link aliases/);
+}));
+
+test('hard-link alias outside the reviewed source directory is rejected for the source', () => sandbox(({root,source,destination,documentRoot,expectedBlob}) => {
+  fs.linkSync(source, path.join(root, 'source-alias.html'));
+  assert.throws(() => verifyPublicPreviewSubpath(source, destination, documentRoot, expectedBlob), /source must not have hard-link aliases/);
+}));
+
+test('empty reviewed source is rejected before hash comparison', () => sandbox(({source,destination,documentRoot,expectedBlob}) => {
+  fs.writeFileSync(source, '');
+  assert.throws(() => verifyPublicPreviewSubpath(source, destination, documentRoot, expectedBlob), /source must not be empty/);
+}));
+
+test('empty public destination is rejected before hash comparison', () => sandbox(({source,destination,documentRoot,expectedBlob}) => {
+  fs.writeFileSync(destination, '');
+  assert.throws(() => verifyPublicPreviewSubpath(source, destination, documentRoot, expectedBlob), /destination must not be empty/);
 }));
 
 test('wrong path and source inside document root are rejected', () => sandbox(({source,destination,documentRoot,expectedBlob}) => {
