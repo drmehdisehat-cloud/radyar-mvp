@@ -317,10 +317,12 @@ test('malformed UTF-8 evidence is rejected before JSON parsing', () => {
 
 test('operator restore checklist documents only supported signed preflight options', () => {
   const guide = fs.readFileSync(path.join(__dirname, '../docs/preview-isolated-restore-operator-checklist.md'), 'utf8');
-  assert.doesNotMatch(guide, /--authenticated-human-review-attested/);
-  const command = guide.match(/node scripts\/preview-release-preflight\.cjs[\\s\\S]*?\\n\x60\x60\x60/);
-  assert.ok(command, 'preflight command example must be present');
-  const flags = [...command[0].matchAll(/--[a-z][a-z-]+/g)].map(match => match[0]);
+  const start = guide.indexOf('node scripts/preview-release-preflight.cjs');
+  const end = guide.indexOf('\\n```', start);
+  assert.ok(start >= 0 && end > start, 'preflight command example must be present');
+  const command = guide.slice(start, end);
+  assert.doesNotMatch(command, /--authenticated-human-review-attested/);
+  const flags = [...command.matchAll(/--[a-z][a-z-]+/g)].map(match => match[0]);
   assert.deepEqual(new Set(flags), new Set([
     '--restore-evidence',
     '--destination-evidence',
