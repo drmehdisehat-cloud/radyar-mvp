@@ -79,7 +79,7 @@ function verifyPreviewResponse({ statusCode, headers = {}, body, expectedSha256,
   if (header(headers, 'cross-origin-resource-policy').trim().toLowerCase() !== 'same-origin') {
     throw new Error('preview_missing_cross_origin_resource_policy');
   }
-  const permissions = header(headers, 'permissions-policy').toLowerCase().replace(/\\s+/g, '');
+  const permissions = header(headers, 'permissions-policy').toLowerCase().replace(/\s+/g, '');
   for (const directive of ['camera=()', 'microphone=()', 'geolocation=()']) {
     if (!permissions.split(',').includes(directive)) {
       throw new Error('preview_permissions_policy_missing:' + directive);
@@ -87,11 +87,11 @@ function verifyPreviewResponse({ statusCode, headers = {}, body, expectedSha256,
   }
 
   const robots = (header(headers, 'x-robots-tag') + ' ' + metaContent(html, 'robots')).toLowerCase();
-  if (!/\\bnoindex\\b/.test(robots) || !/\\bnofollow\\b/.test(robots)) {
+  if (!/\bnoindex\b/.test(robots) || !/\bnofollow\b/.test(robots)) {
     throw new Error('preview_must_be_noindex_nofollow');
   }
   const referrer = (header(headers, 'referrer-policy') + ' ' + metaContent(html, 'referrer')).toLowerCase();
-  if (!/\\bno-referrer\\b/.test(referrer)) throw new Error('preview_must_disable_referrer');
+  if (!/\bno-referrer\b/.test(referrer)) throw new Error('preview_must_disable_referrer');
   const responseCsp = header(headers, 'content-security-policy');
   if (!responseCsp) throw new Error('preview_missing_http_csp_header');
   const hasDirective = (policy, name, expected) => policy.split(';').some(part => {
