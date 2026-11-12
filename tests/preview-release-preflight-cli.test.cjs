@@ -297,3 +297,40 @@ test('unknown deploy-like options are rejected and the CLI exposes no deploy com
   assert.match(report.blockers.join(' '), /unknown_argument/);
   assert.equal(report.deploymentPerformed, false);
 });
+
+
+test('malformed UTF-8 evidence is rejected before JSON parsing', () => {
+  const f = fixture();
+  try {
+    // This is valid JSON after lossy UTF-8 replacement, but it is not valid UTF-8.
+    fs.writeFileSync(f.restoreFile, Buffer.from([0x7b,0x22,0x78,0x22,0x3a,0x22,0xc3,0x28,0x22,0x7d]));
+    const result = run(baseArgs(f));
+    assert.equal(result.status, 2, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.status, 'NOT_READY');
+    assert.ok(report.blockers.includes('--restore-evidence_is_not_valid_utf8'));
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
+test('operator restore checklist documents only supported signed preflight options', () => {
+  const guide = fs.readFileSync(path.join(__dirname, '../docs/preview-isolated-restore-operator-checklist.md'), 'utf8');
+  assert.doesNotMatch(guide, /--authenticated-human-review-attested/);
+  const command = guide.match(/node scripts\/preview-release-preflight\.cjs[\\s\\S]*?\\n\x60\x60\x60/);
+  assert.ok(command, 'preflight command example must be present');
+  const flags = [...command[0].matchAll(/--[a-z][a-z-]+/g)].map(match => match[0]);
+  assert.deepEqual(new Set(flags), new Set([
+    '--restore-evidence',
+    '--destination-evidence',
+    '--review-attestation',
+    '--review-trust-store',
+    '--expected-source-commit',
+    '--expected-artifact-sha256',
+    '--isolated-restore-verified',
+    '--mobile-browser-verified',
+    '--zero-api-requests-verified',
+    '--human-review-verified'
+  ]));
+});
