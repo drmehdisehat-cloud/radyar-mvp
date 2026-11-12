@@ -68,6 +68,7 @@ test('accepts the exact reviewed body with offline and indexing protections', ()
   assert.equal(result.nofollow, true);
   assert.equal(result.noReferrer, true);
   assert.equal(result.connectSrcNone, true);
+  assert.equal(result.restrictedPermissionsPolicy, true);
   assert.equal(result.cookiesSet, false);
   assert.equal(result.sha256, expectedSha256);
   assert.equal(result.gitBlobSha1, expectedGitBlobSha1);
@@ -122,6 +123,24 @@ test('requires no-store, X-Frame-Options, CORP and restrictive Permissions-Polic
   ]) {
     assert.throws(() => verify({ headers: { ...headers, [name]: value } }), error);
   }
+});
+
+test('rejects duplicate or permissive camera, microphone and geolocation directives', () => {
+  for (const value of [
+    'camera=(), camera=(self), microphone=(), geolocation=()',
+    'camera=(self), microphone=(), geolocation=()',
+    'camera=(), microphone=(*), geolocation=()',
+    'camera=(), microphone=(), geolocation=(https://example.test)'
+  ]) {
+    assert.throws(
+      () => verify({ headers: { ...headers, 'permissions-policy': value } }),
+      /preview_permissions_policy_(?:duplicate|not_restricted):/
+    );
+  }
+  assert.throws(
+    () => verify({ headers: { ...headers, 'permissions-policy': 'camera=(), microphone=(), geolocation=' } }),
+    /preview_permissions_policy_invalid/
+  );
 });
 
 test('rejects empty, oversized, invalid UTF-8 and missing hash pins', () => {
