@@ -10,14 +10,9 @@ on:
     branches:
       - main
       - dadyar/mvp-sync-028
-
-# Keep only the newest verification run for each ref. Rapid fix/test commits
-# previously accumulated queued push runs; superseded runs add no release value.
-# This affects CI scheduling only and never deploys or cancels runs on other refs.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: \${{ github.workflow }}-\${{ github.ref }}
   cancel-in-progress: true
-
 permissions:
   contents: read
 jobs:
@@ -32,7 +27,6 @@ jobs:
       - uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a # v7.0.1
         with:
           persist-credentials: false
-          # Historical secret audit requires complete reachable Git history.
           fetch-depth: 0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -52,31 +46,26 @@ jobs:
         run: node scripts/audit-git-history.cjs
       - name: Run every committed contract test
         run: |
-          # Browser E2E is run once below with an explicitly verified Chrome binary.
-          # Keep the general contract suite free of duplicate browser launches.
           shopt -s nullglob
           tests=(tests/*.test.cjs)
           contracts=()
-          for test_file in "${tests[@]}"; do
+          for test_file in "\${tests[@]}"; do
             [[ "$test_file" == tests/synthetic-cheque-chromium-e2e.test.cjs || "$test_file" == tests/dadyar-preview-mobile-chromium.test.cjs || "$test_file" == tests/dadyar-preview-mobile-device-emulation.test.cjs ]] || contracts+=("$test_file")
           done
-          test "${#contracts[@]}" -gt 0
-          node --test "${contracts[@]}"
+          test "\${#contracts[@]}" -gt 0
+          node --test "\${contracts[@]}"
       - name: Audit v1 release blockers (informational; never deploy)
         run: node scripts/check-v1-readiness.cjs
       - name: Audit cheque amendment evidence gaps (research only)
         run: node scripts/audit-check-evidence.cjs
       - name: Assert unapproved v1 stays blocked (experimental only)
         run: |
-          # Expected failure is a safeguard, not a claim of release readiness.
           set +e
           node scripts/check-v1-readiness.cjs --enforce > /tmp/dadyar-v1-audit.json
           code=$?
           set -e
           test "$code" -eq 1
           node -e 'const a=require("/tmp/dadyar-v1-audit.json"); if(a.status!=="NOT_READY" || a.uncheckedGates<1 || !Array.isArray(a.issues) || !a.issues.length) process.exit(1)'
-      # Run a real Chrome session against the local development API.
-      # Fail closed if Chrome is absent; this is a release gate, not a mock.
       - name: Real headless browser smoke test
         run: |
           CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium)"
@@ -87,3 +76,17 @@ jobs:
           CHROME_BIN="$CHROME_BIN" node --test tests/dadyar-preview-mobile-chromium.test.cjs
           CHROME_BIN="$CHROME_BIN" node --test tests/dadyar-preview-mobile-device-emulation.test.cjs
           node --test tests/dadyar-preview-27-domain-routing.test.cjs
+      - name: Build offline preview handoff package (not deployment)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/dadyar/ai-chat-private-20261101'
+        env:
+          GITHUB_SHA: \${{ github.sha }}
+          GITHUB_REF_NAME: \${{ github.ref_name }}
+        run: node scripts/build-offline-preview-package.cjs "$RUNNER_TEMP/dadyar-preview-handoff"
+      - name: Upload immutable offline preview handoff
+        if: github.event_name == 'push' && github.ref == 'refs/heads/dadyar/ai-chat-private-20261101'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: dadyar-offline-preview-\${{ github.sha }}
+          path: \${{ runner.temp }}/dadyar-preview-handoff/
+          if-no-files-found: error
+          retention-days: 7
