@@ -49,7 +49,15 @@ function verifyPublicPreviewSubpath(source, destination, productionDocumentRoot,
   // non-regular, symlinked or hard-linked files and detects metadata/content
   // changes during the read instead of relying on path-based readFileSync.
   const sourceRead = readStableRegularFile(src, 'source', { includeBytes: true });
-  const destinationRead = readStableRegularFile(expectedDestination, 'destination', { includeBytes: true });
+  let destinationRead;
+  try {
+    destinationRead = readStableRegularFile(expectedDestination, 'destination', { includeBytes: true });
+  } catch (error) {
+    if (error && error.message === 'destination must not have hard-link aliases') {
+      throw new Error('public destination must not have hard-link aliases');
+    }
+    throw error;
+  }
   const sourceBlobSha = gitBlobSha(sourceRead.bytes);
   assert.equal(sourceBlobSha.toLowerCase(), expectedSourceBlobSha.toLowerCase(), 'source differs from pinned reviewed Git blob');
   assert.equal(destinationRead.sha256, sourceRead.sha256, 'public destination differs from reviewed source');
