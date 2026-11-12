@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { hasIndependentRestoreAttestation } = require('./decide-preview-release.cjs');
+const { parseJsonRejectDuplicateKeys } = require('./strict-json.cjs');
 
 const REPO_ROOT = path.resolve(__dirname, '..');
 const MAX_MANIFEST_BYTES = 64 * 1024;
@@ -147,7 +148,7 @@ function main(argv) {
   }
   try {
     const manifestBytes = readExternalFile(args.values['--manifest'], 'manifest', MAX_MANIFEST_BYTES);
-    const manifest = JSON.parse(manifestBytes.toString('utf8'));
+    const manifest = parseJsonRejectDuplicateKeys(manifestBytes.toString('utf8'));
     if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) throw new Error('manifest_must_be_json_object');
     if (args.canonicalize) {
       if (!hasIndependentRestoreAttestation(manifest)) throw new Error('restore_manifest_schema_or_consistency_invalid');
