@@ -112,8 +112,8 @@ test('builder rejects a source with a remote dependency or network-capable API',
     const previewDir = path.join(fakeRoot, 'dadyar-preview');
     fs.mkdirSync(previewDir, { recursive: true });
     const unsafeSource = path.join(previewDir, 'index.html');
-    fs.writeFileSync(unsafeSource,
-      '<!doctype html><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; connect-src \'none\'"><script>fetch("/api")</script>');
+    const unsafeHtml = fs.readFileSync(sourcePath, 'utf8') + '\n<script>fetch("/api")</script>';
+    fs.writeFileSync(unsafeSource, unsafeHtml);
     const destination = path.join(root, 'bundle');
     assert.throws(() => buildOfflinePreviewPackage(destination, {
       repoRoot: fakeRoot, sourcePath: unsafeSource, commit, branch
