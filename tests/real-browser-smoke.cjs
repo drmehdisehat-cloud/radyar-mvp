@@ -19,6 +19,40 @@ async function waitFor(check, label, timeoutMs = 12000) {
   throw new Error('Timed out waiting for ' + label);
 }
 
+async function waitForChromeDevTools(browser, profile, diagnostics, timeoutMs = 45000) {
+  const deadline = Date.now() + timeoutMs;
+  let lastReadError = '';
+  while (Date.now() < deadline) {
+    if (browser.exitCode !== null || browser.signalCode !== null) {
+      throw new Error(
+        'Chrome exited before DevTools became ready (exit=' + browser.exitCode +
+        ', signal=' + browser.signalCode + '). ' + diagnostics()
+      );
+    }
+    try {
+      const text = await fs.promises.readFile(path.join(profile, 'DevToolsActivePort'), 'utf8');
+      const port = Number(text.split(/\r?\n/)[0]);
+      if (Number.isInteger(port) && port > 0 && port < 65536) return port;
+      lastReadError = 'DevToolsActivePort did not contain a valid TCP port';
+    } catch (error) {
+      if (error.code !== 'ENOENT') lastReadError = String(error && error.message || error);
+    }
+    await delay(100);
+  }
+  throw new Error(
+    'Timed out waiting for Chrome DevTools after ' + timeoutMs + 'ms. ' +
+    (lastReadError ? lastReadError + '. ' : '') + diagnostics()
+  );
+}
+
+test('Chrome startup helper reports an early process exit with diagnostics', async () => {
+  const exited = { exitCode: 17, signalCode: null };
+  await assert.rejects(
+    waitForChromeDevTools(exited, '/unused-synthetic-profile', () => 'synthetic Chrome stderr', 500),
+    /Chrome exited before DevTools.*synthetic Chrome stderr/
+  );
+});
+
 function cdpClient(url) {
   const socket = new WebSocket(url);
   let nextId = 0;
@@ -77,7 +111,7 @@ async function removeDisposableDirectory(directory) {
   }
 }
 
-test('real Chromium: Persian interview, report, and privacy reset', { timeout: 75000 }, async () => {
+test('real Chromium: Persian interview, report, and privacy reset', { timeout: 110000 }, async () => {
   assert.ok(process.env.CHROME_BIN, 'CHROME_BIN is required for the browser release gate');
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-browser-'));
   const downloads = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-report-'));
@@ -96,13 +130,15 @@ test('real Chromium: Persian interview, report, and privacy reset', { timeout: 7
       '--disable-extensions', '--disable-background-networking', '--no-first-run',
       '--no-default-browser-check', '--no-proxy-server', '--remote-debugging-port=0',
       '--user-data-dir=' + profile, 'about:blank',
-    ], { stdio: 'ignore' });
-    // Hosted CI runners can take over 12s to start Chrome after contract tests.
-    // Allow more startup time without relaxing any browser assertions.
-    const port = await waitFor(() => {
-      const file = path.join(profile, 'DevToolsActivePort');
-      return fs.existsSync(file) ? Number(fs.readFileSync(file, 'utf8').split('\n')[0]) : null;
-    }, 'Chrome DevTools', 25000);
+    ], { stdio: ['ignore', 'ignore', 'pipe'] });
+    let chromeStderr = '';
+    browser.stderr.on('data', chunk => {
+      chromeStderr = (chromeStderr + chunk.toString()).slice(-8192);
+    });
+    const chromeDiagnostics = () => chromeStderr.trim().slice(-4000) || 'No Chrome stderr was emitted.';
+    // Chrome startup can be slow on a loaded hosted runner. Fail immediately
+    // when the child exits, otherwise allow 45s and include stderr on timeout.
+    const port = await waitForChromeDevTools(browser, profile, chromeDiagnostics, 45000);
     const tabs = await waitFor(async () => {
       const response = await fetch('http://127.0.0.1:' + port + '/json/list');
       return response.ok ? response.json() : null;
