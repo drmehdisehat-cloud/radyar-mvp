@@ -1,5 +1,6 @@
 'use strict';
 const test = require('node:test');
+const http = require('node:http');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
@@ -292,6 +293,239 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     }
     await waitForChildExit(child, 1000);
     await delay(100);
+    fs.rmSync(userData, { recursive: true, force: true, maxRetries: 8, retryDelay: 100 });
+  }
+});
+
+
+test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after local human review, and makes no API calls', { timeout: 35000 }, async t => {
+  const candidates = [
+    process.env.CHROME_BIN,
+    '/usr/bin/chromium',
+    '/usr/bin/chromium-browser',
+    '/usr/bin/google-chrome',
+    '/usr/bin/google-chrome-stable'
+  ].filter(Boolean);
+  const chrome = candidates.find(candidate => fs.existsSync(candidate));
+  if (!chrome) {
+    if (process.env.CI === 'true') assert.fail('Chromium required for HTTP subpath and report-download gate');
+    return t.skip('Chromium unavailable locally');
+  }
+
+  const preview = path.resolve(__dirname, '../dadyar-preview/index.html');
+  const html = fs.readFileSync(preview);
+  const metaCsp = html.toString('utf8').match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)"/i)?.[1];
+  assert.ok(metaCsp, 'offline preview CSP metadata missing');
+  const responseCsp = metaCsp + "; frame-ancestors 'none'";
+  const unexpectedPaths = [];
+  const apiPaths = [];
+  const previewServer = http.createServer((req, res) => {
+    if (req.method === 'GET' && req.url === '/dadyar-preview/') {
+      res.writeHead(200, {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'no-store',
+        'Content-Security-Policy': responseCsp,
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'DENY',
+        'Referrer-Policy': 'no-referrer',
+        'Cross-Origin-Resource-Policy': 'same-origin',
+        'Cross-Origin-Opener-Policy': 'same-origin',
+        'Permissions-Policy': 'camera=(), microphone=(), geolocation=()'
+      });
+      res.end(html);
+      return;
+    }
+    if (req.method === 'GET' && req.url === '/favicon.ico') {
+      res.writeHead(204, { 'Cache-Control': 'no-store' });
+      res.end();
+      return;
+    }
+    const entry = req.method + ' ' + req.url;
+    unexpectedPaths.push(entry);
+    if (req.url.startsWith('/api/')) apiPaths.push(entry);
+    res.writeHead(404, { 'Cache-Control': 'no-store' });
+    res.end();
+  });
+
+  await new Promise((resolve, reject) => {
+    previewServer.once('error', reject);
+    previewServer.listen(0, '127.0.0.1', resolve);
+  });
+  const port = previewServer.address().port;
+  const previewUrl = 'http://127.0.0.1:' + port + '/dadyar-preview/';
+  const faviconUrl = 'http://127.0.0.1:' + port + '/favicon.ico';
+  const downloads = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-http-download-'));
+  const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-http-mobile-'));
+  const portFile = path.join(userData, 'DevToolsActivePort');
+  const child = spawn(chrome, [
+    '--headless=new',
+    '--no-sandbox',
+    '--disable-gpu',
+    '--disable-dev-shm-usage',
+    '--remote-debugging-port=0',
+    '--remote-allow-origins=*',
+    '--user-data-dir=' + userData,
+    'about:blank'
+  ], { stdio: ['ignore', 'ignore', 'pipe'], detached: process.platform !== 'win32' });
+
+  let stderr = '';
+  child.stderr.on('data', chunk => { stderr = (stderr + chunk.toString()).slice(-2000); });
+  let client;
+  try {
+    const portNumber = await waitForDevToolsPort(portFile, child);
+    const endpoint = 'http://127.0.0.1:' + portNumber + '/json/list';
+    let targets = [];
+    const deadline = Date.now() + 8000;
+    while (Date.now() < deadline) {
+      try {
+        const response = await fetch(endpoint);
+        if (response.ok) {
+          targets = await response.json();
+          if (targets.some(target => target.type === 'page' && target.webSocketDebuggerUrl)) break;
+        }
+      } catch {}
+      await delay(50);
+    }
+    const page = targets.find(target => target.type === 'page' && target.webSocketDebuggerUrl);
+    assert.ok(page, 'Chromium page target unavailable. ' + stderr);
+    client = createCdpClient(page.webSocketDebuggerUrl);
+    await client.opened;
+
+    const remoteRequests = [];
+    let previewResponse = null;
+    client.on('Network.requestWillBeSent', event => {
+      const url = event.request?.url || '';
+      if (/^(?:https?|wss?):/i.test(url) && url !== previewUrl && url !== faviconUrl) remoteRequests.push(url);
+    });
+    client.on('Network.responseReceived', event => {
+      if (event.response?.url === previewUrl) {
+        previewResponse = { status: event.response.status, headers: event.response.headers || {} };
+      }
+    });
+
+    await client.command('Page.enable');
+    await client.command('Runtime.enable');
+    await client.command('Network.enable');
+    await client.command('Page.setDownloadBehavior', { behavior: 'allow', downloadPath: downloads });
+    await client.command('Emulation.setDeviceMetricsOverride', {
+      width: 390, height: 844, deviceScaleFactor: 3, mobile: true,
+      screenWidth: 390, screenHeight: 844
+    });
+    await client.command('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
+    await client.command('Network.setUserAgentOverride', {
+      userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+      platform: 'iPhone'
+    });
+
+    const loaded = client.waitFor('Page.loadEventFired');
+    const navigation = await client.command('Page.navigate', { url: previewUrl });
+    assert.ok(!navigation.errorText, navigation.errorText || 'HTTP preview navigation failed');
+    await loaded;
+    await delay(150);
+
+    const expression = [
+      '(() => {',
+      '  const root = document.documentElement;',
+      '  const download = document.getElementById("download");',
+      '  const initiallyDisabled = download.disabled;',
+      '  for (const [id, value] of [["issue-date","yes"],["certificate","no"],["defense","yes"]]) {',
+      '    const control = document.getElementById(id);',
+      '    control.value = value;',
+      '    control.dispatchEvent(new Event("change", { bubbles: true }));',
+      '  }',
+      '  document.getElementById("generate").click();',
+      '  const blockedBeforeReview = download.disabled;',
+      '  const reviewer = document.getElementById("reviewer-name");',
+      '  reviewer.value = "بازبین آزمون"; reviewer.dispatchEvent(new Event("input", { bubbles: true }));',
+      '  const decision = document.getElementById("review-decision");',
+      '  decision.value = "approved"; decision.dispatchEvent(new Event("change", { bubbles: true }));',
+      '  const note = document.getElementById("review-note");',
+      '  note.value = "بازبینی داده ساختگی"; note.dispatchEvent(new Event("input", { bubbles: true }));',
+      '  document.getElementById("export-ack").click();',
+      '  document.getElementById("record-review").click();',
+      '  const enabledAfterReview = !download.disabled;',
+      '  const reviewStatus = document.getElementById("review-status").textContent;',
+      '  const visibleReport = document.getElementById("report").textContent;',
+      '  download.click();',
+      '  const disabledAfterExport = download.disabled;',
+      '  const allowedDocumentUrl = ' + JSON.stringify(previewUrl) + ';',
+      '  const allowedFaviconUrl = ' + JSON.stringify(faviconUrl) + ';',
+      '  const resourceRequests = performance.getEntriesByType("resource").map(entry => entry.name).filter(url => /^(?:https?|wss?):/i.test(url) && url !== allowedDocumentUrl && url !== allowedFaviconUrl);',
+      '  return {',
+      '    width: innerWidth, height: innerHeight, screenWidth: screen.width, devicePixelRatio,',
+      '    maxTouchPoints: navigator.maxTouchPoints, coarsePointer: matchMedia("(pointer: coarse)").matches,',
+      '    mobileUserAgent: /iPhone|Mobile/i.test(navigator.userAgent),',
+      '    horizontalOverflow: root.scrollWidth > root.clientWidth + 1,',
+      '    initiallyDisabled, blockedBeforeReview, enabledAfterReview, disabledAfterExport,',
+      '    reviewStatus, visibleReport, resourceRequests',
+      '  };',
+      '})()'
+    ].join('\n');
+    const evaluated = await client.command('Runtime.evaluate', {
+      expression, returnByValue: true, awaitPromise: true
+    });
+    assert.ok(!evaluated.exceptionDetails, evaluated.exceptionDetails?.text || 'mobile HTTP preview script threw');
+    const snapshot = evaluated.result?.value;
+    assert.ok(snapshot, 'mobile HTTP preview snapshot missing');
+    assert.equal(snapshot.width, 390);
+    assert.equal(snapshot.height, 844);
+    assert.equal(snapshot.screenWidth, 390);
+    assert.equal(snapshot.devicePixelRatio, 3);
+    assert.ok(snapshot.maxTouchPoints >= 1);
+    assert.equal(snapshot.coarsePointer, true);
+    assert.equal(snapshot.mobileUserAgent, true);
+    assert.equal(snapshot.horizontalOverflow, false);
+    assert.equal(snapshot.initiallyDisabled, true);
+    assert.equal(snapshot.blockedBeforeReview, true);
+    assert.equal(snapshot.enabledAfterReview, true);
+    assert.equal(snapshot.disabledAfterExport, true, 'export must consume the local review acknowledgement');
+    assert.match(snapshot.reviewStatus, /هویت بازبین در این نسخه آفلاین احراز نمی‌شود/);
+    assert.match(snapshot.visibleReport, /منابع قانونی: تأییدنشده/);
+    assert.deepEqual(snapshot.resourceRequests, []);
+    assert.deepEqual(remoteRequests, [], 'preview attempted a remote network request');
+    assert.deepEqual(unexpectedPaths, [], 'preview attempted an API, asset, or unexpected same-origin request');
+    assert.deepEqual(apiPaths, [], 'preview attempted an API request');
+
+    assert.ok(previewResponse, 'HTTP response for /dadyar-preview/ was not observed');
+    assert.equal(previewResponse.status, 200);
+    const responseHeader = name => {
+      const entry = Object.entries(previewResponse.headers).find(([key]) => key.toLowerCase() === name.toLowerCase());
+      return entry ? String(entry[1]) : '';
+    };
+    assert.match(responseHeader('content-type'), /^text\/html(?:;|$)/i);
+    assert.match(responseHeader('content-security-policy'), /connect-src 'none'/);
+    assert.match(responseHeader('content-security-policy'), /frame-ancestors 'none'/);
+    assert.equal(responseHeader('x-frame-options').toLowerCase(), 'deny');
+    assert.equal(responseHeader('cache-control').toLowerCase(), 'no-store');
+    assert.equal(responseHeader('x-content-type-options').toLowerCase(), 'nosniff');
+    assert.equal(responseHeader('referrer-policy').toLowerCase(), 'no-referrer');
+
+    const downloadedPath = path.join(downloads, 'dadyar-synthetic-cheque.txt');
+    const downloadDeadline = Date.now() + 8000;
+    while (Date.now() < downloadDeadline &&
+      (!fs.existsSync(downloadedPath) || fs.existsSync(downloadedPath + '.crdownload'))) {
+      await delay(50);
+    }
+    assert.ok(fs.existsSync(downloadedPath), 'approved synthetic report was not downloaded');
+    const downloadedReport = fs.readFileSync(downloadedPath, 'utf8');
+    assert.match(downloadedReport, /نام بازبین: بازبین آزمون/);
+    assert.match(downloadedReport, /نتیجه بازبینی: تأیید برای دریافت آموزشی/);
+    assert.match(downloadedReport, /یادداشت بازبین: بازبینی داده ساختگی/);
+    assert.match(downloadedReport, /هویت احراز نشده/);
+    assert.match(downloadedReport, /منابع قانونی: تأییدنشده/);
+  } finally {
+    try { client?.socket.close(); } catch {}
+    if (child.exitCode === null && child.signalCode === null) {
+      signalChromiumTree(child, 'SIGTERM');
+      await waitForChildExit(child, 1500);
+    }
+    if (process.platform !== 'win32' && child.pid) signalChromiumTree(child, 'SIGKILL');
+    else if (child.exitCode === null && child.signalCode === null) signalChromiumTree(child, 'SIGKILL');
+    await waitForChildExit(child, 1000);
+    await delay(100);
+    previewServer.closeAllConnections?.();
+    await new Promise(resolve => previewServer.close(resolve));
+    fs.rmSync(downloads, { recursive: true, force: true, maxRetries: 8, retryDelay: 100 });
     fs.rmSync(userData, { recursive: true, force: true, maxRetries: 8, retryDelay: 100 });
   }
 });
