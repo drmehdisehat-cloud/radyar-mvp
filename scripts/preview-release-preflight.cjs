@@ -17,6 +17,7 @@ const USAGE = [
   '    --isolated-restore-verified --mobile-browser-verified',
   '    --zero-api-requests-verified --human-review-verified',
   '',
+  'Read-only preflight; it never deploys or writes evidence.',
   'Evidence, attestation and trust-store files must be outside the Git checkout.',
   'The detached Ed25519 signature is checked against the supplied trust store.',
   'This script never deploys and does not independently establish the trust-store origin or human identity.'
