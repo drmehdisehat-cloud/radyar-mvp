@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { decidePreviewRelease } = require('./decide-preview-release.cjs');
 const { readStableRegularFile } = require('./stable-file-integrity.cjs');
+const { verifyHumanReviewAttestation } = require('./verify-human-review-attestation.cjs');
 
 const REPO_ROOT = path.resolve(__dirname, '..');
 const MAX_EVIDENCE_BYTES = 64 * 1024;
@@ -11,20 +12,29 @@ const USAGE = [
   'Usage:',
   '  node scripts/preview-release-preflight.cjs --restore-evidence ABSOLUTE_JSON_PATH',
   '    --destination-evidence ABSOLUTE_JSON_PATH',
+  '    --review-attestation ABSOLUTE_JSON_PATH --review-trust-store ABSOLUTE_JSON_PATH',
+  '    --expected-source-commit 40_HEX --expected-artifact-sha256 64_HEX',
   '    --isolated-restore-verified --mobile-browser-verified',
   '    --zero-api-requests-verified --human-review-verified',
-  '    --authenticated-human-review-attested',
   '',
-  'Evidence files must be outside the Git checkout. This is a read-only schema/attestation check;',
-  'it never deploys; it does not authenticate reviewers, independently prove a restore, or publish files.'
+  'Evidence, attestation and trust-store files must be outside the Git checkout.',
+  'The detached Ed25519 signature is checked against the supplied trust store.',
+  'This script never deploys and does not independently establish the trust-store origin or human identity.'
 ].join('\n');
 
 const FLAG_NAMES = new Set([
   '--isolated-restore-verified',
   '--mobile-browser-verified',
   '--zero-api-requests-verified',
-  '--human-review-verified',
-  '--authenticated-human-review-attested'
+  '--human-review-verified'
+]);
+const VALUE_NAMES = new Set([
+  '--restore-evidence',
+  '--destination-evidence',
+  '--review-attestation',
+  '--review-trust-store',
+  '--expected-source-commit',
+  '--expected-artifact-sha256'
 ]);
 
 function isInside(parent, target) {
@@ -68,18 +78,26 @@ function readEvidence(flag, file) {
 }
 
 function parseArgs(argv) {
-  const parsed = { help: false, paths: {}, attestations: new Set() };
+  const parsed = { help: false, paths: {}, values: {}, attestations: new Set() };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === '--help' || arg === '-h') {
       parsed.help = true;
       continue;
     }
-    if (arg === '--restore-evidence' || arg === '--destination-evidence') {
-      if (parsed.paths[arg]) throw new Error('duplicate_argument:' + arg);
+    if (VALUE_NAMES.has(arg)) {
+      if (Object.prototype.hasOwnProperty.call(parsed.paths, arg) ||
+          Object.prototype.hasOwnProperty.call(parsed.values, arg)) {
+        throw new Error('duplicate_argument:' + arg);
+      }
       const value = argv[++i];
-      if (!value || value.startsWith('--')) throw new Error('missing_path:' + arg);
-      parsed.paths[arg] = value;
+      if (!value || value.startsWith('--')) throw new Error('missing_value:' + arg);
+      if (arg === '--restore-evidence' || arg === '--destination-evidence' ||
+          arg === '--review-attestation' || arg === '--review-trust-store') {
+        parsed.paths[arg] = value;
+      } else {
+        parsed.values[arg] = value;
+      }
       continue;
     }
     if (FLAG_NAMES.has(arg)) {
@@ -105,6 +123,25 @@ function main(argv) {
     if (!restorePath || !destinationPath) throw new Error('both_evidence_files_required');
     const restoreEvidence = readEvidence('--restore-evidence', restorePath);
     const destinationEvidence = readEvidence('--destination-evidence', destinationPath);
+
+    let review = { verified: false, reason: 'review_attestation_and_trust_store_required' };
+    const reviewPath = args.paths['--review-attestation'];
+    const trustPath = args.paths['--review-trust-store'];
+    const expectedSourceCommit = args.values['--expected-source-commit'];
+    const expectedArtifactSha256 = args.values['--expected-artifact-sha256'];
+    if (reviewPath && trustPath && expectedSourceCommit && expectedArtifactSha256) {
+      const attestation = readEvidence('--review-attestation', reviewPath);
+      const trustStore = readEvidence('--review-trust-store', trustPath);
+      review = verifyHumanReviewAttestation({
+        attestation,
+        trustStore,
+        expectedSourceCommit,
+        expectedArtifactSha256
+      });
+    } else if (reviewPath || trustPath || expectedSourceCommit || expectedArtifactSha256) {
+      review = { verified: false, reason: 'review_attestation_trust_store_and_target_required' };
+    }
+
     const decision = decidePreviewRelease({
       restoreEvidence,
       destinationEvidence,
@@ -112,17 +149,24 @@ function main(argv) {
       mobileBrowserVerified: args.attestations.has('--mobile-browser-verified'),
       zeroApiRequestsVerified: args.attestations.has('--zero-api-requests-verified'),
       humanReviewVerified: args.attestations.has('--human-review-verified'),
-      authenticatedHumanReviewAttested: args.attestations.has('--authenticated-human-review-attested')
+      authenticatedHumanReviewAttested: review.verified === true
     });
     const output = {
       ...decision,
       evidenceFilesRead: true,
       attestationFlagsSupplied: args.attestations.size,
+      reviewAttestation: review.verified ? {
+        verified: true,
+        issuer: review.issuer,
+        subject: review.subject,
+        reviewId: review.reviewId,
+        reviewedAt: review.reviewedAt,
+        expiresAt: review.expiresAt
+      } : { verified: false, reason: review.reason },
       deploymentPerformed: false,
-      note: 'فقط شکل و سازگاری اظهارهای ورودی بررسی شده است؛ اصالت مدرک، بازیابی واقعی، مقصد زنده، احراز هویت مستقل بازبین و مجوز مالک احراز نشده‌اند. این ابزار هرگز مجوز انتشار صادر نمی‌کند.'
+      note: 'فقط امضای دیجیتال و سازگاری ساختاری اظهار بازبینی با کلید عمومی ارائه‌شده بررسی شده است؛ منشأ مستقل trust store، هویت واقعی صاحب کلید، بازیابی واقعی بکاپ، مقصد زنده و مجوز مالک احراز نشده‌اند. این ابزار هرگز مجوز انتشار صادر نمی‌کند.'
     };
     process.stdout.write(JSON.stringify(output, null, 2) + '\n');
-    // Exit 3 means the JSON shape passed but external evidence/release approval remain unverified.
     return decision.blockers.length ? 1 : 3;
   } catch (error) {
     const output = {
@@ -134,6 +178,5 @@ function main(argv) {
     return 2;
   }
 }
-
 if (require.main === module) process.exitCode = main(process.argv.slice(2));
 module.exports = { main, parseArgs, readEvidence };

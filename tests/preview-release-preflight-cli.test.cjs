@@ -6,6 +6,7 @@ const os = require('node:os');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
+const { canonicalizePayload } = require('../scripts/verify-human-review-attestation.cjs');
 
 const CLI = path.join(__dirname, '../scripts/preview-release-preflight.cjs');
 const digest = value => crypto.createHash('sha256').update(value).digest('hex');
@@ -42,6 +43,7 @@ function fixture() {
     reviewed_at: reviewed
   };
   const sourceHash = digest('synthetic reviewed preview');
+  const sourceCommit = 'c'.repeat(40);
   const destination = {
     matched: true,
     destination_outside_document_root: true,
@@ -52,11 +54,46 @@ function fixture() {
     destination_realpath: '/srv/dadyar-staging/preview/index.html',
     production_document_root_realpath: '/var/www/production'
   };
+  const { publicKey, privateKey } = crypto.generateKeyPairSync('ed25519');
+  const payload = {
+    schema: 'dadyar-human-review-attestation-v1',
+    issuer: 'synthetic-owner-review-registry',
+    subject: 'synthetic-reviewer-01',
+    audience: 'dadyar-preview-release',
+    decision: 'approved',
+    review_id: crypto.randomUUID(),
+    source_commit: sourceCommit,
+    artifact_sha256: sourceHash,
+    reviewed_at: reviewed,
+    expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    nonce: crypto.randomBytes(32).toString('base64url')
+  };
+  const attestation = {
+    payload,
+    signature: crypto.sign(null, Buffer.from(canonicalizePayload(payload)), privateKey).toString('base64url')
+  };
+  const trustStore = {
+    schema: 'dadyar-review-trust-store-v1',
+    issuer: payload.issuer,
+    reviewers: [{
+      subject: payload.subject,
+      roles: ['preview-reviewer'],
+      active: true,
+      public_key_pem: publicKey.export({ type: 'spki', format: 'pem' })
+    }]
+  };
   const restoreFile = path.join(directory, 'restore.json');
   const destinationFile = path.join(directory, 'destination.json');
+  const attestationFile = path.join(directory, 'review-attestation.json');
+  const trustStoreFile = path.join(directory, 'review-trust-store.json');
   fs.writeFileSync(restoreFile, JSON.stringify(restore));
   fs.writeFileSync(destinationFile, JSON.stringify(destination));
-  return { directory, restoreFile, destinationFile };
+  fs.writeFileSync(attestationFile, JSON.stringify(attestation));
+  fs.writeFileSync(trustStoreFile, JSON.stringify(trustStore));
+  return {
+    directory, restoreFile, destinationFile, attestationFile, trustStoreFile,
+    sourceCommit, sourceHash
+  };
 }
 
 function run(args) {
@@ -67,15 +104,25 @@ function baseArgs(f) {
   return [
     '--restore-evidence', f.restoreFile,
     '--destination-evidence', f.destinationFile,
+    '--review-attestation', f.attestationFile,
+    '--review-trust-store', f.trustStoreFile,
+    '--expected-source-commit', f.sourceCommit,
+    '--expected-artifact-sha256', f.sourceHash,
     '--isolated-restore-verified',
     '--mobile-browser-verified',
     '--zero-api-requests-verified',
-    '--human-review-verified',
-    '--authenticated-human-review-attested'
+    '--human-review-verified'
   ];
 }
 
-test('read-only CLI reports shape-only status when synthetic gates are supplied', () => {
+function removeValuePair(args, flag) {
+  const copy = [...args];
+  const index = copy.indexOf(flag);
+  if (index >= 0) copy.splice(index, 2);
+  return copy;
+}
+
+test('read-only CLI verifies a signed synthetic review but still requires external verification', () => {
   const f = fixture();
   try {
     const result = run(baseArgs(f));
@@ -86,24 +133,76 @@ test('read-only CLI reports shape-only status when synthetic gates are supplied'
     assert.equal(report.externalChecksPending.length, 4);
     assert.deepEqual(report.blockers, []);
     assert.equal(report.evidenceFilesRead, true);
-    assert.equal(report.attestationFlagsSupplied, 5);
+    assert.equal(report.attestationFlagsSupplied, 4);
+    assert.equal(report.reviewAttestation.verified, true);
+    assert.equal(report.reviewAttestation.subject, 'synthetic-reviewer-01');
     assert.equal(report.deploymentPerformed, false);
-    assert.match(report.note, /اصالت مدرک، بازیابی واقعی/);
+    assert.match(report.note, /منشأ مستقل trust store/);
   } finally {
     fs.rmSync(f.directory, { recursive: true, force: true });
   }
 });
 
-
 test('local review approval alone cannot satisfy the authenticated-review release gate', () => {
   const f = fixture();
   try {
-    const args = baseArgs(f).filter(arg => arg !== '--authenticated-human-review-attested');
+    let args = baseArgs(f);
+    for (const flag of ['--review-attestation', '--review-trust-store',
+      '--expected-source-commit', '--expected-artifact-sha256']) {
+      args = removeValuePair(args, flag);
+    }
     const result = run(args);
     assert.equal(result.status, 1, result.stderr);
     const report = JSON.parse(result.stdout);
     assert.equal(report.status, 'NOT_READY');
     assert.ok(report.blockers.includes('authenticated human reviewer attestation missing'));
+    assert.equal(report.reviewAttestation.verified, false);
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
+test('tampered review payload fails signature verification', () => {
+  const f = fixture();
+  try {
+    const value = JSON.parse(fs.readFileSync(f.attestationFile, 'utf8'));
+    value.payload.review_id = crypto.randomUUID();
+    fs.writeFileSync(f.attestationFile, JSON.stringify(value));
+    const result = run(baseArgs(f));
+    assert.equal(result.status, 1, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.reviewAttestation.verified, false);
+    assert.equal(report.reviewAttestation.reason, 'invalid_signature');
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
+test('review signature must be bound to the exact artifact and source commit', () => {
+  const f = fixture();
+  try {
+    const args = baseArgs(f);
+    const commitIndex = args.indexOf('--expected-source-commit') + 1;
+    args[commitIndex] = 'd'.repeat(40);
+    const result = run(args);
+    assert.equal(result.status, 1, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.reviewAttestation.reason, 'review_target_mismatch');
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
+test('legacy boolean authentication flag is rejected instead of being trusted', () => {
+  const f = fixture();
+  try {
+    const result = run([...baseArgs(f), '--authenticated-human-review-attested']);
+    assert.equal(result.status, 2);
+    const report = JSON.parse(result.stdout);
+    assert.match(report.blockers.join(' '), /unknown_argument/);
     assert.equal(report.deploymentPerformed, false);
   } finally {
     fs.rmSync(f.directory, { recursive: true, force: true });
@@ -173,6 +272,7 @@ test('unknown deploy-like options are rejected and the CLI exposes no deploy com
   assert.equal(help.status, 0);
   assert.match(help.stdout, /read-only/);
   assert.match(help.stdout, /never deploys/);
+  assert.match(help.stdout, /--review-attestation/);
   const result = run(['--deploy']);
   assert.equal(result.status, 2);
   const report = JSON.parse(result.stdout);
