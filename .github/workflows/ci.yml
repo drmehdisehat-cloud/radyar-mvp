@@ -43,6 +43,9 @@ jobs:
           node --check backend/server.js
           node --check scripts/verify-human-review-attestation.cjs
           node --check scripts/preview-release-preflight.cjs
+          node --check scripts/strict-json.cjs
+          node --check scripts/verify-restore-attestation-signatures.cjs
+          node --check scripts/verify-restore-attestation-pinned.cjs
           node --check tests/real-browser-smoke.cjs
       - name: Audit full Git history for known secret signatures
         run: node scripts/audit-git-history.cjs
