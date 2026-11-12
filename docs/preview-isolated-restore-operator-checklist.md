@@ -36,7 +36,7 @@ node scripts/preview-release-preflight.cjs \
   --isolated-restore-verified \
   --mobile-browser-verified \
   --zero-api-requests-verified \
-  --human-review-verified \\
+  --human-review-verified \
   --authenticated-human-review-attested
 ```
 
