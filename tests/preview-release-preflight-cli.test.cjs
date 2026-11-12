@@ -164,8 +164,9 @@ test('a substituted trust store is rejected when its bytes differ from the owner
   const f = fixture();
   try {
     const args = baseArgs(f);
-    const index = args.indexOf('--expected-review-trust-store-sha256') + 1;
-    args[index] = 'f'.repeat(64);
+    const trustStore = JSON.parse(fs.readFileSync(f.trustStoreFile, 'utf8'));
+    trustStore.issuer = 'substituted-trust-store';
+    fs.writeFileSync(f.trustStoreFile, JSON.stringify(trustStore));
     const result = run(args);
     assert.equal(result.status, 1, result.stderr);
     const report = JSON.parse(result.stdout);
@@ -177,17 +178,19 @@ test('a substituted trust store is rejected when its bytes differ from the owner
   }
 });
 
-test('malformed or all-zero trust-store digest is rejected', () => {
+test('malformed and all-zero trust-store digests are rejected', () => {
   const f = fixture();
   try {
-    const args = baseArgs(f);
-    const index = args.indexOf('--expected-review-trust-store-sha256') + 1;
-    args[index] = 'not-a-sha256';
-    const result = run(args);
-    assert.equal(result.status, 1, result.stderr);
-    const report = JSON.parse(result.stdout);
-    assert.equal(report.reviewAttestation.reason, 'invalid_expected_review_trust_store_sha256');
-    assert.equal(report.deploymentPerformed, false);
+    for (const invalidDigest of ['not-a-sha256', '0'.repeat(64)]) {
+      const args = baseArgs(f);
+      const index = args.indexOf('--expected-review-trust-store-sha256') + 1;
+      args[index] = invalidDigest;
+      const result = run(args);
+      assert.equal(result.status, 1, result.stderr);
+      const report = JSON.parse(result.stdout);
+      assert.equal(report.reviewAttestation.reason, 'invalid_expected_review_trust_store_sha256');
+      assert.equal(report.deploymentPerformed, false);
+    }
   } finally {
     fs.rmSync(f.directory, { recursive: true, force: true });
   }
