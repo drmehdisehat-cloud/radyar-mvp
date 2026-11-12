@@ -166,6 +166,13 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     await client.command('Page.enable');
     await client.command('Runtime.enable');
     await client.command('Network.enable');
+    await client.command('Page.addScriptToEvaluateOnNewDocument', {
+      source: [
+        'URL.createObjectURL = blob => { window.__dadyarExportBlob = blob; return "blob:dadyar-test-export"; };',
+        'URL.revokeObjectURL = () => {};',
+        'HTMLAnchorElement.prototype.click = function() { window.__dadyarDownloadName = this.download; };'
+      ].join('\n')
+    });
     await client.command('Emulation.setDeviceMetricsOverride', {
       width: 390,
       height: 844,
@@ -187,7 +194,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     await delay(200);
 
     const expression = [
-      '(() => {',
+      '(async () => {',
       '  const root = document.documentElement;',
       '  const download = document.getElementById("download");',
       '  const initialDisabled = download.disabled;',
@@ -208,6 +215,15 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  document.getElementById("record-review").click();',
       '  const enabledAfterHumanReview = !download.disabled;',
       '  const reviewStatus = document.getElementById("review-status").textContent;',
+      '  const exportEnabledBeforeDownload = !download.disabled;',
+      '  download.click();',
+      '  const exportBlob = window.__dadyarExportBlob;',
+      '  const exportedReport = exportBlob ? await exportBlob.text() : "";',
+      '  const exportedFilename = window.__dadyarDownloadName || "";',
+      '  const approvalConsumed = download.disabled && !document.getElementById("export-ack").checked;',
+      '  window.__dadyarExportBlob = null; window.__dadyarDownloadName = "";',
+      '  download.click();',
+      '  const repeatExportBlocked = window.__dadyarExportBlob === null && download.disabled;',
       '  const reportAfterAcknowledgement = document.getElementById("report").textContent;',
       '  const question = document.getElementById("free-question");',
       '  const multiTopicRawQuestion = "چک و مهریه در این مثال چه موضوعاتی هستند؟";',
@@ -228,6 +244,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '    mobileUserAgent: /iPhone|Mobile/i.test(navigator.userAgent),',
       '    horizontalOverflow: root.scrollWidth > root.clientWidth + 1,',
       '    initialDisabled, blockedBeforeAcknowledgement, enabledAfterHumanReview, reviewStatus,',
+      '    exportEnabledBeforeDownload, exportedReport, exportedFilename, approvalConsumed, repeatExportBlocked,',
       '    reportAfterAcknowledgement, staleDraftInvalidated, multiTopicReport, multiTopicIds,',
       '    multiTopicExportEligible, multiTopicScopeStatus, multiTopicInputCleared, multiTopicRawQuestionEchoed,',
       '    csp: document.querySelector("meta[http-equiv]")?.content || "",',
@@ -255,6 +272,15 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.equal(snapshot.blockedBeforeAcknowledgement, true, 'report exported before human acknowledgement');
     assert.equal(snapshot.enabledAfterHumanReview, true, 'approved human review did not enable report download');
     assert.match(snapshot.reviewStatus, /هویت بازبین در این نسخه آفلاین احراز نمی‌شود/);
+    assert.equal(snapshot.exportEnabledBeforeDownload, true, 'approved local review did not enable the report download');
+    assert.equal(snapshot.exportedFilename, 'dadyar-synthetic-cheque.txt');
+    assert.match(snapshot.exportedReport, /ثبت بازبینی انسانی \(اظهار محلی؛ هویت احراز نشده\)/);
+    assert.match(snapshot.exportedReport, /نام بازبین: بازبین آزمون/);
+    assert.match(snapshot.exportedReport, /نتیجه بازبینی: تأیید برای دریافت آموزشی/);
+    assert.match(snapshot.exportedReport, /یادداشت بازبین: بازبینی داده ساختگی/);
+    assert.match(snapshot.exportedReport, /این اظهار محلی است و تأیید حقوقی یا احراز هویت محسوب نمی‌شود/);
+    assert.equal(snapshot.approvalConsumed, true, 'approval was not consumed after report download');
+    assert.equal(snapshot.repeatExportBlocked, true, 'a second report download was allowed without a fresh review');
     assert.match(snapshot.reportAfterAcknowledgement, /منابع قانونی: تأییدنشده/);
     assert.equal(snapshot.staleDraftInvalidated, true, 'editing free question retained a stale draft');
     assert.ok(snapshot.multiTopicIds.includes('instruments'), 'cheque hint missing from internal multi-topic routing');
