@@ -209,6 +209,23 @@ test('legacy boolean authentication flag is rejected instead of being trusted', 
   }
 });
 
+test('trust-store issuer mismatch cannot authenticate a signed reviewer', () => {
+  const f = fixture();
+  try {
+    const trustStore = JSON.parse(fs.readFileSync(f.trustStoreFile, 'utf8'));
+    trustStore.issuer = 'untrusted-issuer';
+    fs.writeFileSync(f.trustStoreFile, JSON.stringify(trustStore));
+    const result = run(baseArgs(f));
+    assert.equal(result.status, 1, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.reviewAttestation.verified, false);
+    assert.equal(report.reviewAttestation.reason, 'issuer_mismatch');
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
 test('missing mobile or zero-network attestation fails closed and never deploys', () => {
   const f = fixture();
   try {
