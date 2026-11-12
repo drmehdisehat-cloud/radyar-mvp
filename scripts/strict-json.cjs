@@ -63,11 +63,15 @@ function parseJsonRejectDuplicateKeys(source) {
     whitespace();
     if (source[index] === '}') { index++; return; }
     const keys = new Set();
+    const normalizedKeys = new Set();
     while (index < length) {
       whitespace();
       const key = stringValue();
       if (keys.has(key)) fail('duplicate_json_key:' + key);
+      const normalizedKey = key.normalize('NFKC');
+      if (normalizedKeys.has(normalizedKey)) fail('unicode_normalization_collision_json_key');
       keys.add(key);
+      normalizedKeys.add(normalizedKey);
       whitespace();
       if (source[index] !== ':') fail('invalid_json_object');
       index++;

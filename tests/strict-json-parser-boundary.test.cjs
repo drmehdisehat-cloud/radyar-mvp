@@ -58,6 +58,16 @@ test('rejects duplicate decoded keys at every object level, including inside arr
   for (const source of invalid) assert.throws(() => parse(source), /duplicate_json_key:/);
 });
 
+test('rejects object keys that collide after Unicode NFKC normalization', () => {
+  const invalid = [
+    '{"schema":1,"\\uff53\\uff43\\uff48\\uff45\\uff4d\\uff41":2}',
+    '{"\\u00e9":1,"e\\u0301":2}'
+  ];
+  for (const source of invalid) {
+    assert.throws(() => parse(source), /unicode_normalization_collision_json_key/);
+  }
+});
+
 test('allows identical keys in sibling objects and enforces the JSON whitespace set', () => {
   const source = ' \r\n\t{"left":{"name":"A"},"right":{"name":"B"}} \n';
   assert.deepStrictEqual(parse(source), { left: { name: 'A' }, right: { name: 'B' } });
