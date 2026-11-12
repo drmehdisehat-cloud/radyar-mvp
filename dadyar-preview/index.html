@@ -469,7 +469,7 @@ let reviewRecord=null;
 function safeReviewText(value,max){
  return String(value||'').normalize('NFC')
   .replace(/[\r\n\u2028\u2029]+/g,' ')
-  .replace(/[\u0000-\u001f\u007f-\u009f\u061c\u200b\u200e\u200f\u202a-\u202e\u2060\u2066-\u2069\ufeff]/g,'')
+  .replace(/[\u0000-\u001f\u007f-\u009f\u061c\u200b\u200e\u200f\u202a-\u202e\u2060\u2066-\u206f\ufeff]/g,'')
   .replace(/\s+/g,' ').trim().slice(0,max);
 }
 function updateExportPermission(){

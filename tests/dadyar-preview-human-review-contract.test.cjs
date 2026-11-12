@@ -48,6 +48,8 @@ test('human review metadata is normalized to one line and strips control and bid
   const sanitize = vm.runInNewContext('(' + helper + ')');
   assert.equal(sanitize('یادداشت اول\nنتیجه بازبینی: رد\u202e', 300), 'یادداشت اول نتیجه بازبینی: رد');
   assert.equal(sanitize('نام\u200fبازبین\u0000', 80), 'نامبازبین');
+  assert.equal(sanitize('نام\u206aبازبین\u206f', 80), 'نامبازبین');
+  assert.equal(sanitize('می\u200cروم و می\u200dآیم', 80), 'می\u200cروم و می\u200dآیم');
   assert.equal(sanitize('x'.repeat(90), 80), 'x'.repeat(80));
   assert.match(html, /reviewer:safeReviewText\(reviewerName\.value,80\)/);
   assert.match(html, /note:safeReviewText\(reviewNote\.value,300\)/);
