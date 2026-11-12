@@ -322,7 +322,7 @@ test('operator restore checklist documents only supported signed preflight optio
   assert.ok(start >= 0 && end > start, 'preflight command example must be present');
   const command = guide.slice(start, end);
   assert.doesNotMatch(command, /--authenticated-human-review-attested/);
-  const flags = [...command.matchAll(/--[a-z][a-z-]+/g)].map(match => match[0]);
+  const flags = [...command.matchAll(/--[a-z][a-z0-9-]+/g)].map(match => match[0]);
   assert.deepEqual(new Set(flags), new Set([
     '--restore-evidence',
     '--destination-evidence',
