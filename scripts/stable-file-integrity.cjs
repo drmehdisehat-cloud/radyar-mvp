@@ -20,7 +20,14 @@ function readStableRegularFile(file, label = 'file', options = {}) {
   try {
     fd = fs.openSync(absolute, flags);
     const before = fs.fstatSync(fd, { bigint: true });
+    if (options.maxBytes !== undefined &&
+        (!Number.isSafeInteger(options.maxBytes) || options.maxBytes < 1)) {
+      throw Error(label + ' maxBytes must be a positive safe integer');
+    }
     if (!before.isFile()) throw Error(label + ' must be a regular file');
+    if (options.maxBytes !== undefined && before.size > BigInt(options.maxBytes)) {
+      throw Error(label + ' exceeds maximum size');
+    }
     if (before.nlink !== 1n) throw Error(label + ' must not have hard-link aliases');
     if (before.size <= 0n) throw Error(label + ' must not be empty');
 
