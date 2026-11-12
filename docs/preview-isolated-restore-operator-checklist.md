@@ -36,7 +36,8 @@ node scripts/preview-release-preflight.cjs \
   --isolated-restore-verified \
   --mobile-browser-verified \
   --zero-api-requests-verified \
-  --human-review-verified
+  --human-review-verified \\
+  --authenticated-human-review-attested
 ```
 
 The five switches are explicit operator/reviewer attestations, not machine-verified facts. In particular, --authenticated-human-review-attested is only a supplied assertion; identity must still be checked independently against a trusted source. The CLI only checks schema, consistency and supplied attestations; it performs no network request, file copy, publication or deployment. It rejects evidence paths inside the Git checkout and symlinked evidence paths. Exit code 1 means structural release blockers remain; exit code 2 means invalid invocation or evidence input; exit code 3 means the evidence JSON shape is internally consistent but independent authenticity checks, live-host verification, legal/security review and owner approval remain outstanding. The tool never emits a release-ready or deployment-authorized status.
