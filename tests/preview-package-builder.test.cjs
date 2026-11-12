@@ -121,3 +121,59 @@ test('builder rejects a source with a remote dependency or network-capable API',
     assert.equal(fs.existsSync(destination), false);
   });
 });
+
+test('builder rejects a symlinked source ancestor even when its target remains inside the checkout', t => {
+  withTemp(t, root => {
+    const fakeRoot = path.join(root, 'repo');
+    const realPreview = path.join(fakeRoot, 'real-preview');
+    const aliasPreview = path.join(fakeRoot, 'alias-preview');
+    fs.mkdirSync(realPreview, { recursive: true });
+    fs.copyFileSync(sourcePath, path.join(realPreview, 'index.html'));
+    fs.symlinkSync(realPreview, aliasPreview, 'dir');
+    const destination = path.join(root, 'bundle');
+    assert.throws(() => buildOfflinePreviewPackage(destination, {
+      repoRoot: fakeRoot,
+      sourcePath: path.join(aliasPreview, 'index.html'),
+      commit,
+      branch
+    }), /path changed before read/);
+    assert.equal(fs.existsSync(destination), false);
+  });
+});
+
+test('builder rejects a hard-linked preview source', t => {
+  withTemp(t, root => {
+    const fakeRoot = path.join(root, 'repo');
+    const previewDir = path.join(fakeRoot, 'dadyar-preview');
+    fs.mkdirSync(previewDir, { recursive: true });
+    const source = path.join(previewDir, 'index.html');
+    const alias = path.join(previewDir, 'alias.html');
+    fs.copyFileSync(sourcePath, source);
+    fs.linkSync(source, alias);
+    const destination = path.join(root, 'bundle');
+    assert.throws(() => buildOfflinePreviewPackage(destination, {
+      repoRoot: fakeRoot, sourcePath: source, commit, branch
+    }), /must not have hard-link aliases/);
+    assert.equal(fs.existsSync(destination), false);
+  });
+});
+
+test('builder rejects an oversized preview source before creating the package', t => {
+  withTemp(t, root => {
+    const fakeRoot = path.join(root, 'repo');
+    const previewDir = path.join(fakeRoot, 'dadyar-preview');
+    fs.mkdirSync(previewDir, { recursive: true });
+    const source = path.join(previewDir, 'index.html');
+    fs.writeFileSync(source, Buffer.concat([
+      fs.readFileSync(sourcePath),
+      Buffer.from('<!--'),
+      Buffer.alloc(1024 * 1024, 0x61),
+      Buffer.from('-->')
+    ]));
+    const destination = path.join(root, 'bundle');
+    assert.throws(() => buildOfflinePreviewPackage(destination, {
+      repoRoot: fakeRoot, sourcePath: source, commit, branch
+    }), /exceeds maximum size/);
+    assert.equal(fs.existsSync(destination), false);
+  });
+});
