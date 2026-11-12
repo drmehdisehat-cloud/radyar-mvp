@@ -9,7 +9,7 @@ function parseJsonRejectDuplicateKeys(source) {
   const fail = reason => { throw new SyntaxError(reason); };
 
   function whitespace() {
-    while (index < length && /[\\u0020\\u0009\\u000a\\u000d]/.test(source[index])) index++;
+    while (index < length && /[\u0020\u0009\u000a\u000d]/.test(source[index])) index++;
   }
 
   function stringValue() {
@@ -31,7 +31,7 @@ function parseJsonRejectDuplicateKeys(source) {
           const hex = source.slice(index, index + 4);
           if (!/^[0-9a-fA-F]{4}$/.test(hex)) fail('invalid_json_escape');
           index += 4;
-        } else if (!'"\\\\/bfnrt'.includes(escaped)) {
+        } else if (!'"\\/bfnrt'.includes(escaped)) {
           fail('invalid_json_escape');
         }
         continue;
@@ -53,7 +53,7 @@ function parseJsonRejectDuplicateKeys(source) {
     for (const literal of ['true', 'false', 'null']) {
       if (rest.startsWith(literal)) { index += literal.length; return; }
     }
-    const number = /^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?/.exec(rest);
+    const number = /^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/.exec(rest);
     if (number) { index += number[0].length; return; }
     fail('invalid_json_value');
   }
