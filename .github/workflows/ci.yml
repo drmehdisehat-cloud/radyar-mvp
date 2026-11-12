@@ -11,7 +11,7 @@ on:
       - main
       - dadyar/mvp-sync-028
 concurrency:
-  group: \${{ github.workflow }}-\${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 permissions:
   contents: read
@@ -49,11 +49,11 @@ jobs:
           shopt -s nullglob
           tests=(tests/*.test.cjs)
           contracts=()
-          for test_file in "\${tests[@]}"; do
+          for test_file in "${tests[@]}"; do
             [[ "$test_file" == tests/synthetic-cheque-chromium-e2e.test.cjs || "$test_file" == tests/dadyar-preview-mobile-chromium.test.cjs || "$test_file" == tests/dadyar-preview-mobile-device-emulation.test.cjs ]] || contracts+=("$test_file")
           done
-          test "\${#contracts[@]}" -gt 0
-          node --test "\${contracts[@]}"
+          test "${#contracts[@]}" -gt 0
+          node --test "${contracts[@]}"
       - name: Audit v1 release blockers (informational; never deploy)
         run: node scripts/check-v1-readiness.cjs
       - name: Audit cheque amendment evidence gaps (research only)
@@ -79,14 +79,14 @@ jobs:
       - name: Build offline preview handoff package (not deployment)
         if: github.event_name == 'push' && github.ref == 'refs/heads/dadyar/ai-chat-private-20261101'
         env:
-          GITHUB_SHA: \${{ github.sha }}
-          GITHUB_REF_NAME: \${{ github.ref_name }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
         run: node scripts/build-offline-preview-package.cjs "$RUNNER_TEMP/dadyar-preview-handoff"
       - name: Upload immutable offline preview handoff
         if: github.event_name == 'push' && github.ref == 'refs/heads/dadyar/ai-chat-private-20261101'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: dadyar-offline-preview-\${{ github.sha }}
-          path: \${{ runner.temp }}/dadyar-preview-handoff/
+          name: dadyar-offline-preview-${{ github.sha }}
+          path: ${{ runner.temp }}/dadyar-preview-handoff/
           if-no-files-found: error
           retention-days: 7
