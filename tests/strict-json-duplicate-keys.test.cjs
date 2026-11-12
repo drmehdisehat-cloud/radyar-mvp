@@ -60,3 +60,47 @@ test('release preflight evidence reader rejects duplicate keys before accepting 
     fs.rmSync(directory, { recursive: true, force: true });
   }
 });
+
+
+test('restore-signature canonicalization CLI rejects duplicate manifest keys', () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-signature-json-'));
+  const manifest = path.join(directory, 'manifest.json');
+  try {
+    fs.writeFileSync(manifest, '{"restore_proven":false,"restore_proven":true}');
+    const script = path.join(__dirname, '../scripts/verify-restore-attestation-signatures.cjs');
+    const result = require('node:child_process').spawnSync(
+      process.execPath,
+      [script, '--canonicalize', '--manifest', manifest],
+      { encoding: 'utf8' }
+    );
+    assert.equal(result.status, 1, result.stderr);
+    assert.match(result.stderr + result.stdout, /duplicate_json_key:restore_proven/);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('pinned restore verifier rejects duplicate manifest keys before reading key files', () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-pinned-json-'));
+  const manifest = path.join(directory, 'manifest.json');
+  try {
+    fs.writeFileSync(manifest, '{"restore_proven":false,"restore_proven":true}');
+    const script = path.join(__dirname, '../scripts/verify-restore-attestation-pinned.cjs');
+    const args = [
+      script,
+      '--manifest', manifest,
+      '--operator-public-key', path.join(directory, 'missing-operator.pem'),
+      '--operator-signature', path.join(directory, 'missing-operator.sig'),
+      '--reviewer-public-key', path.join(directory, 'missing-reviewer.pem'),
+      '--reviewer-signature', path.join(directory, 'missing-reviewer.sig'),
+      '--expected-operator-public-key-sha256', 'a'.repeat(64),
+      '--expected-reviewer-public-key-sha256', 'b'.repeat(64)
+    ];
+    const result = require('node:child_process').spawnSync(process.execPath, args, { encoding: 'utf8' });
+    assert.equal(result.status, 1, result.stderr);
+    assert.match(result.stdout + result.stderr, /duplicate_json_key:restore_proven/);
+    assert.doesNotMatch(result.stdout + result.stderr, /ENOENT/);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
