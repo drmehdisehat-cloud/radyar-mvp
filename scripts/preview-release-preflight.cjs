@@ -6,6 +6,7 @@ const crypto = require('node:crypto');
 const { TextDecoder } = require('node:util');
 const { decidePreviewRelease } = require('./decide-preview-release.cjs');
 const { readStableRegularFile } = require('./stable-file-integrity.cjs');
+const { parseJsonRejectDuplicateKeys } = require('./strict-json.cjs');
 const { verifyHumanReviewAttestation } = require('./verify-human-review-attestation.cjs');
 
 const REPO_ROOT = path.resolve(__dirname, '..');
@@ -78,8 +79,11 @@ function readEvidenceRecord(flag, file) {
   }
   let value;
   try {
-    value = JSON.parse(decoded);
-  } catch {
+    value = parseJsonRejectDuplicateKeys(decoded);
+  } catch (error) {
+    if (error instanceof SyntaxError && String(error.message).startsWith('duplicate_json_key:')) {
+      throw error;
+    }
     throw new Error(flag + '_is_not_valid_json');
   }
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
