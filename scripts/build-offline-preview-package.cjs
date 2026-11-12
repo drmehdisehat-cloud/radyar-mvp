@@ -45,10 +45,20 @@ function buildOfflinePreviewPackage(destinationArg, options = {}) {
   // Read the pinned source through a no-follow descriptor. This rejects symlinked
   // ancestors, hard-link aliases, non-regular files, oversized inputs and files
   // whose inode/size/timestamps change while the bytes are being hashed.
-  const sourceRead = readStableRegularFile(sourcePath, 'preview source', {
-    includeBytes: true,
-    maxBytes: MAX_PREVIEW_BYTES
-  });
+  let sourceRead;
+  try {
+    sourceRead = readStableRegularFile(sourcePath, 'preview source', {
+      includeBytes: true,
+      maxBytes: MAX_PREVIEW_BYTES
+    });
+  } catch (error) {
+    // O_NOFOLLOW reports a final-component symlink as ELOOP on supported POSIX
+    // systems. Keep the package builder's refusal message stable and path-free.
+    if (error && error.code === 'ELOOP') {
+      fail('Preview source must be a regular, non-symlink file with one link.');
+    }
+    throw error;
+  }
   const realSource = fs.realpathSync(sourcePath);
   if (!inside(realRoot, realSource)) {
     fail('Preview source resolves outside the repository.');
