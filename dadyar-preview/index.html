@@ -20,7 +20,7 @@
 <section id="result" hidden tabindex="-1" aria-live="polite"><h2>پیش‌نویس برای بازبینی انسانی</h2><p id="topic-scope-status" role="status" aria-live="polite"></p><pre id="report"></pre><section id="human-review" aria-labelledby="human-review-title"><h3 id="human-review-title">بازبینی محلی توسط انسان (بدون احراز هویت)</h3><p role="note"><strong>محدودیت این پیش‌نمایش:</strong> این مرحله فقط جریان بازبینی آفلاین را نمایش می‌دهد؛ هویت یا سمت بازبین احراز نمی‌شود و ثبت آن تأیید حقوقی یا مجوز انتشار نیست.</p><p>برای آزمون جریان آفلاین، بازبین می‌تواند نام، نتیجه و یادداشت خود را ثبت کند. فقط نتیجه «تأیید» همراه با ثبت اظهار محلی، دریافت فایل آموزشی را فعال می‌کند.</p>
 <label for="reviewer-name">نام بازبین انسانی (ثبت محلی)</label><input id="reviewer-name" type="text" maxlength="80" autocomplete="off" required>
 <label for="review-decision">نتیجه بازبینی</label><select id="review-decision"><option value="pending">در انتظار بازبینی</option><option value="approved">تأیید برای دریافت آموزشی</option><option value="rejected">رد پیش‌نویس</option></select>
-<label for="review-note">یادداشت بازبین (اختیاری، حداکثر ۳۰۰ نویسه)</label><textarea id="review-note" maxlength="300" rows="2"></textarea>
+<label for="review-note">یادداشت بازبین (الزامی، حداقل ۱۲ و حداکثر ۳۰۰ نویسه)</label><textarea id="review-note" minlength="12" maxlength="300" rows="2" required></textarea><small>برای ثبت نتیجه بازبینی، نام بازبین و یادداشت مستند لازم است. یادداشت باید دلیل تأیید یا رد را توضیح دهد.</small>
 <label><input type="checkbox" id="export-ack"> من، بازبین انسانی، اعلام می‌کنم که شخصاً این پیش‌نویس فرضی را بازبینی کرده‌ام و نتیجه زیر را ثبت می‌کنم؛ این اظهار به معنای تأیید قانونی، اصالت مدارک یا بررسی مستقل متخصص نیست.</label>
 <button type="button" id="record-review" disabled>ثبت اظهار محلی بازبین</button><p id="review-status" role="status" aria-live="polite"></p>
 <p><small>محدودیت مهم: این نسخه کاملاً آفلاین است و هویت بازبین احراز نمی‌شود. نام، تصمیم و زمان فقط اظهار محلی‌اند و جایگزین بازبینی مستقلِ احراز‌شده در سامانه امن نیستند. زمان ثبت با ساعت دستگاه ایجاد و در گزارش به قالب UTC تبدیل می‌شود؛ ساعت دستگاه قابل راستی‌آزمایی مستقل نیست و این زمان مهر زمانی معتبر محسوب نمی‌شود.</small></p></section>
@@ -475,7 +475,7 @@ function safeReviewText(value,max){
 function updateExportPermission(){
  const approvedReview=Boolean(reviewRecord && reviewRecord.decision==='approved' && reviewRecord.reportSnapshot===report);
  downloadButton.disabled=!exportEligible || !exportAck.checked || !approvedReview;
- recordReviewButton.disabled=!exportEligible || !report || safeReviewText(reviewerName.value,80).length<2 || !['approved','rejected'].includes(reviewDecision.value) || !exportAck.checked || Boolean(reviewRecord);
+ recordReviewButton.disabled=!exportEligible || !report || safeReviewText(reviewerName.value,80).length<2 || safeReviewText(reviewNote.value,300).length<12 || !['approved','rejected'].includes(reviewDecision.value) || !exportAck.checked || Boolean(reviewRecord);
 }
 function invalidateHumanReview(message='اطلاعات بازبینی تغییر کرد؛ نتیجه قبلی باطل شد. پس از بررسی دوباره ثبت کنید.'){
  reviewRecord=null;exportAck.checked=false;reviewStatus.textContent=message;updateExportPermission();
