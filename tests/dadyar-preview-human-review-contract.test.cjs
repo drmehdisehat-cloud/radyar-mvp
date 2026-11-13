@@ -32,7 +32,10 @@ test('review edits and case edits invalidate the prior approval before another e
   assert.match(html, /reviewNote\.addEventListener\('input',\(\)=>invalidateHumanReview\(\)\)/);
   assert.match(html, /safeReviewText\(reviewNote\.value,300\)\.length<12/);
   assert.match(html, /reviewRecord=null;reviewerName\.value='';reviewDecision\.value='pending'/);
-  assert.match(html, /reviewStatus\.textContent='گزارش دریافت شد؛ برای دریافت دوباره باید بازبینی تازه ثبت شود\.?'/);
+  assert.match(html, /reviewStatus\\.textContent='گزارش دریافت شد؛ برای دریافت دوباره باید بازبینی تازه را از ابتدا ثبت کنید\\.?'/);
+  const downloadHandler = html.slice(html.indexOf("document.getElementById('download').addEventListener"));
+  assert.match(downloadHandler, /reviewerName\\.value='';\\s*reviewDecision\\.value='pending';\\s*reviewNote\\.value='';/);
+  assert.match(downloadHandler, /بازبینی تازه را از ابتدا ثبت کنید/);
 });
 
 test('suspected personal identifiers are cleared from the editable offline question field', () => {
