@@ -76,14 +76,14 @@ function buildOfflinePreviewPackage(destinationArg, options = {}) {
   const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1] || '';
   const topicHints = script.match(/const topicHints = \[([\s\S]*?)\n\];/)?.[1] || '';
   const topicCount = (topicHints.match(/"id"\s*:/g) || []).length;
-  const calculatorTag = html.match(/<section\\b[^>]*id="delay-damages-calculator"[^>]*>/)?.[0] || '';
-  const delayIndexesRaw = calculatorTag.match(/\\bdata-indexes='([^']+)'/)?.[1];
+  const calculatorTag = html.match(/<section\b[^>]*id="delay-damages-calculator"[^>]*>/)?.[0] || '';
+  const delayIndexesRaw = calculatorTag.match(/\bdata-indexes='([^']+)'/)?.[1];
   let delayIndexes;
   try { delayIndexes = JSON.parse(delayIndexesRaw || ''); }
   catch { fail('Delay-damages calculator index data is missing or invalid.'); }
-  const delayBaseYear = Number(calculatorTag.match(/\\bdata-base-year="(\\d+)"/)?.[1]);
-  const delayBaseYearStatus = calculatorTag.match(/\\bdata-base-year-status="([^"]+)"/)?.[1] || '';
-  const delaySourceStatus = calculatorTag.match(/\\bdata-source-status="([^"]+)"/)?.[1] || '';
+  const delayBaseYear = Number(calculatorTag.match(/\bdata-base-year="(\d+)"/)?.[1]);
+  const delayBaseYearStatus = calculatorTag.match(/\bdata-base-year-status="([^"]+)"/)?.[1] || '';
+  const delaySourceStatus = calculatorTag.match(/\bdata-source-status="([^"]+)"/)?.[1] || '';
   if (JSON.stringify(Object.keys(delayIndexes).sort()) !== JSON.stringify(['1','2','3','4','5','6','7']) ||
       delayIndexes['5'] !== 3333.9 || delayBaseYear !== 1395 ||
       !delayBaseYearStatus.startsWith('inferred-from-1395-average-100') ||
