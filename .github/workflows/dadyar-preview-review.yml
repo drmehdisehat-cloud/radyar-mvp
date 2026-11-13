@@ -28,16 +28,12 @@ jobs:
           CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium)"
           test -n "$CHROME_BIN"
           CHROME_BIN="$CHROME_BIN" node --test preview-tests/dadyar-preview-mobile-device-emulation.cjs
-      - name: Build handoff package and verify every payload file (not deployment)
+      - name: Build and verify deployable preview tree (not deployment)
         run: |
           mkdir -p "$RUNNER_TEMP/dadyar-preview-handoff"
           cp -R dadyar-preview "$RUNNER_TEMP/dadyar-preview-handoff/"
-          cp docs/1405-delay-index-source-status.md "$RUNNER_TEMP/dadyar-preview-handoff/"
           node scripts/preview-artifact-manifest.cjs create "$RUNNER_TEMP/dadyar-preview-handoff" "$GITHUB_SHA"
           node scripts/preview-artifact-manifest.cjs verify "$RUNNER_TEMP/dadyar-preview-handoff"
-          (cd "$RUNNER_TEMP/dadyar-preview-handoff" && zip -qr "$RUNNER_TEMP/dadyar-offline-preview.zip" dadyar-preview 1405-delay-index-source-status.md manifest.json)
-          unzip -t "$RUNNER_TEMP/dadyar-offline-preview.zip"
-          cp "$RUNNER_TEMP/dadyar-offline-preview.zip" "$RUNNER_TEMP/dadyar-preview-handoff/"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: dadyar-offline-preview-${{ github.sha }}
