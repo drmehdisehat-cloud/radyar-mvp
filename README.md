@@ -52,7 +52,12 @@ CHROME_BIN=/path/to/chromium node --test tests/real-browser-smoke.cjs
 
 ### دامنه GitHub Actions
 
-`.github/workflows/ci.yml` روی push شاخه‌های آزمایشی مشخص، از جمله `dadyar/ai-chat-private-20261101`، آزمون خواندنی اجرا می‌کند. workflow مجوز نوشتن محتوا یا مرحله استقرار ندارد. اجرای سبز CI به‌تنهایی تأیید حقوقی، امنیت محیط انتشار یا آمادگی نسخه ۱ نیست.
+رویداد `push` فقط روی این شاخه‌های آزمایشی CI خواندنی اجرا می‌کند:
+- `dadyar/mvp-sync-028`
+- `dadyar/preview-auth-policy-20261030`
+- `dadyar/ai-chat-private-20261101`
+
+رویداد `pull_request` فقط برای PRهایی فعال است که مقصدشان `main` یا `dadyar/mvp-sync-028` باشد. workflow مجوز نوشتن محتوا یا مرحله استقرار ندارد. اجرای سبز CI به‌تنهایی تأیید حقوقی، امنیت محیط انتشار یا آمادگی نسخه ۱ نیست.
 
 ## دروازه‌های لازم پیش از انتشار
 
