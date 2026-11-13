@@ -27,6 +27,7 @@ function assertNoSymlinkComponents(target, label) {
 }
 function canonicalPath(target, label) {
   const absolute = path.resolve(target);
+  assert.equal(target, absolute, label + ' path must be canonical (no dot segments or redundant separators)');
   const real = fs.realpathSync(absolute);
   assert.equal(real, absolute, label + ' path must be canonical and contain no symlink aliases');
   return real;
