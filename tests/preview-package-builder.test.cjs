@@ -12,6 +12,12 @@ const sourcePath = path.join(repoRoot, 'dadyar-preview', 'index.html');
 const commit = 'e1210a4059cb29f7775afe63c6a3e59db9ede01d';
 const branch = 'dadyar/ai-chat-private-20261101';
 function hash(bytes) { return crypto.createHash('sha256').update(bytes).digest('hex'); }
+function gitBlobSha1(bytes) {
+  const digest = crypto.createHash('sha1');
+  digest.update('blob ' + bytes.length + String.fromCharCode(0));
+  digest.update(bytes);
+  return digest.digest('hex');
+}
 function withTemp(t, callback) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-preview-package-'));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
@@ -32,6 +38,10 @@ test('handoff package is minimal, byte-identical, checksum verified and explicit
 
     const metadata = JSON.parse(fs.readFileSync(path.join(destination, 'PREVIEW-METADATA.json'), 'utf8'));
     assert.equal(metadata.source_commit, commit);
+    const sourceBytes = fs.readFileSync(sourcePath);
+    assert.equal(metadata.source_file_sha256, hash(sourceBytes));
+    assert.equal(metadata.source_file_git_blob_sha1, gitBlobSha1(sourceBytes));
+    assert.equal(result.source_blob_sha1, metadata.source_file_git_blob_sha1);
     assert.equal(metadata.source_branch, branch);
     assert.equal(metadata.target_subpath, '/dadyar-preview/');
     assert.equal(metadata.api_enabled, false);
