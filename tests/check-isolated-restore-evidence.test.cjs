@@ -95,3 +95,23 @@ test('rejects a symlinked production document root', t => {
   fs.symlinkSync(f.productionDocumentRoot, alias, 'dir');
   assert.throws(() => assertRestoreEvidence({ ...f.args, productionDocumentRoot: alias }), /production document root path must not contain symlinks/);
 });
+
+
+test('rejects non-canonical absolute archive and restore-boundary paths before normalization', t => {
+  const f = fixture(t, 'dadyar-restore-noncanonical-');
+  const withDotSegments = target =>
+    path.dirname(target) + path.sep + 'unused' + path.sep + '..' + path.sep + path.basename(target);
+  for (const [key, label, value] of [
+    ['archive', 'archive', f.archive],
+    ['restoredRoot', 'restored root', f.restoredRoot],
+    ['productionDocumentRoot', 'production document root', f.productionDocumentRoot]
+  ]) {
+    const supplied = withDotSegments(value);
+    assert.ok(path.isAbsolute(supplied));
+    assert.equal(path.resolve(supplied), value);
+    assert.throws(() => assertRestoreEvidence({ ...f.args, [key]: supplied }), error => {
+      assert.ok(error.message.includes(label + ' path must be canonical'));
+      return true;
+    });
+  }
+});
