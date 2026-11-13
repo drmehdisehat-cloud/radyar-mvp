@@ -7,6 +7,10 @@ const vm = require('node:vm');
 
 const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
 const permissionSource = html.match(/function updateExportPermission\(\)\{[\s\S]*?\n\}/)?.[0];
+const privacySource = [
+  html.match(/function hasSensitiveIdentifier\(value\) \{[\s\S]*?\n\}/)?.[0],
+  html.match(/function reviewerDetailsAreSafe\(\) \{[\s\S]*?\n\}/)?.[0]
+].filter(Boolean).join('\n');
 const handlerSource = html.match(/document\.getElementById\('download'\)\.addEventListener\('click',\(\)=>\{([\s\S]*?)\n\}\);/)?.[1];
 
 function makeState(overrides = {}) {
@@ -59,7 +63,9 @@ function makeState(overrides = {}) {
 
 function applyActualPermissionFunction(state) {
   assert.ok(permissionSource, 'actual export permission function missing');
-  vm.runInNewContext(permissionSource + '\nupdateExportPermission();', state);
+  assert.ok(privacySource.includes('function hasSensitiveIdentifier'), 'reviewer privacy detector missing');
+  assert.ok(privacySource.includes('function reviewerDetailsAreSafe'), 'reviewer safety helper missing');
+  vm.runInNewContext(privacySource + '\n' + permissionSource + '\nupdateExportPermission();', state);
 }
 
 test('approved review exports exactly once and consumes the approval', () => {
