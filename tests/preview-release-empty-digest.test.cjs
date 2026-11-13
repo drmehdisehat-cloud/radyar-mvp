@@ -36,7 +36,8 @@ const baseline = {
   mobileBrowserVerified: true,
   zeroApiRequestsVerified: true,
   humanReviewVerified: true,
-  authenticatedHumanReviewAttested: true
+  authenticatedHumanReviewAttested: true,
+  authenticatedRestoreAttestation: true
 };
 test('empty deployment artifact cannot count as verified destination', () => {
   for (const hash of [EMPTY, EMPTY.toUpperCase()]) {

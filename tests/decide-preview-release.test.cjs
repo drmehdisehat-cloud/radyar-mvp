@@ -58,12 +58,13 @@ test('tampered destination hash fails even when restore attestation and other fl
 test('complete synthetic manifest and isolated staging path reach owner approval only; they are not a deployment', () => {
   const decision = decidePreviewRelease({
     restoreEvidence, destinationEvidence, isolatedRestoreVerified:true,
-    mobileBrowserVerified:true, zeroApiRequestsVerified:true, humanReviewVerified:true, authenticatedHumanReviewAttested:true
+    mobileBrowserVerified:true, zeroApiRequestsVerified:true, humanReviewVerified:true, authenticatedHumanReviewAttested:true,
+    authenticatedRestoreAttestation:true
   });
   assert.equal(decision.status,'EVIDENCE_SHAPE_VALID_REQUIRES_EXTERNAL_VERIFICATION');
   assert.deepEqual(decision.blockers,[]);
   assert.equal(decision.deploymentAuthorized,false);
-  assert.equal(decision.externalChecksPending.length,4);
+  assert.equal(decision.externalChecksPending.length,5);
 });
 
 test('destination evidence inside production document root is rejected even with matching hashes', () => {

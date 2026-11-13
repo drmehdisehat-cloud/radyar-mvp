@@ -170,7 +170,7 @@ test('read-only CLI verifies a signed synthetic review but still requires extern
     assert.equal(report.reviewAttestation.subject, 'synthetic-reviewer-01');
     assert.equal(report.reviewAttestation.trustStoreSha256, digest(fs.readFileSync(f.trustStoreFile)));
     assert.equal(report.deploymentPerformed, false);
-    assert.match(report.note, /منشأ مستقل trust store/);
+    assert.match(report.note, /امضای دوطرفه اظهارنامه بازیابی/);
   } finally {
     fs.rmSync(f.directory, { recursive: true, force: true });
   }

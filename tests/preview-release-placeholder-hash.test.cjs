@@ -36,7 +36,8 @@ const base = {
   mobileBrowserVerified: true,
   zeroApiRequestsVerified: true,
   humanReviewVerified: true,
-  authenticatedHumanReviewAttested: true
+  authenticatedHumanReviewAttested: true,
+  authenticatedRestoreAttestation: true
 };
 
 test('preview gate rejects placeholder all-zero SHA-256 even when matched flag is true', () => {
