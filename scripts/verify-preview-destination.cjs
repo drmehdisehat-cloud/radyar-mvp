@@ -55,8 +55,8 @@ function verifyPreview(source, destination, productionDocumentRoot, expectedSour
   const checkoutRoot = canonicalPath(REPO_ROOT, 'Git checkout root');
   assert.ok(fs.statSync(protectedRoot).isDirectory(), 'production document root must be a directory');
   assert.ok(isOutside(protectedRoot, dst), 'destination must be outside production document root');
-  assert.ok(isOutside(checkoutRoot, dst), 'destination must be outside Git checkout');
   assert.notEqual(dst, src, 'destination must be a distinct staged file');
+  assert.ok(isOutside(checkoutRoot, dst), 'destination must be outside Git checkout');
   assert.equal(path.basename(src), 'index.html', 'source must be index.html');
   assert.equal(path.basename(dst), 'index.html', 'destination must be index.html');
   const sourcePathStat = fs.lstatSync(src, { bigint: true });
