@@ -90,6 +90,6 @@ test('release gate rejects destination evidence without an independent Git-check
   });
   assert.equal(decision.status, 'NOT_READY');
   assert.ok(decision.blockers.includes(
-    'preview destination is not verified outside production document root and Git checkout and Git checkout'
+    'preview destination is not verified outside production document root and Git checkout'
   ));
 });
