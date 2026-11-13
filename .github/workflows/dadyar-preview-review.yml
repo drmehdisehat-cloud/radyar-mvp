@@ -21,8 +21,8 @@ jobs:
         with:
           node-version: '22'
           package-manager-cache: false
-      - name: Verify index, calculator and artifact-manifest contracts
-        run: node --test tests/delay-damages-1405.test.cjs tests/preview-index-data-consistency.test.cjs tests/preview-artifact-manifest.test.cjs
+      - name: Verify calculator, manifest and signed reviewer-attestation contracts
+        run: node --test tests/delay-damages-1405.test.cjs tests/preview-index-data-consistency.test.cjs tests/preview-artifact-manifest.test.cjs tests/reviewer-attestation.test.cjs
       - name: Verify real Chromium mobile flow and zero network
         run: |
           CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium)"
