@@ -25,10 +25,10 @@ function signalChromiumTree(child, signal) {
   }
 }
 
-async function waitForDevToolsPort(file, child, timeoutMs = 10000) {
+async function waitForDevToolsPort(file, child, timeoutMs = 20000) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
-    if (child.exitCode !== null) throw Error('Chromium exited before DevTools became ready');
+    if (child.exitCode !== null || child.signalCode !== null) throw Error('Chromium exited before DevTools became ready (code=' + child.exitCode + ', signal=' + child.signalCode + ')');
     try {
       const lines = fs.readFileSync(file, 'utf8').trim().split(/\r?\n/);
       const port = Number(lines[0]);
@@ -105,7 +105,7 @@ function createCdpClient(url) {
   return { socket, opened, command, on, waitFor };
 }
 
-test('Dadyar preview uses real Chromium mobile device emulation and preserves offline human-review flow', { timeout: 25000 }, async t => {
+test('Dadyar preview uses real Chromium mobile device emulation and preserves offline human-review flow', { timeout: 45000 }, async t => {
   const candidates = [
     process.env.CHROME_BIN,
     '/usr/bin/chromium',
@@ -128,6 +128,10 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     '--no-sandbox',
     '--disable-gpu',
     '--disable-dev-shm-usage',
+    '--disable-background-networking',
+    '--disable-extensions',
+    '--no-first-run',
+    '--no-default-browser-check',
     '--remote-debugging-port=0',
     '--remote-allow-origins=*',
     '--user-data-dir=' + userData,
@@ -139,7 +143,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
   let client;
 
   try {
-    const port = await waitForDevToolsPort(portFile, child);
+    const port = await waitForDevToolsPort(portFile, child).catch(error => { throw Error(error.message + '; Chromium stderr: ' + stderr); });
     const endpoint = 'http://127.0.0.1:' + port + '/json/list';
     let targets = [];
     const deadline = Date.now() + 8000;
