@@ -226,6 +226,12 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  const repeatExportBlocked = window.__dadyarExportBlob === null && download.disabled;',
       '  const reportAfterAcknowledgement = document.getElementById("report").textContent;',
       '  const question = document.getElementById("free-question");',
+      '  question.value = "پرسش فرضی که هنوز ثبت نشده است";',
+      '  question.dispatchEvent(new Event("input", { bubbles: true }));',
+      '  window.dispatchEvent(new PageTransitionEvent("pagehide"));',
+      '  const pagehideClearedUnsubmittedQuestion = question.value === "";',
+      '  const pagehideClearedDraft = document.getElementById("result").hidden && download.disabled;',
+      '  const pagehideClearedReviewer = document.getElementById("reviewer-name").value === "" && document.getElementById("review-note").value === "";',
       '  const multiTopicRawQuestion = "چک و مهریه در این مثال چه موضوعاتی هستند؟";',
       '  question.value = multiTopicRawQuestion;',
       '  question.dispatchEvent(new Event("input", { bubbles: true }));',
@@ -246,6 +252,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '    initialDisabled, blockedBeforeAcknowledgement, enabledAfterHumanReview, reviewStatus,',
       '    exportEnabledBeforeDownload, exportedReport, exportedFilename, approvalConsumed, repeatExportBlocked,',
       '    reportAfterAcknowledgement, staleDraftInvalidated, multiTopicReport, multiTopicIds,',
+      '    pagehideClearedUnsubmittedQuestion, pagehideClearedDraft, pagehideClearedReviewer,',
       '    multiTopicExportEligible, multiTopicScopeStatus, multiTopicInputCleared, multiTopicRawQuestionEchoed,',
       '    csp: document.querySelector("meta[http-equiv]")?.content || "",',
       '    externalResources',
@@ -283,6 +290,9 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.equal(snapshot.repeatExportBlocked, true, 'a second report download was allowed without a fresh review');
     assert.match(snapshot.reportAfterAcknowledgement, /منابع قانونی: تأییدنشده/);
     assert.equal(snapshot.staleDraftInvalidated, true, 'editing free question retained a stale draft');
+    assert.equal(snapshot.pagehideClearedUnsubmittedQuestion, true, 'pagehide retained an unsubmitted free question');
+    assert.equal(snapshot.pagehideClearedDraft, true, 'pagehide retained a previously generated draft');
+    assert.equal(snapshot.pagehideClearedReviewer, true, 'pagehide retained local reviewer details');
     assert.ok(snapshot.multiTopicIds.includes('instruments'), 'cheque hint missing from internal multi-topic routing');
     assert.ok(snapshot.multiTopicIds.includes('family'), 'family hint missing from internal multi-topic routing');
     assert.equal(snapshot.multiTopicExportEligible, true,
