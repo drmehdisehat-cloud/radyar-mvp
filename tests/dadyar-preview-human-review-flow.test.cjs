@@ -34,7 +34,8 @@ function harness() {
           selectedIndex: 0,
           options: [],
           addEventListener(type, callback) {
-            handlers.set(id + ':' + type, callback);
+            const key = id + ':' + type;
+            handlers.set(key, [...(handlers.get(key) || []), callback]);
           },
           focus() {
             document.activeElement = this;
@@ -43,7 +44,7 @@ function harness() {
             return node === this;
           },
           click() {
-            handlers.get(id + ':click')?.();
+            for (const callback of handlers.get(id + ':click') || []) callback();
           }
         };
         elements.set(id, element);
@@ -126,9 +127,9 @@ function harness() {
     blobs,
     get: id => document.getElementById(id),
     fire(id, type) {
-      const callback = handlers.get(id + ':' + type);
-      assert.equal(typeof callback, 'function', 'missing handler ' + id + ':' + type);
-      callback();
+      const callbacks = handlers.get(id + ':' + type) || [];
+      assert.ok(callbacks.length, 'missing handler ' + id + ':' + type);
+      for (const callback of callbacks) callback();
     }
   };
 }
