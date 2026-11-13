@@ -280,6 +280,25 @@ test('review signature must be bound to the exact artifact and source commit', (
   }
 });
 
+test('review approval must be bound to the exact Git blob copied to the destination', () => {
+  const f = fixture();
+  try {
+    const destination = JSON.parse(fs.readFileSync(f.destinationFile, 'utf8'));
+    const substitutedBlob = crypto.createHash('sha1').update('different synthetic git blob').digest('hex');
+    destination.source_blob_sha1 = substitutedBlob;
+    destination.expected_source_blob_sha1 = substitutedBlob;
+    fs.writeFileSync(f.destinationFile, JSON.stringify(destination));
+    const result = run(baseArgs(f));
+    assert.equal(result.status, 1, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.reviewAttestation.verified, false);
+    assert.equal(report.reviewAttestation.reason, 'review_target_mismatch');
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
 test('legacy boolean authentication flag is rejected instead of being trusted', () => {
   const f = fixture();
   try {
