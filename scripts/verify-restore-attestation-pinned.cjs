@@ -5,7 +5,8 @@
 const crypto = require('node:crypto');
 const {
   verifyRestoreAttestationSignatures,
-  readExternalFile
+  readExternalFile,
+  decodeUtf8
 } = require('./verify-restore-attestation-signatures.cjs');
 const { parseJsonRejectDuplicateKeys } = require('./strict-json.cjs');
 
@@ -121,7 +122,7 @@ function main(argv) {
   try {
     const v = args.values;
     const manifestBytes = readExternalFile(v['--manifest'], 'manifest', 64 * 1024);
-    const manifest = parseJsonRejectDuplicateKeys(manifestBytes.toString('utf8'));
+    const manifest = parseJsonRejectDuplicateKeys(decodeUtf8(manifestBytes, 'manifest'));
     if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) {
       throw new Error('manifest_must_be_json_object');
     }
