@@ -308,8 +308,8 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.equal(snapshot.pagehideClearedReviewApproval, true, 'pagehide retained a local review approval');
     assert.ok(snapshot.multiTopicIds.includes('instruments'), 'cheque hint missing from internal multi-topic routing');
     assert.ok(snapshot.multiTopicIds.includes('family'), 'family hint missing from internal multi-topic routing');
-    assert.equal(snapshot.multiTopicExportEligible, true,
-      'a free question containing cheque plus another topic must remain eligible for the cheque-only synthetic report');
+    assert.equal(snapshot.multiTopicExportEligible, false,
+      'a mixed-topic free question must be blocked by the cheque-only preview scope');
     assert.equal(snapshot.multiTopicInputCleared, true, 'raw free text remained in the editable field after local routing');
     assert.equal(snapshot.multiTopicRawQuestionEchoed, false, 'raw free text was copied into the report');
     assert.match(snapshot.multiTopicReport, /متن خام پرسش آزاد برای حفظ حریم خصوصی در گزارش درج نمی‌شود/);
@@ -493,6 +493,10 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
       '  const multiTopicExportEligible = exportEligible;',
       '  const multiTopicScopeStatus = document.getElementById("topic-scope-status").textContent;',
       '  const blockedBeforeReview = download.disabled;',
+      '  question.value = "چک صیادی و گواهی عدم پرداخت";',
+      '  question.dispatchEvent(new Event("input", { bubbles: true }));',
+      '  document.getElementById("generate").click();',
+      '  const chequeOnlyExportEligible = exportEligible;',
       '  const reviewer = document.getElementById("reviewer-name");',
       '  reviewer.value = "بازبین آزمون"; reviewer.dispatchEvent(new Event("input", { bubbles: true }));',
       '  const decision = document.getElementById("review-decision");',
@@ -524,7 +528,7 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
       '    mobileUserAgent: /iPhone|Mobile/i.test(navigator.userAgent),',
       '    horizontalOverflow: root.scrollWidth > root.clientWidth + 1,',
       '    initiallyDisabled, blockedBeforeReview, enabledAfterReview, disabledAfterExport,',
-      '    multiTopicIds, multiTopicInputCleared, multiTopicRawQuestionEchoed, multiTopicExportEligible, multiTopicScopeStatus,',
+      '    multiTopicIds, multiTopicInputCleared, multiTopicRawQuestionEchoed, multiTopicExportEligible, multiTopicScopeStatus, chequeOnlyExportEligible,',
       '    sensitiveInputCleared, sensitiveRawQuestionEchoed, sensitiveVisibleReport, sensitiveExportBlocked, sensitiveStatus,',
       '    reviewStatus, visibleReport, resourceRequests',
       '  };',
@@ -552,7 +556,8 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
     assert.ok(snapshot.multiTopicIds.includes('family'), 'family hint missing from HTTP preview routing');
     assert.equal(snapshot.multiTopicInputCleared, true, 'raw multi-topic question remained in the editable field');
     assert.equal(snapshot.multiTopicRawQuestionEchoed, false, 'raw multi-topic question leaked into the report');
-    assert.equal(snapshot.multiTopicExportEligible, true, 'cheque plus another topic should retain the scoped synthetic cheque workflow');
+    assert.equal(snapshot.multiTopicExportEligible, false, 'mixed-topic input must be blocked in the cheque-only preview');
+    assert.equal(snapshot.chequeOnlyExportEligible, true, 'a cheque-only question should remain eligible for human review');
     assert.match(snapshot.multiTopicScopeStatus, /چندموضوعی/);
     assert.equal(snapshot.sensitiveInputCleared, true, 'sensitive free text remained in the editable field');
     assert.equal(snapshot.sensitiveRawQuestionEchoed, false, 'sensitive phone number leaked into the report');
