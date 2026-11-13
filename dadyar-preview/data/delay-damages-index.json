@@ -1,0 +1,26 @@
+{
+  "schema": "dadyar-delay-damages-monthly-index-v1",
+  "year": 1405,
+  "unit": "index",
+  "source": {
+    "type": "owner-provided-image",
+    "status": "transcribed-not-independently-authenticated",
+    "note": "اعداد از تصویر ارسالی مالک استخراج شده‌اند؛ پیش از استفاده حقوقی باید با جدول رسمی بانک مرکزی تطبیق و توسط انسان تأیید شوند."
+  },
+  "months": {
+    "1": 2654.9,
+    "2": 2880.4,
+    "3": 3092.3,
+    "4": 3205.1,
+    "5": 3333.9,
+    "6": 3452.1,
+    "7": 3611.1
+  },
+  "unavailableMonths": [
+    8,
+    9,
+    10,
+    11,
+    12
+  ]
+}
