@@ -4,6 +4,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const { TextDecoder } = require('node:util');
 const { hasIndependentRestoreAttestation } = require('./decide-preview-release.cjs');
 const { parseJsonRejectDuplicateKeys } = require('./strict-json.cjs');
 
@@ -11,6 +12,14 @@ const REPO_ROOT = path.resolve(__dirname, '..');
 const MAX_MANIFEST_BYTES = 64 * 1024;
 const MAX_PUBLIC_KEY_BYTES = 16 * 1024;
 const SIGNATURE_BYTES = 64;
+
+function decodeUtf8(bytes, label) {
+  try {
+    return new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes);
+  } catch {
+    throw new Error(label + '_is_not_valid_utf8');
+  }
+}
 
 function canonicalizeManifest(value) {
   if (value === null) return 'null';
@@ -148,7 +157,7 @@ function main(argv) {
   }
   try {
     const manifestBytes = readExternalFile(args.values['--manifest'], 'manifest', MAX_MANIFEST_BYTES);
-    const manifest = parseJsonRejectDuplicateKeys(manifestBytes.toString('utf8'));
+    const manifest = parseJsonRejectDuplicateKeys(decodeUtf8(manifestBytes, 'manifest'));
     if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) throw new Error('manifest_must_be_json_object');
     if (args.canonicalize) {
       if (!hasIndependentRestoreAttestation(manifest)) throw new Error('restore_manifest_schema_or_consistency_invalid');
@@ -170,4 +179,4 @@ function main(argv) {
 }
 
 if (require.main === module) process.exitCode = main(process.argv.slice(2));
-module.exports = { canonicalizeManifest, verifyRestoreAttestationSignatures, readExternalFile, parseArgs, main };
+module.exports = { canonicalizeManifest, verifyRestoreAttestationSignatures, readExternalFile, decodeUtf8, parseArgs, main };
