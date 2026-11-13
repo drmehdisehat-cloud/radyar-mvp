@@ -8,7 +8,7 @@ const path = require('node:path');
 const source = fs.readFileSync(path.join(__dirname, '../chat.js'), 'utf8');
 function harness(answer) {
   const elements = new Map();
-  for (const id of ['log','send','consent','message','access','status','topic','clear']) {
+  for (const id of ['log','send','consent','message','access','status','clear']) {
     elements.set(id, {
       value: '', checked: false, disabled: false, textContent: '',
       handlers: {}, children: [],
@@ -20,7 +20,6 @@ function harness(answer) {
   elements.get('consent').checked = true;
   elements.get('message').value = 'سناریوی ساختگی';
   elements.get('access').value = Buffer.alloc(32, 7).toString('base64url');
-  elements.get('topic').value = 'چک';
   const context = {
     document: {
       getElementById: id => elements.get(id),

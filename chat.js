@@ -36,7 +36,7 @@ el('send').addEventListener('click', async () => {
   const token = el('access').value.trim();
   if (!content || !/^[A-Za-z0-9_-]{43}$/.test(token)) {el('status').textContent='پرسش و کد دسترسی معتبر لازم است.';return;}
   if (messages.length >= 10) {el('status').textContent='برای ادامه یک گفتگوی جدید شروع کنید.';return;}
-  const next = [...messages,{role:'user',content:messages.length?content:'موضوع: '+el('topic').value+'\n'+content}];
+  const next = [...messages,{role:'user',content}];
   const controller = new AbortController(); pending = controller;
   el('send').disabled = true; el('status').textContent='دادیار در حال پاسخ است…';
   try {
@@ -48,12 +48,10 @@ el('send').addEventListener('click', async () => {
     if (!data || typeof data.answer !== 'string' || !data.answer.trim() || data.answer.length > 16000)
       throw Error('پاسخ معتبر از سرویس دریافت نشد؛ گفتگو ثبت نشد.');
     messages = [...next,{role:'assistant',content:data.answer}];
-    // One interview must keep its initial legal topic; clear to switch topics.
-    el('topic').disabled = true;
     render(); el('message').value='';el('status').textContent='پاسخ آزمایشی؛ پیش از اقدام واقعی با وکیل بررسی کنید.';
   } catch(error) {if(pending===controller)el('status').textContent=error.name==='AbortError'?'ارسال لغو شد.':error.message;}
   finally {if(pending===controller){pending=null;el('send').disabled=false;}}
 });
-function clearChat() {if(pending)pending.abort();pending=null;messages=[];el('access').value='';el('message').value='';el('consent').checked=false;el('topic').disabled=false;el('send').disabled=false;el('status').textContent='گفتگو پاک شد.';render();}
+function clearChat() {if(pending)pending.abort();pending=null;messages=[];el('access').value='';el('message').value='';el('consent').checked=false;el('send').disabled=false;el('status').textContent='گفتگو پاک شد.';render();}
 el('clear').addEventListener('click',clearChat);
 window.addEventListener('pagehide',clearChat);

@@ -13,6 +13,8 @@ test('provider receives private stateless request; only text returned', async ()
   const result = await answerChat(sample, { apiKey: 'test-credential', fetchImpl: async (url, init) => {
     assert.equal(url, 'https://api.openai.com/v1/responses');
     const body = JSON.parse(init.body);
+    assert.match(body.instructions, /راهنمای داخلی طبقه‌بندی چندموضوعی/);
+    assert.match(body.instructions, /instruments/);
     assert.equal(body.store, false);
     assert.equal(body.max_output_tokens, 900);
     assert.deepEqual(body.input, sample.messages);

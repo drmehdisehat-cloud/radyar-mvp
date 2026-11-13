@@ -5,50 +5,51 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
 
-test('legal topic locks after successful reply and unlocks on reset', async () => {
+function harness(response) {
   const handlers = {};
-  const elements = Object.fromEntries(['send','clear','consent','message','access','topic','status','log'].map(id => [id, {
+  const requests = [];
+  const elements = Object.fromEntries(['send','clear','consent','message','access','status','log'].map(id => [id, {
     value: '', checked: false, disabled: false, textContent: '',
     addEventListener(event, fn) { handlers[id + ':' + event] = fn; },
     replaceChildren() {}, append() {}
   }]));
   elements.consent.checked = true;
   elements.access.value = 'a'.repeat(43);
-  elements.message.value = 'سناریوی فرضی چک';
-  elements.topic.value = 'چک';
+  elements.message.value = 'در سناریوی کاملاً ساختگی چک و اجاره چه مدارکی لازم است؟';
   const context = {
     document: { getElementById: id => elements[id], createElement: () => ({ textContent: '' }) },
     window: { addEventListener() {} },
     AbortController,
-    fetch: async () => ({ ok: true, json: async () => ({ answer: 'پاسخ آزمایشی؛ نیازمند بازبینی' }) })
+    fetch: async (url, init) => {
+      requests.push({ url, body: JSON.parse(init.body) });
+      return response;
+    }
   };
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../chat.js'), 'utf8'), context);
-  await handlers['send:click']();
-  assert.equal(elements.topic.disabled, true);
-  handlers['clear:click']();
-  assert.equal(elements.topic.disabled, false);
-  assert.equal(elements.access.value, '');
-  assert.equal(elements.consent.checked, false);
+  return { handlers, elements, requests };
+}
+
+test('private chat sends free text unchanged without requiring or locking a topic selector', async () => {
+  const h = harness({ ok: true, json: async () => ({ answer: 'پاسخ آزمایشی؛ نیازمند بازبینی' }) });
+  const raw = h.elements.message.value;
+  await h.handlers['send:click']();
+  assert.equal(h.requests.length, 1);
+  assert.equal(h.requests[0].url, '/api/chat');
+  assert.equal(h.requests[0].body.messages[0].content, raw);
+  assert.equal(Object.hasOwn(h.requests[0].body, 'topic'), false);
+  assert.equal(h.elements.message.value, '');
+  h.handlers['clear:click']();
+  assert.equal(h.elements.access.value, '');
+  assert.equal(h.elements.consent.checked, false);
 });
 
-test('failed reply does not lock the topic', async () => {
-  const handlers = {};
-  const elements = Object.fromEntries(['send','clear','consent','message','access','topic','status','log'].map(id => [id, {
-    value: '', checked: false, disabled: false, textContent: '',
-    addEventListener(event, fn) { handlers[id + ':' + event] = fn; },
-    replaceChildren() {}, append() {}
-  }]));
-  elements.consent.checked = true;
-  elements.access.value = 'a'.repeat(43);
-  elements.message.value = 'پرونده ساختگی';
-  elements.topic.value = 'مهریه';
-  const context = {
-    document: { getElementById: id => elements[id], createElement: () => ({ textContent: '' }) },
-    window: { addEventListener() {} },
-    AbortController,
-    fetch: async () => ({ ok: false, status: 503, json: async () => ({ error: 'ai_not_configured' }) })
-  };
-  vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../chat.js'), 'utf8'), context);
-  await handlers['send:click']();
-  assert.equal(elements.topic.disabled, false);
+test('failed free-text reply does not persist the question or require a category lock', async () => {
+  const h = harness({ ok: false, status: 503, json: async () => ({ error: 'ai_not_configured' }) });
+  const raw = h.elements.message.value;
+  await h.handlers['send:click']();
+  assert.equal(h.requests.length, 1);
+  assert.equal(h.requests[0].body.messages[0].content, raw);
+  assert.equal(h.elements.message.value, raw);
+  assert.match(h.elements.status.textContent, /پیکربندی نشده/);
+  assert.equal(h.elements.send.disabled, false);
 });
