@@ -85,3 +85,28 @@ test('destination verifier requires absolute source and destination paths', () =
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
+
+
+test('destination verifier rejects non-canonical absolute paths before filesystem normalization', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-noncanonical-destination-'));
+  try {
+    const productionRoot = path.join(dir, 'production-root');
+    const destination = path.join(dir, 'index.html');
+    const source = path.resolve(__dirname, '../dadyar-preview/index.html');
+    fs.mkdirSync(productionRoot);
+    fs.copyFileSync(source, destination);
+    const expected = gitBlobSha(source);
+    const withDotSegments = target =>
+      path.dirname(target) + path.sep + 'unused' + path.sep + '..' + path.sep + path.basename(target);
+    assert.ok(path.isAbsolute(withDotSegments(source)));
+    assert.equal(path.resolve(withDotSegments(source)), source);
+    assert.throws(() => verifyPreview(withDotSegments(source), destination, productionRoot, expected),
+      /source path must be canonical/);
+    assert.throws(() => verifyPreview(source, withDotSegments(destination), productionRoot, expected),
+      /destination path must be canonical/);
+    assert.throws(() => verifyPreview(source, destination, withDotSegments(productionRoot), expected),
+      /production document root path must be canonical/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
