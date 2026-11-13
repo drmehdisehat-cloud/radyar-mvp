@@ -40,7 +40,7 @@ test('destination verifier accepts exact synthetic offline preview copy and reje
     const destination = path.join(dir, 'index.html');
     fs.copyFileSync(source, destination);
     assert.throws(() => verifyPreview(source, destination, productionRoot), /expected reviewed source Git blob SHA-1 required/);
-    assert.throws(() => verifyPreview(source, destination, productionRoot, '0'.repeat(40)), /source differs from pinned reviewed Git blob/);
+    assert.throws(() => verifyPreview(source, destination, productionRoot, '0'.repeat(40)), /expected reviewed source Git blob SHA-1 required/);
     const separateLink = path.join(dir, 'symlinked', 'index.html');
     fs.mkdirSync(path.dirname(separateLink));
     fs.symlinkSync(destination, separateLink);
@@ -63,4 +63,25 @@ test('destination verifier accepts exact synthetic offline preview copy and reje
     fs.writeFileSync(destination, fs.readFileSync(destination, 'utf8').replace("connect-src 'none'", "connect-src *"));
     assert.throws(() => verifyPreview(source, destination, productionRoot, expectedSourceBlobSha), /destination differs/);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+
+test('destination verifier requires absolute source and destination paths', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-absolute-destination-'));
+  try {
+    const productionRoot = path.join(dir, 'production-root');
+    const destination = path.join(dir, 'index.html');
+    const source = path.resolve(__dirname, '../dadyar-preview/index.html');
+    fs.mkdirSync(productionRoot);
+    fs.copyFileSync(source, destination);
+    const expected = gitBlobSha(source);
+    const relativeSource = path.relative(process.cwd(), source);
+    const relativeDestination = path.relative(process.cwd(), destination);
+    assert.ok(relativeSource && !path.isAbsolute(relativeSource));
+    assert.ok(relativeDestination && !path.isAbsolute(relativeDestination));
+    assert.throws(() => verifyPreview(relativeSource, destination, productionRoot, expected), /source must be an absolute path/);
+    assert.throws(() => verifyPreview(source, relativeDestination, productionRoot, expected), /destination must be an absolute path/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 });

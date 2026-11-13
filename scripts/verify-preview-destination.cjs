@@ -36,8 +36,12 @@ function isOutside(root, target) {
   return relative === '..' || relative.startsWith('..' + path.sep) || path.isAbsolute(relative);
 }
 function verifyPreview(source, destination, productionDocumentRoot, expectedSourceBlobSha) {
-  assert.ok(typeof expectedSourceBlobSha === 'string' && /^[a-f0-9]{40}$/i.test(expectedSourceBlobSha),
+  assert.ok(typeof expectedSourceBlobSha === 'string' && /^[a-f0-9]{40}$/i.test(expectedSourceBlobSha) && !/^0{40}$/i.test(expectedSourceBlobSha),
     'expected reviewed source Git blob SHA-1 required');
+  assert.ok(typeof source === 'string' && path.isAbsolute(source),
+    'source must be an absolute path');
+  assert.ok(typeof destination === 'string' && path.isAbsolute(destination),
+    'destination must be an absolute path');
   assert.ok(typeof productionDocumentRoot === 'string' && path.isAbsolute(productionDocumentRoot),
     'production document root must be an absolute path');
   assertNoSymlinkComponents(source, 'source');
