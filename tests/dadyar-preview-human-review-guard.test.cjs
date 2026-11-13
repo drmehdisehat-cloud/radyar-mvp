@@ -25,16 +25,17 @@ function harness() {
       textContent: '',
       selectedIndex: 0,
       options: [],
-      addEventListener(type, callback) { handlers.set(id + ':' + type, callback); },
+      addEventListener(type, callback) {
+        const key = id + ':' + type;
+        handlers.set(key, [...(handlers.get(key) || []), callback]);
+      },
       dispatchEvent(event) {
-        const callback = handlers.get(id + ':' + event.type);
-        if (callback) callback({ type: event.type, target: this });
+        for (const callback of handlers.get(id + ':' + event.type) || []) callback({ type: event.type, target: this });
         return true;
       },
       click() {
         if (this.disabled) return;
-        const callback = handlers.get(id + ':click');
-        if (callback) callback({ type: 'click', target: this });
+        for (const callback of handlers.get(id + ':click') || []) callback({ type: 'click', target: this });
       },
       focus() {},
       contains() { return false; }
