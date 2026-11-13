@@ -1,0 +1,30 @@
+{
+  "schema": "dadyar-delay-damages-index-v2",
+  "year": 1405,
+  "seriesType": "monthly-index-points",
+  "unit": "index-point",
+  "baseYear": 1395,
+  "baseYearStatus": "inferred-from-1395-average-100-in-owner-image; not-independently-verified",
+  "source": {
+    "type": "owner-provided-image",
+    "status": "transcribed-not-independently-authenticated",
+    "receivedDate": "2026-11-13",
+    "note": "هفت مقدار فروردین تا مهر ۱۴۰۵ از تصویر مالک رونویسی شده‌اند. این ارقام نقاط شاخص ماهانه‌اند، نه نرخ تورم ماهانه. ردیف ۱۳۹۵ با متوسط ۱۰۰، سال پایه ۱۳۹۵ را محتمل می‌کند؛ این برداشت و خود ارقام باید با سند رسمی بانک مرکزی تطبیق و توسط بازبین حقوقی تأیید شوند."
+  },
+  "months": {
+    "1": 2654.9,
+    "2": 2880.4,
+    "3": 3092.3,
+    "4": 3205.1,
+    "5": 3333.9,
+    "6": 3452.1,
+    "7": 3611.1
+  },
+  "unavailableMonths": [
+    8,
+    9,
+    10,
+    11,
+    12
+  ]
+}
