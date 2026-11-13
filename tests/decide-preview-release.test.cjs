@@ -72,3 +72,24 @@ test('destination evidence inside production document root is rejected even with
   assert.equal(decision.status, 'NOT_READY');
   assert.ok(decision.blockers.includes('preview destination is not verified outside production document root'));
 });
+
+test('release gate rejects destination evidence without an independent Git-checkout boundary', () => {
+  const decision = decidePreviewRelease({
+    restoreEvidence,
+    destinationEvidence: {
+      ...destinationEvidence,
+      destination_outside_git_checkout: undefined,
+      git_checkout_realpath: undefined
+    },
+    isolatedRestoreVerified: true,
+    mobileBrowserVerified: true,
+    zeroApiRequestsVerified: true,
+    humanReviewVerified: true,
+    authenticatedHumanReviewAttested: true,
+    authenticatedRestoreAttestation: true
+  });
+  assert.equal(decision.status, 'NOT_READY');
+  assert.ok(decision.blockers.includes(
+    'preview destination is not verified outside production document root and Git checkout'
+  ));
+});
