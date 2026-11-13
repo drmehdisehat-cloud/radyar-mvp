@@ -9,10 +9,11 @@ const { verifyPreview } = require('../scripts/verify-preview-destination.cjs');
 
 function gitBlobSha(file) {
   const bytes = fs.readFileSync(file);
-  return crypto.createHash('sha1')
-    .update(`blob ${bytes.length}\\0`)
-    .update(bytes)
-    .digest('hex');
+  const hash = crypto.createHash('sha1');
+  hash.update(Buffer.from(`blob ${bytes.length}`, 'utf8'));
+  hash.update(Buffer.from([0]));
+  hash.update(bytes);
+  return hash.digest('hex');
 }
 
 test('destination verifier rejects a staging copy that remains inside the Git checkout', t => {
