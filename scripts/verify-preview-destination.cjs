@@ -6,6 +6,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const assert = require('node:assert/strict');
 const { readStableRegularFile } = require('./stable-file-integrity.cjs');
+const REPO_ROOT = path.resolve(__dirname, '..');
 
 function gitBlobSha(bytes) {
   const digest = crypto.createHash('sha1');
@@ -51,8 +52,10 @@ function verifyPreview(source, destination, productionDocumentRoot, expectedSour
   const src = canonicalPath(source, 'source');
   const dst = canonicalPath(destination, 'destination');
   const protectedRoot = canonicalPath(productionDocumentRoot, 'production document root');
+  const checkoutRoot = canonicalPath(REPO_ROOT, 'Git checkout root');
   assert.ok(fs.statSync(protectedRoot).isDirectory(), 'production document root must be a directory');
   assert.ok(isOutside(protectedRoot, dst), 'destination must be outside production document root');
+  assert.ok(isOutside(checkoutRoot, dst), 'destination must be outside Git checkout');
   assert.notEqual(dst, src, 'destination must be a distinct staged file');
   assert.equal(path.basename(src), 'index.html', 'source must be index.html');
   assert.equal(path.basename(dst), 'index.html', 'destination must be index.html');
@@ -84,7 +87,9 @@ function verifyPreview(source, destination, productionDocumentRoot, expectedSour
     destination_sha256: destinationRead.sha256,
     destination_realpath: dst,
     production_document_root_realpath: protectedRoot,
+    git_checkout_realpath: checkoutRoot,
     destination_outside_document_root: true,
+    destination_outside_git_checkout: true,
     matched: true
   };
 }
