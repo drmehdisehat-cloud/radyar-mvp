@@ -596,7 +596,8 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
     assert.match(downloadedReport, /نام بازبین: بازبین آزمون/);
     assert.match(downloadedReport, /نتیجه بازبینی: تأیید برای دریافت آموزشی/);
     assert.match(downloadedReport, /یادداشت بازبین: بازبینی داده ساختگی/);
-    assert.match(downloadedReport, /پرسش آزاد چندموضوعی تشخیص داده شد/);
+    assert.match(downloadedReport, /پرسش آزاد با دامنه چک فرضی هم‌راستاست/);
+    assert.doesNotMatch(downloadedReport, /پرسش آزاد چندموضوعی تشخیص داده شد/);
     assert.doesNotMatch(downloadedReport, /چک و مهریه در این مثال چه موضوعاتی هستند/);
     assert.match(downloadedReport, /هویت احراز نشده/);
     assert.match(downloadedReport, /منابع قانونی: تأییدنشده/);
