@@ -6,7 +6,7 @@ const crypto = require('node:crypto');
 
 const SCHEMA = 'dadyar-preview-artifact-manifest-v1';
 const MANIFEST = 'manifest.json';
-const EXPECTED_TOP_LEVEL = ['1405-delay-index-source-status.md', 'dadyar-preview'];
+const EXPECTED_TOP_LEVEL = ['dadyar-preview'];
 
 function safeRelativePath(value) {
   if (typeof value !== 'string' || !value || value.includes('\\') || value.includes('\0')) return false;
