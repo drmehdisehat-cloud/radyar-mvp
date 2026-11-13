@@ -208,11 +208,17 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  const reviewer = document.getElementById("reviewer-name");',
       '  reviewer.value = "بازبین آزمون"; reviewer.dispatchEvent(new Event("input", { bubbles: true }));',
       '  const decision = document.getElementById("review-decision");',
-      '  decision.value = "approved"; decision.dispatchEvent(new Event("change", { bubbles: true }));',
       '  const note = document.getElementById("review-note");',
-      '  note.value = "بازبینی داده ساختگی"; note.dispatchEvent(new Event("input", { bubbles: true }));',
+      '  decision.value = "rejected"; decision.dispatchEvent(new Event("change", { bubbles: true }));',
+      '  note.value = "بازبینی رد شده برای آزمون"; note.dispatchEvent(new Event("input", { bubbles: true }));',
       '  document.getElementById("export-ack").click();',
       '  document.getElementById("record-review").click();',
+      '  const rejectedReviewKeepsExportBlocked = download.disabled;',
+      '  const rejectedReviewStatus = document.getElementById("review-status").textContent;',
+      '  decision.value = "approved"; decision.dispatchEvent(new Event("change", { bubbles: true }));',
+      '  note.value = "بازبینی داده ساختگی"; note.dispatchEvent(new Event("input", { bubbles: true }));',
+      '  document.getElementById("export-ack").click();',
+      '  document.getElementById("record-review").click();'
       '  const enabledAfterHumanReview = !download.disabled;',
       '  const reviewStatus = document.getElementById("review-status").textContent;',
       '  const exportEnabledBeforeDownload = !download.disabled;',
@@ -256,7 +262,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '    maxTouchPoints: navigator.maxTouchPoints, coarsePointer: matchMedia("(pointer: coarse)").matches,',
       '    mobileUserAgent: /iPhone|Mobile/i.test(navigator.userAgent),',
       '    horizontalOverflow: root.scrollWidth > root.clientWidth + 1,',
-      '    initialDisabled, blockedBeforeAcknowledgement, enabledAfterHumanReview, reviewStatus,',
+      '    initialDisabled, blockedBeforeAcknowledgement, rejectedReviewKeepsExportBlocked, rejectedReviewStatus, enabledAfterHumanReview, reviewStatus,',
       '    exportEnabledBeforeDownload, exportedReport, exportedFilename, approvalConsumed, repeatExportBlocked,',
       '    reviewerClearedAfterDownload, reapprovalBlockedWithoutFreshDetails, postDownloadReviewStatus,',
       '    reportAfterAcknowledgement, staleDraftInvalidated, multiTopicReport, multiTopicIds,',
@@ -285,6 +291,8 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.equal(snapshot.horizontalOverflow, false, 'mobile layout has horizontal overflow');
     assert.equal(snapshot.initialDisabled, true, 'download was initially enabled');
     assert.equal(snapshot.blockedBeforeAcknowledgement, true, 'report exported before human acknowledgement');
+    assert.equal(snapshot.rejectedReviewKeepsExportBlocked, true, 'a rejected human review enabled report download');
+    assert.match(snapshot.rejectedReviewStatus, /بازبینی رد شد/);
     assert.equal(snapshot.enabledAfterHumanReview, true, 'approved human review did not enable report download');
     assert.match(snapshot.reviewStatus, /هویت بازبین در این نسخه آفلاین احراز نمی‌شود/);
     assert.equal(snapshot.exportEnabledBeforeDownload, true, 'approved local review did not enable the report download');
