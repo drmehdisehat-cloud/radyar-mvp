@@ -13,7 +13,6 @@ function fixture(t) {
   fs.mkdirSync(path.join(root, 'dadyar-preview'));
   fs.writeFileSync(path.join(root, 'dadyar-preview', 'index.html'), '<!doctype html><html lang="fa"></html>\n');
   fs.writeFileSync(path.join(root, 'dadyar-preview', 'data.json'), '{"synthetic":true}\n');
-  fs.writeFileSync(path.join(root, '1405-delay-index-source-status.md'), 'source status: not independently authenticated\n');
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   return root;
 }
@@ -24,7 +23,6 @@ test('creates a deterministic manifest bound to the exact source commit and payl
   assert.equal(manifest.schema, 'dadyar-preview-artifact-manifest-v1');
   assert.equal(manifest.sourceCommit, COMMIT);
   assert.deepEqual(manifest.files.map(file => file.path), [
-    '1405-delay-index-source-status.md',
     'dadyar-preview/data.json',
     'dadyar-preview/index.html'
   ]);
