@@ -47,6 +47,7 @@ test('handoff package is minimal, byte-identical, checksum verified and explicit
     assert.equal(metadata.delay_damages_calculator, 'offline-only');
     assert.equal(metadata.delay_index_series, 'annual-index-published-monthly');
     assert.equal(metadata.delay_index_base_year, 1395);
+    assert.match(metadata.delay_index_base_year_status, /^inferred-from-1395-average-100/);
     assert.equal(metadata.delay_index_months_available, 7);
     assert.equal(metadata.delay_index_source_status, 'transcribed-not-independently-authenticated');
     assert.equal(metadata.api_enabled, false);
