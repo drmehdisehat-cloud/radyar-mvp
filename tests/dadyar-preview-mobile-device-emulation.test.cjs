@@ -227,7 +227,6 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  const reportAfterAcknowledgement = document.getElementById("report").textContent;',
       '  const question = document.getElementById("free-question");',
       '  question.value = "پرسش فرضی که هنوز ثبت نشده است";',
-      '  question.dispatchEvent(new Event("input", { bubbles: true }));',
       '  window.dispatchEvent(new PageTransitionEvent("pagehide"));',
       '  const pagehideClearedUnsubmittedQuestion = question.value === "";',
       '  const pagehideClearedDraft = document.getElementById("result").hidden && download.disabled;',
