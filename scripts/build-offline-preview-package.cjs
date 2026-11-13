@@ -15,6 +15,12 @@ function inside(parent, candidate) {
 function sha256(bytes) {
   return crypto.createHash('sha256').update(bytes).digest('hex');
 }
+function gitBlobSha1(bytes) {
+  const hash = crypto.createHash('sha1');
+  hash.update('blob ' + bytes.length + String.fromCharCode(0));
+  hash.update(bytes);
+  return hash.digest('hex');
+}
 function writeExclusive(filePath, content) {
   const fd = fs.openSync(filePath, 'wx', 0o600);
   try { fs.writeFileSync(fd, content); fs.fsyncSync(fd); }
@@ -116,6 +122,7 @@ function buildOfflinePreviewPackage(destinationArg, options = {}) {
     target_subpath: '/dadyar-preview/',
     source_file: 'dadyar-preview/index.html',
     source_file_sha256: sha256(sourceBytes),
+    source_file_git_blob_sha1: gitBlobSha1(sourceBytes),
     topic_hint_count: topicCount,
     api_enabled: false,
     public_ai_enabled: false,
@@ -138,7 +145,7 @@ function buildOfflinePreviewPackage(destinationArg, options = {}) {
     'فقط از داده ساختگی استفاده کنید؛ اطلاعات موکل یا اسرار واقعی وارد نکنید.',
     '',
     'ابتدا SHA256SUMS را با sha256sum -c SHA256SUMS اعتبارسنجی کنید.',
-    'شناسه commit مبدأ در PREVIEW-METADATA.json ثبت شده است.'
+    'شناسه commit مبدأ، SHA-256 و Git blob SHA-1 فایل در PREVIEW-METADATA.json ثبت شده‌اند.'
   ].join('\n') + '\n';
 
   writeExclusive(path.join(destination, 'index.html'), sourceBytes);
@@ -180,6 +187,7 @@ function buildOfflinePreviewPackage(destinationArg, options = {}) {
   return {
     destination, files: actualNames, source_commit: commit,
     source_sha256: metadata.source_file_sha256,
+    source_blob_sha1: metadata.source_file_git_blob_sha1,
     release_authorized: false, api_enabled: false, checksums_verified: true
   };
 }
