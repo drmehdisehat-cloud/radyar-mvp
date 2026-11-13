@@ -231,6 +231,10 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  const pagehideClearedUnsubmittedQuestion = question.value === "";',
       '  const pagehideClearedDraft = document.getElementById("result").hidden && download.disabled;',
       '  const pagehideClearedReviewer = document.getElementById("reviewer-name").value === "" && document.getElementById("review-note").value === "";',
+      '  const pagehideClearedSelections = document.getElementById("role").selectedIndex === 0 && Array.from(document.querySelectorAll("#interview select")).every(control => control.selectedIndex === 0) && Array.from(document.querySelectorAll("fieldset input[type=checkbox]")).every(control => !control.checked);',
+      '  const pagehideClearedReviewApproval = document.getElementById("review-decision").value === "pending" && !document.getElementById("export-ack").checked && document.getElementById("record-review").disabled;',
+      '  const sampleEvidence = document.querySelectorAll("fieldset input[type=checkbox]"); sampleEvidence[0].checked = true; sampleEvidence[2].checked = true;',
+      '  for (const [id,value] of [["issue-date","yes"],["certificate","no"],["defense","yes"]]) { const control = document.getElementById(id); control.value = value; control.dispatchEvent(new Event("change", { bubbles: true })); }',
       '  const multiTopicRawQuestion = "چک و مهریه در این مثال چه موضوعاتی هستند؟";',
       '  question.value = multiTopicRawQuestion;',
       '  question.dispatchEvent(new Event("input", { bubbles: true }));',
@@ -251,7 +255,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '    initialDisabled, blockedBeforeAcknowledgement, enabledAfterHumanReview, reviewStatus,',
       '    exportEnabledBeforeDownload, exportedReport, exportedFilename, approvalConsumed, repeatExportBlocked,',
       '    reportAfterAcknowledgement, staleDraftInvalidated, multiTopicReport, multiTopicIds,',
-      '    pagehideClearedUnsubmittedQuestion, pagehideClearedDraft, pagehideClearedReviewer,',
+      '    pagehideClearedUnsubmittedQuestion, pagehideClearedDraft, pagehideClearedReviewer, pagehideClearedSelections, pagehideClearedReviewApproval,',
       '    multiTopicExportEligible, multiTopicScopeStatus, multiTopicInputCleared, multiTopicRawQuestionEchoed,',
       '    csp: document.querySelector("meta[http-equiv]")?.content || "",',
       '    externalResources',
@@ -292,6 +296,8 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.equal(snapshot.pagehideClearedUnsubmittedQuestion, true, 'pagehide retained an unsubmitted free question');
     assert.equal(snapshot.pagehideClearedDraft, true, 'pagehide retained a previously generated draft');
     assert.equal(snapshot.pagehideClearedReviewer, true, 'pagehide retained local reviewer details');
+    assert.equal(snapshot.pagehideClearedSelections, true, 'pagehide retained role, interview answers, or selected evidence');
+    assert.equal(snapshot.pagehideClearedReviewApproval, true, 'pagehide retained a local review approval');
     assert.ok(snapshot.multiTopicIds.includes('instruments'), 'cheque hint missing from internal multi-topic routing');
     assert.ok(snapshot.multiTopicIds.includes('family'), 'family hint missing from internal multi-topic routing');
     assert.equal(snapshot.multiTopicExportEligible, true,
