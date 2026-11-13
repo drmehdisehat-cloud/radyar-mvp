@@ -25,6 +25,8 @@ A valid signature proves possession of the private key corresponding to a truste
 5. Require a separate reviewer, not the author or deployer, to sign the exact commit, artifact hash and report hash.
 6. Integrate verification on a server-side release boundary only after security and privacy review.
 
+The verifier also requires an asynchronous nonce store. Its `consume(nonce, expiresAt)` operation must atomically insert the nonce under a durable unique constraint and return `true` only for the first successful insertion. A missing store, duplicate nonce or failed store operation blocks verification. The test suite uses an in-memory Set only to simulate this contract; it is not suitable for production or multi-instance deployment.
+
 The test suite creates ephemeral synthetic keys in memory. No private key, real identity, client information or secret is stored in this repository.
 
 ## Payload contract
@@ -35,7 +37,7 @@ Policy: `dadyar-preview-human-review-v1`
 
 Signature input is UTF-8 JSON with the fixed field order defined in `scripts/reviewer-attestation.cjs`. Signature is Ed25519, base64url-encoded without padding. Nonce is 16 random bytes, base64url-encoded.
 
-The verifier requires the caller to provide the expected commit, artifact hash, report hash and reviewer principal. It fails closed if any binding is absent or differs.
+The verifier requires the caller to provide the expected commit, artifact hash, report hash and reviewer principal. It fails closed if any binding is absent or differs. It consumes the nonce only after the signature and all bindings pass, preventing replay when backed by a correctly implemented durable store.
 
 ## Release status
 
