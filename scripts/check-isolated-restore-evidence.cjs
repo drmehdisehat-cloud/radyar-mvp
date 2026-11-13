@@ -20,6 +20,7 @@ function isOutside(root, target) {
 }
 function canonicalPath(target, label) {
   const absolute = path.resolve(target);
+  if (target !== absolute) throw Error(label + ' path must be canonical (no dot segments or redundant separators)');
   const real = fs.realpathSync(absolute);
   if (real !== absolute) throw Error(label + ' path must be canonical and contain no symlink aliases');
   return real;
