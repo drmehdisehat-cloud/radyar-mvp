@@ -46,7 +46,7 @@ test('offline Dadyar preview parses in headless Chromium at a narrow viewport', 
   assert.match(run.stdout, /id="delay-damages-calculator"/);
   assert.match(run.stdout, /id="delay-principal"/);
   assert.match(run.stdout, /id="delay-calculate"/);
-  assert.match(html, /3333\\.9/);
-  assert.doesNotMatch(html, /3323\\.9/);
+  assert.match(html, /3333\.9/);
+  assert.doesNotMatch(html, /3323\.9/);
   assert.match(run.stdout, /connect-src 'none'/);
 });
