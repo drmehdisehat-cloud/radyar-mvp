@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; script-src 'sha256-yrgxKqCyD4qJdQCKP2xvGWaRMVF0nG2QW6lN+jYrxc8='; style-src 'sha256-lrzIHO5gcJgWBtnFurwNYbHskiZxSHWg/P7CnNPJT20='; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; script-src 'sha256-9pbqQp31wFQmzpZMCqnw50LeBGkuvQMk6Z9Il/Pon+g='; style-src 'sha256-lrzIHO5gcJgWBtnFurwNYbHskiZxSHWg/P7CnNPJT20='; form-action 'none'; base-uri 'none'">
 <title>دادیار | پیش‌نمایش آفلاین چک فرضی</title>
 <style>body{font:1rem/1.9 system-ui,sans-serif;background:#f5f6fa;color:#17243b;margin:0}main{max-width:780px;margin:auto;padding:1.2rem}section{background:white;border-radius:16px;padding:1.2rem;margin:1rem 0;box-shadow:0 2px 12px #17243b12}button,select{font:inherit;min-height:44px;max-width:100%;padding:.5rem;border:1px solid #718096;border-radius:8px}input[type=checkbox]{min-width:22px;min-height:22px;vertical-align:middle}button{background:#dcecfb;cursor:pointer}button:focus-visible,select:focus-visible{outline:3px solid #2469a8}fieldset{border:1px solid #b4bfd0;border-radius:12px;margin:1rem 0}label{display:block;margin:.6rem 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}small{color:#475569}#result[hidden]{display:none}#free-question,#reviewer-name,#review-note{box-sizing:border-box;width:100%;font:inherit;border:1px solid #718096;border-radius:8px;padding:.5rem}#review-note{min-height:4.5rem}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}</style></head>
 <body><main><h1>کارگاه آزمایشی دادیار: چک فرضی</h1><p role="status">صرفاً داده‌های ازپیش‌ساخته؛ بدون ارسال اطلاعات، هوش مصنوعی یا ذخیره در سرور. پاسخ خودکار حقوقی: ارائه نمی‌شود. اطلاعات واقعی وارد نکنید.</p>
@@ -11,7 +11,7 @@
 <label><input type="checkbox" data-stance="مخالف" value="ادعای تسویه وجه در پرونده فرضی" checked> ادعای تسویه فرضی</label>
 <label><input type="checkbox" data-stance="نامعلوم" value="تاریخ سررسید در پرونده فرضی مشخص نیست"> تاریخ سررسید نامعلوم</label>
 </fieldset>
-<label for="free-question">پرسش آزاد درباره چک فرضی (اختیاری، حداکثر ۳۰۰ نویسه؛ اطلاعات واقعی وارد نکنید)</label><textarea id="free-question" maxlength="300" rows="3" placeholder="مثلاً: در این سناریوی ساختگی چه مدارکی باید بررسی شوند؟"></textarea>
+<label for="free-question">پرسش آزاد درباره چک فرضی (اختیاری، حداکثر ۳۰۰ نویسه؛ اطلاعات واقعی وارد نکنید)</label><textarea id="free-question" maxlength="300" rows="3" autocomplete="off" placeholder="مثلاً: در این سناریوی ساختگی چه مدارکی باید بررسی شوند؟"></textarea>
 <fieldset id="interview"><legend>پرسش‌های تکمیلی سناریوی فرضی</legend>
 <label for="issue-date">تاریخ صدور و سررسید در مدارک نمونه مشخص است؟</label><select id="issue-date" data-question="تاریخ صدور و سررسید چک چیست؟"><option value="unknown">نامعلوم</option><option value="yes">در نمونه درج شده</option><option value="no">در نمونه درج نشده</option></select>
 <label for="certificate">گواهی عدم پرداخت نمونه موجود است؟</label><select id="certificate" data-question="گواهی عدم پرداخت موجود است؟"><option value="unknown">نامعلوم</option><option value="yes">در نمونه موجود است</option><option value="no">در نمونه موجود نیست</option></select>
@@ -624,4 +624,13 @@ document.getElementById('download').addEventListener('click',()=>{
  reviewStatus.textContent='گزارش دریافت شد؛ برای دریافت دوباره باید بازبینی تازه ثبت شود.';
  exportStatus.textContent='دریافت فایل متنی فرضی آغاز شد. هیچ داده‌ای به سرور ارسال نشد.';
 });
+
+// Clear unsubmitted free text and local review state when leaving the page,
+// including a page entering the back-forward cache. No data is persisted.
+if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+ window.addEventListener('pagehide', () => {
+  document.getElementById('free-question').value = '';
+  invalidateDraft();
+ });
+}
 </script></body></html>
