@@ -5,7 +5,7 @@ const { calculateDelayDamages, getMonthlyIndex, indexData } = require('../dadyar
 
 test('loads the seven 1405 values transcribed from the owner image exactly', () => {
   assert.deepEqual([1,2,3,4,5,6,7].map(m => getMonthlyIndex(1405,m)), [2654.9,2880.4,3092.3,3205.1,3333.9,3452.1,3611.1]);
-  assert.equal(indexData.seriesType, 'annual-index-published-monthly');
+  assert.equal(indexData.seriesType, 'monthly-index-points');
   assert.equal(indexData.baseYear, 1395);
   assert.equal(indexData.baseYearStatus, 'inferred-from-1395-average-100-in-owner-image; not-independently-verified');
   assert.equal(indexData.source.status, 'transcribed-not-independently-authenticated');
@@ -18,8 +18,8 @@ test('calculates payment-month index divided by legal-origin-month index', () =>
   assert.equal(result.sourceStatus, 'transcribed-not-independently-authenticated');
 });
 
-test('does not mislabel the annual index published monthly as monthly inflation', () => {
-  assert.equal(indexData.seriesType, 'annual-index-published-monthly');
+test('distinguishes monthly index points from the monthly inflation rate', () => {
+  assert.equal(indexData.seriesType, 'monthly-index-points');
   assert.equal(indexData.unit, 'index-point');
 });
 
