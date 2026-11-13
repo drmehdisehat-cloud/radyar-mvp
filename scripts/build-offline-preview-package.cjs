@@ -76,6 +76,21 @@ function buildOfflinePreviewPackage(destinationArg, options = {}) {
   const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1] || '';
   const topicHints = script.match(/const topicHints = \[([\s\S]*?)\n\];/)?.[1] || '';
   const topicCount = (topicHints.match(/"id"\s*:/g) || []).length;
+  const calculatorTag = html.match(/<section\\b[^>]*id="delay-damages-calculator"[^>]*>/)?.[0] || '';
+  const delayIndexesRaw = calculatorTag.match(/\\bdata-indexes='([^']+)'/)?.[1];
+  let delayIndexes;
+  try { delayIndexes = JSON.parse(delayIndexesRaw || ''); }
+  catch { fail('Delay-damages calculator index data is missing or invalid.'); }
+  const delayBaseYear = Number(calculatorTag.match(/\\bdata-base-year="(\\d+)"/)?.[1]);
+  const delayBaseYearStatus = calculatorTag.match(/\\bdata-base-year-status="([^"]+)"/)?.[1] || '';
+  const delaySourceStatus = calculatorTag.match(/\\bdata-source-status="([^"]+)"/)?.[1] || '';
+  if (JSON.stringify(Object.keys(delayIndexes).sort()) !== JSON.stringify(['1','2','3','4','5','6','7']) ||
+      delayIndexes['5'] !== 3333.9 || delayBaseYear !== 1395 ||
+      !delayBaseYearStatus.startsWith('inferred-from-1395-average-100') ||
+      delaySourceStatus !== 'transcribed-not-independently-authenticated') {
+    fail('Delay-damages calculator data does not match the seven guarded 1405 source values.');
+  }
+
 
   const required = [
     [/default-src 'none'/, 'default-src none CSP'],
@@ -86,7 +101,13 @@ function buildOfflinePreviewPackage(destinationArg, options = {}) {
     [/id="record-review"/, 'review recording control'],
     [/id="export-ack"/, 'explicit local review acknowledgement'],
     [/id="download" disabled/, 'disabled-by-default report export'],
-    [/هویت احراز نشده/, 'unverified reviewer disclosure']
+    [/هویت احراز نشده/, 'unverified reviewer disclosure'],
+    [/id="delay-damages-calculator"/, 'offline delay-damages calculator'],
+    [/id="delay-principal"/, 'delay-damages principal input'],
+    [/id="delay-due-month"/, 'delay-damages origin month'],
+    [/id="delay-payment-month"/, 'delay-damages payment month'],
+    [/id="delay-calculate"/, 'delay-damages calculation control'],
+    [/id="delay-index-list"/, 'visible 1405 index list']
   ];
   for (const [pattern, label] of required) {
     if (!pattern.test(html)) fail('Preview package missing required control: ' + label);
@@ -129,6 +150,7 @@ function buildOfflinePreviewPackage(destinationArg, options = {}) {
     delay_damages_calculator: 'offline-only',
     delay_index_series: 'annual-index-published-monthly',
     delay_index_base_year: delayBaseYear,
+    delay_index_base_year_status: delayBaseYearStatus,
     delay_index_months_available: Object.keys(delayIndexes).length,
     delay_index_source_status: delaySourceStatus,
     reviewer_authentication: 'not-implemented',
