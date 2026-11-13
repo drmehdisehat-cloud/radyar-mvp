@@ -218,8 +218,8 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  decision.value = "approved"; decision.dispatchEvent(new Event("change", { bubbles: true }));',
       '  note.value = "بازبینی داده ساختگی"; note.dispatchEvent(new Event("input", { bubbles: true }));',
       '  document.getElementById("export-ack").click();',
-      '  document.getElementById("record-review").click();'
-      '  const enabledAfterHumanReview = !download.disabled;',
+      '  document.getElementById("record-review").click();',
+      '  const enabledAfterHumanReview = !download.disabled',
       '  const reviewStatus = document.getElementById("review-status").textContent;',
       '  const exportEnabledBeforeDownload = !download.disabled;',
       '  download.click();',
