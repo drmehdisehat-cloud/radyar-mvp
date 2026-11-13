@@ -5,13 +5,14 @@ const crypto = require('node:crypto');
 
 const SHA256 = /^[a-f0-9]{64}$/i;
 const COMMIT = /^[a-f0-9]{40}$/i;
+const GIT_BLOB_SHA1 = /^[a-f0-9]{40}$/i;
 const NONCE = /^[A-Za-z0-9_-]{43}$/;
 const SIGNATURE = /^[A-Za-z0-9_-]{86}$/;
 const MAX_REVIEW_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_REVIEW_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const PAYLOAD_KEYS = [
   'schema', 'issuer', 'subject', 'audience', 'decision', 'review_id',
-  'source_commit', 'artifact_sha256', 'reviewed_at', 'expires_at', 'nonce'
+  'source_commit', 'source_blob_sha1', 'artifact_sha256', 'reviewed_at', 'expires_at', 'nonce'
 ];
 const TRUST_KEYS = ['schema', 'issuer', 'reviewers'];
 const REVIEWER_KEYS = ['subject', 'roles', 'active', 'public_key_pem'];
@@ -54,6 +55,7 @@ function verifyHumanReviewAttestation({
   attestation,
   trustStore,
   expectedSourceCommit,
+  expectedSourceBlobSha1,
   expectedArtifactSha256,
   now = Date.now()
 } = {}) {
@@ -69,13 +71,14 @@ function verifyHumanReviewAttestation({
   }
 
   const p = attestation.payload;
-  if (p.schema !== 'dadyar-human-review-attestation-v1' ||
+  if (p.schema !== 'dadyar-human-review-attestation-v2' ||
       p.audience !== 'dadyar-preview-release' ||
       p.decision !== 'approved' ||
       typeof p.issuer !== 'string' || !p.issuer.trim() ||
       typeof p.subject !== 'string' || !p.subject.trim() ||
       !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(p.review_id || '') ||
       !COMMIT.test(p.source_commit || '') || /^0{40}$/i.test(p.source_commit) ||
+      !GIT_BLOB_SHA1.test(p.source_blob_sha1 || '') || /^0{40}$/i.test(p.source_blob_sha1) ||
       !SHA256.test(p.artifact_sha256 || '') || /^0{64}$/i.test(p.artifact_sha256) ||
       !validUtc(p.reviewed_at) || !validUtc(p.expires_at) ||
       !decodeCanonicalBase64url(p.nonce, 32, NONCE)) {
@@ -83,8 +86,10 @@ function verifyHumanReviewAttestation({
   }
   if (p.issuer !== trustStore.issuer) return fail('issuer_mismatch');
   if (!COMMIT.test(expectedSourceCommit || '') ||
+      !GIT_BLOB_SHA1.test(expectedSourceBlobSha1 || '') || /^0{40}$/i.test(expectedSourceBlobSha1 || '') ||
       !SHA256.test(expectedArtifactSha256 || '') ||
       p.source_commit.toLowerCase() !== expectedSourceCommit.toLowerCase() ||
+      p.source_blob_sha1.toLowerCase() !== expectedSourceBlobSha1.toLowerCase() ||
       p.artifact_sha256.toLowerCase() !== expectedArtifactSha256.toLowerCase()) {
     return fail('review_target_mismatch');
   }
@@ -145,6 +150,7 @@ function verifyHumanReviewAttestation({
     reviewedAt: p.reviewed_at,
     expiresAt: p.expires_at,
     sourceCommit: p.source_commit.toLowerCase(),
+    sourceBlobSha1: p.source_blob_sha1.toLowerCase(),
     artifactSha256: p.artifact_sha256.toLowerCase()
   });
 }

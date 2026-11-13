@@ -222,6 +222,7 @@ function main(argv) {
               attestation,
               trustStore: trustStoreRecord.value,
               expectedSourceCommit,
+              expectedSourceBlobSha1: destinationEvidence.expected_source_blob_sha1,
               expectedArtifactSha256
             }),
             trustStoreSha256: trustStoreRecord.sha256
@@ -265,6 +266,7 @@ function main(argv) {
         reviewId: review.reviewId,
         reviewedAt: review.reviewedAt,
         expiresAt: review.expiresAt,
+        sourceBlobSha1: review.sourceBlobSha1,
         trustStoreSha256: review.trustStoreSha256
       } : { verified: false, reason: review.reason },
       deploymentPerformed: false,

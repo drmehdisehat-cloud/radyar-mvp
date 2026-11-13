@@ -55,11 +55,12 @@ function fixture() {
 
   const sourceHash = digest('synthetic reviewed preview');
   const sourceCommit = 'c'.repeat(40);
+  const sourceBlobSha = crypto.createHash('sha1').update('synthetic git blob').digest('hex');
   const destination = {
     matched: true,
     destination_outside_document_root: true,
-    source_blob_sha1: crypto.createHash('sha1').update('synthetic git blob').digest('hex'),
-    expected_source_blob_sha1: crypto.createHash('sha1').update('synthetic git blob').digest('hex'),
+    source_blob_sha1: sourceBlobSha,
+    expected_source_blob_sha1: sourceBlobSha,
     source_sha256: sourceHash,
     destination_sha256: sourceHash,
     destination_realpath: '/srv/dadyar-staging/preview/index.html',
@@ -67,13 +68,14 @@ function fixture() {
   };
   const { publicKey, privateKey } = crypto.generateKeyPairSync('ed25519');
   const payload = {
-    schema: 'dadyar-human-review-attestation-v1',
+    schema: 'dadyar-human-review-attestation-v2',
     issuer: 'synthetic-owner-review-registry',
     subject: 'synthetic-reviewer-01',
     audience: 'dadyar-preview-release',
     decision: 'approved',
     review_id: crypto.randomUUID(),
     source_commit: sourceCommit,
+    source_blob_sha1: sourceBlobSha,
     artifact_sha256: sourceHash,
     reviewed_at: reviewed,
     expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),

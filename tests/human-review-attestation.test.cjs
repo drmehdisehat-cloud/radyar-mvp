@@ -11,13 +11,14 @@ function fixture() {
   const { publicKey, privateKey } = crypto.generateKeyPairSync('ed25519');
   const now = Date.now();
   const payload = {
-    schema: 'dadyar-human-review-attestation-v1',
+    schema: 'dadyar-human-review-attestation-v2',
     issuer: 'synthetic-owner-review-registry',
     subject: 'synthetic-reviewer-01',
     audience: 'dadyar-preview-release',
     decision: 'approved',
     review_id: crypto.randomUUID(),
     source_commit: 'a'.repeat(40),
+    source_blob_sha1: 'c'.repeat(40),
     artifact_sha256: 'b'.repeat(64),
     reviewed_at: new Date(now - 30000).toISOString(),
     expires_at: new Date(now + 60 * 60 * 1000).toISOString(),
@@ -53,6 +54,7 @@ function verify(f, overrides = {}) {
     attestation: f.attestation,
     trustStore: f.trustStore,
     expectedSourceCommit: f.payload.source_commit,
+    expectedSourceBlobSha1: f.payload.source_blob_sha1,
     expectedArtifactSha256: f.payload.artifact_sha256,
     now: f.now,
     ...overrides
@@ -66,6 +68,7 @@ test('accepts a current Ed25519 approval bound to the exact preview commit and a
   assert.equal(result.issuer, f.payload.issuer);
   assert.equal(result.subject, f.payload.subject);
   assert.equal(result.sourceCommit, f.payload.source_commit);
+  assert.equal(result.sourceBlobSha1, f.payload.source_blob_sha1);
   assert.equal(result.artifactSha256, f.payload.artifact_sha256);
 });
 
@@ -79,6 +82,7 @@ test('rejects a signature for a different source commit or artifact digest', () 
   const f = fixture();
   assert.equal(verify(f, { expectedSourceCommit: 'c'.repeat(40) }).reason, 'review_target_mismatch');
   assert.equal(verify(f, { expectedArtifactSha256: 'd'.repeat(64) }).reason, 'review_target_mismatch');
+  assert.equal(verify(f, { expectedSourceBlobSha1: 'e'.repeat(40) }).reason, 'review_target_mismatch');
 });
 
 test('rejects expired and future-dated approvals', () => {

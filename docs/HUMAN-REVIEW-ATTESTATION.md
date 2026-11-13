@@ -11,13 +11,14 @@
 
 فیلدهای الزامی payload:
 
-- schema: مقدار ثابت dadyar-human-review-attestation-v1
+- schema: مقدار ثابت dadyar-human-review-attestation-v2
 - issuer: شناسه صادرکننده‌ای که در trust store ثبت شده است.
 - subject: شناسه بازبین در سامانه هویت مستقل.
 - audience: مقدار ثابت dadyar-preview-release
 - decision: فقط approved
 - review_id: UUID نسخه ۴
 - source_commit: SHA چهل‌رقمی commit بررسی‌شده
+- source_blob_sha1: Git blob SHA-1 فایل دقیق `dadyar-preview/index.html` در همان commit
 - artifact_sha256: SHA-256 بسته دقیق بررسی‌شده
 - reviewed_at و expires_at: زمان UTC با میلی‌ثانیه
 - nonce: سی‌ودو بایت تصادفی با base64url بدون padding
@@ -34,7 +35,7 @@
 
 node scripts/preview-release-preflight.cjs --restore-evidence /ABS/restore.json --destination-evidence /ABS/destination.json --review-attestation /ABS/review.json --review-trust-store /ABS/trust-store.json --expected-source-commit COMMIT_SHA --expected-artifact-sha256 ARTIFACT_SHA256 --isolated-restore-verified --mobile-browser-verified --zero-api-requests-verified --human-review-verified
 
-تمام فایل‌های شواهد باید خارج از checkout باشند. امضا باید به همان commit و همان SHA-256 بسته متصل باشد. تأیید منقضی، آینده‌دار، ردشده، متعلق به صادرکننده دیگر یا فاقد نقش مجاز رد می‌شود.
+تمام فایل‌های شواهد باید خارج از checkout باشند. امضا باید به همان commit، Git blob فایل HTML مقصد و SHA-256 بسته متصل باشد. تأیید منقضی، آینده‌دار، ردشده، متعلق به صادرکننده دیگر یا فاقد نقش مجاز رد می‌شود.
 
 ## محدودیت‌های مهم
 
