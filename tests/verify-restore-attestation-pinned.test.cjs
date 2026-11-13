@@ -185,3 +185,14 @@ test('help text states the independent fingerprint and non-authorization limits'
   assert.match(result.stdout, /does not authenticate people/);
   assert.match(result.stdout, /prove a restore/);
 });
+
+
+test('pinned verifier rejects invalid UTF-8 manifest bytes before signature verification', t => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-pinned-invalid-utf8-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const bundle = createBundle(directory);
+  fs.writeFileSync(bundle.files.manifest, Buffer.from([0x7b, 0x22, 0x78, 0x22, 0x3a, 0x22, 0xc3, 0x28, 0x22, 0x7d]));
+  const result = run(argsFor(bundle));
+  assert.equal(result.status, 1);
+  assert.equal(JSON.parse(result.stdout).error, 'manifest_is_not_valid_utf8');
+});
