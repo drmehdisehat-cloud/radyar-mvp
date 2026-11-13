@@ -22,16 +22,14 @@ function harness() {
     textContent: '',
     selectedIndex: 0,
     options: [],
-    addEventListener(type, handler) { listeners.set(id + ':' + type, handler); },
+    addEventListener(type, handler) { listeners.set(id + ':' + type, [...(listeners.get(id + ':' + type) || []), handler]); },
     dispatchEvent(event) {
-      const handler = listeners.get(id + ':' + event.type);
-      if (handler) handler({ type: event.type, target: this });
+      for (const handler of listeners.get(id + ':' + event.type) || []) handler({ type: event.type, target: this });
       return true;
     },
     click() {
       if (this.disabled) return;
-      const handler = listeners.get(id + ':click');
-      if (handler) handler({ type: 'click', target: this });
+      for (const handler of listeners.get(id + ':click') || []) handler({ type: 'click', target: this });
     },
     contains() { return false; },
     focus() {}
@@ -54,7 +52,7 @@ function harness() {
     Blob: class {},
     setTimeout() { return 0; }
   };
-  vm.runInNewContext(script + '\nglobalThis.__dadyarPrivacyTest = { hasSensitiveIdentifier, reviewerDetailsAreSafe, updateExportPermission, reviewerName, reviewNote, reviewDecision, exportAck, recordReviewButton, downloadButton, reviewStatus, setDraft() { report = "گزارش کاملاً ساختگی"; exportEligible = true; reviewerName.value = "بازبین آزمون"; reviewDecision.value = "approved"; reviewNote.value = "بازبینی داده ساختگی و بررسی نمونه"; exportAck.checked = true; updateExportPermission(); } };', sandbox, { timeout: 1500 });
+  vm.runInNewContext(script + '\nglobalThis.__dadyarPrivacyTest = { hasSensitiveIdentifier, reviewerDetailsAreSafe, showReviewerPrivacyWarning, reviewerName, reviewNote, reviewDecision, exportAck, recordReviewButton, downloadButton, reviewStatus, setDraft() { report = "گزارش کاملاً ساختگی"; exportEligible = true; reviewerName.value = "بازبین آزمون"; reviewDecision.value = "approved"; reviewNote.value = "بازبینی داده ساختگی و بررسی نمونه"; exportAck.checked = true; updateExportPermission(); } };', sandbox, { timeout: 1500 });
   return sandbox.__dadyarPrivacyTest;
 }
 
@@ -90,13 +88,21 @@ test('reviewer label and note cannot be approved when they contain likely sensit
     h.setDraft();
     h[field].value = value;
     h[field].dispatchEvent({ type: 'input' });
-    h.exportAck.checked = true;
-    h.updateExportPermission();
     assert.equal(h.recordReviewButton.disabled, true, field + ' must not accept sensitive data');
     assert.match(h.reviewStatus.textContent, /شناسه حساس/);
     h.recordReviewButton.click();
     assert.equal(h.downloadButton.disabled, true, 'sensitive reviewer metadata must not unlock export');
   }
+});
+
+test('reviewer click guard rejects sensitive values even when input events are bypassed', () => {
+  const h = harness();
+  h.setDraft();
+  h.reviewNote.value = 'یادداشت ساختگی با شماره تماس 09123456789';
+  h.recordReviewButton.click();
+  assert.equal(h.recordReviewButton.disabled, true);
+  assert.match(h.reviewStatus.textContent, /شناسه حساس/);
+  assert.equal(h.downloadButton.disabled, true);
 });
 
 test('synthetic reviewer metadata still permits one local review action', () => {
