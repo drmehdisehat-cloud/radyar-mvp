@@ -34,7 +34,7 @@ const restoreEvidence = {
 };
 const valid = {
   restoreEvidence,
-  destinationEvidence: { matched: true, source_blob_sha1: '1'.repeat(40), expected_source_blob_sha1: '1'.repeat(40), source_sha256: sha, destination_sha256: sha, destination_realpath: '/srv/isolated-staging/dadyar-preview/index.html', production_document_root_realpath: '/home/site/public_html', destination_outside_document_root: true },
+  destinationEvidence: { matched: true, source_blob_sha1: '1'.repeat(40), expected_source_blob_sha1: '1'.repeat(40), source_sha256: sha, destination_sha256: sha, destination_realpath: '/srv/isolated-staging/dadyar-preview/index.html', production_document_root_realpath: '/home/site/public_html', git_checkout_realpath: '/srv/radyar-checkout', destination_outside_document_root: true, destination_outside_git_checkout: true },
   isolatedRestoreVerified: true,
   mobileBrowserVerified: true,
   zeroApiRequestsVerified: true,
@@ -58,7 +58,7 @@ test('destination cannot be accepted with missing, malformed, empty or nonmatchi
       destinationEvidence: { matched: true, source_blob_sha1: '1'.repeat(40), expected_source_blob_sha1: '1'.repeat(40), source_sha256: bad, destination_sha256: bad }
     });
     assert.equal(result.status, 'NOT_READY');
-    assert.ok(result.blockers.includes('preview destination is not verified outside production document root'));
+    assert.ok(result.blockers.includes('preview destination is not verified outside production document root and Git checkout'));
   }
 });
 test('destination cannot pass without the pinned reviewed Git blob SHA-1', () => {
@@ -74,7 +74,7 @@ test('destination cannot pass without the pinned reviewed Git blob SHA-1', () =>
       destinationEvidence: { ...valid.destinationEvidence, ...patch }
     });
     assert.equal(result.status, 'NOT_READY');
-    assert.ok(result.blockers.includes('preview destination is not verified outside production document root'));
+    assert.ok(result.blockers.includes('preview destination is not verified outside production document root and Git checkout'));
   }
 });
 

@@ -59,6 +59,8 @@ function fixture() {
   const destination = {
     matched: true,
     destination_outside_document_root: true,
+    destination_outside_git_checkout: true,
+    git_checkout_realpath: fs.realpathSync(path.resolve(__dirname, '..')),
     source_blob_sha1: sourceBlobSha,
     expected_source_blob_sha1: sourceBlobSha,
     source_sha256: sourceHash,
@@ -405,6 +407,27 @@ test('unknown deploy-like options are rejected and the CLI exposes no deploy com
   assert.equal(report.deploymentPerformed, false);
 });
 
+
+
+test('read-only preflight rejects legacy destination evidence without checkout separation', () => {
+  const f = fixture();
+  try {
+    const destination = JSON.parse(fs.readFileSync(f.destinationFile, 'utf8'));
+    delete destination.destination_outside_git_checkout;
+    delete destination.git_checkout_realpath;
+    fs.writeFileSync(f.destinationFile, JSON.stringify(destination));
+    const result = run(baseArgs(f));
+    assert.equal(result.status, 1, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.status, 'NOT_READY');
+    assert.ok(report.blockers.includes(
+      'preview destination is not verified outside production document root and Git checkout'
+    ));
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
 
 test('malformed UTF-8 evidence is rejected before JSON parsing', () => {
   const f = fixture();

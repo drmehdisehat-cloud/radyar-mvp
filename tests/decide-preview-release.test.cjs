@@ -3,7 +3,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { decidePreviewRelease } = require('../scripts/decide-preview-release.cjs');
 const hash = 'a'.repeat(64);
-const destinationEvidence = { matched: true, source_blob_sha1: '1'.repeat(40), expected_source_blob_sha1: '1'.repeat(40), source_sha256: hash, destination_sha256: hash, destination_realpath: '/srv/isolated-staging/dadyar-preview/index.html', production_document_root_realpath: '/home/site/public_html', destination_outside_document_root: true };
+const destinationEvidence = { matched: true, source_blob_sha1: '1'.repeat(40), expected_source_blob_sha1: '1'.repeat(40), source_sha256: hash, destination_sha256: hash, destination_realpath: '/srv/isolated-staging/dadyar-preview/index.html', production_document_root_realpath: '/home/site/public_html', git_checkout_realpath: '/srv/radyar-checkout', destination_outside_document_root: true, destination_outside_git_checkout: true };
 const restoreEvidence = {
   restore_proven: true,
   evidence: 'independent-restore-manifest-v1',
@@ -53,7 +53,7 @@ test('tampered destination hash fails even when restore attestation and other fl
     authenticatedRestoreAttestation:true
   });
   assert.equal(decision.status,'NOT_READY');
-  assert.ok(decision.blockers.includes('preview destination is not verified outside production document root'));
+  assert.ok(decision.blockers.includes('preview destination is not verified outside production document root and Git checkout'));
 });
 test('complete synthetic manifest and isolated staging path reach owner approval only; they are not a deployment', () => {
   const decision = decidePreviewRelease({
@@ -70,7 +70,7 @@ test('complete synthetic manifest and isolated staging path reach owner approval
 test('destination evidence inside production document root is rejected even with matching hashes', () => {
   const decision = decidePreviewRelease({ restoreEvidence, destinationEvidence: { ...destinationEvidence, destination_realpath: '/home/site/public_html/dadyar-preview/index.html' }, isolatedRestoreVerified:true, mobileBrowserVerified:true, zeroApiRequestsVerified:true, humanReviewVerified:true, authenticatedHumanReviewAttested:true, authenticatedRestoreAttestation:true });
   assert.equal(decision.status, 'NOT_READY');
-  assert.ok(decision.blockers.includes('preview destination is not verified outside production document root'));
+  assert.ok(decision.blockers.includes('preview destination is not verified outside production document root and Git checkout'));
 });
 
 test('release gate rejects destination evidence without an independent Git-checkout boundary', () => {
@@ -90,6 +90,6 @@ test('release gate rejects destination evidence without an independent Git-check
   });
   assert.equal(decision.status, 'NOT_READY');
   assert.ok(decision.blockers.includes(
-    'preview destination is not verified outside production document root and Git checkout'
+    'preview destination is not verified outside production document root and Git checkout and Git checkout'
   ));
 });
