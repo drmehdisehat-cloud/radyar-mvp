@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { TOPIC_HINTS, normalizeTopicText, classifyLegalTopics } = require('../backend/legal-topic-routing');
+const { TOPIC_HINTS, normalizeTopicText, classifyLegalTopics } = require('../backend/legal-topic-routing.cjs');
 
 test('the private assistant uses exactly 27 internal legal-domain hint groups', () => {
   assert.equal(TOPIC_HINTS.length, 27);
