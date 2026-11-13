@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; script-src 'sha256-uXCmv4YPlKvAjEJzYIIwanV+JahRuL+miSv6Q3x84Z8='; style-src 'sha256-lrzIHO5gcJgWBtnFurwNYbHskiZxSHWg/P7CnNPJT20='; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; script-src 'sha256-aGMLtR44y61gIlxBa2CoGgv5najwBJdwNAosAQ4PhyE='; style-src 'sha256-YKfabf3xX60zTCv1C7Gx0Vyjsf8RyuxdVMXhecUJM98='; form-action 'none'; base-uri 'none'">
 <title>دادیار | پیش‌نمایش آفلاین چک فرضی</title>
-<style>body{font:1rem/1.9 system-ui,sans-serif;background:#f5f6fa;color:#17243b;margin:0}main{max-width:780px;margin:auto;padding:1.2rem}section{background:white;border-radius:16px;padding:1.2rem;margin:1rem 0;box-shadow:0 2px 12px #17243b12}button,select{font:inherit;min-height:44px;max-width:100%;padding:.5rem;border:1px solid #718096;border-radius:8px}input[type=checkbox]{min-width:22px;min-height:22px;vertical-align:middle}button{background:#dcecfb;cursor:pointer}button:focus-visible,select:focus-visible{outline:3px solid #2469a8}fieldset{border:1px solid #b4bfd0;border-radius:12px;margin:1rem 0}label{display:block;margin:.6rem 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}small{color:#475569}#result[hidden]{display:none}#free-question,#reviewer-name,#review-note{box-sizing:border-box;width:100%;font:inherit;border:1px solid #718096;border-radius:8px;padding:.5rem}#review-note{min-height:4.5rem}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}</style></head>
+<style>body{font:1rem/1.9 system-ui,sans-serif;background:#f5f6fa;color:#17243b;margin:0}main{max-width:780px;margin:auto;padding:1.2rem}section{background:white;border-radius:16px;padding:1.2rem;margin:1rem 0;box-shadow:0 2px 12px #17243b12}button,select{font:inherit;min-height:44px;max-width:100%;padding:.5rem;border:1px solid #718096;border-radius:8px}input[type=checkbox]{min-width:22px;min-height:22px;vertical-align:middle}button{background:#dcecfb;cursor:pointer}button:focus-visible,select:focus-visible{outline:3px solid #2469a8}fieldset{border:1px solid #b4bfd0;border-radius:12px;margin:1rem 0}label{display:block;margin:.6rem 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}small{color:#475569}#result[hidden]{display:none}#free-question,#reviewer-name,#review-note,#delay-principal{box-sizing:border-box;width:100%;font:inherit;border:1px solid #718096;border-radius:8px;padding:.5rem}#review-note{min-height:4.5rem}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}} #delay-principal{min-height:44px}#delay-due-month,#delay-payment-month,#delay-currency{width:100%}#delay-calculate{width:100%}</style></head>
 <body><main><h1>کارگاه آزمایشی دادیار: چک فرضی</h1><p role="status">صرفاً داده‌های ازپیش‌ساخته؛ بدون ارسال اطلاعات، هوش مصنوعی یا ذخیره در سرور. پاسخ خودکار حقوقی: ارائه نمی‌شود. اطلاعات واقعی وارد نکنید.</p>
 <section><label for="role">نقش شبیه‌سازی آموزشی</label><p id="role-simulation-notice" role="note">نقش‌های وکیل، قاضی، دادستان، ضابط و سردفتر در این پیش‌نمایش صرفاً شبیه‌سازی آموزشی‌اند؛ هیچ سمت، اختیار یا اثر حقوقی واقعی ایجاد نمی‌کنند.</p><select id="role"><option>وکیل</option><option>قاضی</option><option>سردفتر</option><option>دادستان</option><option>ضابط</option></select>
 <fieldset><legend>کدام مدارک فرضی را در مصاحبه داریم؟</legend>
@@ -24,7 +24,19 @@
 <label><input type="checkbox" id="export-ack"> من، بازبین انسانی، اعلام می‌کنم که شخصاً این پیش‌نویس فرضی را بازبینی کرده‌ام و نتیجه زیر را ثبت می‌کنم؛ این اظهار به معنای تأیید قانونی، اصالت مدارک یا بررسی مستقل متخصص نیست.</label>
 <button type="button" id="record-review" disabled>ثبت اظهار محلی بازبین</button><p id="review-status" role="status" aria-live="polite"></p>
 <p><small>محدودیت مهم: این نسخه کاملاً آفلاین است و هویت بازبین احراز نمی‌شود. نام، تصمیم و زمان فقط اظهار محلی‌اند و جایگزین بازبینی مستقلِ احراز‌شده در سامانه امن نیستند. زمان ثبت با ساعت دستگاه ایجاد و در گزارش به قالب UTC تبدیل می‌شود؛ ساعت دستگاه قابل راستی‌آزمایی مستقل نیست و این زمان مهر زمانی معتبر محسوب نمی‌شود.</small></p></section>
-<button type="button" id="download" disabled>دریافت گزارش متنی</button><p id="export-status" role="status" aria-live="polite"></p><p><small>این خروجی رأی، دستور، ثبت رسمی سند یا مشاوره حقوقی قطعی نیست. منابع قانونی و تاریخ اعتبار بررسی نشده‌اند.</small></p></section></main>
+<button type="button" id="download" disabled>دریافت گزارش متنی</button><p id="export-status" role="status" aria-live="polite"></p><p><small>این خروجی رأی، دستور، ثبت رسمی سند یا مشاوره حقوقی قطعی نیست. منابع قانونی و تاریخ اعتبار بررسی نشده‌اند.</small></p></section><section id="delay-damages-calculator" data-indexes='{"1":2654.9,"2":2880.4,"3":3092.3,"4":3205.1,"5":3333.9,"6":3452.1,"7":3611.1}' data-base-year="1395" data-base-year-status="inferred-from-1395-average-100-in-owner-image; not-independently-verified" data-source-status="transcribed-not-independently-authenticated">
+<h2>محاسبه آزمایشی خسارت تأخیر تأدیه ۱۴۰۵</h2>
+<p role="note">این ابزار آفلاین است. ارقام فروردین تا مهر ۱۴۰۵ از تصویر ارسالی مالک رونویسی شده‌اند و هنوز با جدول رسمی بانک مرکزی تطبیق مستقل نشده‌اند. از ردیف ۱۳۹۵ با متوسط ۱۰۰، سال پایه ۱۳۹۵ استنباط شده؛ این برداشت نیز نیازمند تأیید است.</p>
+<label for="delay-principal">اصل دین (عدد صحیح؛ واحد را انتخاب کنید)</label><input id="delay-principal" type="number" inputmode="numeric" min="1" step="1" value="100000000" autocomplete="off">
+<label for="delay-currency">واحد مبلغ</label><select id="delay-currency"><option value="ریال">ریال</option><option value="تومان">تومان</option></select>
+<label for="delay-due-month">ماه مبدأ قانونی محاسبه (سال ۱۴۰۵)</label><select id="delay-due-month"></select>
+<label for="delay-payment-month">ماه پرداخت / محاسبه (سال ۱۴۰۵)</label><select id="delay-payment-month"></select>
+<button id="delay-calculate" type="button">محاسبه خسارت تأخیر تأدیه</button>
+<pre id="delay-result" role="status" aria-live="polite">برای محاسبه، اصل دین و دو ماه را انتخاب کنید.</pre>
+<p>شاخص‌های واردشده در این نسخه:</p><ul id="delay-index-list"></ul>
+<p>فرمول عددی: اصل دین × (شاخص زمان پرداخت ÷ شاخص ماه مبدأ). این سری، شاخص سالانه‌ای است که به‌صورت جدول ماهانه منتشر می‌شود؛ با نرخ تورم ماهانه اشتباه نشود.</p>
+<p>محدودیت: فقط ماه‌های فروردین تا مهر ۱۴۰۵ موجودند. برای سال‌های دیگر یا ماه‌های فاقد شاخص، عدد حدس زده نمی‌شود. مبدأ قانونی، شرایط ماده ۵۲۲، نوع دین و آثار رأی یا قرارداد را این ابزار تعیین نمی‌کند. پیش از استفاده قضایی، جدول رسمی، سال پایه، متن معتبر رأی وحدت رویه ۸۵۰ و تاریخ اعتبار باید بررسی و تأیید انسانی شوند.</p>
+</section></main>
 <script>
 'use strict';
 const questions=['تاریخ صدور و سررسید فرضی چک چیست؟','گواهی عدم پرداخت فرضی موجود است؟','آیا ادعای پرداخت یا دفاع دیگری مطرح است؟'];
@@ -653,4 +665,80 @@ if (typeof window !== 'undefined' && typeof window.addEventListener === 'functio
   clearInterviewState();
  });
 }
+
+// BEGIN delay-damages calculator
+(function mountDelayDamagesCalculator() {
+  const root = document.getElementById('delay-damages-calculator');
+  if (!root) return;
+  const due = document.getElementById('delay-due-month');
+  const paid = document.getElementById('delay-payment-month');
+  const principalInput = document.getElementById('delay-principal');
+  const currency = document.getElementById('delay-currency');
+  const calculateButton = document.getElementById('delay-calculate');
+  const result = document.getElementById('delay-result');
+  const list = document.getElementById('delay-index-list');
+  const monthNames = [
+    'فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر'
+  ];
+  let indices;
+  try { indices = JSON.parse(root.dataset.indexes); }
+  catch { result.textContent = 'داده شاخص قابل خواندن نیست؛ محاسبه متوقف شد.'; return; }
+  if (!indices || Object.keys(indices).length !== 7 ||
+      monthNames.some((_, i) => !Number.isFinite(indices[String(i + 1)]))) {
+    result.textContent = 'داده شاخص ناقص است؛ محاسبه متوقف شد.';
+    return;
+  }
+  const format = value => new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 0 }).format(value);
+  const formatIndex = value => new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 1 }).format(value);
+  monthNames.forEach((name, i) => {
+    const month = i + 1;
+    for (const select of [due, paid]) {
+      const option = document.createElement('option');
+      option.value = String(month);
+      option.textContent = name + ' ۱۴۰۵';
+      select.append(option);
+    }
+    const item = document.createElement('li');
+    item.textContent = name + ' ۱۴۰۵: ' + formatIndex(indices[String(month)]);
+    list.append(item);
+  });
+  due.value = '1';
+  paid.value = '7';
+  calculateButton.addEventListener('click', () => {
+    const principal = Number(principalInput.value);
+    const dueMonth = Number(due.value);
+    const paymentMonth = Number(paid.value);
+    if (!Number.isSafeInteger(principal) || principal <= 0) {
+      result.textContent = 'اصل دین باید عدد صحیح مثبت و در محدوده امن باشد.';
+      return;
+    }
+    if (!Number.isInteger(dueMonth) || !Number.isInteger(paymentMonth) ||
+        !Number.isFinite(indices[String(dueMonth)]) || !Number.isFinite(indices[String(paymentMonth)])) {
+      result.textContent = 'برای ماه انتخابی شاخص تأییدشده‌ای در داده موجود نیست.';
+      return;
+    }
+    if (paymentMonth < dueMonth) {
+      result.textContent = 'ماه پرداخت/محاسبه نباید پیش از ماه مبدأ باشد.';
+      return;
+    }
+    const dueIndex = indices[String(dueMonth)];
+    const paymentIndex = indices[String(paymentMonth)];
+    const adjusted = Math.round(principal * paymentIndex / dueIndex);
+    if (!Number.isSafeInteger(adjusted)) {
+      result.textContent = 'مبلغ تعدیل‌شده از محدوده عدد صحیح امن خارج است.';
+      return;
+    }
+    const damages = adjusted - principal;
+    const unit = currency.value;
+    result.textContent = [
+      'اصل دین: ' + format(principal) + ' ' + unit,
+      'شاخص ماه مبدأ: ' + formatIndex(dueIndex),
+      'شاخص ماه پرداخت: ' + formatIndex(paymentIndex),
+      'مبلغ با احتساب شاخص: ' + format(adjusted) + ' ' + unit,
+      'خسارت محاسباتی: ' + format(damages) + ' ' + unit,
+      'منبع داده: تصویر مالک؛ تأیید رسمی و حقوقی نشده است.'
+    ].join('\\n');
+  });
+})();
+// END delay-damages calculator
 </script></body></html>
