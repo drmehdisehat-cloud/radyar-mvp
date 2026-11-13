@@ -224,6 +224,10 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  window.__dadyarExportBlob = null; window.__dadyarDownloadName = "";',
       '  download.click();',
       '  const repeatExportBlocked = window.__dadyarExportBlob === null && download.disabled;',
+      '  const reviewerClearedAfterDownload = reviewer.value === "" && note.value === "" && decision.value === "pending";',
+      '  document.getElementById("export-ack").click();',
+      '  const reapprovalBlockedWithoutFreshDetails = document.getElementById("record-review").disabled && download.disabled;',
+      '  const postDownloadReviewStatus = document.getElementById("review-status").textContent;',
       '  const reportAfterAcknowledgement = document.getElementById("report").textContent;',
       '  const question = document.getElementById("free-question");',
       '  question.value = "پرسش فرضی که هنوز ثبت نشده است";',
@@ -254,6 +258,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '    horizontalOverflow: root.scrollWidth > root.clientWidth + 1,',
       '    initialDisabled, blockedBeforeAcknowledgement, enabledAfterHumanReview, reviewStatus,',
       '    exportEnabledBeforeDownload, exportedReport, exportedFilename, approvalConsumed, repeatExportBlocked,',
+      '    reviewerClearedAfterDownload, reapprovalBlockedWithoutFreshDetails, postDownloadReviewStatus,',
       '    reportAfterAcknowledgement, staleDraftInvalidated, multiTopicReport, multiTopicIds,',
       '    pagehideClearedUnsubmittedQuestion, pagehideClearedDraft, pagehideClearedReviewer, pagehideClearedSelections, pagehideClearedReviewApproval,',
       '    multiTopicExportEligible, multiTopicScopeStatus, multiTopicInputCleared, multiTopicRawQuestionEchoed,',
@@ -291,6 +296,9 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.match(snapshot.exportedReport, /این اظهار محلی است و تأیید حقوقی یا احراز هویت محسوب نمی‌شود/);
     assert.equal(snapshot.approvalConsumed, true, 'approval was not consumed after report download');
     assert.equal(snapshot.repeatExportBlocked, true, 'a second report download was allowed without a fresh review');
+    assert.equal(snapshot.reviewerClearedAfterDownload, true, 'reviewer identity label or note remained after export');
+    assert.equal(snapshot.reapprovalBlockedWithoutFreshDetails, true, 'the same local review details could be reused after export');
+    assert.match(snapshot.postDownloadReviewStatus, /از ابتدا/);
     assert.match(snapshot.reportAfterAcknowledgement, /منابع قانونی: تأییدنشده/);
     assert.equal(snapshot.staleDraftInvalidated, true, 'editing free question retained a stale draft');
     assert.equal(snapshot.pagehideClearedUnsubmittedQuestion, true, 'pagehide retained an unsubmitted free question');
