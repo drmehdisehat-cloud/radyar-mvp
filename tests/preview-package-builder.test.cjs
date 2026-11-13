@@ -44,6 +44,11 @@ test('handoff package is minimal, byte-identical, checksum verified and explicit
     assert.equal(result.source_blob_sha1, metadata.source_file_git_blob_sha1);
     assert.equal(metadata.source_branch, branch);
     assert.equal(metadata.target_subpath, '/dadyar-preview/');
+    assert.equal(metadata.delay_damages_calculator, 'offline-only');
+    assert.equal(metadata.delay_index_series, 'annual-index-published-monthly');
+    assert.equal(metadata.delay_index_base_year, 1395);
+    assert.equal(metadata.delay_index_months_available, 7);
+    assert.equal(metadata.delay_index_source_status, 'transcribed-not-independently-authenticated');
     assert.equal(metadata.api_enabled, false);
     assert.equal(metadata.public_ai_enabled, false);
     assert.equal(metadata.reviewer_authentication, 'not-implemented');
