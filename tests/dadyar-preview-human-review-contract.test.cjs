@@ -72,6 +72,9 @@ test('editing review metadata clears prior approval and requires fresh explicit 
   const invalidatorEnd = html.indexOf('\n}', invalidatorStart);
   assert.ok(permissionEnd > permissionStart, 'export permission function end missing');
   assert.ok(invalidatorEnd > invalidatorStart, 'human-review invalidator end missing');
+  const privacyDetector = html.match(/function hasSensitiveIdentifier\(value\) \{[\s\S]*?\n\}/)?.[0];
+  const reviewerSafety = html.match(/function reviewerDetailsAreSafe\(\) \{[\s\S]*?\n\}/)?.[0];
+  assert.ok(privacyDetector && reviewerSafety, 'reviewer privacy helpers missing');
   const permission = html.slice(permissionStart, permissionEnd + 3);
   const invalidator = html.slice(invalidatorStart, invalidatorEnd + 3);
   const state = {
@@ -87,7 +90,7 @@ test('editing review metadata clears prior approval and requires fresh explicit 
     reviewStatus: { textContent: '' },
     safeReviewText: (value, max) => String(value || '').slice(0, max)
   };
-  vm.runInNewContext(permission + '\n' + invalidator + '\ninvalidateHumanReview();', state);
+  vm.runInNewContext(privacyDetector + '\n' + reviewerSafety + '\n' + permission + '\n' + invalidator + '\ninvalidateHumanReview();', state);
   assert.equal(state.reviewRecord, null);
   assert.equal(state.exportAck.checked, false);
   assert.equal(state.downloadButton.disabled, true);
