@@ -89,6 +89,7 @@ test('reviewer label and note cannot be approved when they contain likely sensit
     h[field].value = value;
     h[field].dispatchEvent({ type: 'input' });
     assert.equal(h.recordReviewButton.disabled, true, field + ' must not accept sensitive data');
+    assert.equal(h[field].value, '', field + ' must be cleared immediately after a sensitive value is detected');
     assert.match(h.reviewStatus.textContent, /شناسه حساس/);
     h.recordReviewButton.click();
     assert.equal(h.downloadButton.disabled, true, 'sensitive reviewer metadata must not unlock export');

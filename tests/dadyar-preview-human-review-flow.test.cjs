@@ -295,3 +295,15 @@ test('internal topic-match details are discarded after the neutral scope notice 
   assert.equal(h.internalTopicMatchCount, 0, 'keyword matches must not remain in page state after classification');
   assert.doesNotMatch(h.get('report').textContent, /در سناریوی ساختگی چک و طلاق/);
 });
+
+test('raw free-question and derived identifier strings are released after local classification', () => {
+  const handlerStart = script.indexOf("document.getElementById('generate').addEventListener");
+  const handlerEnd = script.indexOf("document.getElementById('download').addEventListener", handlerStart);
+  assert.ok(handlerStart >= 0 && handlerEnd > handlerStart, 'question handler must exist');
+  const handler = script.slice(handlerStart, handlerEnd);
+  assert.match(handler, /let freeQuestion=freeQuestionField\.value\.trim\(\)/);
+  assert.match(handler, /let normalizedQuestionDigits=/);
+  assert.match(handler, /let compactIdentifierDigits=/);
+  assert.match(handler, /normalizedQuestionDigits='';\s*compactIdentifierDigits='';/);
+  assert.match(handler, /freeQuestion='';/);
+});

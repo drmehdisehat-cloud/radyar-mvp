@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; script-src 'sha256-htFDfJL3mdD071nfbiPeCZDUQHohEZNI2EnmKbftSFs='; style-src 'sha256-lrzIHO5gcJgWBtnFurwNYbHskiZxSHWg/P7CnNPJT20='; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; script-src 'sha256-6StAL+iMsf+iRPtlln5L/hcL6cNiewctiUZepzPy11U='; style-src 'sha256-lrzIHO5gcJgWBtnFurwNYbHskiZxSHWg/P7CnNPJT20='; form-action 'none'; base-uri 'none'">
 <title>دادیار | پیش‌نمایش آفلاین چک فرضی</title>
 <style>body{font:1rem/1.9 system-ui,sans-serif;background:#f5f6fa;color:#17243b;margin:0}main{max-width:780px;margin:auto;padding:1.2rem}section{background:white;border-radius:16px;padding:1.2rem;margin:1rem 0;box-shadow:0 2px 12px #17243b12}button,select{font:inherit;min-height:44px;max-width:100%;padding:.5rem;border:1px solid #718096;border-radius:8px}input[type=checkbox]{min-width:22px;min-height:22px;vertical-align:middle}button{background:#dcecfb;cursor:pointer}button:focus-visible,select:focus-visible{outline:3px solid #2469a8}fieldset{border:1px solid #b4bfd0;border-radius:12px;margin:1rem 0}label{display:block;margin:.6rem 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}small{color:#475569}#result[hidden]{display:none}#free-question,#reviewer-name,#review-note{box-sizing:border-box;width:100%;font:inherit;border:1px solid #718096;border-radius:8px;padding:.5rem}#review-note{min-height:4.5rem}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}</style></head>
 <body><main><h1>کارگاه آزمایشی دادیار: چک فرضی</h1><p role="status">صرفاً داده‌های ازپیش‌ساخته؛ بدون ارسال اطلاعات، هوش مصنوعی یا ذخیره در سرور. پاسخ خودکار حقوقی: ارائه نمی‌شود. اطلاعات واقعی وارد نکنید.</p>
@@ -480,9 +480,13 @@ function reviewerDetailsAreSafe() {
   !hasSensitiveIdentifier(safeReviewText(reviewNote.value,300));
 }
 function showReviewerPrivacyWarning() {
- if(!reviewerDetailsAreSafe()) {
+ const unsafeName=hasSensitiveIdentifier(safeReviewText(reviewerName.value,80));
+ const unsafeNote=hasSensitiveIdentifier(safeReviewText(reviewNote.value,300));
+ if(unsafeName || unsafeNote) {
+  if(unsafeName) reviewerName.value='';
+  if(unsafeNote) reviewNote.value='';
+  invalidateHumanReview('اطلاعات بازبین احتمالاً شامل شناسه حساس بود؛ فیلد آلوده پاک شد. فقط داده ساختگی وارد کنید.');
   recordReviewButton.disabled=true;
-  reviewStatus.textContent='اطلاعات بازبین احتمالاً شامل شناسه حساس است؛ فقط داده ساختگی وارد کنید و شماره تماس، کد ملی، کارت، ایمیل یا نشانی اینترنتی ننویسید.';
  }
 }
 function safeReviewText(value,max){
@@ -548,12 +552,14 @@ document.getElementById('generate').addEventListener('click',()=>{
  const answers=[...document.querySelectorAll('#interview select')].map(el=>({question:el.dataset.question,answer:el.options[el.selectedIndex].textContent,state:el.value}));
  const unresolved=answers.filter(item=>item.state==='unknown');
  const freeQuestionField=document.getElementById('free-question');
- const freeQuestion=freeQuestionField.value.trim();
+ let freeQuestion=freeQuestionField.value.trim();
  // Fail closed on likely real Iranian mobile numbers, national IDs or bank card numbers in free text.
  // This is a local warning, not a guarantee of anonymisation.
- const normalizedQuestionDigits=freeQuestion.normalize('NFKC').replace(/[۰-۹]/g,d=>String(d.charCodeAt(0)-0x06F0)).replace(/[٠-٩]/g,d=>String(d.charCodeAt(0)-0x0660)).replace(/(?<=\d)[\u200c\u200d\u200e\u200f\u2060\ufeff]+(?=\d)/g,'');
- const compactIdentifierDigits=normalizedQuestionDigits.replace(/(?<![A-Za-z0-9])IR[ \t\r\n\u00a0\u2007\u2009\u202f\u200c\u200d\u200e\u200f\u2060\ufeff\-–—]+(?=\d)/gi,'IR').replace(/(?<=\d)[ \t\r\n\u00a0\u2007\u2009\u202f\-–—]+(?=\d)/g,'');
+ let normalizedQuestionDigits=freeQuestion.normalize('NFKC').replace(/[۰-۹]/g,d=>String(d.charCodeAt(0)-0x06F0)).replace(/[٠-٩]/g,d=>String(d.charCodeAt(0)-0x0660)).replace(/(?<=\d)[\u200c\u200d\u200e\u200f\u2060\ufeff]+(?=\d)/g,'');
+ let compactIdentifierDigits=normalizedQuestionDigits.replace(/(?<![A-Za-z0-9])IR[ \t\r\n\u00a0\u2007\u2009\u202f\u200c\u200d\u200e\u200f\u2060\ufeff\-–—]+(?=\d)/gi,'IR').replace(/(?<=\d)[ \t\r\n\u00a0\u2007\u2009\u202f\-–—]+(?=\d)/g,'');
  const hasSensitiveIdentifier=/(?:\+?98|0)?9\d{9}(?!\d)|(?:\d[ -]?){15}\d|(?<!\d)\d{10}(?!\d)/.test(compactIdentifierDigits) || /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i.test(freeQuestion) || /(?<![A-Za-z0-9])IR\d{24}(?!\d)/i.test(compactIdentifierDigits) || /(?:https?:\/\/|www\.)[^\s<>]+|(?<![\p{L}\p{N}_])(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z]{2,24})(?:\/[^\s<>]*)?/iu.test(freeQuestion);
+ normalizedQuestionDigits='';
+ compactIdentifierDigits='';
  // Never echo suspected identifiers into the visible draft, even while export is blocked.
  const displayQuestion=hasSensitiveIdentifier
   ?'نامشخص؛ شناسه حساس احتمالی شناسایی شد و متن ورودی حذف شد'
@@ -568,6 +574,8 @@ document.getElementById('generate').addEventListener('click',()=>{
  // This prevents names, addresses or other unrecognized personal details from entering the report.
  freeQuestionField.value='';
  const questionOutsideChequeScope=Boolean(freeQuestion) && !internalTopicMatches.some(topic=>topic.id==='instruments');
+ // The scope decision and neutral notice are now complete; drop the raw question reference.
+ freeQuestion='';
  // Topic ids and matched keywords are needed only for the scope decision. Do not
  // retain inferred legal-topic details in page state after the notice is produced.
  internalTopicMatches=[];
