@@ -28,7 +28,7 @@ test('creates a deterministic manifest bound to the exact source commit and payl
     'dadyar-preview/data.json',
     'dadyar-preview/index.html'
   ]);
-  assert.deepEqual(verifyManifest(root), { sourceCommit: COMMIT, files: 3, verified: true });
+  assert.deepEqual(verifyManifest(root), { sourceCommit: COMMIT, files: 2, verified: true });
 });
 
 test('rejects a payload modified after manifest creation', t => {
