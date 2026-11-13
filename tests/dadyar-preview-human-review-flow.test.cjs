@@ -79,7 +79,8 @@ function harness() {
   ].map((input, index) => ({
     ...input,
     addEventListener(type, callback) {
-      handlers.set('evidence' + index + ':' + type, callback);
+      const key = 'evidence' + index + ':' + type;
+      handlers.set(key, [...(handlers.get(key) || []), callback]);
     }
   }));
 
@@ -95,7 +96,8 @@ function harness() {
     selectedIndex: 0,
     options: labels.map(textContent => ({ textContent })),
     addEventListener(type, callback) {
-      handlers.set(id + ':' + type, callback);
+      const key = id + ':' + type;
+      handlers.set(key, [...(handlers.get(key) || []), callback]);
     }
   }));
 
