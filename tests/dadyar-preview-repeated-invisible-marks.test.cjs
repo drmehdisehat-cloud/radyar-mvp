@@ -6,7 +6,7 @@ const vm = require('node:vm');
 const path = require('node:path');
 
 const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
-const expression = html.match(/const normalizedQuestionDigits=(.*);/);
+const expression = html.match(/let normalizedQuestionDigits=(.*);/);
 assert.ok(expression, 'preview must normalize question digits');
 const marks = '\u200c\u200d\u200e\u200f\u2060\ufeff';
 

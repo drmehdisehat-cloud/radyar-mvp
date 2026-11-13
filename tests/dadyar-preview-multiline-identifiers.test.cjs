@@ -7,8 +7,8 @@ const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'
 
 test('synthetic cheque free question rejects identifiers split by line breaks and unicode spaces', () => {
   const normalize = new Function('freeQuestion',
-    html.match(/const normalizedQuestionDigits=([^;]+);/)[0] + '\n' +
-    html.match(/const compactIdentifierDigits=([^;]+);/)[0] +
+    html.match(/let normalizedQuestionDigits=([^;]+);/)[0] + '\n' +
+    html.match(/let compactIdentifierDigits=([^;]+);/)[0] +
     '\nreturn compactIdentifierDigits;');
   const detect = new Function('compactIdentifierDigits',
     'return ' + html.match(/const hasSensitiveIdentifier=([^;]+);/)[1].split(' || ')[0] + ';');

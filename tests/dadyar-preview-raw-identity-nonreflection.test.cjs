@@ -10,7 +10,7 @@ const vm = require('node:vm');
 const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
 const hintsSource = html.match(/const topicHints = (\[[\s\S]*?\n\]);\nfunction normalizeTopicText/)?.[1];
 const helperSource = html.match(/function normalizeTopicText\(value\) \{[\s\S]*?function describeTopicScope\(matches, question\) \{[\s\S]*?\n\}/)?.[0];
-const privacyStart = html.indexOf(' const normalizedQuestionDigits=');
+const privacyStart = html.indexOf(' let normalizedQuestionDigits=');
 const privacyEnd = html.indexOf(' const questionOutsideChequeScope=', privacyStart);
 const privacySource = privacyStart >= 0 && privacyEnd > privacyStart ? html.slice(privacyStart, privacyEnd) : '';
 

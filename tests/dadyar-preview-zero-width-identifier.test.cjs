@@ -6,7 +6,7 @@ const path=require('node:path');
 const html=fs.readFileSync(path.join(__dirname,'../dadyar-preview/index.html'),'utf8');
 test('offline cheque intake strips zero-width separators between identifier digits before privacy check',()=>{
   assert.match(html,/replace\(\/\(\?<=\\d\)\[\\u200c/);
-  const match=html.match(/const normalizedQuestionDigits=([^;]+);/);
+  const match=html.match(/let normalizedQuestionDigits=([^;]+);/);
   assert.ok(match,'normalization expression missing');
   const normalize=new Function('freeQuestion','return '+match[1]);
   const suspect=s=>/(?:\+?98|0)?9\d{9}(?!\d)|(?:\d[ -]?){15}\d|(?<!\d)\d{10}(?!\d)/.test(normalize(s));

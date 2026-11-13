@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
 test('offline IBAN guard includes invisible marks after IR prefix', () => {
-  const line = html.split('\n').find(line => line.includes('const compactIdentifierDigits='));
+  const line = html.split('\n').find(line => line.includes('let compactIdentifierDigits='));
   assert.ok(line, 'privacy normalization must exist');
   for (const mark of ['\\u200c','\\u200d','\\u200e','\\u200f','\\u2060','\\ufeff']) {
     assert.ok(line.includes(mark), 'missing invisible separator '+mark);
