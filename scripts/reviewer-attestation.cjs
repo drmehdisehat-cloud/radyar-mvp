@@ -50,9 +50,12 @@ function canonicalizeReviewPayload(payload) {
     }
   }
   if (typeof payload.reviewedAt !== 'string' ||
-      !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(payload.reviewedAt) ||
-      new Date(payload.reviewedAt).toISOString() !== payload.reviewedAt) {
+      !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(payload.reviewedAt)) {
     throw new TypeError('Review timestamp must be canonical UTC ISO-8601.');
+  }
+  const reviewedAt = Date.parse(payload.reviewedAt);
+  if (!Number.isFinite(reviewedAt) || new Date(reviewedAt).toISOString() !== payload.reviewedAt) {
+    throw new TypeError('Review timestamp must be a real canonical UTC date.');
   }
   if (typeof payload.nonce !== 'string' || !/^[A-Za-z0-9_-]{22}$/.test(payload.nonce) ||
       Buffer.from(payload.nonce, 'base64url').length !== 16 ||
@@ -65,7 +68,7 @@ function canonicalizeReviewPayload(payload) {
   return JSON.stringify(ordered);
 }
 
-function verifyReviewAttestation(envelope, options = {}) {
+async function verifyReviewAttestation(envelope, options = {}) {
   exactKeys(envelope, ['payload', 'signature'], 'Review envelope');
   const canonical = canonicalizeReviewPayload(envelope.payload);
   if (typeof envelope.signature !== 'string' || !/^[A-Za-z0-9_-]{86}$/.test(envelope.signature)) {
@@ -76,11 +79,21 @@ function verifyReviewAttestation(envelope, options = {}) {
     throw new TypeError('Malformed review signature.');
   }
 
-  const { trustedKeys, expected, now = Date.now(), maxAgeMs = 24 * 60 * 60 * 1000, futureSkewMs = 5 * 60 * 1000 } = options;
+  const {
+    trustedKeys,
+    expected,
+    nonceStore,
+    now = Date.now(),
+    maxAgeMs = 24 * 60 * 60 * 1000,
+    futureSkewMs = 5 * 60 * 1000
+  } = options;
   if (!trustedKeys || typeof trustedKeys !== 'object' || Array.isArray(trustedKeys)) {
     throw new TypeError('An explicit trusted reviewer-key map is required.');
   }
   exactKeys(expected, ['sourceCommit', 'artifactSha256', 'reportSha256', 'reviewerId'], 'Expected review binding');
+  if (!nonceStore || typeof nonceStore.consume !== 'function') {
+    throw new TypeError('An atomic replay-protection nonce store is required.');
+  }
   for (const field of ['sourceCommit', 'artifactSha256', 'reportSha256', 'reviewerId']) {
     if (envelope.payload[field] !== expected[field]) throw new Error('Review attestation does not match expected ' + field + '.');
   }
@@ -94,6 +107,9 @@ function verifyReviewAttestation(envelope, options = {}) {
   if (reviewedAt > now + futureSkewMs) throw new Error('Review attestation timestamp is in the future.');
   if (now - reviewedAt > maxAgeMs) throw new Error('Review attestation has expired.');
 
+  if (!Object.prototype.hasOwnProperty.call(trustedKeys, envelope.payload.keyId)) {
+    throw new Error('Reviewer signing key is not trusted.');
+  }
   const pem = trustedKeys[envelope.payload.keyId];
   if (typeof pem !== 'string' || !pem.trim()) throw new Error('Reviewer signing key is not trusted.');
   let publicKey;
@@ -108,6 +124,11 @@ function verifyReviewAttestation(envelope, options = {}) {
   if (!crypto.verify(null, Buffer.from(canonical, 'utf8'), publicKey, signature)) {
     throw new Error('Review attestation signature verification failed.');
   }
+
+  // The store must atomically insert the nonce under a unique constraint and
+  // return true only once. Verification fails closed if the nonce is replayed.
+  const consumed = await nonceStore.consume(envelope.payload.nonce, reviewedAt + maxAgeMs);
+  if (consumed !== true) throw new Error('Review attestation nonce was already used or could not be atomically consumed.');
 
   return {
     verified: true,
