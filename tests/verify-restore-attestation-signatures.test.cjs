@@ -221,3 +221,14 @@ test('CLI canonicalizes and verifies two detached signatures using only external
   assert.equal(tampered.status, 1);
   assert.equal(JSON.parse(tampered.stdout).status, 'NOT_VERIFIED');
 });
+
+
+test('CLI rejects invalid UTF-8 manifest bytes instead of replacement decoding', t => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-attestation-invalid-utf8-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const manifest = path.join(directory, 'restore.json');
+  fs.writeFileSync(manifest, Buffer.from([0x7b, 0x22, 0x78, 0x22, 0x3a, 0x22, 0xc3, 0x28, 0x22, 0x7d]));
+  const result = spawnSync(process.execPath, [SCRIPT, '--canonicalize', '--manifest', manifest], { encoding: 'utf8' });
+  assert.equal(result.status, 1);
+  assert.equal(JSON.parse(result.stdout).error, 'manifest_is_not_valid_utf8');
+});
