@@ -1,11 +1,15 @@
 {
-  "schema": "dadyar-delay-damages-monthly-index-v1",
+  "schema": "dadyar-delay-damages-index-v2",
   "year": 1405,
-  "unit": "index",
+  "seriesType": "annual-index-published-monthly",
+  "unit": "index-point",
+  "baseYear": 1395,
+  "baseYearStatus": "inferred-from-1395-average-100-in-owner-image; not-independently-verified",
   "source": {
     "type": "owner-provided-image",
     "status": "transcribed-not-independently-authenticated",
-    "note": "اعداد از تصویر ارسالی مالک استخراج شده‌اند؛ پیش از استفاده حقوقی باید با جدول رسمی بانک مرکزی تطبیق و توسط انسان تأیید شوند."
+    "receivedDate": "2026-11-13",
+    "note": "هفت مقدار فروردین تا مهر ۱۴۰۵ از تصویر مالک رونویسی شده‌اند. ردیف ۱۳۹۵ با متوسط ۱۰۰، سال پایه ۱۳۹۵ را محتمل می‌کند؛ این برداشت و خود ارقام باید با جدول/نامه رسمی بانک مرکزی تطبیق و توسط بازبین حقوقی تأیید شوند."
   },
   "months": {
     "1": 2654.9,
