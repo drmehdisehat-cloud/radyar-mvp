@@ -100,3 +100,19 @@ test('single-word hints do not match as substrings inside unrelated words', () =
   assert.ok(!ids.includes('instruments'));
   assert.ok(!ids.includes('finance'));
 });
+test('cheque-only preview blocks multi-topic questions even when cheque is one detected domain', () => {
+  const { classify } = classifier();
+  const expression = html.match(/const questionOutsideChequeScope=([^;]+);/)?.[1];
+  assert.ok(expression, 'cheque-only scope gate missing');
+  const outside = question => {
+    const internalTopicMatches = classify(question);
+    return vm.runInNewContext(expression, { freeQuestion: question, internalTopicMatches });
+  };
+  assert.equal(outside(''), false, 'empty optional question keeps the synthetic cheque flow available');
+  assert.equal(outside('چک صیادی و گواهی عدم پرداخت'), false, 'cheque-only question is in scope');
+  assert.equal(outside('چک تضمینی و اجاره'), true, 'mixed cheque/property question must be blocked');
+  assert.equal(outside('چک و طلاق'), true, 'mixed cheque/family question must be blocked');
+  assert.equal(outside('اجاره'), true, 'non-cheque question must be blocked');
+  assert.equal(outside('موضوع نامرتبط و بی‌کلیدواژه'), true, 'unclassified question must be blocked');
+  assert.match(html, /if\(questionOutsideChequeScope\) conflicts\.push\(/);
+});
