@@ -12,3 +12,12 @@ test('offline cheque preview exposes a responsive viewport and 44px touch target
   assert.match(html, /input\[type=checkbox\]\{[^}]*min-width:22px;min-height:22px/);
   assert.match(html, /button:focus-visible,select:focus-visible\{outline:3px/);
 });
+
+
+test('delay-damages calculator controls remain usable on narrow touch screens', () => {
+  assert.match(html, /#delay-principal\\{min-height:44px\\}/);
+  assert.match(html, /#delay-due-month,#delay-payment-month,#delay-currency\\{width:100%\\}/);
+  assert.match(html, /#delay-calculate\\{width:100%\\}/);
+  assert.match(html, /id="delay-damages-calculator"/);
+  assert.match(html, /id="delay-calculate"/);
+});
