@@ -83,10 +83,12 @@ function hasVerifiedStagingDestination(evidence) {
   return outsideDocumentRoot(evidence.destination_realpath, evidence.production_document_root_realpath);
 }
 
-function decidePreviewRelease({ restoreEvidence, destinationEvidence, isolatedRestoreVerified = false, mobileBrowserVerified = false, zeroApiRequestsVerified = false, humanReviewVerified = false, authenticatedHumanReviewAttested = false } = {}) {
+function decidePreviewRelease({ restoreEvidence, destinationEvidence, isolatedRestoreVerified = false, mobileBrowserVerified = false, zeroApiRequestsVerified = false, humanReviewVerified = false, authenticatedHumanReviewAttested = false, authenticatedRestoreAttestation = false } = {}) {
   const blockers = [];
   if (!hasIndependentRestoreAttestation(restoreEvidence) || isolatedRestoreVerified !== true)
     blockers.push('independent restore attestation incomplete or unverified');
+  if (authenticatedRestoreAttestation !== true)
+    blockers.push('two-party restore signatures and independently pinned key fingerprints missing');
   if (!hasVerifiedStagingDestination(destinationEvidence))
     blockers.push('preview destination is not verified outside production document root');
   if (mobileBrowserVerified !== true) blockers.push('real mobile browser test missing');
@@ -97,6 +99,7 @@ function decidePreviewRelease({ restoreEvidence, destinationEvidence, isolatedRe
     status: blockers.length ? 'NOT_READY' : 'EVIDENCE_SHAPE_VALID_REQUIRES_EXTERNAL_VERIFICATION',
     blockers,
     externalChecksPending: Object.freeze([
+      'restore signatures and key fingerprints establish integrity against supplied pins only; real-world signer identities and the actual restore operation remain independently unverified',
       'operator-supplied restore and destination attestations have not been independently authenticated',
       'reviewer identity and approval have not been independently authenticated against a trusted identity source',
       'live HTTPS response, hosting headers, and live mobile behavior have not been verified by this tool',

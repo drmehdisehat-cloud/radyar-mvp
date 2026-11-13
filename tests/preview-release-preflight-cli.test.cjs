@@ -7,6 +7,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 const { canonicalizePayload } = require('../scripts/verify-human-review-attestation.cjs');
+const { canonicalizeManifest } = require('../scripts/verify-restore-attestation-signatures.cjs');
 
 const CLI = path.join(__dirname, '../scripts/preview-release-preflight.cjs');
 const digest = value => crypto.createHash('sha256').update(value).digest('hex');
@@ -42,6 +43,16 @@ function fixture() {
     restore_completed_at: restoreCompleted,
     reviewed_at: reviewed
   };
+  const operatorKeys = crypto.generateKeyPairSync('ed25519');
+  const reviewerKeys = crypto.generateKeyPairSync('ed25519');
+  const canonicalRestore = Buffer.from(canonicalizeManifest(restore), 'utf8');
+  const operatorSignature = crypto.sign(null, canonicalRestore, operatorKeys.privateKey);
+  const reviewerSignature = crypto.sign(null, canonicalRestore, reviewerKeys.privateKey);
+  const operatorPublicKeyPem = operatorKeys.publicKey.export({ type: 'spki', format: 'pem' });
+  const reviewerPublicKeyPem = reviewerKeys.publicKey.export({ type: 'spki', format: 'pem' });
+  const operatorFingerprint = digest(operatorKeys.publicKey.export({ type: 'spki', format: 'der' }));
+  const reviewerFingerprint = digest(reviewerKeys.publicKey.export({ type: 'spki', format: 'der' }));
+
   const sourceHash = digest('synthetic reviewed preview');
   const sourceCommit = 'c'.repeat(40);
   const destination = {
@@ -86,13 +97,23 @@ function fixture() {
   const destinationFile = path.join(directory, 'destination.json');
   const attestationFile = path.join(directory, 'review-attestation.json');
   const trustStoreFile = path.join(directory, 'review-trust-store.json');
+  const restoreOperatorPublicKeyFile = path.join(directory, 'restore-operator-public.pem');
+  const restoreOperatorSignatureFile = path.join(directory, 'restore-operator.sig');
+  const restoreReviewerPublicKeyFile = path.join(directory, 'restore-reviewer-public.pem');
+  const restoreReviewerSignatureFile = path.join(directory, 'restore-reviewer.sig');
   fs.writeFileSync(restoreFile, JSON.stringify(restore));
   fs.writeFileSync(destinationFile, JSON.stringify(destination));
   fs.writeFileSync(attestationFile, JSON.stringify(attestation));
   fs.writeFileSync(trustStoreFile, JSON.stringify(trustStore));
+  fs.writeFileSync(restoreOperatorPublicKeyFile, operatorPublicKeyPem);
+  fs.writeFileSync(restoreOperatorSignatureFile, operatorSignature);
+  fs.writeFileSync(restoreReviewerPublicKeyFile, reviewerPublicKeyPem);
+  fs.writeFileSync(restoreReviewerSignatureFile, reviewerSignature);
   return {
     directory, restoreFile, destinationFile, attestationFile, trustStoreFile,
-    sourceCommit, sourceHash
+    restoreOperatorPublicKeyFile, restoreOperatorSignatureFile,
+    restoreReviewerPublicKeyFile, restoreReviewerSignatureFile,
+    operatorFingerprint, reviewerFingerprint, sourceCommit, sourceHash
   };
 }
 
@@ -103,6 +124,12 @@ function run(args) {
 function baseArgs(f) {
   return [
     '--restore-evidence', f.restoreFile,
+    '--restore-operator-public-key', f.restoreOperatorPublicKeyFile,
+    '--restore-operator-signature', f.restoreOperatorSignatureFile,
+    '--restore-reviewer-public-key', f.restoreReviewerPublicKeyFile,
+    '--restore-reviewer-signature', f.restoreReviewerSignatureFile,
+    '--expected-restore-operator-public-key-sha256', f.operatorFingerprint,
+    '--expected-restore-reviewer-public-key-sha256', f.reviewerFingerprint,
     '--destination-evidence', f.destinationFile,
     '--review-attestation', f.attestationFile,
     '--review-trust-store', f.trustStoreFile,
@@ -131,10 +158,14 @@ test('read-only CLI verifies a signed synthetic review but still requires extern
     const report = JSON.parse(result.stdout);
     assert.equal(report.status, 'EVIDENCE_SHAPE_VALID_REQUIRES_EXTERNAL_VERIFICATION');
     assert.equal(report.deploymentAuthorized, false);
-    assert.equal(report.externalChecksPending.length, 4);
+    assert.equal(report.externalChecksPending.length, 5);
     assert.deepEqual(report.blockers, []);
     assert.equal(report.evidenceFilesRead, true);
     assert.equal(report.attestationFlagsSupplied, 4);
+    assert.equal(report.restoreAttestation.verified, true);
+    assert.equal(report.restoreAttestation.keyFingerprintsPinned, true);
+    assert.equal(report.restoreAttestation.signerIdentityIndependentlyVerified, false);
+    assert.equal(report.restoreAttestation.restoreOperationIndependentlyVerified, false);
     assert.equal(report.reviewAttestation.verified, true);
     assert.equal(report.reviewAttestation.subject, 'synthetic-reviewer-01');
     assert.equal(report.reviewAttestation.trustStoreSha256, digest(fs.readFileSync(f.trustStoreFile)));
@@ -343,6 +374,8 @@ test('unknown deploy-like options are rejected and the CLI exposes no deploy com
   assert.match(help.stdout, /read-only/);
   assert.match(help.stdout, /never deploys/);
   assert.match(help.stdout, /--review-attestation/);
+  assert.match(help.stdout, /--restore-operator-public-key/);
+  assert.match(help.stdout, /--expected-restore-reviewer-public-key-sha256/);
   const result = run(['--deploy']);
   assert.equal(result.status, 2);
   const report = JSON.parse(result.stdout);
@@ -368,6 +401,56 @@ test('malformed UTF-8 evidence is rejected before JSON parsing', () => {
   }
 });
 
+test('a modified restore manifest is rejected by the two-party signature gate', () => {
+  const f = fixture();
+  try {
+    const manifest = JSON.parse(fs.readFileSync(f.restoreFile, 'utf8'));
+    manifest.restore_target_id = 'substituted-target';
+    fs.writeFileSync(f.restoreFile, JSON.stringify(manifest));
+    const result = run(baseArgs(f));
+    assert.equal(result.status, 1, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.restoreAttestation.verified, false);
+    assert.equal(report.restoreAttestation.reason, 'operator_signature_invalid');
+    assert.ok(report.blockers.includes('two-party restore signatures and independently pinned key fingerprints missing'));
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
+test('an operator key that does not match the owner-pinned fingerprint is rejected', () => {
+  const f = fixture();
+  try {
+    const args = baseArgs(f);
+    args[args.indexOf('--expected-restore-operator-public-key-sha256') + 1] = '0'.repeat(64);
+    const result = run(args);
+    assert.equal(result.status, 1, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.restoreAttestation.verified, false);
+    assert.equal(report.restoreAttestation.reason, 'operator_public_key_fingerprint_mismatch');
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
+test('missing one restore signature input blocks preflight even when the manifest looks complete', () => {
+  const f = fixture();
+  try {
+    const args = removeValuePair(baseArgs(f), '--restore-reviewer-signature');
+    const result = run(args);
+    assert.equal(result.status, 1, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.restoreAttestation.verified, false);
+    assert.equal(report.restoreAttestation.reason, 'restore_attestation_inputs_incomplete');
+    assert.ok(report.blockers.includes('two-party restore signatures and independently pinned key fingerprints missing'));
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
 test('operator restore checklist documents only supported signed preflight options', () => {
   const guide = fs.readFileSync(path.join(__dirname, '../docs/preview-isolated-restore-operator-checklist.md'), 'utf8');
   const start = guide.indexOf('node scripts/preview-release-preflight.cjs');
@@ -384,6 +467,12 @@ test('operator restore checklist documents only supported signed preflight optio
     '--expected-source-commit',
     '--expected-artifact-sha256',
     '--expected-review-trust-store-sha256',
+    '--restore-operator-public-key',
+    '--restore-operator-signature',
+    '--restore-reviewer-public-key',
+    '--restore-reviewer-signature',
+    '--expected-restore-operator-public-key-sha256',
+    '--expected-restore-reviewer-public-key-sha256',
     '--isolated-restore-verified',
     '--mobile-browser-verified',
     '--zero-api-requests-verified',

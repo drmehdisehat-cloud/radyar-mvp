@@ -8,12 +8,19 @@ const { decidePreviewRelease } = require('./decide-preview-release.cjs');
 const { readStableRegularFile } = require('./stable-file-integrity.cjs');
 const { parseJsonRejectDuplicateKeys } = require('./strict-json.cjs');
 const { verifyHumanReviewAttestation } = require('./verify-human-review-attestation.cjs');
+const { verifyPinnedRestoreAttestation } = require('./verify-restore-attestation-pinned.cjs');
+const { readExternalFile } = require('./verify-restore-attestation-signatures.cjs');
 
 const REPO_ROOT = path.resolve(__dirname, '..');
 const MAX_EVIDENCE_BYTES = 64 * 1024;
+const MAX_PUBLIC_KEY_BYTES = 16 * 1024;
+const MAX_SIGNATURE_BYTES = 64;
 const USAGE = [
   'Usage:',
   '  node scripts/preview-release-preflight.cjs --restore-evidence ABSOLUTE_JSON_PATH',
+  '    --restore-operator-public-key ABSOLUTE_PEM --restore-operator-signature ABSOLUTE_FILE',
+  '    --restore-reviewer-public-key ABSOLUTE_PEM --restore-reviewer-signature ABSOLUTE_FILE',
+  '    --expected-restore-operator-public-key-sha256 64_HEX --expected-restore-reviewer-public-key-sha256 64_HEX',
   '    --destination-evidence ABSOLUTE_JSON_PATH',
   '    --review-attestation ABSOLUTE_JSON_PATH --review-trust-store ABSOLUTE_JSON_PATH',
   '    --expected-source-commit 40_HEX --expected-artifact-sha256 64_HEX',
@@ -38,6 +45,12 @@ const VALUE_NAMES = new Set([
   '--destination-evidence',
   '--review-attestation',
   '--review-trust-store',
+  '--restore-operator-public-key',
+  '--restore-operator-signature',
+  '--restore-reviewer-public-key',
+  '--restore-reviewer-signature',
+  '--expected-restore-operator-public-key-sha256',
+  '--expected-restore-reviewer-public-key-sha256',
   '--expected-source-commit',
   '--expected-artifact-sha256',
   '--expected-review-trust-store-sha256'
@@ -111,8 +124,9 @@ function parseArgs(argv) {
       }
       const value = argv[++i];
       if (!value || value.startsWith('--')) throw new Error('missing_value:' + arg);
-      if (arg === '--restore-evidence' || arg === '--destination-evidence' ||
-          arg === '--review-attestation' || arg === '--review-trust-store') {
+      if (['--restore-evidence', '--destination-evidence', '--review-attestation', '--review-trust-store',
+        '--restore-operator-public-key', '--restore-operator-signature',
+        '--restore-reviewer-public-key', '--restore-reviewer-signature'].includes(arg)) {
         parsed.paths[arg] = value;
       } else {
         parsed.values[arg] = value;
@@ -142,6 +156,48 @@ function main(argv) {
     if (!restorePath || !destinationPath) throw new Error('both_evidence_files_required');
     const restoreEvidence = readEvidence('--restore-evidence', restorePath);
     const destinationEvidence = readEvidence('--destination-evidence', destinationPath);
+
+    const restorePathFlags = [
+      '--restore-operator-public-key', '--restore-operator-signature',
+      '--restore-reviewer-public-key', '--restore-reviewer-signature'
+    ];
+    const restoreValueFlags = [
+      '--expected-restore-operator-public-key-sha256',
+      '--expected-restore-reviewer-public-key-sha256'
+    ];
+    const hasAnyRestoreAttestationInput = [...restorePathFlags, ...restoreValueFlags]
+      .some(flag => args.paths[flag] || args.values[flag]);
+    const hasAllRestoreAttestationInputs = restorePathFlags.every(flag => args.paths[flag]) &&
+      restoreValueFlags.every(flag => args.values[flag]);
+    let restoreAttestation = {
+      verified: false,
+      reason: 'two_party_restore_signatures_and_owner_pinned_key_fingerprints_required'
+    };
+    if (hasAllRestoreAttestationInputs) {
+      try {
+        const restoreVerification = verifyPinnedRestoreAttestation({
+          manifest: restoreEvidence,
+          operatorPublicKeyPem: readExternalFile(args.paths['--restore-operator-public-key'],
+            'restore_operator_public_key', MAX_PUBLIC_KEY_BYTES).toString('utf8'),
+          operatorSignature: readExternalFile(args.paths['--restore-operator-signature'],
+            'restore_operator_signature', MAX_SIGNATURE_BYTES),
+          reviewerPublicKeyPem: readExternalFile(args.paths['--restore-reviewer-public-key'],
+            'restore_reviewer_public_key', MAX_PUBLIC_KEY_BYTES).toString('utf8'),
+          reviewerSignature: readExternalFile(args.paths['--restore-reviewer-signature'],
+            'restore_reviewer_signature', MAX_SIGNATURE_BYTES),
+          expectedOperatorFingerprint: args.values['--expected-restore-operator-public-key-sha256'],
+          expectedReviewerFingerprint: args.values['--expected-restore-reviewer-public-key-sha256']
+        });
+        restoreAttestation = { verified: true, ...restoreVerification };
+      } catch (error) {
+        restoreAttestation = {
+          verified: false,
+          reason: String(error && error.message || 'restore_attestation_verification_failed').slice(0, 180)
+        };
+      }
+    } else if (hasAnyRestoreAttestationInput) {
+      restoreAttestation = { verified: false, reason: 'restore_attestation_inputs_incomplete' };
+    }
 
     let review = { verified: false, reason: 'review_attestation_and_trust_store_required' };
     const reviewPath = args.paths['--review-attestation'];
@@ -185,12 +241,23 @@ function main(argv) {
       mobileBrowserVerified: args.attestations.has('--mobile-browser-verified'),
       zeroApiRequestsVerified: args.attestations.has('--zero-api-requests-verified'),
       humanReviewVerified: args.attestations.has('--human-review-verified'),
-      authenticatedHumanReviewAttested: review.verified === true
+      authenticatedHumanReviewAttested: review.verified === true,
+      authenticatedRestoreAttestation: restoreAttestation.verified === true
     });
     const output = {
       ...decision,
       evidenceFilesRead: true,
       attestationFlagsSupplied: args.attestations.size,
+      restoreAttestation: restoreAttestation.verified ? {
+        verified: true,
+        status: restoreAttestation.status,
+        manifestSha256: restoreAttestation.manifest_sha256,
+        operatorPublicKeySha256: restoreAttestation.operator_public_key_sha256,
+        reviewerPublicKeySha256: restoreAttestation.reviewer_public_key_sha256,
+        keyFingerprintsPinned: restoreAttestation.key_fingerprints_pinned,
+        signerIdentityIndependentlyVerified: false,
+        restoreOperationIndependentlyVerified: false
+      } : { verified: false, reason: restoreAttestation.reason },
       reviewAttestation: review.verified ? {
         verified: true,
         issuer: review.issuer,
@@ -201,7 +268,7 @@ function main(argv) {
         trustStoreSha256: review.trustStoreSha256
       } : { verified: false, reason: review.reason },
       deploymentPerformed: false,
-      note: 'فقط امضای دیجیتال و سازگاری ساختاری اظهار بازبینی با کلید عمومی ارائه‌شده بررسی شده است؛ منشأ مستقل trust store، هویت واقعی صاحب کلید، بازیابی واقعی بکاپ، مقصد زنده و مجوز مالک احراز نشده‌اند. این ابزار هرگز مجوز انتشار صادر نمی‌کند.'
+      note: 'امضای دوطرفه اظهارنامه بازیابی و تطبیق اثرانگشت کلیدها با مقادیر ارائه‌شده از کانال مستقل، و نیز امضای بازبینی انسانی بررسی می‌شوند؛ این بررسی‌ها هویت واقعی اشخاص، انجام واقعی بازیابی، سلامت دیتابیس بازیابی‌شده، مقصد زنده یا مجوز مالک را اثبات نمی‌کنند. این ابزار هرگز مجوز انتشار صادر نمی‌کند.'
     };
     process.stdout.write(JSON.stringify(output, null, 2) + '\n');
     return decision.blockers.length ? 1 : 3;
