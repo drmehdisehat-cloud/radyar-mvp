@@ -109,7 +109,7 @@ function harness() {
     }
   }
 
-  vm.runInNewContext(script, {
+  const sandbox = {
     document,
     URL: {
       createObjectURL() { return 'blob:dadyar-test'; },
@@ -117,7 +117,12 @@ function harness() {
     },
     Blob: TestBlob,
     setTimeout(callback) { callback(); }
-  }, { timeout: 1000 });
+  };
+  vm.runInNewContext(
+    script + '\nObject.defineProperty(globalThis, "__dadyarTopicMatchCount", { get: () => internalTopicMatches.length });',
+    sandbox,
+    { timeout: 1000 }
+  );
 
   return {
     document,
@@ -127,6 +132,7 @@ function harness() {
     selects,
     downloads,
     blobs,
+    get internalTopicMatchCount() { return sandbox.__dadyarTopicMatchCount; },
     get: id => document.getElementById(id),
     fire(id, type) {
       const callbacks = handlers.get(id + ':' + type) || [];
@@ -276,4 +282,16 @@ test('mixed cheque and civil free-text is classified locally without exporting r
   assert.match(h.get('report').textContent, /متن خام پرسش آزاد برای حفظ حریم خصوصی/);
   assert.doesNotMatch(h.get('report').textContent, /در این سناریوی ساختگی چک و قرارداد/);
   assert.equal(h.get('free-question').value, '');
+});
+test('internal topic-match details are discarded after the neutral scope notice is produced', () => {
+  const h = harness();
+  h.get('free-question').value = 'در سناریوی ساختگی چک و طلاق چه مدارکی باید بررسی شود؟';
+  h.fire('free-question', 'input');
+  completeSyntheticInterview(h);
+  h.fire('generate', 'click');
+
+  assert.match(h.get('topic-scope-status').textContent, /چندموضوعی/);
+  assert.equal(h.get('free-question').value, '');
+  assert.equal(h.internalTopicMatchCount, 0, 'keyword matches must not remain in page state after classification');
+  assert.doesNotMatch(h.get('report').textContent, /در سناریوی ساختگی چک و طلاق/);
 });
