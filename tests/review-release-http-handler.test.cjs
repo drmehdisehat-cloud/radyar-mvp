@@ -362,6 +362,26 @@ test('rejects body-timeout configuration outside the bounded range', () => {
   }), /bodyTimeoutMs/);
 });
 
+test('rejects malformed UTF-8 before parsing or loading report material', async () => {
+  const f = fixture();
+  await withServer(f.handler, async url => {
+    // The bytes are malformed inside a syntactically valid JSON string. A
+    // replacement-decoding parser would continue into the release gate.
+    const malformed = Buffer.concat([
+      Buffer.from('{"envelope":{"payload":{"note":"', 'utf8'),
+      Buffer.from([0xc3, 0x28]),
+      Buffer.from('"}}}', 'utf8')
+    ]);
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: requestHeaders(),
+      body: malformed
+    });
+    assert.equal(response.status, 400);
+    assert.equal(f.materialLoads, 0);
+  });
+});
+
 test('rejects invalid JSON and unexpected top-level request fields', async () => {
   const f = fixture();
   await withServer(f.handler, async url => {
