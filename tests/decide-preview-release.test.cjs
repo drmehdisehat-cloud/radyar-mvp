@@ -76,6 +76,7 @@ for (const [label, patch] of [
   ['another source site', { source_site_origin: 'https://other.example' }],
   ['another provider', { backup_provider: 'other-host' }],
   ['missing provider backup identifier', { backup_id: '' }],
+  ['control characters in provider backup identifier', { backup_id: 'synthetic\nbackup-001' }],
   ['backup created after the restore', { backup_created_at: '2026-11-10T12:00:00.000Z' }],
   ['missing archive byte count', { archive_size_bytes: 0 }]
 ]) {
