@@ -21,7 +21,7 @@ const REVIEWER = 'reviewer.synthetic.01';
 const AUTHOR = 'author.synthetic.01';
 const SOURCE_COMMIT = 'c'.repeat(40);
 
-function fixture({ decision = 'approved', maxBodyBytes = 2048 } = {}) {
+function fixture({ decision = 'approved', maxBodyBytes = 2048, bodyTimeoutMs = 10000 } = {}) {
   const pair = crypto.generateKeyPairSync('ed25519');
   const publicKey = pair.publicKey.export({ type: 'spki', format: 'pem' });
   const artifactBytes = Buffer.from('synthetic preview artifact');
@@ -81,7 +81,8 @@ function fixture({ decision = 'approved', maxBodyBytes = 2048 } = {}) {
   const handler = createReviewReleaseHttpHandler({
     releaseReviewedReport: gate,
     allowedOrigin: ORIGIN,
-    maxBodyBytes
+    maxBodyBytes,
+    bodyTimeoutMs
   });
 
   return {
@@ -271,6 +272,53 @@ test('rejects a declared oversized body before parsing or loading report materia
     assert.equal(response.status, 413);
     assert.equal(f.materialLoads, 0);
   });
+});
+
+test('times out a stalled chunked body and never loads report material', async () => {
+  const f = fixture({ bodyTimeoutMs: 100 });
+  await withServer(f.handler, async url => {
+    const parsed = new URL(url);
+    const result = await new Promise((resolve, reject) => {
+      const request = http.request({
+        hostname: parsed.hostname,
+        port: Number(parsed.port),
+        path: parsed.pathname,
+        method: 'POST',
+        headers: requestHeaders()
+      }, response => {
+        let body = '';
+        response.setEncoding('utf8');
+        response.on('data', chunk => { body += chunk; });
+        response.on('end', () => resolve({
+          status: response.statusCode,
+          connection: response.headers.connection,
+          body
+        }));
+      });
+      const guard = setTimeout(() => {
+        request.destroy();
+        reject(new Error('The HTTP body-timeout response was not received.'));
+      }, 2000);
+      request.once('error', error => {
+        clearTimeout(guard);
+        reject(error);
+      });
+      request.once('response', () => clearTimeout(guard));
+      request.write('{"envelope":');
+    });
+    assert.equal(result.status, 408);
+    assert.equal(result.connection, 'close');
+    assert.match(result.body, /مهلت دریافت بدنه درخواست پایان یافت/);
+    assert.equal(f.materialLoads, 0);
+  });
+});
+
+test('rejects body-timeout configuration outside the bounded range', () => {
+  assert.throws(() => createReviewReleaseHttpHandler({
+    releaseReviewedReport: async () => ({}),
+    allowedOrigin: ORIGIN,
+    bodyTimeoutMs: 30001
+  }), /bodyTimeoutMs/);
 });
 
 test('rejects invalid JSON and unexpected top-level request fields', async () => {
