@@ -104,3 +104,21 @@ test('rejects malformed nonces and expired or unsafe expiry values', async () =>
     await f.cleanup();
   }
 });
+
+test('rejects symlinked ancestor directories before creating nonce storage', async () => {
+  const f = await fixture();
+  try {
+    const realParent = path.join(f.root, 'real-parent');
+    const linkedParent = path.join(f.root, 'linked-parent');
+    await fs.mkdir(realParent, { mode: 0o700 });
+    await fs.symlink(realParent, linkedParent, 'dir');
+    const requested = path.join(linkedParent, 'nested', 'private-nonces');
+    await assert.rejects(
+      createFileNonceStore({ directory: requested, publicRoot: f.publicRoot }),
+      /Nonce storage path must not contain symlinks/
+    );
+    await assert.rejects(fs.lstat(path.join(realParent, 'nested')), { code: 'ENOENT' });
+  } finally {
+    await f.cleanup();
+  }
+});
