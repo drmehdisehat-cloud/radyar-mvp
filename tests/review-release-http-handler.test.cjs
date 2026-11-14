@@ -188,6 +188,31 @@ test('rejects methods other than POST and reports the allowed method', async () 
   });
 });
 
+test('rejects absolute-form and network-path request targets', async () => {
+  const f = fixture();
+  await withServer(f.handler, async url => {
+    const parsed = new URL(url);
+    const absoluteTarget = await new Promise((resolve, reject) => {
+      const request = http.request({
+        hostname: '127.0.0.1',
+        port: Number(parsed.port),
+        path: 'https://preview.example.test' + DEFAULT_ROUTE_PATH,
+        method: 'POST',
+        headers: requestHeaders()
+      }, response => {
+        let body = '';
+        response.setEncoding('utf8');
+        response.on('data', chunk => { body += chunk; });
+        response.on('end', () => resolve({ status: response.statusCode, body }));
+      });
+      request.once('error', reject);
+      request.end(JSON.stringify({ envelope: f.envelope }));
+    });
+    assert.equal(absoluteTarget.status, 400);
+    assert.equal(f.materialLoads, 0);
+  });
+});
+
 test('does not expose an alternate route or query-string variant', async () => {
   const f = fixture();
   await withServer(f.handler, async url => {
