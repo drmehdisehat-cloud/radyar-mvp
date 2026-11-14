@@ -5,6 +5,19 @@ const DEFAULT_MAX_BODY_BYTES = 8192;
 const DEFAULT_MAX_REPORT_BYTES = 262144;
 const DEFAULT_BODY_TIMEOUT_MS = 10000;
 
+function isCanonicalOriginFormPath(value) {
+  if (typeof value !== 'string' || !value.startsWith('/') || value.startsWith('//') ||
+      /[\\%?#]/.test(value) || /\\/{2,}/.test(value) ||
+      /(^|\\/)\\.{1,2}(\\/|$)/.test(value)) return false;
+  try {
+    const parsed = new URL(value, 'https://dadyar.invalid');
+    return parsed.origin === 'https://dadyar.invalid' &&
+      parsed.pathname === value && !parsed.search && !parsed.hash;
+  } catch {
+    return false;
+  }
+}
+
 function canonicalHttpsOrigin(value) {
   if (typeof value !== 'string' || !value) {
     throw new TypeError('An exact HTTPS allowedOrigin is required.');
@@ -147,9 +160,8 @@ function createReviewReleaseHttpHandler(options = {}) {
     throw new TypeError('A server-side releaseReviewedReport function is required.');
   }
   const origin = canonicalHttpsOrigin(allowedOrigin);
-  if (typeof routePath !== 'string' || !routePath.startsWith('/') ||
-      routePath.includes('?') || routePath.includes('#')) {
-    throw new TypeError('routePath must be an absolute path without a query or fragment.');
+  if (!isCanonicalOriginFormPath(routePath)) {
+    throw new TypeError('routePath must be a canonical absolute path without query, fragment, encoding or normalization aliases.');
   }
   if (!Number.isSafeInteger(maxBodyBytes) || maxBodyBytes < 1024 || maxBodyBytes > 65536) {
     throw new TypeError('maxBodyBytes must be an integer between 1024 and 65536.');
@@ -166,15 +178,10 @@ function createReviewReleaseHttpHandler(options = {}) {
       respond(response, 400, 'هدف درخواست نامعتبر است.');
       return;
     }
-    let requestUrl;
-    try {
-      requestUrl = new URL(request.url || '/', 'https://dadyar.invalid');
-    } catch {
-      respond(response, 400, 'درخواست نامعتبر است.');
-      return;
-    }
-
-    if (requestUrl.pathname !== routePath || requestUrl.search || requestUrl.hash) {
+    // Compare the raw origin-form request target before URL parsing. URL()
+    // normalizes dot segments and backslashes, which can create aliases that
+    // a reverse proxy and the Node origin interpret differently.
+    if (request.url !== routePath) {
       respond(response, 404, 'مسیر پیدا نشد.');
       return;
     }
