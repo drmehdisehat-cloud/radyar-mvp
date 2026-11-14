@@ -12,6 +12,29 @@ function isInside(parent, candidate) {
   );
 }
 
+async function assertNoSymlinkComponents(target, label, allowMissing = false) {
+  const absolute = path.resolve(target);
+  const parsed = path.parse(absolute);
+  let current = parsed.root;
+  const parts = absolute.slice(parsed.root.length).split(path.sep).filter(Boolean);
+  for (let index = 0; index < parts.length; index += 1) {
+    current = path.join(current, parts[index]);
+    let stat;
+    try {
+      stat = await fs.lstat(current);
+    } catch (error) {
+      if (allowMissing && error && error.code === 'ENOENT') return;
+      throw error;
+    }
+    if (stat.isSymbolicLink()) {
+      throw new Error(label + ' path must not contain symlinks.');
+    }
+    if (index < parts.length - 1 && !stat.isDirectory()) {
+      throw new Error(label + ' parent component must be a directory.');
+    }
+  }
+}
+
 function validateNonce(nonce) {
   if (typeof nonce !== 'string' || !/^[A-Za-z0-9_-]{22}$/.test(nonce)) {
     throw new TypeError('Nonce must be 16 random bytes encoded as canonical base64url.');
@@ -34,13 +57,18 @@ async function createFileNonceStore({ directory, publicRoot } = {}) {
     throw new Error('Nonce storage must be outside the public web root.');
   }
 
+  await assertNoSymlinkComponents(requestedPublicRoot, 'Public web root');
   const publicRootStat = await fs.lstat(requestedPublicRoot);
   if (publicRootStat.isSymbolicLink() || !publicRootStat.isDirectory()) {
     throw new Error('Public web root must be an existing, non-symlink directory.');
   }
   const realPublicRoot = await fs.realpath(requestedPublicRoot);
 
+  // Check existing ancestors before mkdir, then check the complete path again.
+  // This rejects a symlinked parent as well as a symlink at the final directory.
+  await assertNoSymlinkComponents(requestedDirectory, 'Nonce storage', true);
   await fs.mkdir(requestedDirectory, { recursive: true, mode: 0o700 });
+  await assertNoSymlinkComponents(requestedDirectory, 'Nonce storage');
   const directoryStat = await fs.lstat(requestedDirectory);
   if (directoryStat.isSymbolicLink() || !directoryStat.isDirectory()) {
     throw new Error('Nonce storage must be a real directory, not a symlink.');
