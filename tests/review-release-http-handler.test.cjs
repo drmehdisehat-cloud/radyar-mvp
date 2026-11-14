@@ -238,7 +238,7 @@ test('rejects raw dot-segment, backslash, duplicate-slash and encoded path alias
     const parsed = new URL(url);
     const targets = [
       '/api/dadyar/../dadyar/review-report',
-      '/api\\\\dadyar/review-report',
+      '/api\\dadyar/review-report',
       '/api//dadyar/review-report',
       '/api/dadyar/%2e%2e/dadyar/review-report'
     ];
@@ -259,14 +259,14 @@ test('rejects raw dot-segment, backslash, duplicate-slash and encoded path alias
             'Connection: close',
             '',
             body
-          ].join('\\r\\n'));
+          ].join('\r\n'));
         });
         socket.on('data', chunk => { response += chunk; });
         socket.once('end', () => resolve(response));
         socket.once('error', reject);
       });
-      const statusLine = rawResponse.split('\\r\\n', 1)[0];
-      assert.match(statusLine, /^HTTP\\/1\\.1 (?:400|404) /, 'alias must be rejected: ' + target);
+      const statusLine = rawResponse.split('\r\n', 1)[0];
+      assert.match(statusLine, /^HTTP\/1\.1 (?:400|404) /, 'alias must be rejected: ' + target);
     }
     assert.equal(f.materialLoads, 0);
   });
