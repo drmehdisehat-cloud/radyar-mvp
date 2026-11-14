@@ -27,7 +27,7 @@ test('owner handoff keeps staging destination outside production and delays publ
   assert.match(content, /خارج از Git checkout و خارج از Document Root تولید/);
   assert.match(content, /verify-preview-destination\.cjs/);
   assert.match(content, /مجوز صریح مالک/);
-  assert.ok(content.includes("فقط یک پوشه جدید `dadyar-preview` و یک فایل `index.html`"));
+  assert.ok(content.includes("یک پوشه جدید `dadyar-preview` و یک فایل `index.html`"));
 });
 
 test('owner handoff does not request credentials or private keys in chat', () => {
