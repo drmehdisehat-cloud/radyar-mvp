@@ -4,6 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const http = require('node:http');
+const net = require('node:net');
 const {
   SCHEMA,
   POLICY,
@@ -227,6 +228,46 @@ test('rejects absolute-form and network-path request targets', async () => {
       request.end(JSON.stringify({ envelope: f.envelope }));
     });
     assert.equal(networkPathTarget.status, 400);
+    assert.equal(f.materialLoads, 0);
+  });
+});
+
+test('rejects raw dot-segment, backslash, duplicate-slash and encoded path aliases before URL normalization', async () => {
+  const f = fixture();
+  await withServer(f.handler, async url => {
+    const parsed = new URL(url);
+    const targets = [
+      '/api/dadyar/../dadyar/review-report',
+      '/api\\\\dadyar/review-report',
+      '/api//dadyar/review-report',
+      '/api/dadyar/%2e%2e/dadyar/review-report'
+    ];
+    for (const target of targets) {
+      const rawResponse = await new Promise((resolve, reject) => {
+        const socket = net.connect(Number(parsed.port), parsed.hostname);
+        let response = '';
+        socket.setEncoding('latin1');
+        socket.once('connect', () => {
+          const body = JSON.stringify({ envelope: f.envelope });
+          socket.end([
+            'POST ' + target + ' HTTP/1.1',
+            'Host: 127.0.0.1:' + parsed.port,
+            'Origin: ' + ORIGIN,
+            'Content-Type: application/json; charset=utf-8',
+            'Sec-Fetch-Site: same-origin',
+            'Content-Length: ' + Buffer.byteLength(body),
+            'Connection: close',
+            '',
+            body
+          ].join('\\r\\n'));
+        });
+        socket.on('data', chunk => { response += chunk; });
+        socket.once('end', () => resolve(response));
+        socket.once('error', reject);
+      });
+      const statusLine = rawResponse.split('\\r\\n', 1)[0];
+      assert.match(statusLine, /^HTTP\\/1\\.1 (?:400|404) /, 'alias must be rejected: ' + target);
+    }
     assert.equal(f.materialLoads, 0);
   });
 });
