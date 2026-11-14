@@ -113,6 +113,10 @@ function createReviewReleaseHttpHandler(options = {}) {
   }
 
   return async function dadyarReviewReportHandler(request, response) {
+    if (typeof request.url !== 'string' || !request.url.startsWith('/') || request.url.startsWith('//')) {
+      respond(response, 400, 'هدف درخواست نامعتبر است.');
+      return;
+    }
     let requestUrl;
     try {
       requestUrl = new URL(request.url || '/', 'https://dadyar.invalid');
