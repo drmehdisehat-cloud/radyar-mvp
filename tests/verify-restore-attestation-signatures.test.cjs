@@ -232,3 +232,26 @@ test('CLI rejects invalid UTF-8 manifest bytes instead of replacement decoding',
   assert.equal(result.status, 1);
   assert.equal(JSON.parse(result.stdout).error, 'manifest_is_not_valid_utf8');
 });
+
+
+test('external evidence reader rejects FIFOs without blocking', t => {
+  if (process.platform === 'win32') return t.skip('mkfifo is POSIX-only');
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-attestation-fifo-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const fifo = path.join(directory, 'evidence.pipe');
+  const created = spawnSync('mkfifo', [fifo], { encoding: 'utf8' });
+  if (created.error || created.status !== 0) return t.skip('mkfifo unavailable');
+
+  // Run in a child with a hard timeout: a blocking open must fail this test,
+  // but must never stall the entire Node test runner.
+  const modulePath = path.join(__dirname, '../scripts/verify-restore-attestation-signatures.cjs');
+  const childSource = [
+    'const { readExternalFile } = require(' + JSON.stringify(modulePath) + ');',
+    'try { readExternalFile(' + JSON.stringify(fifo) + ', "evidence", 64); process.exitCode = 0; }',
+    'catch (error) { process.stdout.write(String(error.message)); process.exitCode = 1; }'
+  ].join('\\n');
+  const result = spawnSync(process.execPath, ['-e', childSource], { encoding: 'utf8', timeout: 2000 });
+  assert.notEqual(result.error?.code, 'ETIMEDOUT', 'FIFO evidence path must not block the verifier');
+  assert.equal(result.status, 1, result.stderr || result.stdout);
+  assert.match(result.stdout, /evidence_must_be_regular_file/);
+});
