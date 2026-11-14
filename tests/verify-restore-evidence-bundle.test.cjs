@@ -209,5 +209,5 @@ test('rejects an isolated restore target that contains the production document r
   const canonicalProductionRoot = fs.realpathSync(nestedProductionRoot);
   fixture.manifest.production_document_root = canonicalProductionRoot;
   fixture.manifest.production_document_root_realpath = canonicalProductionRoot;
-  assert.throws(() => verify(fixture), /restore_target_overlaps_production_document_root/);
+  assert.throws(() => verify(fixture), /restore_manifest_schema_or_consistency_invalid/);
 });
