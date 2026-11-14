@@ -7,7 +7,8 @@
 The gate requires all of the following dependencies to be provided by a future server deployment:
 
 - `authenticateReviewer(request)`: a real server-side identity provider that returns only an opaque authenticated principal ID. A browser-supplied reviewer name or ID is not accepted as identity.
-- `isIndependentReviewer(context)`: a policy check that returns exactly `true` only when the authenticated reviewer is independent of the report author and deployer.
+- `isIndependentReviewer({ reviewerId })`: a policy check that returns exactly `true` only when the authenticated reviewer is independent of the report author and deployer. It must resolve those relationships from trusted server-side records, not request fields.
+- The independence policy runs **before** `loadReleaseMaterial()`, so denied or indeterminate reviewers cannot trigger report/artifact reads.
 - `loadReleaseMaterial()`: server-controlled immutable bytes for the full source commit, preview artifact and reviewed report. The gate computes both SHA-256 hashes itself; it does not accept hashes from the request.
 - an explicitly configured trusted Ed25519 key registry and durable atomic nonce store.
 
