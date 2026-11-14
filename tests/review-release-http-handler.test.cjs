@@ -209,6 +209,23 @@ test('rejects absolute-form and network-path request targets', async () => {
       request.end(JSON.stringify({ envelope: f.envelope }));
     });
     assert.equal(absoluteTarget.status, 400);
+    const networkPathTarget = await new Promise((resolve, reject) => {
+      const request = http.request({
+        hostname: '127.0.0.1',
+        port: Number(parsed.port),
+        path: '//' + 'preview.example.test' + DEFAULT_ROUTE_PATH,
+        method: 'POST',
+        headers: requestHeaders()
+      }, response => {
+        let body = '';
+        response.setEncoding('utf8');
+        response.on('data', chunk => { body += chunk; });
+        response.on('end', () => resolve({ status: response.statusCode, body }));
+      });
+      request.once('error', reject);
+      request.end(JSON.stringify({ envelope: f.envelope }));
+    });
+    assert.equal(networkPathTarget.status, 400);
     assert.equal(f.materialLoads, 0);
   });
 });
