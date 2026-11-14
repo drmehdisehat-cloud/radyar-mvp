@@ -134,14 +134,17 @@ test('rejects FIFOs without blocking the verifier', t => {
   const fifo = path.join(fixture.directory, 'archive.pipe');
   const created = spawnSync('mkfifo', [fifo], { encoding: 'utf8' });
   if (created.error || created.status !== 0) return t.skip('mkfifo unavailable');
+  const manifestPath = path.join(fixture.directory, 'manifest.json');
+  fs.writeFileSync(manifestPath, JSON.stringify(fixture.manifest), { mode: 0o600 });
   const result = spawnSync(process.execPath, [
     SCRIPT,
-    '--manifest', path.join(fixture.directory, 'manifest.json'),
+    '--manifest', manifestPath,
     '--archive', fifo,
     '--restored-marker', fixture.paths.restored_marker,
     '--restore-log', fixture.paths.restore_log,
     '--database-probe', fixture.paths.database_probe
   ], { encoding: 'utf8', timeout: 2000 });
   assert.notEqual(result.error?.code, 'ETIMEDOUT', 'FIFO evidence must not block the CLI');
-  assert.notEqual(result.status, 0);
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /archive_must_be_regular_file/);
 });
