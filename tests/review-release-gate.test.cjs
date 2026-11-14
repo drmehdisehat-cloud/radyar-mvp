@@ -43,11 +43,12 @@ function fixture({ decision = 'approved', onPolicy = () => {}, onLoad = () => {}
   const consumed = new Set();
   const material = { sourceCommit: SOURCE_COMMIT, artifactBytes, reportBytes };
   let materialLoads = 0;
+  let authenticatedPrincipal = REVIEWER;
   const gate = createReviewReleaseGate({
-    authenticateReviewer: async request =>
-      request && typeof request.principalId === 'string'
-        ? { id: request.principalId }
-        : null,
+    // Test-only stand-in for a server-validated session. It deliberately
+    // ignores caller-controlled request fields such as principalId/reviewerId.
+    authenticateReviewer: async () =>
+      authenticatedPrincipal ? { id: authenticatedPrincipal } : null,
     isIndependentReviewer: async ({ reviewerId }) => { onPolicy(reviewerId); return reviewerId !== AUTHOR; },
     loadReleaseMaterial: async () => {
       onLoad();
@@ -70,7 +71,11 @@ function fixture({ decision = 'approved', onPolicy = () => {}, onLoad = () => {}
     },
     clock: () => NOW
   });
-  return { gate, envelope, material, consumed, get materialLoads() { return materialLoads; }, reportBytes };
+  return {
+    gate, envelope, material, consumed, reportBytes,
+    setAuthenticatedPrincipal(value) { authenticatedPrincipal = value; },
+    get materialLoads() { return materialLoads; }
+  };
 }
 
 test('requires server authentication, independent-review policy, release loader, trusted keys and nonce store', () => {
@@ -79,18 +84,20 @@ test('requires server authentication, independent-review policy, release loader,
 
 test('does not load report material for an unauthenticated request', async () => {
   const f = fixture();
+  f.setAuthenticatedPrincipal(null);
   await assert.rejects(
-    f.gate({ request: null, envelope: f.envelope }),
+    f.gate({ request: { principalId: REVIEWER }, envelope: f.envelope }),
     /authenticated reviewer principal is required/
   );
   assert.equal(f.materialLoads, 0);
   assert.equal(f.consumed.size, 0);
 });
 
-test('rejects the author/deployer before loading report material or consuming the nonce', async () => {
+test('rejects the authenticated author/deployer even when the request claims another reviewer', async () => {
   const f = fixture();
+  f.setAuthenticatedPrincipal(AUTHOR);
   await assert.rejects(
-    f.gate({ request: { principalId: AUTHOR }, envelope: f.envelope }),
+    f.gate({ request: { principalId: REVIEWER, reviewerId: REVIEWER }, envelope: f.envelope }),
     /independently authenticated reviewer is required/
   );
   assert.equal(f.materialLoads, 0);
@@ -117,10 +124,10 @@ test('fails closed on an indeterminate independence policy before loading report
   assert.equal(materialLoads, 0);
 });
 
-test('releases exact server-loaded report bytes only after an authenticated independent approval', async () => {
+test('ignores caller-supplied reviewer identities and uses only the authenticated server principal', async () => {
   const f = fixture();
   const result = await f.gate({
-    request: { principalId: REVIEWER, reviewerId: AUTHOR },
+    request: { principalId: AUTHOR, reviewerId: AUTHOR },
     envelope: f.envelope
   });
   assert.deepEqual(result.reportBytes, f.reportBytes);
