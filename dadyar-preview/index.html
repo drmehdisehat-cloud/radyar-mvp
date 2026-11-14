@@ -680,6 +680,14 @@ if (typeof window !== 'undefined' && typeof window.addEventListener === 'functio
   const monthNames = [
     'فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر'
   ];
+  const toScaledIndex = value => {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
+      throw new RangeError('شاخص باید عدد مثبت و متناهی باشد.');
+    }
+    const match = /^(0|[1-9]\d{0,11})(?:\.(\d{1,6}))?$/.exec(String(value));
+    if (!match) throw new RangeError('دقت شاخص باید حداکثر شش رقم اعشار و بدون نمایش نمایی باشد.');
+    return BigInt(match[1]) * 1000000n + BigInt((match[2] || '').padEnd(6, '0') || '0');
+  };
   let indices;
   try { indices = JSON.parse(root.dataset.indexes); }
   catch { result.textContent = 'داده شاخص قابل خواندن نیست؛ محاسبه متوقف شد.'; return; }
@@ -695,14 +703,6 @@ if (typeof window !== 'undefined' && typeof window.addEventListener === 'functio
   }
   const format = value => new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 0 }).format(value);
   const formatIndex = value => new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 1 }).format(value);
-  const toScaledIndex = value => {
-    if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
-      throw new RangeError('شاخص باید عدد مثبت و متناهی باشد.');
-    }
-    const match = /^(0|[1-9]\d{0,11})(?:\.(\d{1,6}))?$/.exec(String(value));
-    if (!match) throw new RangeError('دقت شاخص باید حداکثر شش رقم اعشار و بدون نمایش نمایی باشد.');
-    return BigInt(match[1]) * 1000000n + BigInt((match[2] || '').padEnd(6, '0') || '0');
-  };
   monthNames.forEach((name, i) => {
     const month = i + 1;
     for (const select of [due, paid]) {
