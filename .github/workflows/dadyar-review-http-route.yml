@@ -25,7 +25,7 @@ jobs:
           node-version: '22'
           package-manager-cache: false
       - name: Run complete contract suite including the HTTP release boundary
-        run: node --test tests/delay-damages-1405.test.cjs tests/preview-index-data-consistency.test.cjs tests/dadyar-preview-csp-hash-contract.test.cjs tests/preview-artifact-manifest.test.cjs tests/reviewer-attestation.test.cjs tests/file-nonce-store.test.cjs tests/review-release-gate.test.cjs tests/review-release-http-handler.test.cjs tests/dadyar-preview-subpath-http.test.cjs tests/verify-public-preview-http.test.cjs
+        run: node --test tests/delay-damages-1405.test.cjs tests/preview-index-data-consistency.test.cjs tests/dadyar-preview-csp-hash-contract.test.cjs tests/preview-artifact-manifest.test.cjs tests/reviewer-attestation.test.cjs tests/file-nonce-store.test.cjs tests/review-release-gate.test.cjs tests/review-release-http-handler.test.cjs tests/dadyar-preview-subpath-http.test.cjs tests/verify-public-preview-http.test.cjs tests/synthetic-cheque-workflow.test.cjs tests/synthetic-cheque-evidence-review.test.cjs tests/dadyar-preview-27-domain-routing.test.cjs tests/dadyar-preview-human-review-flow.test.cjs tests/dadyar-preview-one-shot-export.test.cjs tests/dadyar-preview-network-isolation.test.cjs
       - name: Verify real Chromium mobile flow and zero network
         run: |
           CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium)"
