@@ -3,6 +3,10 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
+const fs = require('node:fs/promises');
+const os = require('node:os');
+const path = require('node:path');
+const { createFileNonceStore } = require('../backend/file-nonce-store.cjs');
 const {
   SCHEMA,
   POLICY,
@@ -154,4 +158,30 @@ test('fails closed when the replay-protection store cannot consume a nonce', asy
   const f = fixture();
   const options = { ...f.options, nonceStore: { async consume() { return false; } } };
   await assert.rejects(verifyReviewAttestation(f.envelope, options), /already used or could not be atomically consumed/);
+});
+
+
+test('verifies an approval with the durable single-host nonce store across verifier instances', async () => {
+  const f = fixture();
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dadyar-attestation-integration-'));
+  const publicRoot = path.join(root, 'public');
+  const privateRoot = path.join(root, 'private');
+  await fs.mkdir(publicRoot, { mode: 0o755 });
+  await fs.mkdir(privateRoot, { mode: 0o700 });
+  try {
+    const firstStore = await createFileNonceStore({ directory: privateRoot, publicRoot });
+    const first = await verifyReviewAttestation(f.envelope, {
+      ...f.options,
+      nonceStore: firstStore
+    });
+    assert.equal(first.verified, true);
+
+    const secondStore = await createFileNonceStore({ directory: privateRoot, publicRoot });
+    await assert.rejects(
+      verifyReviewAttestation(f.envelope, { ...f.options, nonceStore: secondStore }),
+      /already used/
+    );
+  } finally {
+    await fs.rm(root, { recursive: true, force: true });
+  }
 });
