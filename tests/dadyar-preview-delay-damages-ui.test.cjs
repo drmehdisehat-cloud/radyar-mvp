@@ -12,7 +12,7 @@ const start = html.indexOf('// BEGIN delay-damages calculator');
 const end = html.indexOf('// END delay-damages calculator');
 const browserBlock = start >= 0 && end > start ? html.slice(start, end + '// END delay-damages calculator'.length) : '';
 
-function harness() {
+function harness(indexes = rawIndexes, principal = '100000000') {
   const handlers = {};
   const elements = {};
   const make = (id, value = '') => (elements[id] = {
@@ -22,10 +22,10 @@ function harness() {
     addEventListener(name, fn) { handlers[id + ':' + name] = fn; }
   });
   const root = make('delay-damages-calculator');
-  root.dataset.indexes = rawIndexes;
+  root.dataset.indexes = typeof indexes === 'string' ? indexes : JSON.stringify(indexes);
   const due = make('delay-due-month');
   const paid = make('delay-payment-month');
-  make('delay-principal', '100000000');
+  make('delay-principal', principal);
   make('delay-currency', 'ریال');
   make('delay-calculate');
   make('delay-result');
@@ -80,4 +80,18 @@ test('browser calculator rejects invalid principal and has no network/API code',
   h.handlers['delay-calculate:click']();
   assert.match(h.elements['delay-result'].textContent, /اصل دین باید عدد صحیح مثبت/);
   assert.doesNotMatch(html, /\bfetch\s*\(|XMLHttpRequest|WebSocket|EventSource|sendBeacon/);
+});
+
+test('browser calculator preserves exact rounding when the intermediate product exceeds safe Number precision', () => {
+  const h = harness({ "1": 1000, "2": 110.867, "3": 110.867, "4": 110.867, "5": 110.867, "6": 110.867, "7": 110.867 }, '9007199254740991');
+  h.due.value = '1';
+  h.paid.value = '2';
+  h.handlers['delay-calculate:click']();
+  const expected = new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 0 }).format(998601159775369);
+  assert.ok(h.elements['delay-result'].textContent.includes(expected), 'large-principal result lost exact integer rounding');
+});
+
+test('browser calculator fails closed when a source index is zero or non-positive', () => {
+  const h = harness({ "1": 0, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7 });
+  assert.match(h.elements['delay-result'].textContent, /داده شاخص نامعتبر است/);
 });
