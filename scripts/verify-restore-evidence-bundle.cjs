@@ -115,6 +115,9 @@ function verifyRestoreEvidenceBundle({ manifest, archivePath, restoredMarkerPath
     seenIdentities.add(result.identity);
     const expected = manifest[HASH_FIELDS[label]];
     if (result.sha256 !== expected.toLowerCase()) throw new Error(label + '_sha256_mismatch');
+    if (label === 'archive' && result.bytes !== manifest.archive_size_bytes) {
+      throw new Error('archive_size_bytes_mismatch');
+    }
     files[label] = Object.freeze({ sha256: result.sha256, bytes: result.bytes });
   }
 
