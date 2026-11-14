@@ -88,7 +88,11 @@ function readExternalFile(file, label, maxBytes) {
   // Reject hard-link aliases as well as symlinks: an external pathname must not
   // expose the same inode as a file elsewhere (including inside this checkout).
   if (!Number.isInteger(fs.constants.O_NOFOLLOW)) throw new Error(label + '_nofollow_open_unavailable');
-  const fd = fs.openSync(real, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+  // O_NONBLOCK prevents a path swapped to a FIFO between validation and open from
+  // hanging the release preflight. It is inert for regular files; fstat below
+  // still rejects every non-regular evidence path.
+  const openFlags = fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | (fs.constants.O_NONBLOCK || 0);
+  const fd = fs.openSync(real, openFlags);
   try {
     const before = fs.fstatSync(fd, { bigint: true });
     if (!before.isFile()) throw new Error(label + '_must_be_regular_file');

@@ -161,6 +161,7 @@ test('live probe performs one credential-free GET and validates the returned res
       const response = new EventEmitter();
       response.statusCode = 200;
       response.headers = { ...headers };
+      response.complete = true;
       response.destroy = error => response.emit('error', error);
       callback(response);
       queueMicrotask(() => {
@@ -183,3 +184,48 @@ test('live probe performs one credential-free GET and validates the returned res
   assert.equal(seen.options.headers['accept-encoding'], 'identity');
   assert.equal(Object.keys(seen.options.headers).some(key => /authorization|cookie/i.test(key)), false);
 });
+
+test('live probe rejects an aborted response instead of waiting for an end event', async () => {
+  const request = (url, options, callback) => {
+    const req = new EventEmitter();
+    req.setTimeout = () => {};
+    req.destroy = error => req.emit('error', error);
+    req.end = () => {
+      const response = new EventEmitter();
+      response.statusCode = 200;
+      response.headers = { ...headers };
+      response.complete = false;
+      response.destroy = error => { if (error) response.emit('error', error); };
+      callback(response);
+      queueMicrotask(() => response.emit('aborted'));
+    };
+    return req;
+  };
+  await assert.rejects(
+    fetchPreview('https://mehdisehat.ir/dadyar-preview/', expectedSha256, expectedGitBlobSha1, { request }),
+    /preview_response_aborted/
+  );
+});
+
+test('live probe rejects a prematurely closed incomplete response', async () => {
+  const request = (url, options, callback) => {
+    const req = new EventEmitter();
+    req.setTimeout = () => {};
+    req.destroy = error => req.emit('error', error);
+    req.end = () => {
+      const response = new EventEmitter();
+      response.statusCode = 200;
+      response.headers = { ...headers };
+      response.complete = false;
+      response.destroy = error => { if (error) response.emit('error', error); };
+      callback(response);
+      queueMicrotask(() => response.emit('close'));
+    };
+    return req;
+  };
+  await assert.rejects(
+    fetchPreview('https://mehdisehat.ir/dadyar-preview/', expectedSha256, expectedGitBlobSha1, { request }),
+    /preview_response_incomplete/
+  );
+});
+

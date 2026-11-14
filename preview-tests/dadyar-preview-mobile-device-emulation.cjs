@@ -337,6 +337,30 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.match(snapshot.csp, /connect-src 'none'/);
     assert.deepEqual(snapshot.externalResources, []);
     assert.deepEqual(remoteRequests, [], 'preview attempted a remote network request');
+    // Repeat layout checks on a compact 320x568 handset viewport. The 390px
+    // iPhone run above is not sufficient to catch narrow-screen overflow.
+    await client.command('Emulation.setDeviceMetricsOverride', {
+      width: 320,
+      height: 568,
+      deviceScaleFactor: 2,
+      mobile: true,
+      screenWidth: 320,
+      screenHeight: 568
+    });
+    const narrowResult = await client.command('Runtime.evaluate', {
+      expression: '(() => { const visible = el => { const r = el.getBoundingClientRect(); const s = getComputedStyle(el); return r.width > 0 && r.height > 0 && s.visibility !== "hidden"; }; const controls = Array.from(document.querySelectorAll("button, select")).filter(visible).map(el => ({ id: el.id, height: el.getBoundingClientRect().height })); const checkboxes = Array.from(document.querySelectorAll("input[type=checkbox]")).filter(visible).map(el => ({ id: el.id || el.value, width: el.getBoundingClientRect().width, height: el.getBoundingClientRect().height })); return { width: innerWidth, height: innerHeight, screenWidth: screen.width, horizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1, shortControls: controls.filter(item => item.height < 44), smallCheckboxes: checkboxes.filter(item => item.width < 22 || item.height < 22) }; })()',
+      returnByValue: true
+    });
+    assert.ok(!narrowResult.exceptionDetails, narrowResult.exceptionDetails?.text || 'narrow mobile layout evaluation failed');
+    const narrow = narrowResult.result?.value;
+    assert.ok(narrow, 'narrow mobile layout snapshot missing');
+    assert.equal(narrow.width, 320, 'compact CSS viewport width was not emulated');
+    assert.equal(narrow.height, 568, 'compact CSS viewport height was not emulated');
+    assert.equal(narrow.screenWidth, 320, 'compact device screen width was not emulated');
+    assert.equal(narrow.horizontalOverflow, false, 'compact mobile layout has horizontal overflow');
+    assert.deepEqual(narrow.shortControls, [], 'visible buttons/selects must retain a 44px touch target');
+    assert.deepEqual(narrow.smallCheckboxes, [], 'visible checkboxes must retain a 22px touch target');
+    assert.deepEqual(remoteRequests, [], 'compact viewport caused a remote network request');
   } finally {
     try { client?.socket.close(); } catch {}
     // Chromium may leave renderer/zygote children holding profile files after its

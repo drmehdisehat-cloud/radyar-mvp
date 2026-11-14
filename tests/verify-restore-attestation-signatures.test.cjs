@@ -15,6 +15,11 @@ function makeManifest() {
   return {
     evidence: 'independent-restore-manifest-v1',
     restore_proven: true,
+    backup_provider: 'iranhost',
+    source_site_origin: 'https://mehdisehat.ir',
+    backup_id: 'synthetic-iranhost-backup-001',
+    backup_created_at: new Date(now - 240000).toISOString(),
+    archive_size_bytes: Buffer.byteLength('synthetic archive'),
     archive_sha256: digest('synthetic archive'),
     restored_marker_sha256: digest('synthetic marker'),
     restore_log_sha256: digest('synthetic restore log'),
@@ -90,6 +95,40 @@ test('manifest tampering invalidates both detached signatures', () => {
     operatorSignature: proof.operatorSignature,
     reviewerSignature: proof.reviewerSignature
   }), /operator_signature_invalid/);
+});
+
+test('restore signatures bind the exact IranHost backup identity and source site', () => {
+  const manifest = makeManifest();
+  const proof = signed(manifest);
+  const substitutedBackup = { ...manifest, backup_id: 'synthetic-other-backup-002' };
+  assert.throws(() => verifyRestoreAttestationSignatures({
+    manifest: substitutedBackup,
+    operatorPublicKeyPem: proof.operator.publicKey,
+    reviewerPublicKeyPem: proof.reviewer.publicKey,
+    operatorSignature: proof.operatorSignature,
+    reviewerSignature: proof.reviewerSignature
+  }), /operator_signature_invalid/);
+
+  const wrongSite = { ...manifest, source_site_origin: 'https://other.example' };
+  const wrongSiteProof = signed(wrongSite);
+  assert.throws(() => verifyRestoreAttestationSignatures({
+    manifest: wrongSite,
+    operatorPublicKeyPem: wrongSiteProof.operator.publicKey,
+    reviewerPublicKeyPem: wrongSiteProof.reviewer.publicKey,
+    operatorSignature: wrongSiteProof.operatorSignature,
+    reviewerSignature: wrongSiteProof.reviewerSignature
+  }), /schema_or_consistency_invalid/);
+
+  const missingBackupId = { ...manifest };
+  delete missingBackupId.backup_id;
+  const missingProof = signed(missingBackupId);
+  assert.throws(() => verifyRestoreAttestationSignatures({
+    manifest: missingBackupId,
+    operatorPublicKeyPem: missingProof.operator.publicKey,
+    reviewerPublicKeyPem: missingProof.reviewer.publicKey,
+    operatorSignature: missingProof.operatorSignature,
+    reviewerSignature: missingProof.reviewerSignature
+  }), /schema_or_consistency_invalid/);
 });
 
 test('operator and reviewer cannot reuse the same Ed25519 key', () => {
@@ -231,4 +270,27 @@ test('CLI rejects invalid UTF-8 manifest bytes instead of replacement decoding',
   const result = spawnSync(process.execPath, [SCRIPT, '--canonicalize', '--manifest', manifest], { encoding: 'utf8' });
   assert.equal(result.status, 1);
   assert.equal(JSON.parse(result.stdout).error, 'manifest_is_not_valid_utf8');
+});
+
+
+test('external evidence reader rejects FIFOs without blocking', t => {
+  if (process.platform === 'win32') return t.skip('mkfifo is POSIX-only');
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-attestation-fifo-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const fifo = path.join(directory, 'evidence.pipe');
+  const created = spawnSync('mkfifo', [fifo], { encoding: 'utf8' });
+  if (created.error || created.status !== 0) return t.skip('mkfifo unavailable');
+
+  // Run in a child with a hard timeout: a blocking open must fail this test,
+  // but must never stall the entire Node test runner.
+  const modulePath = path.join(__dirname, '../scripts/verify-restore-attestation-signatures.cjs');
+  const childSource = [
+    'const { readExternalFile } = require(' + JSON.stringify(modulePath) + ');',
+    'try { readExternalFile(' + JSON.stringify(fifo) + ', "evidence", 64); process.exitCode = 0; }',
+    'catch (error) { process.stdout.write(String(error.message)); process.exitCode = 1; }'
+  ].join('\n');
+  const result = spawnSync(process.execPath, ['-e', childSource], { encoding: 'utf8', timeout: 2000 });
+  assert.notEqual(result.error?.code, 'ETIMEDOUT', 'FIFO evidence path must not block the verifier');
+  assert.equal(result.status, 1, result.stderr || result.stdout);
+  assert.match(result.stdout, /evidence_must_be_regular_file/);
 });
