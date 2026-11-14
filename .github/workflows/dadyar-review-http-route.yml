@@ -28,6 +28,8 @@ jobs:
         run: node --test tests/delay-damages-1405.test.cjs tests/preview-index-data-consistency.test.cjs tests/dadyar-preview-csp-hash-contract.test.cjs tests/preview-artifact-manifest.test.cjs tests/reviewer-attestation.test.cjs tests/file-nonce-store.test.cjs tests/review-release-gate.test.cjs tests/review-release-http-handler.test.cjs tests/dadyar-preview-subpath-http.test.cjs tests/verify-public-preview-http.test.cjs tests/synthetic-cheque-workflow.test.cjs tests/synthetic-cheque-evidence-review.test.cjs tests/dadyar-preview-27-domain-routing.test.cjs tests/dadyar-preview-human-review-flow.test.cjs tests/dadyar-preview-one-shot-export.test.cjs tests/dadyar-preview-network-isolation.test.cjs
       - name: Verify owner-facing isolated restore handoff
         run: node --test tests/iranhost-restore-request-doc.test.cjs
+      - name: Verify exact isolated preview layout and no-overwrite target
+        run: node --test tests/preview-release-layout.test.cjs
       - name: Verify restore evidence reader rejects special files without blocking
         run: node --test tests/verify-restore-attestation-signatures.test.cjs
       - name: Verify date-aware legal-source provenance and fail-closed research status
