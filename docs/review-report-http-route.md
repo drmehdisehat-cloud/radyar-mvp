@@ -10,7 +10,7 @@ The adapter:
 - requires the exact configured HTTPS `Origin`;
 - rejects cross-site Fetch Metadata when supplied;
 - accepts only UTF-8 JSON and rejects compressed bodies;
-- caps request and response sizes;
+- caps request and response sizes and enforces a total request-body deadline (10 seconds by default, configurable only from 50 to 30,000 ms); a stalled or oversized body is answered with a bounded error and the connection is closed;
 - accepts only a single `envelope` field (never caller-supplied reviewer IDs or hashes);
 - passes the actual server request to the injected release gate so the configured session authenticator can resolve the principal;
 - returns the report only after the gate succeeds;
@@ -41,6 +41,6 @@ Before implementation on IranHost, confirm whether the selected hosting plan sup
 
 ## Tests
 
-`tests/review-release-http-handler.test.cjs` starts a real ephemeral local HTTP server and uses only generated Ed25519 keys, synthetic sessions, a synthetic cheque report and in-memory test nonce state. It covers valid release, caller-ID spoofing, unauthenticated requests, foreign Origin, cross-site Fetch Metadata, method/path restrictions, content type, compression, body limits, malformed JSON, unexpected request fields, rejection, replay and error redaction.
+`tests/review-release-http-handler.test.cjs` starts a real ephemeral local HTTP server and uses only generated Ed25519 keys, synthetic sessions, a synthetic cheque report and in-memory test nonce state. It covers valid release, caller-ID spoofing, unauthenticated requests, foreign Origin, cross-site Fetch Metadata, method/path restrictions, content type, compression, body-size limits, a stalled chunked-body timeout, malformed JSON, unexpected request fields, rejection, replay and error redaction.
 
 Passing these tests verifies the adapter contract only. It does not authenticate a real person, prove cPanel compatibility, restore a backup, validate a hosting destination, or authorize publication.
