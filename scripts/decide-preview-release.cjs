@@ -42,6 +42,12 @@ function matchesCanonicalRealpath(inputPath, realpath) {
 function hasIndependentRestoreAttestation(evidence) {
   if (!evidence || evidence.restore_proven !== true ||
       evidence.evidence !== 'independent-restore-manifest-v1') return false;
+  if (evidence.backup_provider !== 'iranhost' ||
+      evidence.source_site_origin !== 'https://mehdisehat.ir') return false;
+  if (typeof evidence.backup_id !== 'string' || !evidence.backup_id.trim() ||
+      evidence.backup_id.length > 160 || /[\\u0000-\\u001f\\u007f]/.test(evidence.backup_id)) return false;
+  if (!Number.isSafeInteger(evidence.archive_size_bytes) || evidence.archive_size_bytes <= 0) return false;
+  if (!validUtc(evidence.backup_created_at)) return false;
   if (!validSha(evidence.archive_sha256) ||
       !validSha(evidence.restored_marker_sha256) ||
       !validSha(evidence.restore_log_sha256) ||
@@ -69,6 +75,7 @@ function hasIndependentRestoreAttestation(evidence) {
       !matchesCanonicalRealpath(evidence.production_document_root, evidence.production_document_root_realpath) ||
       !outsideDocumentRoot(evidence.restore_target_realpath, evidence.production_document_root_realpath)) return false;
   if (!validUtc(evidence.restore_completed_at) || !validUtc(evidence.reviewed_at)) return false;
+  if (Date.parse(evidence.backup_created_at) > Date.parse(evidence.restore_completed_at)) return false;
   if (Date.parse(evidence.reviewed_at) < Date.parse(evidence.restore_completed_at)) return false;
   return true;
 }
