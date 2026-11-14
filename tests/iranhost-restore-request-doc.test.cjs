@@ -17,6 +17,10 @@ test('owner handoff explicitly forbids in-place restore and protects production'
 
 test('owner handoff requires real restore evidence, not archive size or hash alone', () => {
   assert.match(content, /SHA-256 آرشیو دانلودشده/);
+  assert.match(content, /backup_provider: "iranhost"/);
+  assert.match(content, /source_site_origin: "https:\/\/mehdisehat\.ir"/);
+  assert.match(content, /backup_id/);
+  assert.match(content, /archive_size_bytes/);
   assert.match(content, /exit code/);
   assert.match(content, /دو امضای Ed25519 جداگانه/);
   assert.match(content, /restore_proven` باید `false` بماند/);
