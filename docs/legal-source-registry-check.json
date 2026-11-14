@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "topic": "instruments",
+  "instrumentId": "iran-check-law",
+  "instrumentType": "law",
+  "title": "قانون صدور چک",
+  "documentId": "11400475274213876131",
+  "officialDocumentUrl": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
+  "metadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
+  "status": "research-only",
+  "observations": {
+    "consolidatedTextRetrievedAt": "2026-10-27",
+    "metadataRecheckedAt": "2026-11-10",
+    "consolidatedTextLatestRecheck": "request-timeout",
+    "metadataLatestRecheck": "retrieved",
+    "lastStatusLabelObserved": "اصلاحي 1403/03/30",
+    "originalGazetteNumberObserved": "9210",
+    "originalGazetteDateObserved": "1355/05/19",
+    "originalEffectiveDateObserved": "1355/06/04"
+  },
+  "publicationDate": null,
+  "effectiveFrom": null,
+  "effectiveTo": null,
+  "retrievedAt": "2026-11-10",
+  "textSha256": null,
+  "releaseSourceEligible": false,
+  "humanReview": null,
+  "legalConclusionPermitted": false,
+  "evidenceGaps": [
+    "متن تجمیعی کامل در آخرین بازبینی بازیابی نشد.",
+    "تاریخ انتشار رسمی و تاریخ لازم‌الاجرا شدن هر اصلاحیه ۱۳۹۷، ۱۴۰۰، ۱۴۰۳ و اصلاحات بعدی مستقلاً احراز نشده است.",
+    "نسخه معتبر متن در تاریخ هر رویداد مشخص نشده است.",
+    "هش متن قانونی برای اتصال بازبینی انسانی ثبت نشده است.",
+    "بازبین حقوقی مستقل و تاریخ بررسی ثبت نشده است."
+  ],
+  "scope": "این رکورد فقط سرنخ پژوهشی و فراداده مشاهده‌شده است. پیوند رسمی به‌تنهایی اثبات اصالت متن، تکمیل اصلاحات یا اعتبار قانون در تاریخ رویداد نیست و نباید در پاسخ حقوقی به‌عنوان منبع تأییدشده استفاده شود."
+}

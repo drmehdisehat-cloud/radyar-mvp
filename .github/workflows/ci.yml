@@ -4,27 +4,34 @@ on:
   push:
     branches:
       - dadyar/mvp-sync-028
+      - dadyar/preview-auth-policy-20261030
+      - dadyar/ai-chat-private-20261101
   pull_request:
     branches:
       - main
       - dadyar/mvp-sync-028
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
   verify-existing-frontend:
     if: >-
-      (github.event_name == 'push' && github.ref == 'refs/heads/dadyar/mvp-sync-028') ||
+      (github.event_name == 'push' && (github.ref == 'refs/heads/dadyar/mvp-sync-028' || github.ref == 'refs/heads/dadyar/preview-auth-policy-20261030' || github.ref == 'refs/heads/dadyar/ai-chat-private-20261101')) ||
       (github.event_name == 'pull_request' &&
        (github.base_ref == 'main' || github.base_ref == 'dadyar/mvp-sync-028'))
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22'
+          package-manager-cache: false
       - name: Check existing source syntax
         run: |
           node --check app.js
@@ -34,26 +41,57 @@ jobs:
           node --check backend/validation.js
           node --check backend/rate-limit.js
           node --check backend/server.js
+          node --check scripts/verify-human-review-attestation.cjs
+          node --check scripts/preview-release-preflight.cjs
+          node --check scripts/strict-json.cjs
+          node --check scripts/verify-restore-attestation-signatures.cjs
+          node --check scripts/verify-restore-attestation-pinned.cjs
           node --check tests/real-browser-smoke.cjs
+      - name: Audit full Git history for known secret signatures
+        run: node scripts/audit-git-history.cjs
       - name: Run every committed contract test
-        run: node --test tests/*.test.cjs
+        run: |
+          shopt -s nullglob
+          tests=(tests/*.test.cjs)
+          contracts=()
+          for test_file in "${tests[@]}"; do
+            [[ "$test_file" == tests/synthetic-cheque-chromium-e2e.test.cjs || "$test_file" == tests/dadyar-preview-mobile-chromium.test.cjs || "$test_file" == tests/dadyar-preview-mobile-device-emulation.test.cjs ]] || contracts+=("$test_file")
+          done
+          test "${#contracts[@]}" -gt 0
+          node --test "${contracts[@]}"
       - name: Audit v1 release blockers (informational; never deploy)
         run: node scripts/check-v1-readiness.cjs
       - name: Audit cheque amendment evidence gaps (research only)
         run: node scripts/audit-check-evidence.cjs
       - name: Assert unapproved v1 stays blocked (experimental only)
         run: |
-          # Expected failure is a safeguard, not a claim of release readiness.
           set +e
           node scripts/check-v1-readiness.cjs --enforce > /tmp/dadyar-v1-audit.json
           code=$?
           set -e
           test "$code" -eq 1
           node -e 'const a=require("/tmp/dadyar-v1-audit.json"); if(a.status!=="NOT_READY" || a.uncheckedGates<1 || !Array.isArray(a.issues) || !a.issues.length) process.exit(1)'
-      # Run a real Chrome session against the local development API.
-      # Fail closed if Chrome is absent; this is a release gate, not a mock.
       - name: Real headless browser smoke test
         run: |
           CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium)"
           test -n "$CHROME_BIN"
           CHROME_BIN="$CHROME_BIN" node --test tests/real-browser-smoke.cjs
+          CHROME_BIN="$CHROME_BIN" node --test tests/check-intake-browser.cjs
+          CHROME_BIN="$CHROME_BIN" node --test tests/synthetic-cheque-chromium-e2e.test.cjs
+          CHROME_BIN="$CHROME_BIN" node --test tests/dadyar-preview-mobile-chromium.test.cjs
+          CHROME_BIN="$CHROME_BIN" node --test tests/dadyar-preview-mobile-device-emulation.test.cjs
+          node --test tests/dadyar-preview-27-domain-routing.test.cjs
+      - name: Build offline preview handoff package (not deployment)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/dadyar/ai-chat-private-20261101'
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+        run: node scripts/build-offline-preview-package.cjs "$RUNNER_TEMP/dadyar-preview-handoff"
+      - name: Create immutable offline preview artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/dadyar/ai-chat-private-20261101'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dadyar-offline-preview-${{ github.sha }}
+          path: ${{ runner.temp }}/dadyar-preview-handoff/
+          if-no-files-found: error
+          retention-days: 7

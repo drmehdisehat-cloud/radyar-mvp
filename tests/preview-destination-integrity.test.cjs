@@ -1,0 +1,112 @@
+'use strict';
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const crypto = require('node:crypto');
+function gitBlobSha(file) {
+  const bytes = fs.readFileSync(file);
+  const digest = crypto.createHash('sha1');
+  digest.update(`blob ${bytes.length}\0`);
+  digest.update(bytes);
+  return digest.digest('hex');
+}
+const { verifyPreview } = require('../scripts/verify-preview-destination.cjs');
+
+test('destination verifier accepts exact synthetic offline preview copy and rejects tampering', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-destination-'));
+  try {
+    const productionRoot = path.join(dir, 'production-root');
+    fs.mkdirSync(productionRoot);
+    const source = path.resolve(__dirname, '../dadyar-preview/index.html');
+    const expectedSourceBlobSha = gitBlobSha(source);
+    assert.throws(() => verifyPreview(source, source, productionRoot, expectedSourceBlobSha), /distinct staged file/);
+    const alias = path.join(dir, 'alias.html');
+    fs.symlinkSync(source, alias);
+    assert.throws(() => verifyPreview(source, alias, productionRoot, expectedSourceBlobSha), /destination must not be a symbolic link/);
+    const linkedDir = path.join(dir, 'linked');
+    fs.mkdirSync(linkedDir);
+    fs.symlinkSync(source, path.join(linkedDir, 'index.html'));
+    assert.throws(() => verifyPreview(source, path.join(linkedDir, 'index.html'), productionRoot, expectedSourceBlobSha), /destination must not be a symbolic link/);
+    const hardLinkDir = path.join(dir, 'hard-linked');
+    fs.mkdirSync(hardLinkDir);
+    const hardLink = path.join(hardLinkDir, 'index.html');
+    fs.linkSync(source, hardLink);
+    assert.throws(() => verifyPreview(source, hardLink, productionRoot, expectedSourceBlobSha), /hard link to source/);
+    // The hard-link rejection case must not contaminate later independent
+    // digest-mismatch checks: the source must return to its single-link state.
+    fs.unlinkSync(hardLink);
+    const destination = path.join(dir, 'index.html');
+    fs.copyFileSync(source, destination);
+    assert.throws(() => verifyPreview(source, destination, productionRoot), /expected reviewed source Git blob SHA-1 required/);
+    assert.throws(() => verifyPreview(source, destination, productionRoot, '0'.repeat(40)), /expected reviewed source Git blob SHA-1 required/);
+    const separateLink = path.join(dir, 'symlinked', 'index.html');
+    fs.mkdirSync(path.dirname(separateLink));
+    fs.symlinkSync(destination, separateLink);
+    assert.throws(() => verifyPreview(source, separateLink, productionRoot, expectedSourceBlobSha), /destination must not be a symbolic link/);
+    const result = verifyPreview(source, destination, productionRoot, expectedSourceBlobSha);
+    assert.equal(result.matched, true);
+    assert.equal(result.source_blob_sha1, expectedSourceBlobSha);
+    assert.equal(result.expected_source_blob_sha1, expectedSourceBlobSha);
+    assert.match(result.source_sha256, /^[a-f0-9]{64}$/);
+    assert.equal(result.source_sha256, result.destination_sha256);
+    assert.equal(result.destination_outside_document_root, true);
+    const liveDestination = path.join(productionRoot, 'dadyar-preview');
+    fs.mkdirSync(liveDestination);
+    const liveIndex = path.join(liveDestination, 'index.html');
+    fs.copyFileSync(source, liveIndex);
+    assert.throws(() => verifyPreview(source, liveIndex, productionRoot, expectedSourceBlobSha), /outside production document root/);
+    fs.appendFileSync(destination, '\n<!-- tampered -->');
+    assert.throws(() => verifyPreview(source, destination, productionRoot, expectedSourceBlobSha), /destination differs/);
+    fs.copyFileSync(source, destination);
+    fs.writeFileSync(destination, fs.readFileSync(destination, 'utf8').replace("connect-src 'none'", "connect-src *"));
+    assert.throws(() => verifyPreview(source, destination, productionRoot, expectedSourceBlobSha), /destination differs/);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+
+test('destination verifier requires absolute source and destination paths', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-absolute-destination-'));
+  try {
+    const productionRoot = path.join(dir, 'production-root');
+    const destination = path.join(dir, 'index.html');
+    const source = path.resolve(__dirname, '../dadyar-preview/index.html');
+    fs.mkdirSync(productionRoot);
+    fs.copyFileSync(source, destination);
+    const expected = gitBlobSha(source);
+    const relativeSource = path.relative(process.cwd(), source);
+    const relativeDestination = path.relative(process.cwd(), destination);
+    assert.ok(relativeSource && !path.isAbsolute(relativeSource));
+    assert.ok(relativeDestination && !path.isAbsolute(relativeDestination));
+    assert.throws(() => verifyPreview(relativeSource, destination, productionRoot, expected), /source must be an absolute path/);
+    assert.throws(() => verifyPreview(source, relativeDestination, productionRoot, expected), /destination must be an absolute path/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+
+test('destination verifier rejects non-canonical absolute paths before filesystem normalization', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-noncanonical-destination-'));
+  try {
+    const productionRoot = path.join(dir, 'production-root');
+    const destination = path.join(dir, 'index.html');
+    const source = path.resolve(__dirname, '../dadyar-preview/index.html');
+    fs.mkdirSync(productionRoot);
+    fs.copyFileSync(source, destination);
+    const expected = gitBlobSha(source);
+    const withDotSegments = target =>
+      path.dirname(target) + path.sep + 'unused' + path.sep + '..' + path.sep + path.basename(target);
+    assert.ok(path.isAbsolute(withDotSegments(source)));
+    assert.equal(path.resolve(withDotSegments(source)), source);
+    assert.throws(() => verifyPreview(withDotSegments(source), destination, productionRoot, expected),
+      /source path must be canonical/);
+    assert.throws(() => verifyPreview(source, withDotSegments(destination), productionRoot, expected),
+      /destination path must be canonical/);
+    assert.throws(() => verifyPreview(source, destination, withDotSegments(productionRoot), expected),
+      /production document root path must be canonical/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

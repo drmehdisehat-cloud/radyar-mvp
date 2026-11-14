@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>کاربرگ آزمایشی چک | دادیار</title>
+<style>
+:root{font-family:system-ui,Tahoma,sans-serif;color:#203044;background:#f4f7fb}*{box-sizing:border-box}body{margin:0}main{max-width:780px;margin:auto;padding:24px 16px 90px}h1{font-size:1.6rem}h2{font-size:1.15rem}section{background:white;border:1px solid #dbe3ed;border-radius:16px;padding:18px;margin:16px 0}label{display:block;margin:12px 0 6px}select,button{font:inherit;padding:12px;border-radius:10px;border:1px solid #758ba5}select{width:100%;background:white}button{background:#194f7d;color:white;cursor:pointer;margin:8px 0 0 8px}button:focus-visible,select:focus-visible{outline:3px solid #e39b28;outline-offset:2px}.warning{background:#fff2d8;border-right:5px solid #bd7716;padding:14px;border-radius:8px}.status{font-weight:700;color:#8a340f}.evidence{padding:8px 0;border-bottom:1px solid #ddd}#report{white-space:pre-wrap;line-height:1.9}small{display:block;color:#4d6075}footer{font-size:.9rem}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;scroll-behavior:auto!important}}@media(max-width:480px){main{padding:14px 12px}button{width:100%}}
+</style></head><body><main>
+<h1>دادیار | کاربرگ تمرینی بررسی چک</h1>
+<p class="warning" role="status">نسخه آفلاین آموزشی با اطلاعات کاملاً ساختگی. این صفحه هوش مصنوعی، مشاوره حقوقی، احراز هویت یا اتصال به سرور ندارد. هیچ اطلاعات واقعی وارد نکنید. نتیجه برای انتشار یا استفاده در پرونده واقعی مجاز نیست.</p>
+<section><h2>پرونده فرضی ثابت</h2><p>چک فرضی به مبلغ ۱۰ واحد آزمایشی، سررسید فرضی ۱۴۰۵/۰۱/۱۵. هیچ شخص یا شماره حساب واقعی وجود ندارد.</p>
+<div class="evidence"><strong>ادله موافق:</strong> تصویر چک ساختگی و ادعای تحویل آن.</div>
+<div class="evidence"><strong>ادله مخالف:</strong> ادعای پرداخت فرضی بدون مدرک تأییدشده.</div>
+<div class="evidence"><strong>ابهام:</strong> اصالت، تاریخ ارائه و گواهی عدم پرداخت بررسی نشده است.</div>
+<label for="role">نقش شبیه‌سازی</label><select id="role"><option>وکیل</option><option>قاضی</option><option>سردفتر</option><option>دادستان</option><option>ضابط</option></select>
+<button id="generate" type="button">ساخت کاربرگ</button><button id="download" type="button" disabled>دریافت متن تمرینی</button></section>
+<section aria-live="polite" aria-atomic="true"><h2>خروجی غیررسمی</h2><p class="status" id="state">هنوز کاربرگی ساخته نشده است.</p><div id="report"></div></section>
+<footer>هیچ داده‌ای ارسال یا ذخیره نمی‌شود. این نمایش مستقل از موتور اصلی مخزن است و تأیید منابع قانونی یا بازبینی انسانی را انجام نمی‌دهد.</footer>
+</main><script>
+'use strict';
+const roles=Object.freeze({
+'وکیل':'پرسش‌های مصاحبه و ادعا و دفاع را جدا کنید؛ پیش‌نویس نیازمند بازبینی وکیل انسانی است.',
+'قاضی':'استدلال موافق و مخالف را بدون صدور رأی لازم‌الاجرا مقایسه کنید.',
+'سردفتر':'صرفاً مدارک لازم برای بررسی اولیه را فهرست کنید؛ سندی تنظیم یا ثبت رسمی نمی‌شود.',
+'دادستان':'ادعا و دفاع احتمالی را بدون تصمیم تعقیب یا اقدام قضایی بررسی کنید.',
+'ضابط':'ترتیب وقایع و منشأ مدارک فرضی را بدون اقدام انتظامی واقعی ثبت کنید.'
+});
+const $=id=>document.getElementById(id);let current='';
+// A role change invalidates any previously generated export to prevent stale attribution.
+$('role').addEventListener('change',()=>{
+ current='';$('report').textContent='';$('download').disabled=true;
+ $('state').textContent='نقش تغییر کرد؛ برای ساخت کاربرگ جدید اقدام کنید.';
+});
+$('generate').addEventListener('click',()=>{
+const role=$('role').value;if(!Object.hasOwn(roles,role))return;
+const lines=[
+'کاربرگ غیررسمی چک | داده‌های کاملاً ساختگی',
+'نقش شبیه‌سازی: '+role,roles[role],
+'ادله موافق: تصویر چک ساختگی؛ اصالت تأیید نشده است.',
+'ادله مخالف: ادعای پرداخت فرضی؛ اصالت تأیید نشده است.',
+'موارد نامعلوم: تاریخ ارائه، گواهی عدم پرداخت و ارتباط مدارک.',
+'پرسش بعدی: چه مدرک فرضی مستقلی ادعای پرداخت را تأیید یا رد می‌کند؟',
+'منابع قانونی: هیچ متن ماده، منبع رسمی یا تاریخ اعتبار تأیید نشده است.',
+'چک‌لیست بازبینی: متن کامل ماده؛ نشانی انتشار رسمی؛ تاریخ اجرا و اصلاحات؛ تأیید متخصص انسانی.',
+'وضعیت: NEEDS_MORE_INFORMATION | publicationBlocked=true',
+'این خروجی رأی، سند رسمی، دستور انتظامی یا مشاوره حقوقی نیست.'
+];
+current=lines.join('\n\n');$('report').textContent=current;
+$('state').textContent='ناقص و غیرقابل انتشار؛ بازبینی انسانی الزامی است.';
+$('download').disabled=false;
+});
+$('download').addEventListener('click',()=>{
+if(!current)return;
+const blob=new Blob(['\ufeff'+current],{type:'text/plain;charset=utf-8'});
+const url=URL.createObjectURL(blob);const a=document.createElement('a');
+a.href=url;a.download='dadyar-synthetic-cheque-review.txt';a.click();
+setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+</script></body></html>

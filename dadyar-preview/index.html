@@ -1,0 +1,771 @@
+<!doctype html>
+<html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; script-src 'sha256-JYbMO81odrgUEYfuV5ipS4Kn0NsZuD4Nu2Ym4nDTl7I='; style-src 'sha256-YKfabf3xX60zTCv1C7Gx0Vyjsf8RyuxdVMXhecUJM98='; form-action 'none'; base-uri 'none'">
+<title>دادیار | پیش‌نمایش آفلاین چک فرضی</title>
+<style>body{font:1rem/1.9 system-ui,sans-serif;background:#f5f6fa;color:#17243b;margin:0}main{max-width:780px;margin:auto;padding:1.2rem}section{background:white;border-radius:16px;padding:1.2rem;margin:1rem 0;box-shadow:0 2px 12px #17243b12}button,select{font:inherit;min-height:44px;max-width:100%;padding:.5rem;border:1px solid #718096;border-radius:8px}input[type=checkbox]{min-width:22px;min-height:22px;vertical-align:middle}button{background:#dcecfb;cursor:pointer}button:focus-visible,select:focus-visible{outline:3px solid #2469a8}fieldset{border:1px solid #b4bfd0;border-radius:12px;margin:1rem 0}label{display:block;margin:.6rem 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}small{color:#475569}#result[hidden]{display:none}#free-question,#reviewer-name,#review-note,#delay-principal{box-sizing:border-box;width:100%;font:inherit;border:1px solid #718096;border-radius:8px;padding:.5rem}#review-note{min-height:4.5rem}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}} #delay-principal{min-height:44px}#delay-due-month,#delay-payment-month,#delay-currency{width:100%}#delay-calculate{width:100%}</style></head>
+<body><main><h1>کارگاه آزمایشی دادیار: چک فرضی</h1><p role="status">صرفاً داده‌های ازپیش‌ساخته؛ بدون ارسال اطلاعات، هوش مصنوعی یا ذخیره در سرور. پاسخ خودکار حقوقی: ارائه نمی‌شود. اطلاعات واقعی وارد نکنید.</p>
+<section><label for="role">نقش شبیه‌سازی آموزشی</label><p id="role-simulation-notice" role="note">نقش‌های وکیل، قاضی، دادستان، ضابط و سردفتر در این پیش‌نمایش صرفاً شبیه‌سازی آموزشی‌اند؛ هیچ سمت، اختیار یا اثر حقوقی واقعی ایجاد نمی‌کنند.</p><select id="role"><option>وکیل</option><option>قاضی</option><option>سردفتر</option><option>دادستان</option><option>ضابط</option></select>
+<fieldset><legend>کدام مدارک فرضی را در مصاحبه داریم؟</legend>
+<label><input type="checkbox" data-stance="موافق" value="تصویر چک نمونه با شماره ساختگی" checked> تصویر چک نمونه</label>
+<label><input type="checkbox" data-stance="موافق" value="گواهی عدم پرداخت نمونه"> گواهی عدم پرداخت نمونه</label>
+<label><input type="checkbox" data-stance="مخالف" value="ادعای تسویه وجه در پرونده فرضی" checked> ادعای تسویه فرضی</label>
+<label><input type="checkbox" data-stance="نامعلوم" value="تاریخ سررسید در پرونده فرضی مشخص نیست"> تاریخ سررسید نامعلوم</label>
+</fieldset>
+<label for="free-question">پرسش آزاد درباره چک فرضی (اختیاری، حداکثر ۳۰۰ نویسه؛ اطلاعات واقعی وارد نکنید)</label><textarea id="free-question" maxlength="300" rows="3" autocomplete="off" placeholder="مثلاً: در این سناریوی ساختگی چه مدارکی باید بررسی شوند؟"></textarea>
+<fieldset id="interview"><legend>پرسش‌های تکمیلی سناریوی فرضی</legend>
+<label for="issue-date">تاریخ صدور و سررسید در مدارک نمونه مشخص است؟</label><select id="issue-date" data-question="تاریخ صدور و سررسید چک چیست؟"><option value="unknown">نامعلوم</option><option value="yes">در نمونه درج شده</option><option value="no">در نمونه درج نشده</option></select>
+<label for="certificate">گواهی عدم پرداخت نمونه موجود است؟</label><select id="certificate" data-question="گواهی عدم پرداخت موجود است؟"><option value="unknown">نامعلوم</option><option value="yes">در نمونه موجود است</option><option value="no">در نمونه موجود نیست</option></select>
+<label for="defense">ادعای پرداخت یا دفاعی در سناریو مطرح است؟</label><select id="defense" data-question="آیا ادعای پرداخت یا دفاع دیگری مطرح است؟"><option value="unknown">نامعلوم</option><option value="yes">صرفاً ادعا شده است</option><option value="no">در نمونه مطرح نشده</option></select>
+<p><small>پاسخ‌ها صرفاً وضعیت داده ساختگی هستند و اصالت مدارک را تأیید نمی‌کنند.</small></p></fieldset><button id="generate" type="button">ساخت پیش‌نویس غیررسمی</button> <button id="reset" type="button">پاک‌کردن انتخاب‌ها و پیش‌نویس</button><p id="reset-status" role="status" aria-live="polite"></p></section>
+<section id="result" hidden tabindex="-1" aria-live="polite"><h2>پیش‌نویس برای بازبینی انسانی</h2><p id="topic-scope-status" role="status" aria-live="polite"></p><pre id="report"></pre><section id="human-review" aria-labelledby="human-review-title"><h3 id="human-review-title">بازبینی محلی توسط انسان (بدون احراز هویت)</h3><p role="note"><strong>محدودیت این پیش‌نمایش:</strong> این مرحله فقط جریان بازبینی آفلاین را نمایش می‌دهد؛ هویت یا سمت بازبین احراز نمی‌شود و ثبت آن تأیید حقوقی یا مجوز انتشار نیست.</p><p>برای آزمون جریان آفلاین، بازبین می‌تواند نام، نتیجه و یادداشت خود را ثبت کند. فقط نتیجه «تأیید» همراه با ثبت اظهار محلی، دریافت فایل آموزشی را فعال می‌کند.</p>
+<label for="reviewer-name">برچسب بازبین (فقط داده ساختگی؛ نام واقعی وارد نکنید)</label><input id="reviewer-name" type="text" maxlength="80" autocomplete="off" placeholder="بازبین آزمون" required>
+<label for="review-decision">نتیجه بازبینی</label><select id="review-decision"><option value="pending">در انتظار بازبینی</option><option value="approved">تأیید برای دریافت آموزشی</option><option value="rejected">رد پیش‌نویس</option></select>
+<label for="review-note">یادداشت بازبین (الزامی، حداقل ۱۲ و حداکثر ۳۰۰ نویسه)</label><textarea id="review-note" minlength="12" maxlength="300" rows="2" required></textarea><small>برای این پیش‌نمایش فقط از برچسب «بازبین آزمون» و یادداشت ساختگی استفاده کنید. شماره تماس، کد ملی، کارت بانکی، ایمیل و نشانی اینترنتی وارد نکنید.</small>
+<label><input type="checkbox" id="export-ack"> من، بازبین انسانی، اعلام می‌کنم که شخصاً این پیش‌نویس فرضی را بازبینی کرده‌ام و نتیجه زیر را ثبت می‌کنم؛ این اظهار به معنای تأیید قانونی، اصالت مدارک یا بررسی مستقل متخصص نیست.</label>
+<button type="button" id="record-review" disabled>ثبت اظهار محلی بازبین</button><p id="review-status" role="status" aria-live="polite"></p>
+<p><small>محدودیت مهم: این نسخه کاملاً آفلاین است و هویت بازبین احراز نمی‌شود. نام، تصمیم و زمان فقط اظهار محلی‌اند و جایگزین بازبینی مستقلِ احراز‌شده در سامانه امن نیستند. زمان ثبت با ساعت دستگاه ایجاد و در گزارش به قالب UTC تبدیل می‌شود؛ ساعت دستگاه قابل راستی‌آزمایی مستقل نیست و این زمان مهر زمانی معتبر محسوب نمی‌شود.</small></p></section>
+<button type="button" id="download" disabled>دریافت گزارش متنی</button><p id="export-status" role="status" aria-live="polite"></p><p><small>این خروجی رأی، دستور، ثبت رسمی سند یا مشاوره حقوقی قطعی نیست. منابع قانونی و تاریخ اعتبار بررسی نشده‌اند.</small></p></section><section id="delay-damages-calculator" data-indexes='{"1":2654.9,"2":2880.4,"3":3092.3,"4":3205.1,"5":3333.9,"6":3452.1,"7":3611.1}' data-base-year="1395" data-base-year-status="inferred-from-1395-average-100-in-owner-image; not-independently-verified" data-source-status="transcribed-not-independently-authenticated">
+<h2>محاسبه آزمایشی خسارت تأخیر تأدیه ۱۴۰۵</h2>
+<p role="note">این ابزار آفلاین است. ارقام فروردین تا مهر ۱۴۰۵ از تصویر ارسالی مالک رونویسی شده‌اند و هنوز با جدول رسمی بانک مرکزی تطبیق مستقل نشده‌اند. از ردیف ۱۳۹۵ با متوسط ۱۰۰، سال پایه ۱۳۹۵ استنباط شده؛ این برداشت نیز نیازمند تأیید است.</p>
+<label for="delay-principal">اصل دین (عدد صحیح؛ واحد را انتخاب کنید)</label><input id="delay-principal" type="number" inputmode="numeric" min="1" step="1" value="100000000" autocomplete="off">
+<label for="delay-currency">واحد مبلغ</label><select id="delay-currency"><option value="ریال">ریال</option><option value="تومان">تومان</option></select>
+<label for="delay-due-month">ماه مبدأ قانونی محاسبه (سال ۱۴۰۵)</label><select id="delay-due-month"></select>
+<label for="delay-payment-month">ماه پرداخت / محاسبه (سال ۱۴۰۵)</label><select id="delay-payment-month"></select>
+<button id="delay-calculate" type="button">محاسبه خسارت تأخیر تأدیه</button>
+<pre id="delay-result" role="status" aria-live="polite">برای محاسبه، اصل دین و دو ماه را انتخاب کنید.</pre>
+<p>شاخص‌های واردشده در این نسخه:</p><ul id="delay-index-list"></ul>
+<p>فرمول عددی: اصل دین × (شاخص زمان پرداخت ÷ شاخص ماه مبدأ). این ارقام نقاط شاخص ماهانه‌اند، نه نرخ تورم ماهانه. ستون «متوسط سالانه» در جدول اصلی مفهومی جداگانه دارد و در ردیف ۱۴۰۵ تصویر مقدار قابل استفاده‌ای برای آن درج نشده است.</p>
+<p>محدودیت: فقط ماه‌های فروردین تا مهر ۱۴۰۵ موجودند. برای سال‌های دیگر یا ماه‌های فاقد شاخص، عدد حدس زده نمی‌شود. مبدأ قانونی، شرایط ماده ۵۲۲، نوع دین و آثار رأی یا قرارداد را این ابزار تعیین نمی‌کند. پیش از استفاده قضایی، جدول رسمی، سال پایه، متن معتبر رأی وحدت رویه ۸۵۰ و تاریخ اعتبار باید بررسی و تأیید انسانی شوند.</p>
+</section></main>
+<script>
+'use strict';
+const questions=['تاریخ صدور و سررسید فرضی چک چیست؟','گواهی عدم پرداخت فرضی موجود است؟','آیا ادعای پرداخت یا دفاع دیگری مطرح است؟'];
+// Local keyword hints only. They never determine legal rights, routes or outcomes.
+const topicHints = [
+  {
+    "id": "civil",
+    "keywords": [
+      "قرارداد",
+      "بیع",
+      "صلح",
+      "وکالت",
+      "ضمان",
+      "حواله",
+      "رهن",
+      "فسخ",
+      "وجه التزام",
+      "مطالبه وجه",
+      "استرداد ثمن",
+      "دارا شدن بلاجهت"
+    ]
+  },
+  {
+    "id": "property",
+    "keywords": [
+      "اجاره",
+      "موجر",
+      "مستأجر",
+      "تخلیه",
+      "سرقفلی",
+      "خلع ید",
+      "تصرف عدوانی",
+      "افراز",
+      "تفکیک",
+      "پیش فروش ساختمان",
+      "آپارتمان",
+      "مشارکت در ساخت"
+    ]
+  },
+  {
+    "id": "registry",
+    "keywords": [
+      "سند رسمی",
+      "سند مالکیت",
+      "الزام به تنظیم سند",
+      "اجرای ثبت",
+      "دفترخانه",
+      "سردفتر",
+      "ثبت ملک",
+      "تعارض اسناد"
+    ]
+  },
+  {
+    "id": "family",
+    "keywords": [
+      "ازدواج",
+      "نکاح",
+      "طلاق",
+      "مهریه",
+      "نفقه",
+      "حضانت",
+      "ملاقات فرزند",
+      "تمکین",
+      "جهیزیه",
+      "نسب",
+      "فرزندخواندگی",
+      "کودک آزاری"
+    ]
+  },
+  {
+    "id": "succession",
+    "keywords": [
+      "ارث",
+      "وصیت",
+      "ترکه",
+      "انحصار وراثت",
+      "قیمومت",
+      "حجر",
+      "غایب مفقودالاثر",
+      "تحریر ترکه"
+    ]
+  },
+  {
+    "id": "liability",
+    "keywords": [
+      "مسئولیت مدنی",
+      "جبران خسارت",
+      "اتلاف",
+      "تسبیب",
+      "تصادف",
+      "خسارت بدنی",
+      "دیه",
+      "خسارت معنوی"
+    ]
+  },
+  {
+    "id": "civil-procedure",
+    "keywords": [
+      "دادخواست",
+      "صلاحیت دادگاه",
+      "ابلاغ",
+      "تأمین خواسته",
+      "دستور موقت",
+      "تجدیدنظر",
+      "فرجام",
+      "اعاده دادرسی",
+      "داوری",
+      "دادگاه صلح",
+      "شورای حل اختلاف"
+    ]
+  },
+  {
+    "id": "enforcement",
+    "keywords": [
+      "اجراییه",
+      "اجرای حکم",
+      "توقیف اموال",
+      "مزایده",
+      "اعسار",
+      "تقسیط",
+      "مستثنیات دین"
+    ]
+  },
+  {
+    "id": "criminal",
+    "keywords": [
+      "سرقت",
+      "قتل",
+      "کلاهبرداری",
+      "خیانت در امانت",
+      "انتقال مال غیر",
+      "جعل",
+      "ضرب و جرح",
+      "تهدید",
+      "توهین",
+      "دفاع مشروع",
+      "شروع به جرم",
+      "معاونت",
+      "قصاص",
+      "تعزیر"
+    ]
+  },
+  {
+    "id": "criminal-procedure",
+    "keywords": [
+      "شکواییه",
+      "ضابط",
+      "دادسرا",
+      "بازپرس",
+      "کیفرخواست",
+      "قرار منع تعقیب",
+      "قرار تأمین کیفری",
+      "بازداشت موقت",
+      "اجرای احکام کیفری",
+      "آزادی مشروط"
+    ]
+  },
+  {
+    "id": "special-crimes",
+    "keywords": [
+      "مواد مخدر",
+      "پولشویی",
+      "قاچاق",
+      "اختلاس",
+      "ارتشا",
+      "جرم سیاسی",
+      "جرم مطبوعاتی",
+      "جرم نظامی",
+      "جرم انتخاباتی"
+    ]
+  },
+  {
+    "id": "digital",
+    "keywords": [
+      "جرم رایانه ای",
+      "کلاهبرداری اینترنتی",
+      "فیشینگ",
+      "دسترسی غیرمجاز",
+      "داده شخصی",
+      "حریم خصوصی",
+      "امضای الکترونیکی",
+      "فروشگاه اینترنتی"
+    ]
+  },
+  {
+    "id": "commercial",
+    "keywords": [
+      "شرکت تجاری",
+      "سهامدار",
+      "هیئت مدیره",
+      "ثبت شرکت",
+      "ادغام شرکت",
+      "انحلال شرکت",
+      "ورشکستگی",
+      "توقف تاجر",
+      "قرارداد ارفاقی",
+      "تعاونی"
+    ]
+  },
+  {
+    "id": "instruments",
+    "keywords": [
+      "چک",
+      "برگشت چک",
+      "چک تضمینی",
+      "چک صیادی",
+      "سفته",
+      "برات",
+      "ظهرنویسی",
+      "گواهی عدم پرداخت"
+    ]
+  },
+  {
+    "id": "labor",
+    "keywords": [
+      "قرارداد کار",
+      "اخراج",
+      "حقوق معوق",
+      "سنوات",
+      "اضافه کار",
+      "حادثه کار",
+      "بیمه بیکاری",
+      "بازنشستگی",
+      "حق بیمه",
+      "هیئت تشخیص"
+    ]
+  },
+  {
+    "id": "administrative",
+    "keywords": [
+      "دیوان عدالت اداری",
+      "ابطال بخشنامه",
+      "اعتراض اداری",
+      "استخدام دولتی",
+      "تخلف اداری",
+      "گزینش",
+      "پروانه کسب",
+      "مناقصه",
+      "دسترسی آزاد به اطلاعات"
+    ]
+  },
+  {
+    "id": "municipal",
+    "keywords": [
+      "شهرداری",
+      "تخلف ساختمانی",
+      "پایان کار",
+      "تغییر کاربری",
+      "عوارض",
+      "اراضی ملی",
+      "منابع طبیعی",
+      "حریم شهر"
+    ]
+  },
+  {
+    "id": "tax",
+    "keywords": [
+      "مالیات",
+      "ارزش افزوده",
+      "اظهارنامه مالیاتی",
+      "برگ تشخیص",
+      "معافیت مالیاتی",
+      "گمرک",
+      "تعرفه گمرکی",
+      "ترخیص",
+      "واردات",
+      "صادرات"
+    ]
+  },
+  {
+    "id": "finance",
+    "keywords": [
+      "بانک",
+      "تسهیلات بانکی",
+      "سود بانکی",
+      "بیمه نامه",
+      "خسارت بیمه",
+      "بورس",
+      "اوراق بهادار",
+      "ارز",
+      "رمزارز"
+    ]
+  },
+  {
+    "id": "consumer",
+    "keywords": [
+      "حقوق مصرف کننده",
+      "تعزیرات حکومتی",
+      "گرانفروشی",
+      "کم فروشی",
+      "کالای معیوب",
+      "ضمانت کالا",
+      "انحصار",
+      "رقابت",
+      "مجوز صنفی"
+    ]
+  },
+  {
+    "id": "ip",
+    "keywords": [
+      "ثبت برند",
+      "علامت تجاری",
+      "اختراع",
+      "طرح صنعتی",
+      "حق مؤلف",
+      "کپی رایت",
+      "نرم افزار",
+      "رسانه",
+      "مطبوعات"
+    ]
+  },
+  {
+    "id": "public-law",
+    "keywords": [
+      "قانون اساسی",
+      "حق شهروندی",
+      "آزادی اجتماعات",
+      "انتخابات",
+      "نظارت",
+      "شورای نگهبان",
+      "اصل قانون اساسی"
+    ]
+  },
+  {
+    "id": "international",
+    "keywords": [
+      "تابعیت",
+      "اقامت",
+      "مهاجرت",
+      "اتباع خارجی",
+      "استرداد مجرم",
+      "حکم دادگاه خارجی",
+      "تعارض قوانین",
+      "داوری بین المللی",
+      "معاهده"
+    ]
+  },
+  {
+    "id": "health",
+    "keywords": [
+      "قصور پزشکی",
+      "رضایت درمان",
+      "نظام پزشکی",
+      "مسئولیت پزشک",
+      "دارو",
+      "بهداشت",
+      "تخلف انتظامی وکیل"
+    ]
+  },
+  {
+    "id": "environment",
+    "keywords": [
+      "آلودگی",
+      "محیط زیست",
+      "هوای پاک",
+      "حقابه",
+      "حفر چاه",
+      "معدن",
+      "نفت",
+      "برق",
+      "پسماند",
+      "شکار"
+    ]
+  },
+  {
+    "id": "transport",
+    "keywords": [
+      "بارنامه",
+      "حمل کالا",
+      "حمل دریایی",
+      "کشتی",
+      "ترانزیت",
+      "حمل هوایی",
+      "متصدی حمل",
+      "خسارت بار"
+    ]
+  },
+  {
+    "id": "cross-cutting",
+    "keywords": [
+      "وقف",
+      "موقوفه",
+      "اوقاف",
+      "خیریه",
+      "آموزش",
+      "مدرسه",
+      "دانشگاه",
+      "ورزش",
+      "معلولیت",
+      "مستمری",
+      "ایثارگران"
+    ]
+  }
+];
+function normalizeTopicText(value) {
+  return String(value || '').normalize('NFKC')
+    .replace(/[يى]/g, 'ی').replace(/ك/g, 'ک')
+    .replace(/\p{M}/gu, '')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ').replace(/\s+/gu, ' ').trim();
+}
+function classifyQuestion(text) {
+  const normalized = ' ' + normalizeTopicText(text) + ' ';
+  return topicHints.flatMap(domain => {
+    const matches = domain.keywords.filter(keyword =>
+      normalized.includes(' ' + normalizeTopicText(keyword) + ' ')
+    );
+    return matches.length ? [{ id: domain.id, matches }] : [];
+  }).sort((a, b) => b.matches.length - a.matches.length);
+}
+function describeTopicScope(matches, question) {
+  if (!String(question || '').trim()) return 'پرسش آزاد ثبت نشده است؛ طبقه‌بندی موضوعی انجام نشد.';
+  const hasCheque = matches.some(topic => topic.id === 'instruments');
+  const hasOtherTopic = matches.some(topic => topic.id !== 'instruments');
+  if (hasCheque && hasOtherTopic) return 'پرسش آزاد چندموضوعی تشخیص داده شد؛ این پیش‌نمایش فقط سناریوی چک فرضی را پوشش می‌دهد و موضوع دیگر را تحلیل نمی‌کند. برچسب‌های داخلی نمایش داده نمی‌شوند.';
+  if (hasOtherTopic) return 'پرسش آزاد خارج از دامنه این پیش‌نمایش چک فرضی است؛ این نسخه درباره موضوع دیگر تحلیل ارائه نمی‌کند. برچسب‌های داخلی نمایش داده نمی‌شوند.';
+  if (hasCheque) return 'پرسش آزاد با دامنه چک فرضی هم‌راستاست؛ تشخیص صرفاً کلیدواژه‌ای و غیرقطعی است.';
+  return 'از پرسش آزاد موضوع مشخصی شناسایی نشد؛ متن را روشن‌تر کنید. این تشخیص قطعی نیست.';
+}
+const roleSimulationNotice='نقش‌های وکیل، قاضی، دادستان، ضابط و سردفتر در این پیش‌نمایش صرفاً شبیه‌سازی آموزشی‌اند؛ هیچ سمت، اختیار یا اثر حقوقی واقعی ایجاد نمی‌کنند.';
+const purposes={'وکیل':'مصاحبه و تنظیم پیش‌نویس','قاضی':'مقایسه استدلال طرفین، بدون صدور رأی','سردفتر':'بررسی اولیه مدارک، بدون ثبت سند','دادستان':'بررسی ادعا و دفاع، بدون تصمیم قضایی','ضابط':'سامان‌دهی گزارش، بدون اقدام انتظامی'};
+const roleGuidance={
+ 'وکیل':['تفکیک ادعاهای موکل از اسناد قابل بررسی','فهرست پرسش‌های تکمیلی برای تنظیم پیش‌نویس، بدون تعیین نتیجه دعوا'],
+ 'قاضی':['ثبت جداگانه استدلال موافق و مخالف','مشخص‌کردن خلأهای اثباتی پیش از هر شبیه‌سازی رأی'],
+ 'سردفتر':['فهرست مدارک اعلام‌شده و موارد فاقد تأیید اصالت','ارجاع بررسی صلاحیت و تشریفات به سردفتر انسانی؛ بدون تنظیم سند رسمی'],
+ 'دادستان':['تفکیک ادعای اولیه، پاسخ طرف مقابل و موارد نامعلوم','پرهیز از انتساب جرم یا شبیه‌سازی تصمیم بدون بررسی انسانی'],
+ 'ضابط':['تنظیم فهرست زمانی وقایع و منشأ هر مدرک در مصاحبه بعدی','ثبت موارد نیازمند بررسی بدون صدور دستور یا اقدام انتظامی']
+};
+const role=document.getElementById('role'),out=document.getElementById('report'),box=document.getElementById('result');
+let report='';
+let internalTopicMatches=[];
+const topicScopeStatus=document.getElementById('topic-scope-status');
+const downloadButton=document.getElementById('download');
+const exportStatus=document.getElementById('export-status');
+const exportAck=document.getElementById('export-ack');
+const reviewerName=document.getElementById('reviewer-name');
+const reviewDecision=document.getElementById('review-decision');
+const reviewNote=document.getElementById('review-note');
+const recordReviewButton=document.getElementById('record-review');
+const reviewStatus=document.getElementById('review-status');
+let exportEligible=false;
+let reviewRecord=null;
+function hasSensitiveIdentifier(value) {
+ const reviewText=String(value||'');
+ const normalizedReviewerDigits=reviewText.normalize('NFKC').replace(/[۰-۹]/g,d=>String(d.charCodeAt(0)-0x06F0)).replace(/[٠-٩]/g,d=>String(d.charCodeAt(0)-0x0660)).replace(/(?<=\d)[\u200c\u200d\u200e\u200f\u2060\ufeff]+(?=\d)/g,'');
+ const compactReviewerDigits=normalizedReviewerDigits.replace(/(?<![A-Za-z0-9])IR[ \t\r\n\u00a0\u2007\u2009\u202f\u200c\u200d\u200e\u200f\u2060\ufeff\-–—]+(?=\d)/gi,'IR').replace(/(?<=\d)[ \t\r\n\u00a0\u2007\u2009\u202f\-–—]+(?=\d)/g,'');
+ return /(?:\+?98|0)?9\d{9}(?!\d)|(?:\d[ -]?){15}\d|(?<!\d)\d{10}(?!\d)/.test(compactReviewerDigits) ||
+  /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i.test(reviewText) ||
+  /(?<![A-Za-z0-9])IR\d{24}(?!\d)/i.test(compactReviewerDigits) ||
+  /(?:https?:\/\/|www\.)[^\s<>]+|(?<![\p{L}\p{N}_])(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z]{2,24})(?:\/[^\s<>]*)?/iu.test(reviewText);
+}
+function reviewerDetailsAreSafe() {
+ return !hasSensitiveIdentifier(safeReviewText(reviewerName.value,80)) &&
+  !hasSensitiveIdentifier(safeReviewText(reviewNote.value,300));
+}
+function showReviewerPrivacyWarning() {
+ const unsafeName=hasSensitiveIdentifier(safeReviewText(reviewerName.value,80));
+ const unsafeNote=hasSensitiveIdentifier(safeReviewText(reviewNote.value,300));
+ if(unsafeName || unsafeNote) {
+  if(unsafeName) reviewerName.value='';
+  if(unsafeNote) reviewNote.value='';
+  invalidateHumanReview('اطلاعات بازبین احتمالاً شامل شناسه حساس بود؛ فیلد آلوده پاک شد. فقط داده ساختگی وارد کنید.');
+  recordReviewButton.disabled=true;
+ }
+}
+function safeReviewText(value,max){
+ return String(value||'').normalize('NFC')
+  .replace(/[\r\n\u2028\u2029]+/g,' ')
+  .replace(/[\u0000-\u001f\u007f-\u009f\u061c\u200b\u200e\u200f\u202a-\u202e\u2060\u2066-\u206f\ufeff]/g,'')
+  .replace(/\s+/g,' ').trim().slice(0,max);
+}
+function updateExportPermission(){
+ const approvedReview=Boolean(reviewRecord && reviewRecord.decision==='approved' && reviewRecord.reportSnapshot===report);
+ downloadButton.disabled=!exportEligible || !exportAck.checked || !approvedReview;
+ recordReviewButton.disabled=!exportEligible || !report || safeReviewText(reviewerName.value,80).length<2 || safeReviewText(reviewNote.value,300).length<12 || !['approved','rejected'].includes(reviewDecision.value) || !reviewerDetailsAreSafe() || !exportAck.checked || Boolean(reviewRecord);
+}
+function invalidateHumanReview(message='اطلاعات بازبینی تغییر کرد؛ نتیجه قبلی باطل شد. پس از بررسی دوباره ثبت کنید.'){
+ reviewRecord=null;exportAck.checked=false;reviewStatus.textContent=message;updateExportPermission();
+}
+exportAck.addEventListener('change',()=>{
+ if(!exportAck.checked) invalidateHumanReview('تأیید بازبینی برداشته شد؛ برای دریافت باید بازبینی تازه ثبت شود.');
+ else updateExportPermission();
+});
+reviewerName.addEventListener('input',()=>invalidateHumanReview());
+reviewDecision.addEventListener('change',()=>invalidateHumanReview());
+reviewNote.addEventListener('input',()=>invalidateHumanReview());
+reviewerName.addEventListener('input',showReviewerPrivacyWarning);
+reviewNote.addEventListener('input',showReviewerPrivacyWarning);
+exportAck.addEventListener('change',showReviewerPrivacyWarning);
+recordReviewButton.addEventListener('click',()=>{
+ if(recordReviewButton.disabled)return;
+ if(!reviewerDetailsAreSafe()){showReviewerPrivacyWarning();return;}
+ const decision=reviewDecision.value;
+ reviewRecord={reviewer:safeReviewText(reviewerName.value,80),decision,note:safeReviewText(reviewNote.value,300),reviewedAt:new Date().toISOString(),reportSnapshot:report};
+ reviewStatus.textContent=decision==='approved'
+  ? 'بازبینی انسانی با اظهار بازبین ثبت شد؛ هویت بازبین در این نسخه آفلاین احراز نمی‌شود.'
+  : 'بازبینی رد شد؛ دریافت گزارش غیرفعال باقی می‌ماند.';
+ updateExportPermission();
+});
+// Invalidate an earlier draft as soon as the hypothetical evidence or role changes.
+// Otherwise the download button could export a different case state than the UI.
+function invalidateDraft(){
+ const focusWasInDraft=box.contains(document.activeElement);
+ report=''; internalTopicMatches=[]; topicScopeStatus.textContent=''; out.textContent=''; exportStatus.textContent=''; reviewRecord=null;reviewerName.value='';reviewDecision.value='pending';reviewNote.value='';reviewStatus.textContent='';document.getElementById('reset-status').textContent=''; box.hidden=true; exportEligible=false; exportAck.checked=false; updateExportPermission();
+ // Never strand keyboard focus inside a hidden result after a case-state change.
+ if(focusWasInDraft) document.getElementById('generate').focus();
+}
+role.addEventListener('change',invalidateDraft);
+function clearInterviewState(){
+ role.selectedIndex=0;
+ for(const answer of document.querySelectorAll('#interview select')) answer.selectedIndex=0;
+ document.getElementById('free-question').value = '';
+ for(const checkbox of document.querySelectorAll('fieldset input[type=checkbox]')) checkbox.checked=false;
+ invalidateDraft();
+}
+document.getElementById('reset').addEventListener('click',()=>{
+ clearInterviewState();
+ document.getElementById('reset-status').textContent='انتخاب‌ها و پیش‌نویس فرضی پاک شدند؛ هیچ داده‌ای به سرور ارسال نشده است.';
+ role.focus();
+});
+for(const answer of document.querySelectorAll('#interview select')) answer.addEventListener('change',invalidateDraft);
+document.getElementById('free-question').addEventListener('input',invalidateDraft);
+for(const checkbox of document.querySelectorAll('fieldset input[type=checkbox]')) checkbox.addEventListener('change',invalidateDraft);
+document.getElementById('generate').addEventListener('click',()=>{
+ const evidence=[...document.querySelectorAll('fieldset input[type=checkbox]:checked')].map(e=>({stance:e.dataset.stance,description:e.value}));
+ const answers=[...document.querySelectorAll('#interview select')].map(el=>({question:el.dataset.question,answer:el.options[el.selectedIndex].textContent,state:el.value}));
+ const unresolved=answers.filter(item=>item.state==='unknown');
+ const freeQuestionField=document.getElementById('free-question');
+ let freeQuestion=freeQuestionField.value.trim();
+ // Fail closed on likely real Iranian mobile numbers, national IDs or bank card numbers in free text.
+ // This is a local warning, not a guarantee of anonymisation.
+ let normalizedQuestionDigits=freeQuestion.normalize('NFKC').replace(/[۰-۹]/g,d=>String(d.charCodeAt(0)-0x06F0)).replace(/[٠-٩]/g,d=>String(d.charCodeAt(0)-0x0660)).replace(/(?<=\d)[\u200c\u200d\u200e\u200f\u2060\ufeff]+(?=\d)/g,'');
+ let compactIdentifierDigits=normalizedQuestionDigits.replace(/(?<![A-Za-z0-9])IR[ \t\r\n\u00a0\u2007\u2009\u202f\u200c\u200d\u200e\u200f\u2060\ufeff\-–—]+(?=\d)/gi,'IR').replace(/(?<=\d)[ \t\r\n\u00a0\u2007\u2009\u202f\-–—]+(?=\d)/g,'');
+ const hasSensitiveIdentifier=/(?:\+?98|0)?9\d{9}(?!\d)|(?:\d[ -]?){15}\d|(?<!\d)\d{10}(?!\d)/.test(compactIdentifierDigits) || /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i.test(freeQuestion) || /(?<![A-Za-z0-9])IR\d{24}(?!\d)/i.test(compactIdentifierDigits) || /(?:https?:\/\/|www\.)[^\s<>]+|(?<![\p{L}\p{N}_])(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z]{2,24})(?:\/[^\s<>]*)?/iu.test(freeQuestion);
+ normalizedQuestionDigits='';
+ compactIdentifierDigits='';
+ // Never echo suspected identifiers into the visible draft, even while export is blocked.
+ const displayQuestion=hasSensitiveIdentifier
+  ?'نامشخص؛ شناسه حساس احتمالی شناسایی شد و متن ورودی حذف شد'
+  :freeQuestion
+   ?'متن خام پرسش آزاد برای حفظ حریم خصوصی در گزارش درج نمی‌شود'
+   :'ثبت نشده';
+ // Internal-only multi-topic hints; never rendered as user-facing categories or legal conclusions.
+ internalTopicMatches=hasSensitiveIdentifier?[]:classifyQuestion(freeQuestion);
+ const topicScopeMessage=hasSensitiveIdentifier?'پرسش آزاد به دلیل احتمال شناسه حساس بررسی نشد.':describeTopicScope(internalTopicMatches,freeQuestion);
+ topicScopeStatus.textContent=topicScopeMessage;
+ // Classify locally, then discard every raw question before rendering or export.
+ // This prevents names, addresses or other unrecognized personal details from entering the report.
+ freeQuestionField.value='';
+ const questionOutsideChequeScope=Boolean(freeQuestion) && !(internalTopicMatches.length===1 && internalTopicMatches[0].id==='instruments');
+ // The scope decision and neutral notice are now complete; drop the raw question reference.
+ freeQuestion='';
+ // Topic ids and matched keywords are needed only for the scope decision. Do not
+ // retain inferred legal-topic details in page state after the notice is produced.
+ internalTopicMatches=[];
+ const negativeAnswers=answers.filter(item=>item.state==='no');
+ // Surface inconsistent synthetic interview answers instead of silently treating them as verified.
+ const hasCertificate=evidence.some(e=>e.description==='گواهی عدم پرداخت نمونه');
+ const unknownDueDate=evidence.some(e=>e.description==='تاریخ سررسید در پرونده فرضی مشخص نیست');
+ const conflicts=[];
+ if(questionOutsideChequeScope) conflicts.push('پرسش آزاد خارج از دامنه این پیش‌نمایش چک فرضی است یا موضوع آن به‌طور مطمئن شناسایی نشد؛ گزارش چک فقط با پرسش خالی یا پرسشی که صرفاً در حوزه چک طبقه‌بندی شده باشد قابل دریافت است.');
+ if(hasSensitiveIdentifier) conflicts.push('پرسش آزاد احتمالاً حاوی شماره تماس، کد ملی، کارت، ایمیل یا پیوند اینترنتی احتمالی است؛ آن را پاک کنید و فقط از داده ساختگی استفاده کنید.');
+ if(hasCertificate && answers[1].state==='no') conflicts.push('گواهی عدم پرداخت در فهرست مدارک انتخاب شده، اما پاسخ مصاحبه وجود آن را رد می‌کند.');
+ if(!hasCertificate && answers[1].state==='yes') conflicts.push('مصاحبه وجود گواهی عدم پرداخت را اعلام می‌کند، اما مدرکی در فهرست انتخاب نشده است.');
+ if(unknownDueDate && answers[0].state==='yes') conflicts.push('تاریخ سررسید نامعلوم علامت خورده، اما مصاحبه تاریخ را موجود اعلام می‌کند.');
+ const hasSettlementClaim=evidence.some(e=>e.description==='ادعای تسویه وجه در پرونده فرضی');
+ if(hasSettlementClaim && answers[2].state==='no') conflicts.push('ادعای تسویه در فهرست ادله مخالف انتخاب شده، اما مصاحبه طرح هرگونه ادعای پرداخت یا دفاع را رد می‌کند.');
+ if(evidence.length===0) conflicts.push('هیچ مدرک فرضی انتخاب نشده است؛ برای تولید گزارش قابل دریافت، دست‌کم یک مدرک نمونه انتخاب کنید.');
+ // A settlement claim alone is not a cheque record: require the synthetic cheque fixture before export.
+ if(evidence.length>0 && !evidence.some(e=>e.description==='تصویر چک نمونه با شماره ساختگی')) conflicts.push('تصویر چک نمونه انتخاب نشده است؛ ادعای تسویه یا سایر مدارک به‌تنهایی برای دریافت گزارش چک فرضی کافی نیستند.');
+ const section=(stance)=>evidence.filter(e=>e.stance===stance).map(e=>'• '+e.description).join('\n')||'ثبت نشده';
+ report=['دادیار | چک صرفاً فرضی | نسخه آزمایشی آفلاین','نقش: '+role.value+' | هدف: '+purposes[role.value],roleSimulationNotice,
+ 'پرسش آزاد کاربر درباره داده ساختگی: '+(displayQuestion||'ثبت نشده')+'\nدامنه بررسی پرسش آزاد: '+topicScopeMessage+'\nدامنه این پیش‌نمایش: کارگاه چک فرضی؛ پاسخ خودکار حقوقی: ارائه نمی‌شود. منابع معتبر و بررسی انسانی لازم است.','ادله موافق:\n'+section('موافق'),'ادله مخالف:\n'+section('مخالف'),'نامعلوم:\n'+section('نامعلوم'),
+ 'تعارض‌های داده فرضی:\n'+(conflicts.map(c=>'• '+c).join('\n')||'تعارض آشکاری میان پاسخ‌های نمونه و فهرست مدارک یافت نشد.'),
+ 'وضعیت مصاحبه فرضی:\n'+answers.map(a=>'• '+a.question+' '+a.answer).join('\n'),
+ 'گام‌های بررسی متناسب با نقش (صرفاً آموزشی):\n'+roleGuidance[role.value].map(g=>'• '+g).join('\n'),
+ 'خط زمانی اولیه پرونده فرضی (بدون احراز تاریخ واقعی):\n• صدور و سررسید: '+answers[0].answer+'؛ تاریخ دقیق نیازمند تطبیق با اصل چک است.\n• گواهی عدم پرداخت: '+answers[1].answer+'؛ تاریخ صدور و ارتباط با چک بررسی نشده است.\n• ادعای پرداخت یا دفاع: '+answers[2].answer+'؛ زمان رویداد و مستندات بررسی نشده است.',
+ 'پرسش‌های بی‌پاسخ:\n'+(unresolved.map(a=>'• '+a.question).join('\n')||'هیچ پرسش بی‌پاسخی در این مصاحبه فرضی باقی نمانده است.'),
+ 'اقدام بعدی پیشنهادی برای تکمیل داده فرضی (بدون نتیجه‌گیری حقوقی):\n'+(conflicts.length?conflicts.map(c=>'• رفع تعارض: '+c).join('\n'):unresolved.length?unresolved.map(a=>'• تکمیل پاسخ: '+a.question).join('\n'):'• پاسخ‌های مصاحبه ثبت شده‌اند؛ تطبیق مدارک با اصل، اعتبار قانونی و بررسی انسانی همچنان انجام نشده است.'),
+ 'موارد اعلام‌شده به‌عنوان ناموجود (نیازمند ارزیابی اثر حقوقی):\n'+(negativeAnswers.map(a=>'• '+a.question).join('\n')||'ثبت نشده'),
+ 'وظایف بازبینی هر مدرک فرضی (هیچ موردی تأیید نشده است):\n'+(evidence.map((e,i)=>'• مدرک '+(i+1)+' ['+e.stance+']: '+e.description+' | اصالت: تأییدنشده | منشأ: بررسی‌نشده | اقدام: تطبیق با اصل و ثبت منشأ توسط متخصص انسانی').join('\n')||'مدرکی برای بازبینی انتخاب نشده است.'),
+ 'فهرست پیگیری متناسب با پاسخ‌های فرضی (بدون تشخیص حقوقی):\n'+[
+  ...(answers[0].state==='yes'?['• تطبیق تاریخ‌های اعلام‌شده با تصویر و اصل چک نمونه؛ تاریخ واقعی احراز نشده است.']:['• دریافت یا روشن‌کردن تاریخ صدور و سررسید در مدارک نمونه؛ هیچ مهلت قانونی محاسبه نشده است.']),
+  ...(answers[1].state==='yes'&&hasCertificate?['• تطبیق مشخصات گواهی نمونه با چک نمونه؛ اصالت و تاریخ صدور بررسی نشده است.']:['• بررسی وجود و مشخصات گواهی عدم پرداخت نمونه؛ نبود آن نتیجه دعوا را تعیین نمی‌کند.']),
+  ...(answers[2].state==='yes'||hasSettlementClaim?['• درخواست مستندات فرضی ادعای تسویه و پاسخ طرف مقابل؛ ادعا اثبات نشده است.']:['• روشن‌کردن وجود یا نبود ادعای پرداخت یا دفاع در مصاحبه فرضی.'])
+ ].join('\n'),
+ 'چک‌لیست تکمیل پرونده (صرفاً آموزشی):\n• اصل چک و مشخصات آن: اصالت و تطبیق با نمونه بررسی نشده است.\n• گواهی عدم پرداخت: وجود، تاریخ و اعتبار آن نیازمند بررسی انسانی است.\n• تاریخ‌های صدور، سررسید و اقدامات بعدی: در مدارک واقعی احراز نشده‌اند.\n• ادعای پرداخت یا تسویه: مستندات موافق و مخالف باید جداگانه بررسی شوند.',
+ 'صلاحیت و مسیر اقدام: تعیین‌نشده؛ تشخیص مرجع صالح، مهلت‌ها و امکان اقدام حقوقی یا کیفری نیازمند بررسی متن قانون معتبر، تاریخ‌ها، محل‌های مرتبط و متخصص انسانی است.',
+ 'وضعیت تکمیل پرونده فرضی: '+(conflicts.length?'متعارض؛ نیازمند اصلاح اطلاعات':'بدون تعارض آشکار در داده‌های انتخابی')+' | پرسش‌های بی‌پاسخ: '+unresolved.length+' | مدارک انتخابی: '+evidence.length+' | احراز اصالت: صفر | بررسی قانون معتبر: انجام‌نشده | نتیجه: آماده تصمیم حقوقی نیست.',
+ 'منابع قانونی: تأییدنشده؛ هیچ استناد قانونی ارائه نمی‌شود.','هیچ ادعایی احراز نشده است. اصالت مدارک، متن قانون، منبع رسمی و تاریخ اعتبار باید توسط متخصص انسانی بررسی شود.',
+ 'این متن رأی، سند رسمی یا دستور انتظامی نیست.'].join('\n\n');
+ out.textContent=report;exportEligible=conflicts.length===0 && unresolved.length===0;reviewRecord=null;reviewerName.value='';reviewDecision.value='pending';reviewNote.value='';reviewStatus.textContent='';exportAck.checked=false;updateExportPermission();
+ exportStatus.textContent=hasSensitiveIdentifier?'دریافت گزارش غیرفعال است: شناسه حساس احتمالی در پرسش آزاد وجود دارد؛ آن را حذف کنید.':questionOutsideChequeScope?'دریافت گزارش غیرفعال است: پرسش آزاد چندموضوعی، نامرتبط یا نامشخص است؛ این پیش‌نمایش فقط گزارش چک فرضی را پوشش می‌دهد.':evidence.length===0?'دریافت گزارش غیرفعال است: هیچ مدرک فرضی انتخاب نشده است. دست‌کم یک مدرک نمونه انتخاب کنید و پیش‌نویس را دوباره بسازید.':!evidence.some(e=>e.description==='تصویر چک نمونه با شماره ساختگی')?'دریافت گزارش غیرفعال است: تصویر چک نمونه انتخاب نشده است. برای ادامه، مدرک چک فرضی را انتخاب کنید.':conflicts.length>0?'دریافت گزارش به علت تناقض اطلاعات غیرفعال است. پاسخ‌ها یا مدارک فرضی را اصلاح و پیش‌نویس را دوباره تولید کنید.':unresolved.length>0?'دریافت گزارش تا پاسخ‌گویی به '+unresolved.length+' پرسش نامعلوم غیرفعال است؛ پیش‌نویس برای بررسی روی صفحه باقی می‌ماند.':'برای دریافت پیش‌نویس فرضی، ابتدا تأیید بازبینی انسانی را علامت بزنید.';
+ box.hidden=false;box.focus();
+});
+document.getElementById('download').addEventListener('click',()=>{
+ if(!report || downloadButton.disabled)return;
+ if(!reviewRecord || reviewRecord.reportSnapshot!==report)return;
+ const reviewText=[
+  'ثبت بازبینی انسانی (اظهار محلی؛ هویت احراز نشده)',
+  'نام بازبین: '+reviewRecord.reviewer,
+  'نتیجه بازبینی: '+(reviewRecord.decision==='approved'?'تأیید برای دریافت آموزشی':'رد'),
+  'زمان ثبت بازبینی (مبنای ساعت دستگاه؛ نمایش UTC؛ قابل راستی‌آزمایی مستقل نیست): '+reviewRecord.reviewedAt,
+  'یادداشت بازبین: '+(reviewRecord.note||'ثبت نشده'),
+  'محدودیت: این اظهار محلی است و تأیید حقوقی یا احراز هویت محسوب نمی‌شود.'
+ ].join('\n');
+ const exportText=report+'\n\n'+reviewText;
+ const url=URL.createObjectURL(new Blob(['\uFEFF'+exportText],{type:'text/plain;charset=utf-8'}));
+ const a=document.createElement('a');a.href=url;a.download='dadyar-synthetic-cheque.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ // Consume the approval; a fresh review record is required for another export.
+ reviewRecord=null;
+ exportAck.checked=false;
+ reviewerName.value='';
+ reviewDecision.value='pending';
+ reviewNote.value='';
+ updateExportPermission();
+ reviewStatus.textContent='گزارش دریافت شد؛ برای دریافت دوباره باید بازبینی تازه را از ابتدا ثبت کنید.';
+ exportStatus.textContent='دریافت فایل متنی فرضی آغاز شد. هیچ داده‌ای به سرور ارسال نشد.';
+});
+
+// Clear unsubmitted free text and local review state when leaving the page,
+// including a page entering the back-forward cache. No data is persisted.
+if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+ window.addEventListener('pagehide', () => {
+  // Reset every user-editable interview and review field before a page can
+  // enter the back-forward cache; do not leave structured answers behind.
+  clearInterviewState();
+ });
+}
+
+// BEGIN delay-damages calculator
+(function mountDelayDamagesCalculator() {
+  const root = document.getElementById('delay-damages-calculator');
+  if (!root) return;
+  const due = document.getElementById('delay-due-month');
+  const paid = document.getElementById('delay-payment-month');
+  const principalInput = document.getElementById('delay-principal');
+  const currency = document.getElementById('delay-currency');
+  const calculateButton = document.getElementById('delay-calculate');
+  const result = document.getElementById('delay-result');
+  const list = document.getElementById('delay-index-list');
+  const monthNames = [
+    'فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر'
+  ];
+  const toScaledIndex = value => {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
+      throw new RangeError('شاخص باید عدد مثبت و متناهی باشد.');
+    }
+    const match = /^(0|[1-9]\d{0,11})(?:\.(\d{1,6}))?$/.exec(String(value));
+    if (!match) throw new RangeError('دقت شاخص باید حداکثر شش رقم اعشار و بدون نمایش نمایی باشد.');
+    return BigInt(match[1]) * 1000000n + BigInt((match[2] || '').padEnd(6, '0') || '0');
+  };
+  let indices;
+  try { indices = JSON.parse(root.dataset.indexes); }
+  catch { result.textContent = 'داده شاخص قابل خواندن نیست؛ محاسبه متوقف شد.'; return; }
+  if (!indices || Object.keys(indices).length !== 7) {
+    result.textContent = 'داده شاخص ناقص است؛ محاسبه متوقف شد.';
+    return;
+  }
+  try {
+    monthNames.forEach((_, i) => toScaledIndex(indices[String(i + 1)]));
+  } catch {
+    result.textContent = 'داده شاخص نامعتبر است؛ محاسبه متوقف شد.';
+    return;
+  }
+  const format = value => new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 0 }).format(value);
+  const formatIndex = value => new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 1 }).format(value);
+  monthNames.forEach((name, i) => {
+    const month = i + 1;
+    for (const select of [due, paid]) {
+      const option = document.createElement('option');
+      option.value = String(month);
+      option.textContent = name + ' ۱۴۰۵';
+      select.append(option);
+    }
+    const item = document.createElement('li');
+    item.textContent = name + ' ۱۴۰۵: ' + formatIndex(indices[String(month)]);
+    list.append(item);
+  });
+  due.value = '1';
+  paid.value = '7';
+  calculateButton.addEventListener('click', () => {
+    const principal = Number(principalInput.value);
+    const dueMonth = Number(due.value);
+    const paymentMonth = Number(paid.value);
+    if (!Number.isSafeInteger(principal) || principal <= 0) {
+      result.textContent = 'اصل دین باید عدد صحیح مثبت و در محدوده امن باشد.';
+      return;
+    }
+    if (!Number.isInteger(dueMonth) || !Number.isInteger(paymentMonth) ||
+        !Number.isFinite(indices[String(dueMonth)]) || !Number.isFinite(indices[String(paymentMonth)])) {
+      result.textContent = 'برای ماه انتخابی شاخص تأییدشده‌ای در داده موجود نیست.';
+      return;
+    }
+    if (paymentMonth < dueMonth) {
+      result.textContent = 'ماه پرداخت/محاسبه نباید پیش از ماه مبدأ باشد.';
+      return;
+    }
+    const dueIndex = indices[String(dueMonth)];
+    const paymentIndex = indices[String(paymentMonth)];
+    let adjustedBig;
+    try {
+      const dueScaled = toScaledIndex(dueIndex);
+      const paymentScaled = toScaledIndex(paymentIndex);
+      // Exact integer arithmetic avoids floating-point loss in large intermediate products.
+      adjustedBig = (BigInt(principal) * paymentScaled + dueScaled / 2n) / dueScaled;
+    } catch {
+      result.textContent = 'شاخص انتخابی معتبر نیست؛ محاسبه متوقف شد.';
+      return;
+    }
+    if (adjustedBig > BigInt(Number.MAX_SAFE_INTEGER)) {
+      result.textContent = 'مبلغ تعدیل‌شده از محدوده عدد صحیح امن خارج است.';
+      return;
+    }
+    const adjusted = Number(adjustedBig);
+    if (!Number.isSafeInteger(adjusted)) {
+      result.textContent = 'مبلغ تعدیل‌شده از محدوده عدد صحیح امن خارج است.';
+      return;
+    }
+    const damages = adjusted - principal;
+    const unit = currency.value;
+    result.textContent = [
+      'اصل دین: ' + format(principal) + ' ' + unit,
+      'شاخص ماه مبدأ: ' + formatIndex(dueIndex),
+      'شاخص ماه پرداخت: ' + formatIndex(paymentIndex),
+      'مبلغ با احتساب شاخص: ' + format(adjusted) + ' ' + unit,
+      'خسارت محاسباتی: ' + format(damages) + ' ' + unit,
+      'منبع داده: تصویر مالک؛ تأیید رسمی و حقوقی نشده است.'
+    ].join('\n');
+  });
+})();
+// END delay-damages calculator
+</script></body></html>

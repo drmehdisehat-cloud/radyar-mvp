@@ -1,0 +1,279 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const html=fs.readFileSync(path.join(__dirname,'../experimental/synthetic-cheque-browser.html'),'utf8');
+function harness(){
+ const handlers={};const elements={};
+ const get=id=>elements[id]??=( {value:id==='role'?'وکیل':'',hidden:true,textContent:'',focus(){this.focused=true},contains(node){return node===this},addEventListener(name,fn){handlers[id+':'+name]=fn;}});
+ const inputs=[{checked:true,dataset:{stance:'موافق'},value:'تصویر چک نمونه با شماره ساختگی',addEventListener(name,fn){handlers['evidence1:'+name]=fn;}},{checked:true,dataset:{stance:'مخالف'},value:'ادعای تسویه وجه در پرونده فرضی',addEventListener(name,fn){handlers['evidence2:'+name]=fn;}}];
+ const selects=[
+  {dataset:{question:'تاریخ صدور و سررسید چک چیست؟'},value:'unknown',selectedIndex:0,options:[{textContent:'نامعلوم'},{textContent:'در نمونه درج شده'},{textContent:'در نمونه درج نشده'}],addEventListener(name,fn){handlers['issue-date:'+name]=fn;}},
+  {dataset:{question:'گواهی عدم پرداخت موجود است؟'},value:'unknown',selectedIndex:0,options:[{textContent:'نامعلوم'},{textContent:'در نمونه موجود است'},{textContent:'در نمونه موجود نیست'}],addEventListener(name,fn){handlers['certificate:'+name]=fn;}},
+  {dataset:{question:'آیا ادعای پرداخت یا دفاع دیگری مطرح است؟'},value:'unknown',selectedIndex:0,options:[{textContent:'نامعلوم'},{textContent:'صرفاً ادعا شده است'},{textContent:'در نمونه مطرح نشده'}],addEventListener(name,fn){handlers['defense:'+name]=fn;}}
+ ];
+ const document={
+  getElementById:get,
+  querySelectorAll(selector){
+   if(selector==='#interview select') return selects;
+   if(selector==='fieldset input[type=checkbox]') return inputs;
+   if(selector==='fieldset input[type=checkbox]:checked') return inputs.filter(input=>input.checked);
+   throw new Error('Unsupported test selector: '+selector);
+  },
+  createElement:()=>({click(){}})
+ };
+ const script=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+ assert.ok(script,'browser code present');
+ vm.runInNewContext(script,{document,URL:{createObjectURL:()=>'',revokeObjectURL(){}},Blob:class{},setTimeout(){}},{timeout:1000});
+ return {handlers,elements,inputs,selects,get};
+}
+function answerAll(h){
+ for(const select of h.selects){select.value='yes';select.selectedIndex=1;}
+ if(!h.inputs.some(input=>input.checked && input.value==='گواهی عدم پرداخت نمونه')){
+  h.selects[1].value='no';h.selects[1].selectedIndex=2;
+ }
+}
+function acknowledgeExport(h){
+ assert.equal(h.get('download').disabled,true);
+ assert.equal(h.get('export-ack').checked,false);
+ h.get('export-ack').checked=true;
+ h.handlers['export-ack:change']();
+}
+test('offline cheque interview generates opposing-evidence review draft',()=>{
+ const h=harness();h.handlers['generate:click']();
+ assert.match(h.get('report').textContent,/تصویر چک نمونه/);
+ assert.match(h.get('report').textContent,/ادعای تسویه/);
+ assert.match(h.get('report').textContent,/گواهی عدم پرداخت/);
+ assert.match(h.get('report').textContent,/منابع قانونی: تأییدنشده/);
+ assert.equal(h.get('result').hidden,false);assert.equal(h.get('result').focused,true);
+});
+test('changing role updates simulation without official authority',()=>{
+ const h=harness();h.get('role').value='قاضی';h.handlers['generate:click']();
+ assert.match(h.get('report').textContent,/بدون صدور رأی/);
+ assert.match(h.get('report').textContent,/متخصص انسانی/);
+});
+test('page has no network requests or free-text intake',()=>{
+ assert.doesNotMatch(html,/<textarea\b|<input[^>]+type=["']?text|fetch\s*\(|XMLHttpRequest|WebSocket|<form\b/i);
+ assert.match(html,/prefers-reduced-motion/);
+ assert.match(html,/aria-live="polite"/);
+});
+
+test('changing role or synthetic evidence invalidates stale downloadable draft',()=>{
+ const h=harness();h.handlers['generate:click']();
+ assert.equal(h.get('result').hidden,false);
+ h.get('role').value='قاضی';h.handlers['role:change']();
+ assert.equal(h.get('result').hidden,true);assert.equal(h.get('report').textContent,'');
+ h.handlers['generate:click']();assert.equal(h.get('result').hidden,false);
+ h.inputs[0].checked=false;h.handlers['evidence1:change']();
+ assert.equal(h.get('result').hidden,true);assert.equal(h.get('report').textContent,'');
+});
+
+test('interview report uses actual line breaks instead of escaped backslash-n',()=>{
+ const h=harness();h.handlers['generate:click']();
+ const report=h.get('report').textContent;
+ assert.match(report,/وضعیت مصاحبه فرضی:\n• /);
+ assert.match(report,/پرسش‌های بی‌پاسخ:\n• /);
+ assert.doesNotMatch(report,/\\\\n/);
+});
+
+test('contradictory synthetic certificate and due-date evidence is explicitly flagged',()=>{
+ const h=harness();
+ h.inputs.push({checked:true,dataset:{stance:'موافق'},value:'گواهی عدم پرداخت نمونه'});
+ h.inputs.push({checked:true,dataset:{stance:'نامعلوم'},value:'تاریخ سررسید در پرونده فرضی مشخص نیست'});
+ h.selects[0].value='yes';h.selects[0].selectedIndex=1;
+ h.selects[1].value='no';h.selects[1].selectedIndex=2;
+ h.handlers['generate:click']();
+ const report=h.get('report').textContent;
+ assert.match(report,/تعارض‌های داده فرضی/);
+ assert.match(report,/گواهی عدم پرداخت در فهرست مدارک انتخاب شده/);
+ assert.match(report,/تاریخ سررسید نامعلوم علامت خورده/);
+});
+
+test('negative answers are recorded as absent, not mislabelled unanswered',()=>{
+ const h=harness();
+ h.selects[0].value='no';h.selects[0].selectedIndex=2;
+ h.selects[1].value='yes';h.selects[1].selectedIndex=1;
+ h.selects[2].value='yes';h.selects[2].selectedIndex=1;
+ h.handlers['generate:click']();
+ const report=h.get('report').textContent;
+ assert.match(report,/پرسش‌های بی‌پاسخ:\nهیچ پرسش بی‌پاسخی/);
+ assert.match(report,/موارد اعلام‌شده به‌عنوان ناموجود[^\n]*:\n• تاریخ صدور و سررسید چک چیست؟/);
+ assert.doesNotMatch(report,/پرسش‌های بی‌پاسخ:\n• تاریخ صدور/);
+});
+
+
+test('contradictory interview disables export until corrected and regenerated',()=>{
+ const h=harness();
+ h.inputs.push({checked:true,dataset:{stance:'موافق'},value:'گواهی عدم پرداخت نمونه'});
+ h.selects[1].value='no';h.selects[1].selectedIndex=2;
+ h.handlers['generate:click']();
+ assert.equal(h.get('result').hidden,false);
+ assert.equal(h.get('download').disabled,true);
+ assert.match(h.get('report').textContent,/تعارض‌های داده فرضی/);
+ answerAll(h);
+ h.handlers['certificate:change']();
+ assert.equal(h.get('result').hidden,true);
+ assert.equal(h.get('download').disabled,true);
+ h.handlers['generate:click']();
+ acknowledgeExport(h);
+ assert.equal(h.get('download').disabled,false);
+});
+
+
+test('blocked export explains conflict and clears notice when inputs change',()=>{
+ const h=harness();
+ h.inputs.push({checked:true,dataset:{stance:'موافق'},value:'گواهی عدم پرداخت نمونه'});
+ h.selects[1].value='no';h.selects[1].selectedIndex=2;
+ h.handlers['generate:click']();
+ assert.equal(h.get('download').disabled,true);
+ assert.match(h.get('export-status').textContent,/دریافت گزارش به علت تناقض اطلاعات غیرفعال است/);
+ h.handlers['certificate:change']();
+ assert.equal(h.get('export-status').textContent,'');
+ answerAll(h);
+ h.handlers['generate:click']();
+ acknowledgeExport(h);
+ assert.equal(h.get('download').disabled,false);
+ assert.match(h.get('export-status').textContent,/تأیید بازبینی انسانی را علامت بزنید/);
+});
+
+
+test('settlement evidence contradicting denial of any defense blocks draft export',()=>{
+ const h=harness();
+ h.selects[2].value='no';h.selects[2].selectedIndex=2;
+ h.handlers['generate:click']();
+ assert.match(h.get('report').textContent,/ادعای تسویه در فهرست ادله مخالف انتخاب شده/);
+ assert.equal(h.get('download').disabled,true);
+ answerAll(h);
+ h.handlers['defense:change']();
+ assert.equal(h.get('result').hidden,true);
+ h.handlers['generate:click']();
+ acknowledgeExport(h);
+ assert.equal(h.get('download').disabled,false);
+});
+
+test('privacy reset clears synthetic selections, stale draft and restores keyboard focus',()=>{
+ const h=harness();
+ h.handlers['generate:click']();
+ assert.equal(h.get('result').hidden,false);
+ h.selects[0].selectedIndex=1;
+ h.handlers['reset:click']();
+ assert.equal(h.get('role').selectedIndex,0);
+ assert.ok(h.selects.every(s=>s.selectedIndex===0));
+ assert.ok(h.inputs.every(i=>i.checked===false));
+ assert.equal(h.get('result').hidden,true);
+ assert.equal(h.get('report').textContent,'');
+ assert.equal(h.get('download').disabled,true);
+ assert.equal(h.get('role').focused,true);
+ assert.match(h.get('reset-status').textContent,/پاک شدند/);
+});
+
+
+test('evidence-free synthetic cheque report remains visible for review but cannot be exported',()=>{
+ const h=harness();
+ for(const input of h.inputs) input.checked=false;
+ h.handlers['generate:click']();
+ assert.equal(h.get('result').hidden,false);
+ assert.equal(h.get('download').disabled,true);
+ assert.match(h.get('report').textContent,/هیچ مدرک فرضی انتخاب نشده است/);
+ assert.match(h.get('export-status').textContent,/دریافت گزارش به علت تناقض اطلاعات غیرفعال است/);
+ h.inputs[0].checked=true;
+ answerAll(h);
+ h.handlers['evidence1:change']();
+ assert.equal(h.get('result').hidden,true);
+ h.handlers['generate:click']();
+ acknowledgeExport(h);
+ assert.equal(h.get('download').disabled,false);
+});
+
+test('each simulated legal role provides distinct non-authoritative review guidance',()=>{
+ const expected={
+  'وکیل':'تفکیک ادعاهای موکل',
+  'قاضی':'خلأهای اثباتی',
+  'سردفتر':'بدون تنظیم سند رسمی',
+  'دادستان':'پرهیز از انتساب جرم',
+  'ضابط':'بدون صدور دستور'
+ };
+ for(const [role,phrase] of Object.entries(expected)){
+  const h=harness();h.get('role').value=role;h.handlers['generate:click']();
+  const report=h.get('report').textContent;
+  assert.match(report,/گام‌های بررسی متناسب با نقش \(صرفاً آموزشی\):\n• /);
+  assert.ok(report.includes(phrase),role+' guidance missing');
+  assert.match(report,/این متن رأی، سند رسمی یا دستور انتظامی نیست/);
+ }
+});
+
+test('case completeness summary exposes unresolved facts without claiming legal readiness',()=>{
+ const h=harness();
+ h.handlers['generate:click']();
+ const summary=h.get('report').textContent;
+ assert.match(summary,/وضعیت تکمیل پرونده فرضی: بدون تعارض آشکار/);
+ assert.match(summary,/پرسش‌های بی‌پاسخ: 3/);
+ assert.match(summary,/مدارک انتخابی: 2/);
+ assert.match(summary,/احراز اصالت: صفر/);
+ assert.match(summary,/نتیجه: آماده تصمیم حقوقی نیست/);
+ h.selects[2].value='no';h.selects[2].selectedIndex=2;
+ h.handlers['generate:click']();
+ assert.match(h.get('report').textContent,/وضعیت تکمیل پرونده فرضی: متعارض؛ نیازمند اصلاح اطلاعات/);
+});
+
+
+test('synthetic cheque timeline records event order without inventing dates',()=>{
+ const h=harness();
+ h.selects[0].value='yes';h.selects[0].selectedIndex=1;
+ h.selects[1].value='no';h.selects[1].selectedIndex=2;
+ h.handlers['generate:click']();
+ const report=h.get('report').textContent;
+ assert.match(report,/خط زمانی اولیه پرونده فرضی/);
+ assert.match(report,/صدور و سررسید: در نمونه درج شده/);
+ assert.match(report,/گواهی عدم پرداخت: در نمونه موجود نیست/);
+ assert.match(report,/تاریخ صدور و ارتباط با چک بررسی نشده است/);
+ assert.doesNotMatch(report,/تاریخ واقعی احراز شده/);
+});
+
+
+test('next action prioritizes conflicts, then unanswered interview questions, without claiming legal readiness',()=>{
+ const h=harness();
+ h.handlers['generate:click']();
+ assert.match(h.get('report').textContent,/اقدام بعدی پیشنهادی[^\n]*:\n• تکمیل پاسخ: تاریخ صدور/);
+ h.selects[2].value='no';h.selects[2].selectedIndex=2;
+ h.handlers['generate:click']();
+ assert.match(h.get('report').textContent,/اقدام بعدی پیشنهادی[^\n]*:\n• رفع تعارض: ادعای تسویه/);
+ assert.doesNotMatch(h.get('report').textContent,/اقدام بعدی پیشنهادی[^\n]*:\n• تکمیل پاسخ:/);
+ h.selects[0].value='yes';h.selects[0].selectedIndex=1;
+ h.selects[1].value='no';h.selects[1].selectedIndex=2;
+ h.selects[2].value='yes';h.selects[2].selectedIndex=1;
+ h.handlers['generate:click']();
+ assert.match(h.get('report').textContent,/تطبیق مدارک با اصل، اعتبار قانونی و بررسی انسانی همچنان انجام نشده است/);
+});
+
+
+test('unanswered synthetic interview remains viewable but cannot be downloaded',()=>{
+ const h=harness();h.handlers['generate:click']();
+ assert.equal(h.get('result').hidden,false);
+ assert.equal(h.get('download').disabled,true);
+ assert.match(h.get('export-status').textContent,/۳ پرسش نامعلوم|3 پرسش نامعلوم/);
+ answerAll(h);h.handlers['issue-date:change']();
+ assert.equal(h.get('result').hidden,true);
+ h.handlers['generate:click']();
+ acknowledgeExport(h);
+ assert.equal(h.get('download').disabled,false);
+ assert.match(h.get('export-status').textContent,/تأیید بازبینی انسانی را علامت بزنید/);
+});
+
+
+test('synthetic follow-up checklist changes with interview facts without inventing legal deadlines',()=>{
+ const h=harness();
+ h.handlers['generate:click']();
+ let report=h.get('report').textContent;
+ assert.match(report,/فهرست پیگیری متناسب با پاسخ‌های فرضی/);
+ assert.match(report,/روشن‌کردن تاریخ صدور و سررسید/);
+ assert.match(report,/بررسی وجود و مشخصات گواهی عدم پرداخت/);
+ assert.match(report,/درخواست مستندات فرضی ادعای تسویه/);
+ h.selects[0].value='yes';h.selects[0].selectedIndex=1;
+ h.selects[1].value='no';h.selects[1].selectedIndex=2;
+ h.selects[2].value='no';h.selects[2].selectedIndex=2;
+ h.inputs[1].checked=false;
+ h.handlers['generate:click']();
+ report=h.get('report').textContent;
+ assert.match(report,/تطبیق تاریخ‌های اعلام‌شده با تصویر و اصل چک/);
+ assert.match(report,/روشن‌کردن وجود یا نبود ادعای پرداخت یا دفاع/);
+ assert.doesNotMatch(report,/مهلت قانونی محاسبه شد/);
+});
