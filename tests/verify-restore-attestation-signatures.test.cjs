@@ -249,7 +249,7 @@ test('external evidence reader rejects FIFOs without blocking', t => {
     'const { readExternalFile } = require(' + JSON.stringify(modulePath) + ');',
     'try { readExternalFile(' + JSON.stringify(fifo) + ', "evidence", 64); process.exitCode = 0; }',
     'catch (error) { process.stdout.write(String(error.message)); process.exitCode = 1; }'
-  ].join('\\n');
+  ].join('\n');
   const result = spawnSync(process.execPath, ['-e', childSource], { encoding: 'utf8', timeout: 2000 });
   assert.notEqual(result.error?.code, 'ETIMEDOUT', 'FIFO evidence path must not block the verifier');
   assert.equal(result.status, 1, result.stderr || result.stdout);
