@@ -22,7 +22,7 @@ test('offline preview authorizes only the exact inline script and stylesheet has
   assert.match(csp, /connect-src 'none'/);
   assert.match(csp, /form-action 'none'/);
   assert.match(csp, /base-uri 'none'/);
-  assert.ok(csp.includes("script-src 'sha256-" + cspHash(script) + "'"), 'script hash does not match exact inline bytes');
+  assert.ok(csp.includes("script-src 'sha256-" + cspHash(script) + "'"), 'script hash does not match exact inline bytes; expected sha256-' + cspHash(script));
   assert.ok(csp.includes("style-src 'sha256-" + cspHash(style) + "'"), 'style hash does not match exact inline bytes');
   assert.doesNotMatch(csp, /'unsafe-inline'/);
 });
