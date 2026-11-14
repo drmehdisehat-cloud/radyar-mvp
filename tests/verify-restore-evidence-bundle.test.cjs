@@ -200,3 +200,14 @@ test('rejects FIFOs without blocking the verifier', t => {
   assert.equal(result.status, 1);
   assert.match(result.stdout, /archive_must_be_regular_file/);
 });
+
+
+test('rejects an isolated restore target that contains the production document root', t => {
+  const fixture = makeFixture(t);
+  const nestedProductionRoot = path.join(fixture.restoreRoot, 'production', 'public_html');
+  fs.mkdirSync(nestedProductionRoot, { recursive: true });
+  const canonicalProductionRoot = fs.realpathSync(nestedProductionRoot);
+  fixture.manifest.production_document_root = canonicalProductionRoot;
+  fixture.manifest.production_document_root_realpath = canonicalProductionRoot;
+  assert.throws(() => verify(fixture), /restore_target_overlaps_production_document_root/);
+});

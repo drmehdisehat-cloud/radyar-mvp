@@ -122,3 +122,59 @@ test('release gate rejects destination evidence without an independent Git-check
     'preview destination is not verified outside production document root and Git checkout'
   ));
 });
+
+
+test('rejects an isolated restore target that contains the production document root', () => {
+  const decision = decidePreviewRelease({
+    restoreEvidence: {
+      ...restoreEvidence,
+      restore_target_path: '/home/site',
+      restore_target_realpath: '/home/site'
+    },
+    destinationEvidence,
+    isolatedRestoreVerified: true,
+    mobileBrowserVerified: true,
+    zeroApiRequestsVerified: true,
+    humanReviewVerified: true,
+    authenticatedHumanReviewAttested: true,
+    authenticatedRestoreAttestation: true
+  });
+  assert.equal(decision.status, 'NOT_READY');
+  assert.ok(decision.blockers.includes('independent restore attestation incomplete or unverified'));
+});
+
+test('rejects a staging destination that is an ancestor of the production document root', () => {
+  const decision = decidePreviewRelease({
+    restoreEvidence,
+    destinationEvidence: {
+      ...destinationEvidence,
+      destination_realpath: '/home/site'
+    },
+    isolatedRestoreVerified: true,
+    mobileBrowserVerified: true,
+    zeroApiRequestsVerified: true,
+    humanReviewVerified: true,
+    authenticatedHumanReviewAttested: true,
+    authenticatedRestoreAttestation: true
+  });
+  assert.equal(decision.status, 'NOT_READY');
+  assert.ok(decision.blockers.includes('preview destination is not verified outside production document root and Git checkout'));
+});
+
+test('rejects a staging destination that is an ancestor of the Git checkout', () => {
+  const decision = decidePreviewRelease({
+    restoreEvidence,
+    destinationEvidence: {
+      ...destinationEvidence,
+      destination_realpath: '/srv'
+    },
+    isolatedRestoreVerified: true,
+    mobileBrowserVerified: true,
+    zeroApiRequestsVerified: true,
+    humanReviewVerified: true,
+    authenticatedHumanReviewAttested: true,
+    authenticatedRestoreAttestation: true
+  });
+  assert.equal(decision.status, 'NOT_READY');
+  assert.ok(decision.blockers.includes('preview destination is not verified outside production document root and Git checkout'));
+});

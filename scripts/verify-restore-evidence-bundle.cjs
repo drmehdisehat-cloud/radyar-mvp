@@ -122,8 +122,8 @@ function verifyRestoreEvidenceBundle({ manifest, archivePath, restoredMarkerPath
   };
   const restoreRoot = assertCanonicalDirectory(manifest.restore_target_realpath, 'restore_target');
   const productionRoot = assertCanonicalDirectory(manifest.production_document_root_realpath, 'production_document_root');
-  if (isInside(productionRoot, restoreRoot)) {
-    throw new Error('restore_target_inside_production_document_root');
+  if (isInside(productionRoot, restoreRoot) || isInside(restoreRoot, productionRoot)) {
+    throw new Error('restore_target_overlaps_production_document_root');
   }
 
   const seenPaths = new Set();
