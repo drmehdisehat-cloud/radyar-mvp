@@ -32,6 +32,8 @@ jobs:
         run: node --test tests/preview-release-layout.test.cjs
       - name: Verify restore evidence reader rejects special files without blocking
         run: node --test tests/verify-restore-attestation-signatures.test.cjs
+      - name: Verify raw restore evidence bytes match the manifest
+        run: node --test tests/verify-restore-evidence-bundle.test.cjs
       - name: Verify date-aware legal-source provenance and fail-closed research status
         run: node --test tests/legal-source-versioning.test.cjs tests/legal-evidence-date-integrity.test.cjs tests/legal-source-coverage.test.cjs tests/research-only-source-release-gate.test.cjs tests/legal-review-freshness-gate.test.cjs tests/legal-provenance-report.test.cjs tests/check-law-source-recheck-20261113.test.cjs tests/check-law-article-review.test.cjs tests/check-law-source-handoff.test.cjs tests/check-gazette-source-conflict.test.cjs
       - name: Verify real Chromium mobile flow and zero network
