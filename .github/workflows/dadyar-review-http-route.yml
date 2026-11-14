@@ -6,7 +6,7 @@ on:
       - dadyar/review-http-route-20261114
   pull_request:
     branches:
-      - dadyar/ai-chat-private-20261101
+      - dadyar/preview-integration-20261114
 
 permissions:
   contents: read
