@@ -27,7 +27,7 @@ async function assertNoSymlinkComponents(target, label, allowMissing = false) {
       throw error;
     }
     if (stat.isSymbolicLink()) {
-      throw new Error(label + ' path must not contain symlinks.');
+      throw new Error(label + ' path must not contain symlinks; each component must not be a symlink.');
     }
     if (index < parts.length - 1 && !stat.isDirectory()) {
       throw new Error(label + ' parent component must be a directory.');
