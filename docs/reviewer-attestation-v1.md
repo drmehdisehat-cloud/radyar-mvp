@@ -25,7 +25,7 @@ A valid signature proves possession of the private key corresponding to a truste
 5. Require a separate reviewer, not the author or deployer, to sign the exact commit, artifact hash and report hash.
 6. Integrate verification on a server-side release boundary only after security and privacy review.
 
-The verifier also requires an asynchronous nonce store. Its `consume(nonce, expiresAt)` operation must atomically insert the nonce under a durable unique constraint and return `true` only for the first successful insertion. A missing store, duplicate nonce or failed store operation blocks verification. The test suite uses an in-memory Set only to simulate this contract; it is not suitable for production or multi-instance deployment.
+The verifier also requires an asynchronous nonce store. Its `consume(nonce, expiresAt)` operation must atomically insert the nonce under a durable unique constraint and return `true` only for the first successful insertion. A missing store, duplicate nonce or failed store operation blocks verification. The test suite covers both an in-memory contract stub and `backend/file-nonce-store.cjs`. The file adapter uses exclusive file creation (`wx`) and file/directory sync to make a nonce single-use across concurrent processes on one local filesystem. It requires an absolute private directory outside the configured web root, rejects symlinks and group/world-accessible storage, and stores no reviewer identity or report data. It is single-host only, has no automatic expiry cleanup, and is not a substitute for a transactional shared database in a multi-host deployment. The adapter is not wired to the browser preview, local API or cPanel.
 
 The test suite creates ephemeral synthetic keys in memory. No private key, real identity, client information or secret is stored in this repository.
 
@@ -41,4 +41,4 @@ The verifier requires the caller to provide the expected commit, artifact hash, 
 
 ## Release status
 
-This primitive does not satisfy the isolated-backup-restore gate, destination-file validation, reviewer identity provisioning, independent security review or owner authorization. Do not merge, deploy or enable public API based on these tests alone.
+This primitive and its single-host nonce-store adapter do not satisfy the isolated-backup-restore gate, destination-file validation, reviewer identity provisioning, independent security review or owner authorization. Do not merge, deploy or enable public API based on these tests alone.
