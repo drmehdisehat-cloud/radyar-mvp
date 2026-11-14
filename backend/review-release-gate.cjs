@@ -72,6 +72,13 @@ function createReviewReleaseGate(options = {}) {
       throw new Error('An authenticated reviewer principal is required.');
     }
 
+    // Apply independence policy before touching report/artifact storage. The
+    // injected policy must resolve author/deployer relationships from its own
+    // trusted server-side records using only the authenticated principal ID.
+    if (await isIndependentReviewer({ reviewerId: principal.id }) !== true) {
+      throw new Error('An independently authenticated reviewer is required.');
+    }
+
     // Load the exact release bytes from server-controlled storage, not request
     // parameters or browser-provided content.
     const material = await loadReleaseMaterial();
@@ -87,16 +94,6 @@ function createReviewReleaseGate(options = {}) {
       artifactSha256: sha256(artifactBytes),
       reportSha256: sha256(reportBytes)
     };
-
-    // The server policy must independently establish that this reviewer is
-    // not the report author/deployer. Missing, false or indeterminate results
-    // all block release.
-    if (await isIndependentReviewer({
-      reviewerId: principal.id,
-      ...bindings
-    }) !== true) {
-      throw new Error('An independently authenticated reviewer is required.');
-    }
 
     const verified = await verifyReviewAttestation(envelope, {
       trustedKeys,
