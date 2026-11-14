@@ -15,6 +15,11 @@ function makeManifest() {
   return {
     evidence: 'independent-restore-manifest-v1',
     restore_proven: true,
+    backup_provider: 'iranhost',
+    source_site_origin: 'https://mehdisehat.ir',
+    backup_id: 'synthetic-iranhost-backup-001',
+    backup_created_at: new Date(now - 240000).toISOString(),
+    archive_size_bytes: Buffer.byteLength('synthetic archive'),
     archive_sha256: digest('synthetic archive'),
     restored_marker_sha256: digest('synthetic marker'),
     restore_log_sha256: digest('synthetic restore log'),
@@ -90,6 +95,40 @@ test('manifest tampering invalidates both detached signatures', () => {
     operatorSignature: proof.operatorSignature,
     reviewerSignature: proof.reviewerSignature
   }), /operator_signature_invalid/);
+});
+
+test('restore signatures bind the exact IranHost backup identity and source site', () => {
+  const manifest = makeManifest();
+  const proof = signed(manifest);
+  const substitutedBackup = { ...manifest, backup_id: 'synthetic-other-backup-002' };
+  assert.throws(() => verifyRestoreAttestationSignatures({
+    manifest: substitutedBackup,
+    operatorPublicKeyPem: proof.operator.publicKey,
+    reviewerPublicKeyPem: proof.reviewer.publicKey,
+    operatorSignature: proof.operatorSignature,
+    reviewerSignature: proof.reviewerSignature
+  }), /operator_signature_invalid/);
+
+  const wrongSite = { ...manifest, source_site_origin: 'https://other.example' };
+  const wrongSiteProof = signed(wrongSite);
+  assert.throws(() => verifyRestoreAttestationSignatures({
+    manifest: wrongSite,
+    operatorPublicKeyPem: wrongSiteProof.operator.publicKey,
+    reviewerPublicKeyPem: wrongSiteProof.reviewer.publicKey,
+    operatorSignature: wrongSiteProof.operatorSignature,
+    reviewerSignature: wrongSiteProof.reviewerSignature
+  }), /schema_or_consistency_invalid/);
+
+  const missingBackupId = { ...manifest };
+  delete missingBackupId.backup_id;
+  const missingProof = signed(missingBackupId);
+  assert.throws(() => verifyRestoreAttestationSignatures({
+    manifest: missingBackupId,
+    operatorPublicKeyPem: missingProof.operator.publicKey,
+    reviewerPublicKeyPem: missingProof.reviewer.publicKey,
+    operatorSignature: missingProof.operatorSignature,
+    reviewerSignature: missingProof.reviewerSignature
+  }), /schema_or_consistency_invalid/);
 });
 
 test('operator and reviewer cannot reuse the same Ed25519 key', () => {
