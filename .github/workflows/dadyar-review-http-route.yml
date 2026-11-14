@@ -1,0 +1,45 @@
+name: Dadyar signed-review HTTP boundary verification
+
+on:
+  push:
+    branches:
+      - dadyar/review-http-route-20261114
+  pull_request:
+    branches:
+      - dadyar/ai-chat-private-20261101
+
+permissions:
+  contents: read
+
+jobs:
+  verify-review-http-boundary:
+    if: github.event_name == 'push' || github.head_ref == 'dadyar/review-http-route-20261114'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Run complete contract suite including the HTTP release boundary
+        run: node --test tests/*.test.cjs
+      - name: Verify real Chromium mobile flow and zero network
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium)"
+          test -n "$CHROME_BIN"
+          CHROME_BIN="$CHROME_BIN" node --test preview-tests/dadyar-preview-mobile-device-emulation.cjs
+      - name: Build and verify deployable static preview tree (not deployment)
+        run: |
+          mkdir -p "$RUNNER_TEMP/dadyar-preview-handoff"
+          cp -R dadyar-preview "$RUNNER_TEMP/dadyar-preview-handoff/"
+          node scripts/preview-artifact-manifest.cjs create "$RUNNER_TEMP/dadyar-preview-handoff" "$GITHUB_SHA"
+          node scripts/preview-artifact-manifest.cjs verify "$RUNNER_TEMP/dadyar-preview-handoff"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dadyar-offline-preview-http-gate-\${{ github.sha }}
+          path: \${{ runner.temp }}/dadyar-preview-handoff/
+          if-no-files-found: error
+          retention-days: 7
