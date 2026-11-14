@@ -45,7 +45,11 @@ function hasIndependentRestoreAttestation(evidence) {
   if (evidence.backup_provider !== 'iranhost' ||
       evidence.source_site_origin !== 'https://mehdisehat.ir') return false;
   if (typeof evidence.backup_id !== 'string' || !evidence.backup_id.trim() ||
-      evidence.backup_id.length > 160 || /[\\u0000-\\u001f\\u007f]/.test(evidence.backup_id)) return false;
+      evidence.backup_id.length > 160 ||
+      [...evidence.backup_id].some(character => {
+        const code = character.codePointAt(0);
+        return code <= 0x1f || code === 0x7f;
+      })) return false;
   if (!Number.isSafeInteger(evidence.archive_size_bytes) || evidence.archive_size_bytes <= 0) return false;
   if (!validUtc(evidence.backup_created_at)) return false;
   if (!validSha(evidence.archive_sha256) ||
