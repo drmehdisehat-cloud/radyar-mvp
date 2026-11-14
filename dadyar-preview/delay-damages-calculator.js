@@ -8,7 +8,7 @@ function toScaledIndex(value) {
   if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
     throw new RangeError('شاخص باید عدد مثبت و متناهی باشد.');
   }
-  const match = /^(0|[1-9]\\d{0,11})(?:\\.(\\d{1,6}))?$/.exec(String(value));
+  const match = /^(0|[1-9]\d{0,11})(?:\.(\d{1,6}))?$/.exec(String(value));
   if (!match) throw new RangeError('دقت شاخص باید حداکثر شش رقم اعشار و بدون نمایش نمایی باشد.');
   return BigInt(match[1]) * INDEX_SCALE + BigInt((match[2] || '').padEnd(6, '0') || '0');
 }
