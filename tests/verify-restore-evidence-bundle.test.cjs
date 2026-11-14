@@ -29,6 +29,11 @@ function makeFixture(t) {
   const manifest = {
     evidence: 'independent-restore-manifest-v1',
     restore_proven: true,
+    backup_provider: 'iranhost',
+    source_site_origin: 'https://mehdisehat.ir',
+    backup_id: 'synthetic-iranhost-backup-001',
+    backup_created_at: new Date(now - 240000).toISOString(),
+    archive_size_bytes: contents.archive.length,
     archive_sha256: digest(contents.archive),
     restored_marker_sha256: digest(contents.restored_marker),
     restore_log_sha256: digest(contents.restore_log),
@@ -92,6 +97,12 @@ for (const [label, field] of [
     assert.equal(typeof fixture.manifest[field], 'string');
   });
 }
+
+test('rejects a manifest archive byte count that differs from the downloaded archive', t => {
+  const fixture = makeFixture(t);
+  fixture.manifest.archive_size_bytes += 1;
+  assert.throws(() => verify(fixture), /archive_size_bytes_mismatch/);
+});
 
 test('rejects reusing one file for two evidence roles', t => {
   const fixture = makeFixture(t);
