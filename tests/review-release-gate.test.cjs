@@ -86,13 +86,34 @@ test('does not load report material for an unauthenticated request', async () =>
   assert.equal(f.consumed.size, 0);
 });
 
-test('rejects the author/deployer as reviewer before consuming the approval nonce', async () => {
+test('rejects the author/deployer before loading report material or consuming the nonce', async () => {
   const f = fixture();
   await assert.rejects(
     f.gate({ request: { principalId: AUTHOR }, envelope: f.envelope }),
     /independently authenticated reviewer is required/
   );
+  assert.equal(f.materialLoads, 0);
   assert.equal(f.consumed.size, 0);
+});
+
+test('fails closed on an indeterminate independence policy before loading report material', async () => {
+  let materialLoads = 0;
+  const gate = createReviewReleaseGate({
+    authenticateReviewer: async () => ({ id: REVIEWER }),
+    isIndependentReviewer: async () => undefined,
+    loadReleaseMaterial: async () => {
+      materialLoads += 1;
+      return { sourceCommit: SOURCE_COMMIT, artifactBytes: Buffer.from('x'), reportBytes: Buffer.from('y') };
+    },
+    trustedKeys: {},
+    nonceStore: { async consume() { return true; } },
+    clock: () => NOW
+  });
+  await assert.rejects(
+    gate({ request: {}, envelope: {} }),
+    /independently authenticated reviewer is required/
+  );
+  assert.equal(materialLoads, 0);
 });
 
 test('releases exact server-loaded report bytes only after an authenticated independent approval', async () => {
