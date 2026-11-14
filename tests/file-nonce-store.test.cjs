@@ -82,7 +82,7 @@ test('rejects symlinked and group/world-accessible nonce directories', async () 
 
     await assert.rejects(
       createFileNonceStore({ directory: linked, publicRoot: f.publicRoot }),
-      /not a symlink/
+      /symlink/
     );
     await assert.rejects(
       createFileNonceStore({ directory: broad, publicRoot: f.publicRoot }),
