@@ -110,7 +110,19 @@ async function verifyReviewAttestation(envelope, options = {}) {
   if (!Object.prototype.hasOwnProperty.call(trustedKeys, envelope.payload.keyId)) {
     throw new Error('Reviewer signing key is not trusted.');
   }
-  const pem = trustedKeys[envelope.payload.keyId];
+  const keyRecord = trustedKeys[envelope.payload.keyId];
+  if (!keyRecord || typeof keyRecord !== 'object' || Array.isArray(keyRecord)) {
+    throw new Error('Reviewer signing key is not trusted.');
+  }
+  exactKeys(keyRecord, ['publicKey', 'reviewerId', 'status'], 'Trusted reviewer key record');
+  if (keyRecord.status !== 'active') {
+    throw new Error('Reviewer signing key is revoked or inactive.');
+  }
+  if (keyRecord.reviewerId !== envelope.payload.reviewerId ||
+      keyRecord.reviewerId !== expected.reviewerId) {
+    throw new Error('Reviewer signing key is not bound to the claimed reviewer identity.');
+  }
+  const pem = keyRecord.publicKey;
   if (typeof pem !== 'string' || !pem.trim()) throw new Error('Reviewer signing key is not trusted.');
   let publicKey;
   try {
