@@ -3,6 +3,7 @@
 const DEFAULT_ROUTE_PATH = '/api/dadyar/review-report';
 const DEFAULT_MAX_BODY_BYTES = 8192;
 const DEFAULT_MAX_REPORT_BYTES = 262144;
+const DEFAULT_BODY_TIMEOUT_MS = 10000;
 
 function canonicalHttpsOrigin(value) {
   if (typeof value !== 'string' || !value) {
@@ -35,7 +36,7 @@ function setSecurityHeaders(response) {
 }
 
 function respond(response, status, message, extraHeaders = {}) {
-  if (response.headersSent || response.writableEnded) return;
+  if (response.destroyed || response.headersSent || response.writableEnded) return;
   setSecurityHeaders(response);
   for (const [name, value] of Object.entries(extraHeaders)) {
     response.setHeader(name, value);
@@ -51,25 +52,69 @@ function isJsonUtf8(contentType) {
   return parts.every(part => part === 'charset=utf-8') && parts.length <= 1;
 }
 
-async function readLimitedBody(request, maxBytes) {
-  const chunks = [];
-  let size = 0;
-  let oversized = false;
-  for await (const chunk of request) {
-    size += chunk.length;
-    if (size > maxBytes) {
-      oversized = true;
-      chunks.length = 0;
-    } else if (!oversized) {
+function readLimitedBody(request, maxBytes, timeoutMs) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    let size = 0;
+    let settled = false;
+
+    const cleanup = () => {
+      clearTimeout(timer);
+      request.removeListener('data', onData);
+      request.removeListener('end', onEnd);
+      request.removeListener('aborted', onAborted);
+      request.removeListener('close', onClose);
+    };
+    const finish = (error, value) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      if (error) reject(error);
+      else resolve(value);
+    };
+    const fail = (code, message) => {
+      const error = new Error(message);
+      error.code = code;
+      request.pause();
+      finish(error);
+    };
+    const onData = chunk => {
+      if (settled) return;
+      size += chunk.length;
+      if (size > maxBytes) {
+        fail('BODY_TOO_LARGE', 'Request body exceeds configured limit.');
+        return;
+      }
       chunks.push(Buffer.from(chunk));
-    }
-  }
-  if (oversized) {
-    const error = new Error('Request body exceeds configured limit.');
-    error.code = 'BODY_TOO_LARGE';
-    throw error;
-  }
-  return Buffer.concat(chunks);
+    };
+    const onEnd = () => finish(null, Buffer.concat(chunks));
+    const onAborted = () => fail('REQUEST_ABORTED', 'Request body was aborted.');
+    const onClose = () => {
+      if (!request.complete) fail('REQUEST_ABORTED', 'Request closed before the body completed.');
+    };
+    const onError = error => {
+      if (!settled) finish(error);
+    };
+
+    const timer = setTimeout(() => {
+      fail('BODY_TIMEOUT', 'Request body exceeded the configured time limit.');
+    }, timeoutMs);
+    if (typeof timer.unref === 'function') timer.unref();
+
+    request.on('data', onData);
+    request.once('end', onEnd);
+    request.once('aborted', onAborted);
+    request.once('close', onClose);
+    request.on('error', onError);
+  });
+}
+
+function respondAndCloseRequest(request, response, status, message) {
+  request.pause();
+  respond(response, status, message, { Connection: 'close' });
+  response.once('finish', () => {
+    if (!request.complete && !request.destroyed) request.destroy();
+  });
 }
 
 function gateFailureStatus(error) {
@@ -94,7 +139,8 @@ function createReviewReleaseHttpHandler(options = {}) {
     allowedOrigin,
     routePath = DEFAULT_ROUTE_PATH,
     maxBodyBytes = DEFAULT_MAX_BODY_BYTES,
-    maxReportBytes = DEFAULT_MAX_REPORT_BYTES
+    maxReportBytes = DEFAULT_MAX_REPORT_BYTES,
+    bodyTimeoutMs = DEFAULT_BODY_TIMEOUT_MS
   } = options;
 
   if (typeof releaseReviewedReport !== 'function') {
@@ -110,6 +156,9 @@ function createReviewReleaseHttpHandler(options = {}) {
   }
   if (!Number.isSafeInteger(maxReportBytes) || maxReportBytes < 1 || maxReportBytes > 1048576) {
     throw new TypeError('maxReportBytes must be an integer between 1 and 1048576.');
+  }
+  if (!Number.isSafeInteger(bodyTimeoutMs) || bodyTimeoutMs < 50 || bodyTimeoutMs > 30000) {
+    throw new TypeError('bodyTimeoutMs must be an integer between 50 and 30000.');
   }
 
   return async function dadyarReviewReportHandler(request, response) {
@@ -165,12 +214,18 @@ function createReviewReleaseHttpHandler(options = {}) {
 
     let bodyBytes;
     try {
-      bodyBytes = await readLimitedBody(request, maxBodyBytes);
+      bodyBytes = await readLimitedBody(request, maxBodyBytes, bodyTimeoutMs);
     } catch (error) {
       if (error && error.code === 'BODY_TOO_LARGE') {
-        respond(response, 413, 'حجم درخواست بیش از حد مجاز است.');
+        respondAndCloseRequest(request, response, 413, 'حجم درخواست بیش از حد مجاز است.');
+      } else if (error && error.code === 'BODY_TIMEOUT') {
+        respondAndCloseRequest(request, response, 408, 'مهلت دریافت بدنه درخواست پایان یافت.');
+      } else if (error && error.code === 'REQUEST_ABORTED') {
+        if (!request.destroyed && !response.destroyed) {
+          respondAndCloseRequest(request, response, 400, 'دریافت بدنه درخواست کامل نشد.');
+        }
       } else {
-        respond(response, 400, 'خواندن بدنه درخواست ناموفق بود.');
+        respondAndCloseRequest(request, response, 400, 'خواندن بدنه درخواست ناموفق بود.');
       }
       return;
     }
