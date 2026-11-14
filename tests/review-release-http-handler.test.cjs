@@ -382,6 +382,26 @@ test('rejects malformed UTF-8 before parsing or loading report material', async 
   });
 });
 
+test('rejects duplicate and Unicode-normalization-colliding JSON keys before release', async () => {
+  const f = fixture();
+  await withServer(f.handler, async url => {
+    const bodies = [
+      '{"envelope":{},"envelope":{}}',
+      '{"envelope":{"payload":{"reviewerId":"reviewer.synthetic.01","reviewerId":"author.synthetic.01"},"signature":"x"}}',
+      '{"envelope":{},"\\uFF45nvelope":{}}'
+    ];
+    for (const body of bodies) {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: requestHeaders(),
+        body
+      });
+      assert.equal(response.status, 400);
+    }
+    assert.equal(f.materialLoads, 0);
+  });
+});
+
 test('rejects invalid JSON and unexpected top-level request fields', async () => {
   const f = fixture();
   await withServer(f.handler, async url => {

@@ -1,5 +1,7 @@
 'use strict';
 
+const { parseJsonRejectDuplicateKeys } = require('../scripts/strict-json.cjs');
+
 const DEFAULT_ROUTE_PATH = '/api/dadyar/review-report';
 const DEFAULT_MAX_BODY_BYTES = 8192;
 const DEFAULT_MAX_REPORT_BYTES = 262144;
@@ -245,7 +247,7 @@ function createReviewReleaseHttpHandler(options = {}) {
       // malformed UTF-8 before JSON parsing so the signed envelope has one
       // unambiguous byte-to-text representation.
       const decoder = new TextDecoder('utf-8', { fatal: true });
-      body = JSON.parse(decoder.decode(bodyBytes));
+      body = parseJsonRejectDuplicateKeys(decoder.decode(bodyBytes));
     } catch {
       respond(response, 400, 'ساختار JSON درخواست نامعتبر است.');
       return;
