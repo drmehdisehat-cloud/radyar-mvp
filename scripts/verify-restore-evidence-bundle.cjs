@@ -36,6 +36,24 @@ function isInside(parent, target) {
   return relative === '' || (!relative.startsWith('..' + path.sep) && relative !== '..' && !path.isAbsolute(relative));
 }
 
+function assertCanonicalDirectory(directory, label) {
+  if (typeof directory !== 'string' || !path.isAbsolute(directory) || path.resolve(directory) !== directory) {
+    throw new Error(label + '_path_must_be_absolute_canonical');
+  }
+  let current = directory;
+  while (true) {
+    if (fs.lstatSync(current).isSymbolicLink()) throw new Error(label + '_path_contains_symlink');
+    const parent = path.dirname(current);
+    if (parent === current) break;
+    current = parent;
+  }
+  const stat = fs.statSync(directory);
+  if (!stat.isDirectory()) throw new Error(label + '_path_must_be_directory');
+  const real = fs.realpathSync(directory);
+  if (real !== directory) throw new Error(label + '_path_is_not_canonical');
+  return real;
+}
+
 function sameFileVersion(a, b) {
   return a.dev === b.dev && a.ino === b.ino && a.size === b.size &&
     a.mtimeNs === b.mtimeNs && a.ctimeNs === b.ctimeNs && a.nlink === b.nlink;
@@ -102,12 +120,24 @@ function verifyRestoreEvidenceBundle({ manifest, archivePath, restoredMarkerPath
     restore_log: restoreLogPath,
     database_probe: databaseProbePath
   };
+  const restoreRoot = assertCanonicalDirectory(manifest.restore_target_realpath, 'restore_target');
+  const productionRoot = assertCanonicalDirectory(manifest.production_document_root_realpath, 'production_document_root');
+  if (isInside(productionRoot, restoreRoot)) {
+    throw new Error('restore_target_inside_production_document_root');
+  }
+
   const seenPaths = new Set();
   const seenIdentities = new Set();
   const files = Object.create(null);
 
   for (const [label, file] of Object.entries(supplied)) {
     const result = hashExternalEvidenceFile(file, label, LIMITS[label]);
+    if (isInside(productionRoot, result.realpath)) {
+      throw new Error(label + '_inside_production_document_root');
+    }
+    if (label === 'restored_marker' && !isInside(restoreRoot, result.realpath)) {
+      throw new Error('restored_marker_outside_restore_target');
+    }
     if (seenPaths.has(result.realpath) || seenIdentities.has(result.identity)) {
       throw new Error(label + '_must_be_a_distinct_evidence_file');
     }

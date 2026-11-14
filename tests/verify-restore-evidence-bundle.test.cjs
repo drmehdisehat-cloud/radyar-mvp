@@ -20,9 +20,17 @@ function makeFixture(t) {
     restore_log: Buffer.from('synthetic restore completed; exit=0'),
     database_probe: Buffer.from('{"synthetic":true,"database_probe_passed":true}')
   };
-  const paths = {};
+  const restoreRoot = path.join(directory, 'isolated-restore');
+  const productionRoot = path.join(directory, 'production', 'public_html');
+  fs.mkdirSync(restoreRoot, { recursive: true });
+  fs.mkdirSync(productionRoot, { recursive: true });
+  const paths = {
+    archive: path.join(directory, 'archive.evidence'),
+    restored_marker: path.join(restoreRoot, 'index.html'),
+    restore_log: path.join(directory, 'restore.log'),
+    database_probe: path.join(directory, 'database-probe.json')
+  };
   for (const [name, bytes] of Object.entries(contents)) {
-    paths[name] = path.join(directory, name + '.evidence');
     fs.writeFileSync(paths[name], bytes, { mode: 0o600 });
   }
   const now = Date.now();
@@ -51,14 +59,14 @@ function makeFixture(t) {
     production_database_name: 'synthetic_live_db',
     restore_database_user: 'synthetic_restore_user',
     production_database_user: 'synthetic_live_user',
-    restore_target_path: '/srv/synthetic/restore',
-    restore_target_realpath: '/srv/synthetic/restore',
-    production_document_root: '/srv/site/public_html',
-    production_document_root_realpath: '/srv/site/public_html',
+    restore_target_path: fs.realpathSync(restoreRoot),
+    restore_target_realpath: fs.realpathSync(restoreRoot),
+    production_document_root: fs.realpathSync(productionRoot),
+    production_document_root_realpath: fs.realpathSync(productionRoot),
     restore_completed_at: new Date(now - 120000).toISOString(),
     reviewed_at: new Date(now - 60000).toISOString()
   };
-  return { directory, contents, paths, manifest };
+  return { directory, restoreRoot, productionRoot, contents, paths, manifest };
 }
 
 function verify(fixture, overrides = {}) {
@@ -108,6 +116,37 @@ test('rejects reusing one file for two evidence roles', t => {
   const fixture = makeFixture(t);
   assert.throws(() => verify(fixture, { restoredMarkerPath: fixture.paths.archive }), /must_be_a_distinct_evidence_file/);
 });
+
+test('rejects archive evidence stored under the production document root', t => {
+  const fixture = makeFixture(t);
+  const unsafeArchive = path.join(fixture.productionRoot, 'backup.evidence');
+  fs.writeFileSync(unsafeArchive, fixture.contents.archive, { mode: 0o600 });
+  assert.throws(() => verify(fixture, { archivePath: unsafeArchive }), /archive_inside_production_document_root/);
+});
+
+test('rejects database probe evidence stored under the production document root', t => {
+  const fixture = makeFixture(t);
+  const unsafeProbe = path.join(fixture.productionRoot, 'database-probe.json');
+  fs.writeFileSync(unsafeProbe, fixture.contents.database_probe, { mode: 0o600 });
+  assert.throws(() => verify(fixture, { databaseProbePath: unsafeProbe }), /database_probe_inside_production_document_root/);
+});
+
+test('requires the restored marker to be inside the isolated restore target', t => {
+  const fixture = makeFixture(t);
+  const outsideMarker = path.join(fixture.directory, 'marker-outside-restore.evidence');
+  fs.writeFileSync(outsideMarker, fixture.contents.restored_marker, { mode: 0o600 });
+  assert.throws(() => verify(fixture, { restoredMarkerPath: outsideMarker }), /restored_marker_outside_restore_target/);
+});
+
+test('rejects a symlinked isolated restore directory', t => {
+  const fixture = makeFixture(t);
+  const alias = path.join(fixture.directory, 'restore-alias');
+  fs.symlinkSync(fixture.restoreRoot, alias, 'dir');
+  fixture.manifest.restore_target_path = alias;
+  fixture.manifest.restore_target_realpath = alias;
+  assert.throws(() => verify(fixture), /restore_target_path_contains_symlink/);
+});
+
 
 test('rejects evidence files inside the Git checkout', t => {
   const fixture = makeFixture(t);
