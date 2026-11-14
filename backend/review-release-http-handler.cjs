@@ -1,5 +1,6 @@
 'use strict';
 
+const http = require('node:http');
 const { parseJsonRejectDuplicateKeys } = require('../scripts/strict-json.cjs');
 
 const DEFAULT_ROUTE_PATH = '/api/dadyar/review-report';
@@ -178,6 +179,12 @@ function createReviewReleaseHttpHandler(options = {}) {
   }
 
   return async function dadyarReviewReportHandler(request, response) {
+    // Reject expectation headers before reading any request body. Use the server
+    // factory below so Node does not emit an automatic 100 Continue first.
+    if (request.headers && Object.prototype.hasOwnProperty.call(request.headers, 'expect')) {
+      respondAndCloseRequest(request, response, 417, 'درخواست دارای Expect پشتیبانی نمی‌شود.');
+      return;
+    }
     if (typeof request.url !== 'string' || !request.url.startsWith('/') || request.url.startsWith('//')) {
       respond(response, 400, 'هدف درخواست نامعتبر است.');
       return;
@@ -290,7 +297,23 @@ function createReviewReleaseHttpHandler(options = {}) {
   };
 }
 
+function createReviewReleaseHttpServer(handler) {
+  if (typeof handler !== 'function') {
+    throw new TypeError('A review HTTP request handler is required.');
+  }
+  const server = http.createServer(handler);
+  const rejectExpectation = (request, response) => {
+    respondAndCloseRequest(request, response, 417, 'درخواست دارای Expect پشتیبانی نمی‌شود.');
+  };
+  // When a checkContinue listener exists, Node does not emit the ordinary
+  // request event or send an interim 100 response automatically.
+  server.on('checkContinue', rejectExpectation);
+  server.on('checkExpectation', rejectExpectation);
+  return server;
+}
+
 module.exports = {
   DEFAULT_ROUTE_PATH,
-  createReviewReleaseHttpHandler
+  createReviewReleaseHttpHandler,
+  createReviewReleaseHttpServer
 };

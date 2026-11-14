@@ -13,7 +13,8 @@ const {
 const { createReviewReleaseGate } = require('../backend/review-release-gate.cjs');
 const {
   DEFAULT_ROUTE_PATH,
-  createReviewReleaseHttpHandler
+  createReviewReleaseHttpHandler,
+  createReviewReleaseHttpServer
 } = require('../backend/review-release-http-handler.cjs');
 
 const ORIGIN = 'https://preview.example.test';
@@ -96,7 +97,7 @@ function fixture({ decision = 'approved', maxBodyBytes = 2048, bodyTimeoutMs = 1
 }
 
 async function withServer(handler, callback) {
-  const server = http.createServer(handler);
+  const server = createReviewReleaseHttpServer(handler);
   await new Promise((resolve, reject) => {
     server.once('error', reject);
     server.listen(0, '127.0.0.1', resolve);
@@ -186,6 +187,53 @@ test('rejects methods other than POST and reports the allowed method', async () 
     const response = await fetch(url, { method: 'GET' });
     assert.equal(response.status, 405);
     assert.equal(response.headers.get('allow'), 'POST');
+    assert.equal(f.materialLoads, 0);
+  });
+});
+
+test('rejects Expect: 100-continue before sending an interim response or loading report material', async () => {
+  const f = fixture();
+  await withServer(f.handler, async url => {
+    const parsed = new URL(url);
+    const result = await new Promise((resolve, reject) => {
+      let continueCount = 0;
+      let responseReceived = false;
+      const request = http.request({
+        hostname: parsed.hostname,
+        port: Number(parsed.port),
+        path: parsed.pathname,
+        method: 'POST',
+        headers: requestHeaders({
+          Expect: '100-continue',
+          'Content-Length': '1'
+        })
+      }, response => {
+        responseReceived = true;
+        let body = '';
+        response.setEncoding('utf8');
+        response.on('data', chunk => { body += chunk; });
+        response.once('error', reject);
+        response.once('end', () => resolve({
+          status: response.statusCode,
+          connection: response.headers.connection,
+          body,
+          continueCount
+        }));
+      });
+      request.on('continue', () => {
+        continueCount += 1;
+        request.end('x');
+      });
+      request.once('error', error => {
+        if (!responseReceived) reject(error);
+      });
+      request.setTimeout(3000, () => request.destroy(new Error('test_timeout')));
+      request.flushHeaders();
+    });
+    assert.equal(result.status, 417);
+    assert.equal(result.connection, 'close');
+    assert.equal(result.continueCount, 0);
+    assert.match(result.body, /Expect/);
     assert.equal(f.materialLoads, 0);
   });
 });

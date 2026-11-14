@@ -6,6 +6,8 @@
 
 `POST /api/dadyar/review-report`
 
+Mount the handler with `createReviewReleaseHttpServer(handler)`, not a bare `http.createServer(handler)`. The factory intercepts Node's `checkContinue` and `checkExpectation` events and rejects `Expect` requests with HTTP 417 before an interim `100 Continue` can invite a client to upload a body. The handler also rejects an `Expect` header if mounted directly, but a bare Node server may already have sent the interim response; the factory is therefore part of the required integration contract.
+
 The adapter:
 - requires the exact configured HTTPS `Origin`;
 - rejects cross-site Fetch Metadata when supplied;
