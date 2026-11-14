@@ -7,6 +7,11 @@ const destinationEvidence = { matched: true, source_blob_sha1: '1'.repeat(40), e
 const restoreEvidence = {
   restore_proven: true,
   evidence: 'independent-restore-manifest-v1',
+  backup_provider: 'iranhost',
+  source_site_origin: 'https://mehdisehat.ir',
+  backup_id: 'synthetic-iranhost-backup-001',
+  backup_created_at: '2026-11-08T12:00:00.000Z',
+  archive_size_bytes: 12345,
   archive_sha256: 'b'.repeat(64),
   restored_marker_sha256: 'c'.repeat(64),
   restore_log_sha256: 'd'.repeat(64),
@@ -66,6 +71,29 @@ test('complete synthetic manifest and isolated staging path reach owner approval
   assert.equal(decision.deploymentAuthorized,false);
   assert.equal(decision.externalChecksPending.length,5);
 });
+
+for (const [label, patch] of [
+  ['another source site', { source_site_origin: 'https://other.example' }],
+  ['another provider', { backup_provider: 'other-host' }],
+  ['missing provider backup identifier', { backup_id: '' }],
+  ['backup created after the restore', { backup_created_at: '2026-11-10T12:00:00.000Z' }],
+  ['missing archive byte count', { archive_size_bytes: 0 }]
+]) {
+  test('rejects restore evidence for ' + label, () => {
+    const decision = decidePreviewRelease({
+      restoreEvidence: { ...restoreEvidence, ...patch },
+      destinationEvidence,
+      isolatedRestoreVerified: true,
+      mobileBrowserVerified: true,
+      zeroApiRequestsVerified: true,
+      humanReviewVerified: true,
+      authenticatedHumanReviewAttested: true,
+      authenticatedRestoreAttestation: true
+    });
+    assert.equal(decision.status, 'NOT_READY');
+    assert.ok(decision.blockers.includes('independent restore attestation incomplete or unverified'));
+  });
+}
 
 test('destination evidence inside production document root is rejected even with matching hashes', () => {
   const decision = decidePreviewRelease({ restoreEvidence, destinationEvidence: { ...destinationEvidence, destination_realpath: '/home/site/public_html/dadyar-preview/index.html' }, isolatedRestoreVerified:true, mobileBrowserVerified:true, zeroApiRequestsVerified:true, humanReviewVerified:true, authenticatedHumanReviewAttested:true, authenticatedRestoreAttestation:true });
