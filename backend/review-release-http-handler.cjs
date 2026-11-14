@@ -78,6 +78,7 @@ function readLimitedBody(request, maxBytes, timeoutMs) {
       request.removeListener('end', onEnd);
       request.removeListener('aborted', onAborted);
       request.removeListener('close', onClose);
+      request.removeListener('error', onError);
     };
     const finish = (error, value) => {
       if (settled) return;
@@ -240,7 +241,11 @@ function createReviewReleaseHttpHandler(options = {}) {
 
     let body;
     try {
-      body = JSON.parse(bodyBytes.toString('utf8'));
+      // Buffer.toString('utf8') replaces malformed byte sequences. Reject
+      // malformed UTF-8 before JSON parsing so the signed envelope has one
+      // unambiguous byte-to-text representation.
+      const decoder = new TextDecoder('utf-8', { fatal: true });
+      body = JSON.parse(decoder.decode(bodyBytes));
     } catch {
       respond(response, 400, 'ساختار JSON درخواست نامعتبر است.');
       return;
