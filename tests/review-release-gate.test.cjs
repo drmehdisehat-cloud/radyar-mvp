@@ -15,7 +15,7 @@ const REVIEWER = 'reviewer.synthetic.01';
 const AUTHOR = 'author.synthetic.01';
 const SOURCE_COMMIT = 'c'.repeat(40);
 
-function fixture({ decision = 'approved' } = {}) {
+function fixture({ decision = 'approved', onPolicy = () => {}, onLoad = () => {} } = {}) {
   const pair = crypto.generateKeyPairSync('ed25519');
   const publicKey = pair.publicKey.export({ type: 'spki', format: 'pem' });
   const artifactBytes = Buffer.from('synthetic preview artifact v1');
@@ -48,8 +48,9 @@ function fixture({ decision = 'approved' } = {}) {
       request && typeof request.principalId === 'string'
         ? { id: request.principalId }
         : null,
-    isIndependentReviewer: async ({ reviewerId }) => reviewerId !== AUTHOR,
+    isIndependentReviewer: async ({ reviewerId }) => { onPolicy(reviewerId); return reviewerId !== AUTHOR; },
     loadReleaseMaterial: async () => {
+      onLoad();
       materialLoads += 1;
       return material;
     },
@@ -128,6 +129,20 @@ test('releases exact server-loaded report bytes only after an authenticated inde
   assert.equal(result.receipt.sourceCommit, SOURCE_COMMIT);
   assert.equal(f.materialLoads, 1);
   assert.equal(f.consumed.has(f.envelope.payload.nonce), true);
+});
+
+test('checks reviewer independence before loading release material', async () => {
+  const events = [];
+  const f = fixture({
+    onPolicy: () => events.push('independence-policy'),
+    onLoad: () => events.push('release-material')
+  });
+  const result = await f.gate({
+    request: { principalId: REVIEWER },
+    envelope: f.envelope
+  });
+  assert.equal(result.receipt.verified, true);
+  assert.deepEqual(events, ['independence-policy', 'release-material']);
 });
 
 test('blocks release when the server-loaded artifact bytes differ from the signed artifact', async () => {
