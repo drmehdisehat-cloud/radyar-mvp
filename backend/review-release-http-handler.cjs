@@ -7,8 +7,9 @@ const DEFAULT_BODY_TIMEOUT_MS = 10000;
 
 function isCanonicalOriginFormPath(value) {
   if (typeof value !== 'string' || !value.startsWith('/') || value.startsWith('//') ||
-      /[\\%?#]/.test(value) || /\\/{2,}/.test(value) ||
-      /(^|\\/)\\.{1,2}(\\/|$)/.test(value)) return false;
+      value.includes('\\') || value.includes('%') || value.includes('?') ||
+      value.includes('#') || value.includes('//')) return false;
+  if (value.split('/').some(segment => segment === '.' || segment === '..')) return false;
   try {
     const parsed = new URL(value, 'https://dadyar.invalid');
     return parsed.origin === 'https://dadyar.invalid' &&
