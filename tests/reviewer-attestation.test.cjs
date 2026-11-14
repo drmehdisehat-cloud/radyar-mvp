@@ -49,7 +49,7 @@ function fixture(overrides = {}) {
     envelope: { payload, signature },
     consumed,
     options: {
-      trustedKeys: { 'synthetic-review-key': publicPem },
+      trustedKeys: { 'synthetic-review-key': { publicKey: publicPem, reviewerId: REVIEWER, status: 'active' } },
       expected: {
         sourceCommit: COMMIT,
         artifactSha256: ARTIFACT,
@@ -127,8 +127,41 @@ test('rejects malformed signatures and non-Ed25519 trusted keys', async () => {
   await assert.rejects(verifyReviewAttestation({ ...f.envelope, signature: 'bad' }, f.options), /64-byte/);
   const rsa = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
   const rsaPem = rsa.publicKey.export({ type: 'spki', format: 'pem' });
-  const options = { ...f.options, trustedKeys: { 'synthetic-review-key': rsaPem } };
+  const options = { ...f.options, trustedKeys: { 'synthetic-review-key': { publicKey: rsaPem, reviewerId: REVIEWER, status: 'active' } } };
   await assert.rejects(verifyReviewAttestation(f.envelope, options), /must be Ed25519/);
+});
+
+test('rejects a valid signature when the trusted key is bound to another reviewer principal', async () => {
+  const f = fixture();
+  const options = {
+    ...f.options,
+    trustedKeys: {
+      'synthetic-review-key': {
+        publicKey: f.publicPem,
+        reviewerId: 'reviewer.synthetic.02',
+        status: 'active'
+      }
+    }
+  };
+  await assert.rejects(
+    verifyReviewAttestation(f.envelope, options),
+    /not bound to the claimed reviewer identity/
+  );
+});
+
+test('rejects a revoked reviewer key even when its signature is cryptographically valid', async () => {
+  const f = fixture();
+  const options = {
+    ...f.options,
+    trustedKeys: {
+      'synthetic-review-key': {
+        publicKey: f.publicPem,
+        reviewerId: REVIEWER,
+        status: 'revoked'
+      }
+    }
+  };
+  await assert.rejects(verifyReviewAttestation(f.envelope, options), /revoked or inactive/);
 });
 
 test('rejects an invalid signature and a reviewer identity mismatch', async () => {
