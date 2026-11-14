@@ -44,3 +44,28 @@ test('does not reject a lower later index as an invalid calculation', () => {
   assert.equal(result.amountAtPayment, 900);
   assert.equal(result.damages, -100);
 });
+
+test('uses exact scaled-integer arithmetic when the intermediate product exceeds safe Number precision', () => {
+  const precise = {
+    ...indexData,
+    months: { "1": 1000, "2": 110.867 }
+  };
+  const result = calculateDelayDamages({
+    principal: 9007199254740991,
+    dueYear: 1405,
+    dueMonth: 1,
+    paymentYear: 1405,
+    paymentMonth: 2
+  }, precise);
+  assert.equal(result.amountAtPayment, 998601159775369);
+});
+
+test('rounds exact half values upward and rejects non-positive or over-precision indices', () => {
+  const half = { ...indexData, months: { "1": 2, "2": 1 } };
+  const result = calculateDelayDamages({
+    principal: 3, dueYear: 1405, dueMonth: 1, paymentYear: 1405, paymentMonth: 2
+  }, half);
+  assert.equal(result.amountAtPayment, 2);
+  assert.throws(() => getMonthlyIndex(1405, 1, { ...indexData, months: { "1": 0 } }), /شاخص باید عدد مثبت/);
+  assert.throws(() => getMonthlyIndex(1405, 1, { ...indexData, months: { "1": 1.1234567 } }), /حداکثر شش رقم اعشار/);
+});
