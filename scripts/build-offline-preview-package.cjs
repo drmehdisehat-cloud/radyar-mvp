@@ -107,7 +107,10 @@ function buildOfflinePreviewPackage(destinationArg, options = {}) {
     [/id="delay-due-month"/, 'delay-damages origin month'],
     [/id="delay-payment-month"/, 'delay-damages payment month'],
     [/id="delay-calculate"/, 'delay-damages calculation control'],
-    [/id="delay-index-list"/, 'visible 1405 index list']
+    [/id="delay-index-list"/, 'visible 1405 index list'],
+    [/هنوز با جدول رسمی بانک مرکزی تطبیق مستقل نشده‌اند/, 'visible unverified 1405 index-source disclosure'],
+    [/منبع داده: تصویر مالک؛ تأیید رسمی و حقوقی نشده است/, 'calculator-result source disclosure'],
+    [/مبدأ قانونی ماده ۵۲۲ یا شرایط مطالبه را تعیین نمی‌کند/, 'legal applicability disclaimer']
   ];
   for (const [pattern, label] of required) {
     if (!pattern.test(html)) fail('Preview package missing required control: ' + label);
