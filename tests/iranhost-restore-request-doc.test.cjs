@@ -23,7 +23,7 @@ test('owner handoff requires real restore evidence, not archive size or hash alo
   assert.match(content, /archive_size_bytes/);
   assert.match(content, /exit code/);
   assert.match(content, /دو امضای Ed25519 جداگانه/);
-  assert.match(content, /restore_proven` باید `false بماند/);
+  assert.match(content, /restore_proven` باید `false` بماند/);
   assert.match(content, /تطبیق اندازه یا هش به‌تنهایی اثبات Restore نیست/);
 });
 
