@@ -9,11 +9,15 @@ const html = fs.readFileSync(path.join(root, 'dadyar-preview/index.html'), 'utf8
 const data = JSON.parse(fs.readFileSync(path.join(root, 'dadyar-preview/data/delay-damages-index.json'), 'utf8'));
 
 function attribute(name) {
-  const doubleQuoted = new RegExp('\\\\b' + name + '="([^"]*)"').exec(html);
-  const singleQuoted = new RegExp("\\\\b" + name + "='([^']*)'").exec(html);
-  const match = doubleQuoted || singleQuoted;
-  assert.ok(match, 'missing preview calculator attribute: ' + name);
-  return match[1];
+  const marker = name + '=';
+  const start = html.indexOf(marker);
+  assert.notEqual(start, -1, 'missing preview calculator attribute: ' + name);
+  const valueStart = start + marker.length;
+  const quote = html[valueStart];
+  assert.ok(quote === '"' || quote === "'", 'attribute must be quoted: ' + name);
+  const end = html.indexOf(quote, valueStart + 1);
+  assert.notEqual(end, -1, 'unterminated preview calculator attribute: ' + name);
+  return html.slice(valueStart + 1, end);
 }
 
 test('embedded 1405 calculator data and provenance exactly match the canonical JSON record', () => {
@@ -28,14 +32,14 @@ test('embedded 1405 calculator data and provenance exactly match the canonical J
 });
 
 test('calculator labels do not imply that the user-selected index month is a legal start date', () => {
-  assert.match(html, /ماه شاخص مبدأ \\(انتخاب آزمایشی، نه تعیین قانونی\\)/);
-  assert.match(html, /ماه شاخص پرداخت \/ محاسبه \\(انتخاب آزمایشی\\)/);
-  assert.match(html, /مبدأ قانونی ماده ۵۲۲ یا شرایط مطالبه را تعیین نمی‌کند/);
-  assert.match(html, /منبع داده: تصویر مالک؛ تأیید رسمی و حقوقی نشده است/);
+  assert.ok(html.includes('ماه شاخص مبدأ (انتخاب آزمایشی، نه تعیین قانونی)'));
+  assert.ok(html.includes('ماه شاخص پرداخت / محاسبه (انتخاب آزمایشی)'));
+  assert.ok(html.includes('مبدأ قانونی ماده ۵۲۲ یا شرایط مطالبه را تعیین نمی‌کند'));
+  assert.ok(html.includes('منبع داده: تصویر مالک؛ تأیید رسمی و حقوقی نشده است'));
 });
 
 test('unverified source warning remains visible before and after numeric calculation', () => {
-  assert.match(html, /هنوز با جدول رسمی بانک مرکزی تطبیق مستقل نشده‌اند/);
-  assert.match(html, /صرفاً برای محاسبه عددی آزمایشی است/);
-  assert.match(html, /منبع داده: تصویر مالک؛ تأیید رسمی و حقوقی نشده است/);
+  assert.ok(html.includes('هنوز با جدول رسمی بانک مرکزی تطبیق مستقل نشده‌اند'));
+  assert.ok(html.includes('صرفاً برای محاسبه عددی آزمایشی است'));
+  assert.ok(html.includes('منبع داده: تصویر مالک؛ تأیید رسمی و حقوقی نشده است'));
 });
