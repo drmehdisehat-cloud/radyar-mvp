@@ -22,11 +22,18 @@ function validUtc(value) {
   return Number.isFinite(parsed.getTime()) && parsed.toISOString() === value &&
     parsed.getTime() <= Date.now();
 }
-function outsideDocumentRoot(target, documentRoot) {
-  if (typeof target !== 'string' || typeof documentRoot !== 'string' ||
-      !path.isAbsolute(target) || !path.isAbsolute(documentRoot)) return false;
-  const relative = path.relative(path.resolve(documentRoot), path.resolve(target));
-  return relative === '..' || relative.startsWith('..' + path.sep) || path.isAbsolute(relative);
+function pathsDisjoint(first, second) {
+  if (typeof first !== 'string' || typeof second !== 'string' ||
+      !path.isAbsolute(first) || !path.isAbsolute(second)) return false;
+  const firstPath = path.resolve(first);
+  const secondPath = path.resolve(second);
+  const firstToSecond = path.relative(firstPath, secondPath);
+  const secondToFirst = path.relative(secondPath, firstPath);
+  const isOutside = relative => relative === '..' ||
+    relative.startsWith('..' + path.sep) || path.isAbsolute(relative);
+  // Neither path may contain the other. Being merely outside the document
+  // root is insufficient when the alleged destination is an ancestor of it.
+  return isOutside(firstToSecond) && isOutside(secondToFirst);
 }
 
 function matchesCanonicalRealpath(inputPath, realpath) {
@@ -67,7 +74,7 @@ function hasIndependentRestoreAttestation(evidence) {
   // This rejects a symlink alias that appears outside the web root but resolves inside it.
   if (!matchesCanonicalRealpath(evidence.restore_target_path, evidence.restore_target_realpath) ||
       !matchesCanonicalRealpath(evidence.production_document_root, evidence.production_document_root_realpath) ||
-      !outsideDocumentRoot(evidence.restore_target_realpath, evidence.production_document_root_realpath)) return false;
+      !pathsDisjoint(evidence.restore_target_realpath, evidence.production_document_root_realpath)) return false;
   if (!validUtc(evidence.restore_completed_at) || !validUtc(evidence.reviewed_at)) return false;
   if (Date.parse(evidence.reviewed_at) < Date.parse(evidence.restore_completed_at)) return false;
   return true;
@@ -85,8 +92,8 @@ function hasVerifiedStagingDestination(evidence) {
   if (path.resolve(evidence.destination_realpath) !== evidence.destination_realpath ||
       path.resolve(evidence.production_document_root_realpath) !== evidence.production_document_root_realpath ||
       path.resolve(evidence.git_checkout_realpath) !== evidence.git_checkout_realpath) return false;
-  return outsideDocumentRoot(evidence.destination_realpath, evidence.production_document_root_realpath) &&
-    outsideDocumentRoot(evidence.destination_realpath, evidence.git_checkout_realpath);
+  return pathsDisjoint(evidence.destination_realpath, evidence.production_document_root_realpath) &&
+    pathsDisjoint(evidence.destination_realpath, evidence.git_checkout_realpath);
 }
 
 function decidePreviewRelease({ restoreEvidence, destinationEvidence, isolatedRestoreVerified = false, mobileBrowserVerified = false, zeroApiRequestsVerified = false, humanReviewVerified = false, authenticatedHumanReviewAttested = false, authenticatedRestoreAttestation = false } = {}) {
@@ -114,4 +121,4 @@ function decidePreviewRelease({ restoreEvidence, destinationEvidence, isolatedRe
     deploymentAuthorized: false
   });
 }
-module.exports = { decidePreviewRelease, hasIndependentRestoreAttestation, hasVerifiedStagingDestination, validGitBlobSha };
+module.exports = { decidePreviewRelease, hasIndependentRestoreAttestation, hasVerifiedStagingDestination, validGitBlobSha, pathsDisjoint };
