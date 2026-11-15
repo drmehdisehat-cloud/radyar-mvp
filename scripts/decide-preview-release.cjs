@@ -22,11 +22,18 @@ function validUtc(value) {
   return Number.isFinite(parsed.getTime()) && parsed.toISOString() === value &&
     parsed.getTime() <= Date.now();
 }
-function outsideDocumentRoot(target, documentRoot) {
-  if (typeof target !== 'string' || typeof documentRoot !== 'string' ||
-      !path.isAbsolute(target) || !path.isAbsolute(documentRoot)) return false;
-  const relative = path.relative(path.resolve(documentRoot), path.resolve(target));
-  return relative === '..' || relative.startsWith('..' + path.sep) || path.isAbsolute(relative);
+function isSameOrDescendant(parent, target) {
+  const relative = path.relative(path.resolve(parent), path.resolve(target));
+  return relative === '' ||
+    (!relative.startsWith('..' + path.sep) && relative !== '..' && !path.isAbsolute(relative));
+}
+
+function pathsAreDisjoint(first, second) {
+  if (typeof first !== 'string' || typeof second !== 'string' ||
+      !path.isAbsolute(first) || !path.isAbsolute(second)) return false;
+  const a = path.resolve(first);
+  const b = path.resolve(second);
+  return !isSameOrDescendant(a, b) && !isSameOrDescendant(b, a);
 }
 
 function matchesCanonicalRealpath(inputPath, realpath) {
@@ -42,6 +49,16 @@ function matchesCanonicalRealpath(inputPath, realpath) {
 function hasIndependentRestoreAttestation(evidence) {
   if (!evidence || evidence.restore_proven !== true ||
       evidence.evidence !== 'independent-restore-manifest-v1') return false;
+  if (evidence.backup_provider !== 'iranhost' ||
+      evidence.source_site_origin !== 'https://mehdisehat.ir') return false;
+  if (typeof evidence.backup_id !== 'string' || !evidence.backup_id.trim() ||
+      evidence.backup_id.length > 160 ||
+      [...evidence.backup_id].some(character => {
+        const code = character.codePointAt(0);
+        return code <= 0x1f || code === 0x7f;
+      })) return false;
+  if (!Number.isSafeInteger(evidence.archive_size_bytes) || evidence.archive_size_bytes <= 0) return false;
+  if (!validUtc(evidence.backup_created_at)) return false;
   if (!validSha(evidence.archive_sha256) ||
       !validSha(evidence.restored_marker_sha256) ||
       !validSha(evidence.restore_log_sha256) ||
@@ -67,8 +84,9 @@ function hasIndependentRestoreAttestation(evidence) {
   // This rejects a symlink alias that appears outside the web root but resolves inside it.
   if (!matchesCanonicalRealpath(evidence.restore_target_path, evidence.restore_target_realpath) ||
       !matchesCanonicalRealpath(evidence.production_document_root, evidence.production_document_root_realpath) ||
-      !outsideDocumentRoot(evidence.restore_target_realpath, evidence.production_document_root_realpath)) return false;
+      !pathsAreDisjoint(evidence.restore_target_realpath, evidence.production_document_root_realpath)) return false;
   if (!validUtc(evidence.restore_completed_at) || !validUtc(evidence.reviewed_at)) return false;
+  if (Date.parse(evidence.backup_created_at) > Date.parse(evidence.restore_completed_at)) return false;
   if (Date.parse(evidence.reviewed_at) < Date.parse(evidence.restore_completed_at)) return false;
   return true;
 }
@@ -85,8 +103,8 @@ function hasVerifiedStagingDestination(evidence) {
   if (path.resolve(evidence.destination_realpath) !== evidence.destination_realpath ||
       path.resolve(evidence.production_document_root_realpath) !== evidence.production_document_root_realpath ||
       path.resolve(evidence.git_checkout_realpath) !== evidence.git_checkout_realpath) return false;
-  return outsideDocumentRoot(evidence.destination_realpath, evidence.production_document_root_realpath) &&
-    outsideDocumentRoot(evidence.destination_realpath, evidence.git_checkout_realpath);
+  return pathsAreDisjoint(evidence.destination_realpath, evidence.production_document_root_realpath) &&
+    pathsAreDisjoint(evidence.destination_realpath, evidence.git_checkout_realpath);
 }
 
 function decidePreviewRelease({ restoreEvidence, destinationEvidence, isolatedRestoreVerified = false, mobileBrowserVerified = false, zeroApiRequestsVerified = false, humanReviewVerified = false, authenticatedHumanReviewAttested = false, authenticatedRestoreAttestation = false } = {}) {

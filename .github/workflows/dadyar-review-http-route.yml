@@ -1,0 +1,55 @@
+name: Dadyar signed-review HTTP boundary verification
+
+on:
+  push:
+    branches:
+      - dadyar/review-http-route-20261114
+  pull_request:
+    branches:
+      - dadyar/preview-integration-20261114
+
+permissions:
+  contents: read
+
+jobs:
+  verify-review-http-boundary:
+    if: github.event_name == 'push' || github.head_ref == 'dadyar/review-http-route-20261114'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Run complete contract suite including the HTTP release boundary
+        run: node --test tests/delay-damages-1405.test.cjs tests/preview-index-data-consistency.test.cjs tests/dadyar-preview-csp-hash-contract.test.cjs tests/preview-artifact-manifest.test.cjs tests/reviewer-attestation.test.cjs tests/file-nonce-store.test.cjs tests/review-release-gate.test.cjs tests/review-release-http-handler.test.cjs tests/dadyar-preview-subpath-http.test.cjs tests/verify-public-preview-http.test.cjs tests/synthetic-cheque-workflow.test.cjs tests/synthetic-cheque-evidence-review.test.cjs tests/dadyar-preview-27-domain-routing.test.cjs tests/dadyar-preview-human-review-flow.test.cjs tests/dadyar-preview-one-shot-export.test.cjs tests/dadyar-preview-network-isolation.test.cjs tests/decide-preview-release.test.cjs
+      - name: Verify owner-facing isolated restore handoff
+        run: node --test tests/iranhost-restore-request-doc.test.cjs
+      - name: Verify exact isolated preview layout and no-overwrite target
+        run: node --test tests/preview-release-layout.test.cjs
+      - name: Verify restore evidence reader rejects special files without blocking
+        run: node --test tests/verify-restore-attestation-signatures.test.cjs
+      - name: Verify raw restore evidence bytes match the manifest
+        run: node --test tests/verify-restore-evidence-bundle.test.cjs
+      - name: Verify date-aware legal-source provenance and fail-closed research status
+        run: node --test tests/legal-source-versioning.test.cjs tests/legal-evidence-date-integrity.test.cjs tests/legal-source-coverage.test.cjs tests/research-only-source-release-gate.test.cjs tests/legal-review-freshness-gate.test.cjs tests/legal-provenance-report.test.cjs tests/check-law-source-recheck-20261113.test.cjs tests/check-law-article-review.test.cjs tests/check-law-source-handoff.test.cjs tests/check-gazette-source-conflict.test.cjs
+      - name: Verify real Chromium mobile flow and zero network
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium)"
+          test -n "$CHROME_BIN"
+          CHROME_BIN="$CHROME_BIN" node --test preview-tests/dadyar-preview-mobile-device-emulation.cjs
+      - name: Build and verify deployable static preview tree (not deployment)
+        run: |
+          mkdir -p "$RUNNER_TEMP/dadyar-preview-handoff"
+          cp -R dadyar-preview "$RUNNER_TEMP/dadyar-preview-handoff/"
+          node scripts/preview-artifact-manifest.cjs create "$RUNNER_TEMP/dadyar-preview-handoff" "$GITHUB_SHA"
+          node scripts/preview-artifact-manifest.cjs verify "$RUNNER_TEMP/dadyar-preview-handoff"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dadyar-offline-preview-http-gate-${{ github.sha }}
+          path: ${{ runner.temp }}/dadyar-preview-handoff/
+          if-no-files-found: error
+          retention-days: 7

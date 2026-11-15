@@ -170,19 +170,39 @@ function fetchPreview(urlValue, expectedSha256, expectedGitBlobSha1, {
     }, response => {
       const chunks = [];
       let total = 0;
+      let settled = false;
+      const fail = error => {
+        if (settled) return;
+        settled = true;
+        reject(error);
+      };
+      const succeed = value => {
+        if (settled) return;
+        settled = true;
+        resolve(value);
+      };
       response.on('data', chunk => {
         const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
         total += bytes.length;
         if (total > MAX_BODY_BYTES) {
-          response.destroy(new Error('preview_body_exceeds_1MiB'));
+          fail(new Error('preview_body_exceeds_1MiB'));
+          response.destroy();
           return;
         }
         chunks.push(bytes);
       });
-      response.on('error', reject);
+      response.on('aborted', () => fail(new Error('preview_response_aborted')));
+      response.on('error', fail);
+      response.on('close', () => {
+        if (response.complete !== true) fail(new Error('preview_response_incomplete'));
+      });
       response.on('end', () => {
+        if (response.complete !== true) {
+          fail(new Error('preview_response_incomplete'));
+          return;
+        }
         try {
-          resolve(verifyPreviewResponse({
+          succeed(verifyPreviewResponse({
             statusCode: response.statusCode,
             headers: response.headers,
             body: Buffer.concat(chunks),
@@ -190,7 +210,7 @@ function fetchPreview(urlValue, expectedSha256, expectedGitBlobSha1, {
             expectedGitBlobSha1
           }));
         } catch (error) {
-          reject(error);
+          fail(error);
         }
       });
     });
