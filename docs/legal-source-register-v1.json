@@ -1,0 +1,139 @@
+{
+  "schema": "dadyar-legal-source-register-v1",
+  "observedAt": "2026-11-16",
+  "policy": {
+    "approvalRule": "A secondary page, search result, owner image, or plausible official-portal URL is not an authenticated primary legal source.",
+    "answerUse": "Only records with an independently verified primary document, event-date version, direct document URL, and approved human review may support a legal answer.",
+    "defaultUseInLegalAnswers": false
+  },
+  "officialPortalCandidates": [
+    "https://rrk.ir",
+    "https://qavanin.ir",
+    "https://divanali.ir",
+    "https://cbi.ir"
+  ],
+  "records": [
+    {
+      "id": "check-issuance-law",
+      "topicHints": ["چک", "اسناد تجاری"],
+      "instrumentType": "statute",
+      "title": "قانون صدور چک",
+      "originalAdoptionDate": "1355-04-16",
+      "latestAmendmentClaimedBySecondaryText": "1400-01-29",
+      "eventDateVersioningRequired": true,
+      "primaryOfficialDocumentUrl": null,
+      "primaryPublicationIssue": null,
+      "primarySourceVerified": false,
+      "humanReviewStatus": "pending",
+      "useInLegalAnswers": false,
+      "secondaryResearchLeads": [
+        {
+          "url": "https://law-ir.ir/law/cat/1692/",
+          "sourceClass": "secondary",
+          "note": "متن تجمیعی با اشاره به اصلاحات ۱۳۷۲، ۱۳۸۲ و ۱۳۹۷؛ روزنامه رسمی نیست."
+        },
+        {
+          "url": "https://www.ekhtebar.ir/%D9%85%D8%AA%D9%86-%D9%82%D8%A7%D9%86%D9%88%D9%86-%DA%86%DA%A9-%D8%A8%D8%A7-%D8%A2%D8%AE%D8%B1%DB%8C%D9%86-%D8%A7%D8%B5%D9%84%D8%A7%D8%AD%D8%A7%D8%AA/amp/",
+          "sourceClass": "secondary",
+          "note": "نسخه ثانویه مدعی تجمیع اصلاحات تا ۱۴۰۰/۰۱/۲۹؛ نسخه رسمی ماده‌به‌ماده و تاریخ اعتبار هنوز تطبیق نشده است."
+        }
+      ],
+      "openQuestions": [
+        "دریافت سند اولیه قانون و اصلاحات از روزنامه رسمی یا پایگاه رسمی قوانین.",
+        "ساخت نسخه زمانی ماده‌به‌ماده برای تاریخ هر رویداد.",
+        "تأیید مستقل تاریخ لازم‌الاجرا شدن هر اصلاح."
+      ]
+    },
+    {
+      "id": "uniform-opinion-850",
+      "topicHints": ["خسارت تأخیر تأدیه", "دین وجه رایج"],
+      "instrumentType": "uniform_opinion",
+      "number": 850,
+      "decisionDate": "1403-05-16",
+      "primaryOfficialDocumentUrl": null,
+      "primaryPublicationIssue": null,
+      "primarySourceVerified": false,
+      "humanReviewStatus": "pending",
+      "useInLegalAnswers": false,
+      "secondaryResearchLeads": [
+        {
+          "url": "https://parsamadani.ir/unity-opinions/850/",
+          "sourceClass": "secondary",
+          "note": "متن بازنشرشده رأی؛ برای تطبیق با گردش کار و نسخه روزنامه رسمی استفاده نشود مگر پس از راستی‌آزمایی."
+        },
+        {
+          "url": "https://dadyar.org/library/uniform-opinions/850-1403",
+          "sourceClass": "secondary",
+          "note": "نسخه کتابخانه‌ای ثانویه؛ غلط‌های احتمالی OCR/رونویسی باید با اصل سند مقابله شوند."
+        }
+      ],
+      "openQuestions": [
+        "دریافت نسخه مستقیم روزنامه رسمی و گردش کار دیوان عالی کشور.",
+        "تطبیق تاریخ صدور، انتشار و زمان اثر الزام‌آور.",
+        "بررسی نسبت رأی با اصلاحات بعدی و رأی وحدت رویه ۸۸۳."
+      ]
+    },
+    {
+      "id": "uniform-opinion-883",
+      "topicHints": ["چک", "خسارت تأخیر تأدیه", "مرور زمان تجاری"],
+      "instrumentType": "uniform_opinion",
+      "number": 883,
+      "decisionDate": "1405-07-21",
+      "reportedSubject": "مبدأ محاسبه خسارت تأخیر تأدیه چک صادرشده از سوی غیرتاجر پس از گذشت پنج سال یا بیشتر",
+      "reportedRuleSummary": "منابع ثانویه گزارش می‌کنند که گذشت پنج سال یا بیشتر مانع مطالبه خسارت تأخیر تأدیه از تاریخ مندرج در چک نیست؛ این خلاصه تا دریافت و تطبیق اصل رأی، نتیجه حقوقی تأییدشده محسوب نمی‌شود.",
+      "primaryOfficialDocumentUrl": null,
+      "primaryPublicationIssue": null,
+      "reportedGazettePublication": "secondary-claims-only",
+      "primarySourceVerified": false,
+      "humanReviewStatus": "pending",
+      "useInLegalAnswers": false,
+      "secondaryResearchLeads": [
+        {
+          "url": "https://www.ekhtebar.ir/?p=152392",
+          "sourceClass": "secondary",
+          "note": "پیوند بازنشر اختبار که در منابع ثانویه به‌عنوان متن رأی معرفی شده؛ شماره و تاریخ روزنامه رسمی از سند اولیه در این اجرا احراز نشد."
+        },
+        {
+          "url": "https://www.vakilsoal.com/%D8%B1%D8%A7%DB%8C-%D9%88%D8%AD%D8%AF%D8%AA-%D8%B1%D9%88%DB%8C%D9%87-%D8%B4%D9%85%D8%A7%D8%B1%D9%87-%DB%B8%DB%B8%DB%B3-%D9%85%D8%A8%D8%AF%D8%A3-%D9%85%D8%AD%D8%A7%D8%B3%D8%A8%D9%87-%D8%AE/",
+          "sourceClass": "secondary",
+          "note": "بازنشر ثانویه متن و تاریخ رأی؛ منبع رسمی اولیه نیست."
+        }
+      ],
+      "openQuestions": [
+        "دریافت تصویر یا PDF رسمی رأی و شماره/تاریخ انتشار روزنامه رسمی.",
+        "تطبیق متن کامل، گردش کار و حدود شمول رأی نسبت به صادرکننده غیرتاجر.",
+        "تعیین تاریخ اثر و نسبت آن با ماده ۳۱۸ قانون تجارت و رأی ۸۵۰.",
+        "بازبینی حقوقی مستقل پیش از هرگونه استفاده در محاسبه‌گر."
+      ]
+    },
+    {
+      "id": "cbi-urban-consumer-index-1405",
+      "topicHints": ["خسارت تأخیر تأدیه", "شاخص بانک مرکزی"],
+      "instrumentType": "statistical_series",
+      "seriesName": "شاخص بهای کالاها و خدمات مصرفی در مناطق شهری ایران",
+      "ownerImageSeries": {
+        "baseYear": 1395,
+        "baseYearStatus": "inferred-not-authenticated",
+        "monthsAvailable": [1, 2, 3, 4, 5, 6, 7],
+        "sourceStatus": "transcribed-not-independently-authenticated"
+      },
+      "secondaryDiscrepancyLead": {
+        "reportedMonth": "1405-07",
+        "reportedValue": 836.8,
+        "url": "https://vista.ir/t/16/%D8%B1%D9%88%D8%A7%D8%A8%D8%B7%2B%D8%B9%D9%85%D9%88%D9%85%DB%8B%2B%D8%A8%D8%A7%D9%86%DA%A9%2B%D9%85%D8%B1%DA%A9%D8%B2%DB%8C",
+        "sourceClass": "secondary-aggregator",
+        "note": "بازنشر/گردآورنده‌ای که عدد ۸۳۶٫۸ را به اعلام بانک مرکزی نسبت می‌دهد؛ سند اولیه و مبنای شاخص در این اجرا دریافت نشد."
+      },
+      "primaryOfficialDocumentUrl": null,
+      "primarySourceVerified": false,
+      "humanReviewStatus": "pending",
+      "useInLegalAnswers": false,
+      "openQuestions": [
+        "دریافت جدول یا فایل رسمی بانک مرکزی با شماره، تاریخ و پیوند مستقیم.",
+        "تطبیق سال پایه، سری آماری و واحد عدد ۸۳۶٫۸ با سری رونویسی‌شده از تصویر مالک.",
+        "حل اختلاف احتمالی سری/سال پایه پیش از تغییر مقادیر موجود.",
+        "تأیید مستقل همه ماه‌ها و تاریخ انتشار."
+      ]
+    }
+  ]
+}
