@@ -193,3 +193,40 @@ test('builder rejects an oversized preview source before creating the package', 
     assert.equal(fs.existsSync(destination), false);
   });
 });
+
+
+test('builder refuses a package when the visible 1405 source-verification warning is removed', t => {
+  withTemp(t, root => {
+    const fakeRoot = path.join(root, 'repo');
+    const previewDir = path.join(fakeRoot, 'dadyar-preview');
+    fs.mkdirSync(previewDir, { recursive: true });
+    const source = path.join(previewDir, 'index.html');
+    const original = fs.readFileSync(sourcePath, 'utf8');
+    const warning = 'هنوز با جدول رسمی بانک مرکزی تطبیق مستقل نشده‌اند';
+    assert.ok(original.includes(warning), 'canonical preview warning missing');
+    fs.writeFileSync(source, original.replace(warning, 'وضعیت منبع نامشخص'));
+    const destination = path.join(root, 'bundle');
+    assert.throws(() => buildOfflinePreviewPackage(destination, {
+      repoRoot: fakeRoot, sourcePath: source, commit, branch
+    }), /visible unverified 1405 index-source disclosure/);
+    assert.equal(fs.existsSync(destination), false);
+  });
+});
+
+test('builder refuses a package when the calculator result loses its source disclosure', t => {
+  withTemp(t, root => {
+    const fakeRoot = path.join(root, 'repo');
+    const previewDir = path.join(fakeRoot, 'dadyar-preview');
+    fs.mkdirSync(previewDir, { recursive: true });
+    const source = path.join(previewDir, 'index.html');
+    const original = fs.readFileSync(sourcePath, 'utf8');
+    const disclosure = 'منبع داده: تصویر مالک؛ تأیید رسمی و حقوقی نشده است';
+    assert.ok(original.includes(disclosure), 'canonical calculator disclosure missing');
+    fs.writeFileSync(source, original.replace(disclosure, 'منبع داده: نامشخص'));
+    const destination = path.join(root, 'bundle');
+    assert.throws(() => buildOfflinePreviewPackage(destination, {
+      repoRoot: fakeRoot, sourcePath: source, commit, branch
+    }), /calculator-result source disclosure/);
+    assert.equal(fs.existsSync(destination), false);
+  });
+});
