@@ -49,16 +49,6 @@ function matchesCanonicalRealpath(inputPath, realpath) {
 function hasIndependentRestoreAttestation(evidence) {
   if (!evidence || evidence.restore_proven !== true ||
       evidence.evidence !== 'independent-restore-manifest-v1') return false;
-  if (evidence.backup_provider !== 'iranhost' ||
-      evidence.source_site_origin !== 'https://mehdisehat.ir') return false;
-  if (typeof evidence.backup_id !== 'string' || !evidence.backup_id.trim() ||
-      evidence.backup_id.length > 160 ||
-      [...evidence.backup_id].some(character => {
-        const code = character.codePointAt(0);
-        return code <= 0x1f || code === 0x7f;
-      })) return false;
-  if (!Number.isSafeInteger(evidence.archive_size_bytes) || evidence.archive_size_bytes <= 0) return false;
-  if (!validUtc(evidence.backup_created_at)) return false;
   if (!validSha(evidence.archive_sha256) ||
       !validSha(evidence.restored_marker_sha256) ||
       !validSha(evidence.restore_log_sha256) ||
@@ -86,8 +76,23 @@ function hasIndependentRestoreAttestation(evidence) {
       !matchesCanonicalRealpath(evidence.production_document_root, evidence.production_document_root_realpath) ||
       !pathsDisjoint(evidence.restore_target_realpath, evidence.production_document_root_realpath)) return false;
   if (!validUtc(evidence.restore_completed_at) || !validUtc(evidence.reviewed_at)) return false;
-  if (Date.parse(evidence.backup_created_at) > Date.parse(evidence.restore_completed_at)) return false;
   if (Date.parse(evidence.reviewed_at) < Date.parse(evidence.restore_completed_at)) return false;
+  return true;
+}
+
+function hasProviderBoundRestoreAttestation(evidence) {
+  if (!hasIndependentRestoreAttestation(evidence)) return false;
+  if (evidence.backup_provider !== 'iranhost' ||
+      evidence.source_site_origin !== 'https://mehdisehat.ir') return false;
+  if (typeof evidence.backup_id !== 'string' || !evidence.backup_id.trim() ||
+      evidence.backup_id.length > 160 ||
+      [...evidence.backup_id].some(character => {
+        const code = character.codePointAt(0);
+        return code <= 0x1f || code === 0x7f;
+      })) return false;
+  if (!Number.isSafeInteger(evidence.archive_size_bytes) || evidence.archive_size_bytes <= 0) return false;
+  if (!validUtc(evidence.backup_created_at)) return false;
+  if (Date.parse(evidence.backup_created_at) > Date.parse(evidence.restore_completed_at)) return false;
   return true;
 }
 
@@ -109,7 +114,7 @@ function hasVerifiedStagingDestination(evidence) {
 
 function decidePreviewRelease({ restoreEvidence, destinationEvidence, isolatedRestoreVerified = false, mobileBrowserVerified = false, zeroApiRequestsVerified = false, humanReviewVerified = false, authenticatedHumanReviewAttested = false, authenticatedRestoreAttestation = false } = {}) {
   const blockers = [];
-  if (!hasIndependentRestoreAttestation(restoreEvidence) || isolatedRestoreVerified !== true)
+  if (!hasProviderBoundRestoreAttestation(restoreEvidence) || isolatedRestoreVerified !== true)
     blockers.push('independent restore attestation incomplete or unverified');
   if (authenticatedRestoreAttestation !== true)
     blockers.push('two-party restore signatures and independently pinned key fingerprints missing');
@@ -132,4 +137,4 @@ function decidePreviewRelease({ restoreEvidence, destinationEvidence, isolatedRe
     deploymentAuthorized: false
   });
 }
-module.exports = { decidePreviewRelease, hasIndependentRestoreAttestation, hasVerifiedStagingDestination, validGitBlobSha, pathsDisjoint };
+module.exports = { decidePreviewRelease, hasIndependentRestoreAttestation, hasProviderBoundRestoreAttestation, hasVerifiedStagingDestination, validGitBlobSha, pathsDisjoint };
