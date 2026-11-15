@@ -19,7 +19,7 @@ test('offline reviewer identity is a fixed synthetic label and cannot solicit a 
 
 test('reviewer reset paths preserve the fixed synthetic label', () => {
   assert.equal(html.split("reviewerName.value='بازبین آزمون'").length - 1, 4);
-  assert.doesNotMatch(html, /reviewerName\\.value\\s*=\\s*''/);
+  assert.equal(html.includes("reviewerName.value=''"), false);
 });
 
 test('offline review remains explicitly unauthenticated and non-legal', () => {
