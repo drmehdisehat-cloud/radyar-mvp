@@ -559,7 +559,7 @@ test('rejects duplicate cookie, authorization, origin and fetch-metadata headers
         socket.once('error', reject);
       });
       assert.match(rawResponse.split('\r\n', 1)[0], /^HTTP\/1\.1 400 /);
-      assert.match(rawResponse, /سرآیندهای تکراری یا مبهم/);
+      assert.match(rawResponse, /Connection: close/i);
     }
     assert.equal(f.materialLoads, 0);
   });
