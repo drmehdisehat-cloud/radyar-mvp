@@ -552,13 +552,13 @@ test('rejects duplicate cookie, authorization, origin and fetch-metadata headers
             'Connection: close',
             '',
             body
-          ].join('\\r\\n'));
+          ].join('\r\n'));
         });
         socket.on('data', chunk => { response += chunk; });
         socket.once('end', () => resolve(response));
         socket.once('error', reject);
       });
-      assert.match(rawResponse.split('\\r\\n', 1)[0], /^HTTP\\/1\\.1 400 /);
+      assert.match(rawResponse.split('\r\n', 1)[0], /^HTTP\/1\.1 400 /);
       assert.match(rawResponse, /سرآیندهای تکراری یا مبهم/);
     }
     assert.equal(f.materialLoads, 0);
@@ -588,13 +588,13 @@ test('rejects ambiguous Content-Length plus Transfer-Encoding framing before rel
           '0',
           '',
           ''
-        ].join('\\r\\n'));
+        ].join('\r\n'));
       });
       socket.on('data', chunk => { response += chunk; });
       socket.once('end', () => resolve(response));
       socket.once('error', reject);
     });
-    assert.match(rawResponse.split('\\r\\n', 1)[0], /^HTTP\\/1\\.1 400 /);
+    assert.match(rawResponse.split('\r\n', 1)[0], /^HTTP\/1\.1 400 /);
     assert.equal(f.materialLoads, 0);
   });
 });
