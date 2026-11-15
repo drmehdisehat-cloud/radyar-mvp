@@ -342,6 +342,54 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.match(snapshot.csp, /connect-src 'none'/);
     assert.deepEqual(snapshot.externalResources, []);
     assert.deepEqual(remoteRequests, [], 'preview attempted a remote network request');
+
+    // Exercise a compact 320px handset viewport as well as the standard 390px
+    // device profile. This catches narrow-screen overflow and undersized
+    // primary controls without changing the production preview itself.
+    await client.command('Emulation.setDeviceMetricsOverride', {
+      width: 320,
+      height: 740,
+      deviceScaleFactor: 2,
+      mobile: true,
+      screenWidth: 320,
+      screenHeight: 740
+    });
+    const compactResult = await client.command('Runtime.evaluate', {
+      expression: `(() => {
+        const viewport = innerWidth;
+        const root = document.documentElement;
+        const visible = element => {
+          const rect = element.getBoundingClientRect();
+          return rect.width > 0 && rect.height > 0;
+        };
+        const overflow = Array.from(document.querySelectorAll('body, main, section, fieldset, pre, button, select, input, textarea'))
+          .filter(visible)
+          .filter(element => {
+            const rect = element.getBoundingClientRect();
+            return rect.left < -1 || rect.right > viewport + 1;
+          })
+          .map(element => element.id || element.tagName.toLowerCase());
+        const smallTargets = Array.from(document.querySelectorAll('button, select'))
+          .filter(visible)
+          .filter(element => element.getBoundingClientRect().height < 44)
+          .map(element => element.id || element.tagName.toLowerCase());
+        return {
+          width: viewport,
+          documentWidth: root.scrollWidth,
+          horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
+          overflowingElements: overflow,
+          undersizedPrimaryControls: smallTargets
+        };
+      })()`,
+      returnByValue: true
+    });
+    assert.ok(!compactResult.exceptionDetails, compactResult.exceptionDetails?.text || 'compact viewport layout evaluation failed');
+    const compact = compactResult.result?.value;
+    assert.ok(compact, 'compact viewport metrics missing');
+    assert.equal(compact.width, 320, 'compact handset viewport was not applied');
+    assert.equal(compact.horizontalOverflow, false, '320px layout has horizontal document overflow');
+    assert.deepEqual(compact.overflowingElements, [], 'an element extends beyond the 320px viewport');
+    assert.deepEqual(compact.undersizedPrimaryControls, [], 'a primary button/select is smaller than a 44px touch target');
   } finally {
     try { client?.socket.close(); } catch {}
     // Chromium may leave renderer/zygote children holding profile files after its
