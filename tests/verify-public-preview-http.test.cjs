@@ -2,6 +2,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { EventEmitter } = require('node:events');
+const crypto = require('node:crypto');
 const {
   fetchPreview,
   verifyPreviewResponse,
@@ -10,14 +11,24 @@ const {
   gitBlobSha1
 } = require('../scripts/verify-public-preview-http.cjs');
 
+const inlineStyle = 'body{font-family:system-ui}';
+const inlineScript = "document.documentElement.dataset.ready='yes';";
+function cspHash(source) {
+  return "'sha256-" + crypto.createHash('sha256').update(source, 'utf8').digest('base64') + "'";
+}
+const metaPolicy = "default-src 'none'; script-src " + cspHash(inlineScript) +
+  '; style-src ' + cspHash(inlineStyle) + "; connect-src 'none'; form-action 'none'";
 const html = [
   '<!doctype html>',
   '<html lang="fa" dir="rtl"><head>',
   '<meta charset="utf-8">',
   '<meta name="robots" content="noindex,nofollow,noarchive">',
   '<meta name="referrer" content="no-referrer">',
-  '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; connect-src \'none\'; form-action \'none\'">',
-  '</head><body><main>پیش‌نمایش ساختگی دادیار</main></body></html>'
+  '<meta http-equiv="Content-Security-Policy" content="' + metaPolicy + '">',
+  '</head><body><main>پیش‌نمایش ساختگی دادیار</main>',
+  '<style>' + inlineStyle + '</style>',
+  '<script>' + inlineScript + '</script>',
+  '</body></html>'
 ].join('');
 const body = Buffer.from(html, 'utf8');
 const expectedSha256 = sha256(body);
@@ -25,7 +36,7 @@ const expectedGitBlobSha1 = gitBlobSha1(body);
 const headers = {
   'content-type': 'text/html; charset=utf-8',
   'cache-control': 'no-store',
-  'content-security-policy': "frame-ancestors 'none'",
+  'content-security-policy': metaPolicy + "; frame-ancestors 'none'",
   'x-content-type-options': 'nosniff',
   'x-frame-options': 'DENY',
   'cross-origin-resource-policy': 'same-origin',
@@ -99,7 +110,7 @@ test('requires noindex, nofollow, no-referrer and a restrictive CSP', () => {
   const withoutReferrer = Buffer.from(html.replace('content="no-referrer"', 'content="origin"'));
   assert.throws(() => verify({ body: withoutReferrer }), /preview_must_disable_referrer/);
   const withoutCsp = Buffer.from(html.replace("connect-src 'none'; ", ''));
-  assert.throws(() => verify({ body: withoutCsp }), /preview_csp_missing:connect-src 'none'/);
+  assert.throws(() => verify({ body: withoutCsp }), /preview_meta_csp_missing:connect-src/);
 });
 
 test('requires response-header frame protection; a meta CSP cannot supply frame-ancestors', () => {
@@ -109,7 +120,7 @@ test('requires response-header frame protection; a meta CSP cannot supply frame-
 
   const withoutFrameAncestors = {
     ...headers,
-    'content-security-policy': "default-src 'none'; connect-src 'none'; form-action 'none'"
+    'content-security-policy': metaPolicy
   };
   assert.throws(() => verify({ headers: withoutFrameAncestors }), /preview_http_csp_missing:frame-ancestors/);
 });
