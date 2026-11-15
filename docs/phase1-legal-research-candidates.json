@@ -89,7 +89,16 @@
       "effectiveDate": null,
       "amendmentsCheckedAt": null,
       "humanReviewer": null,
-      "status": "needs-official-verification"
+      "status": "needs-official-verification",
+      "candidateAuthorities": [
+        {
+          "id": "uniform-opinion-850-1403-05-16",
+          "title": "رأی وحدت رویه شماره ۸۵۰ هیأت عمومی دیوان عالی کشور",
+          "handoffFile": "docs/uniform-opinion-850-source-handoff-20261115.json",
+          "status": "research-only-primary-source-not-retrieved",
+          "releaseSourceEligible": false
+        }
+      ]
     },
     {
       "id": "divorce",
