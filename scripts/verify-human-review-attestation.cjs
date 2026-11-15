@@ -51,6 +51,15 @@ function decodeCanonicalBase64url(value, expectedBytes, pattern) {
   return decoded;
 }
 
+// Identity labels come from an owner-pinned registry, but they still cross a
+// serialization and audit boundary. Reject invisible/control characters and
+// surrounding whitespace so logs and review records cannot visually disagree.
+function isSafeIdentityLabel(value) {
+  return typeof value === 'string' && value.length > 0 && value.length <= 256 &&
+    value.trim() === value &&
+    !/[\u0000-\u001f\u007f-\u009f\u00ad\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff]/u.test(value);
+}
+
 function verifyHumanReviewAttestation({
   attestation,
   trustStore,
@@ -64,7 +73,7 @@ function verifyHumanReviewAttestation({
       !exactKeys(attestation.payload, PAYLOAD_KEYS)) return fail('invalid_attestation_shape');
   if (!exactKeys(trustStore, TRUST_KEYS) ||
       trustStore.schema !== 'dadyar-review-trust-store-v1' ||
-      typeof trustStore.issuer !== 'string' || !trustStore.issuer.trim() ||
+      !isSafeIdentityLabel(trustStore.issuer) ||
       !Array.isArray(trustStore.reviewers) ||
       trustStore.reviewers.length < 1 || trustStore.reviewers.length > 100) {
     return fail('invalid_trust_store');
@@ -74,8 +83,8 @@ function verifyHumanReviewAttestation({
   if (p.schema !== 'dadyar-human-review-attestation-v2' ||
       p.audience !== 'dadyar-preview-release' ||
       p.decision !== 'approved' ||
-      typeof p.issuer !== 'string' || !p.issuer.trim() ||
-      typeof p.subject !== 'string' || !p.subject.trim() ||
+      !isSafeIdentityLabel(p.issuer) ||
+      !isSafeIdentityLabel(p.subject) ||
       !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(p.review_id || '') ||
       !COMMIT.test(p.source_commit || '') || /^0{40}$/i.test(p.source_commit) ||
       !GIT_BLOB_SHA1.test(p.source_blob_sha1 || '') || /^0{40}$/i.test(p.source_blob_sha1) ||
@@ -106,8 +115,10 @@ function verifyHumanReviewAttestation({
   let selected = null;
   for (const reviewer of trustStore.reviewers) {
     if (!exactKeys(reviewer, REVIEWER_KEYS) ||
-        typeof reviewer.subject !== 'string' || !reviewer.subject.trim() ||
-        !Array.isArray(reviewer.roles) ||
+        !isSafeIdentityLabel(reviewer.subject) ||
+        !Array.isArray(reviewer.roles) || reviewer.roles.length < 1 || reviewer.roles.length > 16 ||
+        reviewer.roles.some(role => typeof role !== 'string' || !/^[a-z][a-z0-9-]{0,63}$/.test(role)) ||
+        new Set(reviewer.roles).size !== reviewer.roles.length ||
         typeof reviewer.active !== 'boolean' ||
         typeof reviewer.public_key_pem !== 'string') {
       return fail('invalid_trust_store_reviewer');
@@ -126,6 +137,11 @@ function verifyHumanReviewAttestation({
     return fail('invalid_reviewer_public_key');
   }
   if (publicKey.asymmetricKeyType !== 'ed25519') return fail('reviewer_key_must_be_ed25519');
+  // Node's PEM parser may ignore trailing blocks or text. Require the exact
+  // canonical SPKI encoding so a pinned trust-store entry has one key value.
+  if (publicKey.export({ type: 'spki', format: 'pem' }) !== selected.public_key_pem) {
+    return fail('reviewer_public_key_not_canonical_spki');
+  }
 
   const signature = decodeCanonicalBase64url(attestation.signature, 64, SIGNATURE);
   if (!signature) return fail('invalid_signature_encoding');
