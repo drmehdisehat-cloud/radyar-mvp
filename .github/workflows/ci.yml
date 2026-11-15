@@ -82,13 +82,17 @@ jobs:
           CHROME_BIN="$CHROME_BIN" node --test tests/dadyar-preview-mobile-device-emulation.test.cjs
           node --test tests/dadyar-preview-27-domain-routing.test.cjs
       - name: Build offline preview handoff package (not deployment)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/dadyar/ai-chat-private-20261101'
+        if: >-
+          (github.event_name == 'push' && github.ref == 'refs/heads/dadyar/ai-chat-private-20261101') ||
+          (github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'dadyar/ai-chat-private-20261101')
         env:
           GITHUB_SHA: ${{ github.sha }}
-          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_REF_NAME: dadyar/ai-chat-private-20261101
         run: node scripts/build-offline-preview-package.cjs "$RUNNER_TEMP/dadyar-preview-handoff"
       - name: Create immutable offline preview artifact
-        if: github.event_name == 'push' && github.ref == 'refs/heads/dadyar/ai-chat-private-20261101'
+        if: >-
+          (github.event_name == 'push' && github.ref == 'refs/heads/dadyar/ai-chat-private-20261101') ||
+          (github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'dadyar/ai-chat-private-20261101')
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: dadyar-offline-preview-${{ github.sha }}
