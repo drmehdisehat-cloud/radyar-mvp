@@ -237,12 +237,19 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  const reportAfterAcknowledgement = document.getElementById("report").textContent;',
       '  const question = document.getElementById("free-question");',
       '  question.value = "پرسش فرضی که هنوز ثبت نشده است";',
+      '  const calculatorPrincipal = document.getElementById("delay-principal"); calculatorPrincipal.value = "987654321";',
+      '  const calculatorDueMonth = document.getElementById("delay-due-month"); calculatorDueMonth.value = "2";',
+      '  const calculatorPaymentMonth = document.getElementById("delay-payment-month"); calculatorPaymentMonth.value = "6";',
+      '  const calculatorCurrency = document.getElementById("delay-currency"); calculatorCurrency.value = "تومان";',
+      '  document.getElementById("delay-calculate").click();',
+      '  const calculatorHadValues = calculatorPrincipal.value === "987654321" && calculatorDueMonth.value === "2" && calculatorPaymentMonth.value === "6" && calculatorCurrency.value === "تومان" && /خسارت محاسباتی/.test(document.getElementById("delay-result").textContent);',
       '  window.dispatchEvent(new PageTransitionEvent("pagehide"));',
       '  const pagehideClearedUnsubmittedQuestion = question.value === "";',
       '  const pagehideClearedDraft = document.getElementById("result").hidden && download.disabled;',
       '  const pagehideClearedReviewer = document.getElementById("reviewer-name").value === "" && document.getElementById("review-note").value === "";',
       '  const pagehideClearedSelections = document.getElementById("role").selectedIndex === 0 && Array.from(document.querySelectorAll("#interview select")).every(control => control.selectedIndex === 0) && Array.from(document.querySelectorAll("fieldset input[type=checkbox]")).every(control => !control.checked);',
       '  const pagehideClearedReviewApproval = document.getElementById("review-decision").value === "pending" && !document.getElementById("export-ack").checked && document.getElementById("record-review").disabled;',
+      '  const pagehideClearedCalculator = calculatorPrincipal.value === "" && calculatorDueMonth.value === "1" && calculatorPaymentMonth.value === "7" && calculatorCurrency.value === "ریال" && document.getElementById("delay-result").textContent === "برای محاسبه، اصل دین و دو ماه را انتخاب کنید.";',
       '  const sampleEvidence = document.querySelectorAll("fieldset input[type=checkbox]"); sampleEvidence[0].checked = true; sampleEvidence[2].checked = true;',
       '  for (const [id,value] of [["issue-date","yes"],["certificate","no"],["defense","yes"]]) { const control = document.getElementById(id); control.value = value; control.dispatchEvent(new Event("change", { bubbles: true })); }',
       '  const multiTopicRawQuestion = "چک و مهریه در این مثال چه موضوعاتی هستند؟";',
@@ -266,7 +273,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '    exportEnabledBeforeDownload, exportedReport, exportedFilename, approvalConsumed, repeatExportBlocked,',
       '    reviewerClearedAfterDownload, reapprovalBlockedWithoutFreshDetails, postDownloadReviewStatus,',
       '    reportAfterAcknowledgement, staleDraftInvalidated, multiTopicReport, multiTopicIds,',
-      '    pagehideClearedUnsubmittedQuestion, pagehideClearedDraft, pagehideClearedReviewer, pagehideClearedSelections, pagehideClearedReviewApproval,',
+      '    pagehideClearedUnsubmittedQuestion, pagehideClearedDraft, pagehideClearedReviewer, pagehideClearedSelections, pagehideClearedReviewApproval, calculatorHadValues, pagehideClearedCalculator,',
       '    multiTopicExportEligible, multiTopicScopeStatus, multiTopicInputCleared, multiTopicRawQuestionEchoed,',
       '    csp: document.querySelector("meta[http-equiv]")?.content || "",',
       '    externalResources',
@@ -314,6 +321,8 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.equal(snapshot.pagehideClearedReviewer, true, 'pagehide retained local reviewer details');
     assert.equal(snapshot.pagehideClearedSelections, true, 'pagehide retained role, interview answers, or selected evidence');
     assert.equal(snapshot.pagehideClearedReviewApproval, true, 'pagehide retained a local review approval');
+    assert.equal(snapshot.calculatorHadValues, true, 'calculator fixture did not contain user-entered values before pagehide');
+    assert.equal(snapshot.pagehideClearedCalculator, true, 'pagehide retained calculator principal, month, currency, or result');
     assert.ok(snapshot.multiTopicIds.includes('instruments'), 'cheque hint missing from internal multi-topic routing');
     assert.ok(snapshot.multiTopicIds.includes('family'), 'family hint missing from internal multi-topic routing');
     assert.equal(snapshot.multiTopicExportEligible, false,
