@@ -35,7 +35,9 @@ function buildOfflinePreviewPackage(destinationArg, options = {}) {
   const sourcePath = path.resolve(options.sourcePath || path.join(repoRoot, 'dadyar-preview', 'index.html'));
   const destination = path.resolve(destinationArg);
   const commit = options.commit || process.env.GITHUB_SHA;
-  const branch = options.branch || process.env.GITHUB_REF_NAME;
+  // GITHUB_REF_NAME is a reserved Actions variable and remains <number>/merge on PR runs.
+  // Use a dedicated, explicitly supplied branch identity for non-deploying PR artifacts.
+  const branch = options.branch || process.env.DADYAR_PREVIEW_BRANCH || process.env.GITHUB_REF_NAME;
 
   if (!/^[a-f0-9]{40}$/.test(String(commit || ''))) {
     fail('A full 40-character source commit SHA is required.');
