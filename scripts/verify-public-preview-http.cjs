@@ -12,9 +12,17 @@ const DEFAULT_TIMEOUT_MS = 8000;
 const SHA256 = /^[a-f0-9]{64}$/i;
 const GIT_BLOB_SHA1 = /^[a-f0-9]{40}$/i;
 
+function headerValues(headers, name) {
+  const wanted = String(name).toLowerCase();
+  const key = Object.keys(headers || {}).find(candidate => candidate.toLowerCase() === wanted);
+  if (!key) return [];
+  const value = headers[key];
+  if (value == null) return [];
+  return Array.isArray(value) ? value.map(item => String(item)) : [String(value)];
+}
+
 function header(headers, name) {
-  const value = headers && headers[String(name).toLowerCase()];
-  return Array.isArray(value) ? value.join(', ') : String(value || '');
+  return headerValues(headers, name).join(', ');
 }
 
 function sha256(bytes) {
@@ -44,14 +52,49 @@ function verifyTargetUrl(value) {
 }
 
 function metaContent(html, name) {
-  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const escaped = name.replace(/[.*+?^$()|[\]\\]/g, '\\$&');
   const match = html.match(new RegExp('<meta\\s+name="' + escaped + '"\\s+content="([^"]*)"', 'i'));
   return match ? match[1] : '';
 }
 
-function metaCsp(html) {
-  const match = html.match(/<meta\s+http-equiv="Content-Security-Policy"\s+content="([^"]*)"/i);
-  return match ? match[1] : '';
+function metaCspPolicies(html) {
+  const tags = String(html).match(/<meta\b[^>]*>/gi) || [];
+  const policies = [];
+  for (const tag of tags) {
+    if (!/\bhttp-equiv\s*=\s*(["'])Content-Security-Policy\1/i.test(tag)) continue;
+    const match = /\bcontent\s*=\s*(?:"([^"]*)"|'([^']*)')/i.exec(tag);
+    if (!match) throw new Error('preview_meta_csp_content_missing');
+    policies.push(match[1] === undefined ? match[2] : match[1]);
+  }
+  return policies;
+}
+
+function verifyCspPolicy(policy, requiredDirectives, source) {
+  if (typeof policy !== 'string' || !policy.trim()) {
+    throw new Error('preview_' + source + '_csp_invalid');
+  }
+  const directives = new Map();
+  for (const part of policy.split(';')) {
+    const trimmed = part.trim();
+    if (!trimmed) continue;
+    const tokens = trimmed.split(/\s+/);
+    const name = tokens.shift().toLowerCase();
+    if (!/^[a-z][a-z0-9-]*$/.test(name)) {
+      throw new Error('preview_' + source + '_csp_directive_invalid');
+    }
+    if (directives.has(name)) {
+      throw new Error('preview_csp_duplicate_directive:' + name);
+    }
+    directives.set(name, tokens.join(' ').toLowerCase());
+  }
+  for (const [name, expected] of requiredDirectives) {
+    if (!directives.has(name)) {
+      throw new Error('preview_' + source + '_csp_missing:' + name);
+    }
+    if (directives.get(name) !== expected) {
+      throw new Error('preview_csp_not_restrictive:' + name);
+    }
+  }
 }
 
 function verifyPreviewResponse({ statusCode, headers = {}, body, expectedSha256, expectedGitBlobSha1 }) {
@@ -105,27 +148,25 @@ function verifyPreviewResponse({ statusCode, headers = {}, body, expectedSha256,
   }
   const referrer = (header(headers, 'referrer-policy') + ' ' + metaContent(html, 'referrer')).toLowerCase();
   if (!/\bno-referrer\b/.test(referrer)) throw new Error('preview_must_disable_referrer');
-  const responseCsp = header(headers, 'content-security-policy');
-  if (!responseCsp) throw new Error('preview_missing_http_csp_header');
-  const hasDirective = (policy, name, expected) => policy.split(';').some(part => {
-    const tokens = part.trim().split(/\s+/);
-    const directiveName = tokens.shift();
-    return directiveName && directiveName.toLowerCase() === name &&
-      tokens.join(' ').toLowerCase() === expected;
-  });
-  if (!hasDirective(responseCsp, 'frame-ancestors', "'none'")) {
-    throw new Error("preview_http_csp_missing:frame-ancestors 'none'");
+
+  const responseCspValues = headerValues(headers, 'content-security-policy');
+  if (responseCspValues.length !== 1 || responseCspValues[0].includes(',')) {
+    throw new Error('preview_csp_header_ambiguous');
   }
-  const csp = [responseCsp, metaCsp(html)].filter(Boolean).join('; ');
-  for (const [name, expected] of [
+  verifyCspPolicy(responseCspValues[0], [
+    ['default-src', "'none'"],
+    ['connect-src', "'none'"],
+    ['form-action', "'none'"],
+    ['frame-ancestors', "'none'"]
+  ], 'http');
+
+  const metaPolicies = metaCspPolicies(html);
+  if (metaPolicies.length !== 1) throw new Error('preview_meta_csp_count_invalid');
+  verifyCspPolicy(metaPolicies[0], [
     ['default-src', "'none'"],
     ['connect-src', "'none'"],
     ['form-action', "'none'"]
-  ]) {
-    if (!hasDirective(csp, name, expected)) {
-      throw new Error('preview_csp_missing:' + name + ' ' + expected);
-    }
-  }
+  ], 'meta');
 
   const actualSha256 = sha256(bytes);
   const actualGitBlobSha1 = gitBlobSha1(bytes);
