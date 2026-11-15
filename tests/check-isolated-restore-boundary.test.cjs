@@ -28,8 +28,8 @@ test('reject nested archive within restore tree, including deeper subdirectories
   fs.mkdirSync(nested, { recursive: true });
   const archive = path.join(nested, 'backup.tar.gz');
   fs.writeFileSync(archive, 'synthetic archive');
-  assert.throws(() => assertRestoreEvidence({ archive, ...f, marker: 'index.html',
-    expectedArchiveSha256: sha(archive), expectedMarkerSha256: sha(f.marker) }),
+  assert.throws(() => assertRestoreEvidence({ ...f.args, archive,
+    expectedArchiveSha256: sha(archive) }),
     /archive must be outside restored root/);
 });
 test('accept sibling archive with shared directory prefix without claiming restore proof', t => {
