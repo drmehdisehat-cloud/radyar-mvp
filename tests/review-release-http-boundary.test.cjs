@@ -247,14 +247,10 @@ test('fails closed when the gate cannot load a bounded report', async () => {
 test('server factory applies bounded HTTP parser and timeout settings', () => {
   const f = fixture();
   const server = createReviewReleaseHttpServer(f.handler);
-  try {
-    assert.equal(server.maxHeadersCount, 64);
-    assert.equal(server.requestTimeout, 15000);
-    assert.equal(server.headersTimeout, 5000);
-    assert.equal(server.keepAliveTimeout, 5000);
-  } finally {
-    server.close();
-  }
+  assert.equal(server.maxHeadersCount, 64);
+  assert.equal(server.requestTimeout, 15000);
+  assert.equal(server.headersTimeout, 5000);
+  assert.equal(server.keepAliveTimeout, 5000);
 });
 
 test('rejects non-canonical or non-HTTPS origins at configuration time', () => {
