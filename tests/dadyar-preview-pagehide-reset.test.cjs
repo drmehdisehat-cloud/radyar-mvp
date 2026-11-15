@@ -22,6 +22,8 @@ test('free-question field disables autocomplete and pagehide is wired to the sha
   assert.ok(helperMatch[1].includes('role.selectedIndex=0'));
   assert.ok(helperMatch[1].includes("querySelectorAll('#interview select')"));
   assert.ok(helperMatch[1].includes("querySelectorAll('fieldset input[type=checkbox]')"));
+  assert.ok(helperMatch[1].includes("getElementById('delay-principal')"));
+  assert.ok(helperMatch[1].includes("getElementById('delay-result')"));
   assert.ok(helperMatch[1].includes('invalidateDraft();'));
   assert.doesNotMatch(html, /\b(?:localStorage|sessionStorage|indexedDB|caches)\b/i);
 });
@@ -33,13 +35,26 @@ test('pagehide clears free text, role, interview answers and selected evidence, 
   const field = { value: 'متن فرضی که هنوز ارسال نشده است' };
   const selects = [{ selectedIndex: 2 }, { selectedIndex: 1 }, { selectedIndex: 2 }];
   const checkboxes = [{ checked: true }, { checked: true }, { checked: false }, { checked: true }];
+  const calculatorPrincipal = { value: '987654321' };
+  const dueMonth = { value: '2' };
+  const paymentMonth = { value: '6' };
+  const currency = { selectedIndex: 1 };
+  const calculatorResult = { textContent: 'نتیجه محاسبه فرضی' };
+  const elements = new Map([
+    ['free-question', field],
+    ['delay-principal', calculatorPrincipal],
+    ['delay-due-month', dueMonth],
+    ['delay-payment-month', paymentMonth],
+    ['delay-currency', currency],
+    ['delay-result', calculatorResult]
+  ]);
   let invalidated = false;
   const context = {
     role,
     document: {
       getElementById(id) {
-        assert.equal(id, 'free-question');
-        return field;
+        assert.ok(elements.has(id), 'Unexpected element: ' + id);
+        return elements.get(id);
       },
       querySelectorAll(selector) {
         if (selector === '#interview select') return selects;
@@ -55,5 +70,10 @@ test('pagehide clears free text, role, interview answers and selected evidence, 
   assert.equal(role.selectedIndex, 0);
   assert.ok(selects.every(control => control.selectedIndex === 0));
   assert.ok(checkboxes.every(control => control.checked === false));
+  assert.equal(calculatorPrincipal.value, '');
+  assert.equal(dueMonth.value, '1');
+  assert.equal(paymentMonth.value, '7');
+  assert.equal(currency.selectedIndex, 0);
+  assert.equal(calculatorResult.textContent, 'برای محاسبه، اصل دین و دو ماه را انتخاب کنید.');
   assert.equal(invalidated, true);
 });
