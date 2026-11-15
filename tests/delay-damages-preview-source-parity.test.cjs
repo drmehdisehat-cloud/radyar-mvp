@@ -9,7 +9,9 @@ const html = fs.readFileSync(path.join(root, 'dadyar-preview/index.html'), 'utf8
 const data = JSON.parse(fs.readFileSync(path.join(root, 'dadyar-preview/data/delay-damages-index.json'), 'utf8'));
 
 function attribute(name) {
-  const match = html.match(new RegExp('\\b' + name + '="([^"]*)"'));
+  const doubleQuoted = new RegExp('\\\\b' + name + '="([^"]*)"').exec(html);
+  const singleQuoted = new RegExp("\\\\b" + name + "='([^']*)'").exec(html);
+  const match = doubleQuoted || singleQuoted;
   assert.ok(match, 'missing preview calculator attribute: ' + name);
   return match[1];
 }
@@ -26,8 +28,8 @@ test('embedded 1405 calculator data and provenance exactly match the canonical J
 });
 
 test('calculator labels do not imply that the user-selected index month is a legal start date', () => {
-  assert.match(html, /ماه شاخص مبدأ \(انتخاب آزمایشی، نه تعیین قانونی\)/);
-  assert.match(html, /ماه شاخص پرداخت \/ محاسبه \(انتخاب آزمایشی\)/);
+  assert.match(html, /ماه شاخص مبدأ \\(انتخاب آزمایشی، نه تعیین قانونی\\)/);
+  assert.match(html, /ماه شاخص پرداخت \/ محاسبه \\(انتخاب آزمایشی\\)/);
   assert.match(html, /مبدأ قانونی ماده ۵۲۲ یا شرایط مطالبه را تعیین نمی‌کند/);
   assert.match(html, /منبع داده: تصویر مالک؛ تأیید رسمی و حقوقی نشده است/);
 });
