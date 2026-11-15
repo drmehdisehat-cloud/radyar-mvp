@@ -285,3 +285,12 @@ if (process.platform !== 'win32') {
     assert.equal(JSON.parse(result.stdout).deployment_authorized, false);
   });
 }
+
+
+if (process.platform !== 'win32') {
+  test('rejects setuid/setgid/sticky permission bits on sensitive evidence', t => {
+    const fixture = makeFixture(t);
+    fs.chmodSync(fixture.paths.archive, 0o4700);
+    assert.throws(() => verify(fixture), /archive_special_permission_bits_forbidden/);
+  });
+}
