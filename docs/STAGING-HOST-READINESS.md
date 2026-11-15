@@ -11,6 +11,10 @@ Status: **BLOCKED / no deployment approved**. This is an inspection checklist, n
 5. Record runtime and deployment logs retention, least-privilege filesystem permissions, update/rollback path, and where secrets are stored outside source control.
 6. Confirm the repository visibility and audit reachable Git history for accidentally committed credentials or client data **before** connecting hosting credentials. Public GitHub repository visibility does not by itself prove a leak.
 
+## Owner action: request an isolated restore sandbox
+
+The cPanel session and a separately provisioned staging target are not available to this automation. The exact Persian ticket text, required host-side evidence, and safe destination-validation command are in [`docs/IRANHOST-RESTORE-SANDBOX-REQUEST-FA.md`](IRANHOST-RESTORE-SANDBOX-REQUEST-FA.md). The owner/operator should send that request to IranHost. If the current plan only supports in-place restore, request a separate temporary hosting account or sandbox instead; do not proceed on production.
+
 ## Release decision
 
 - **NO-GO** if the host cannot provide an isolated runtime, staging access restriction, TLS, independent storage, and rollback.
