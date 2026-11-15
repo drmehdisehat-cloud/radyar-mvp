@@ -19,7 +19,13 @@ test('destination verifier accepts exact synthetic offline preview copy and reje
   try {
     const productionRoot = path.join(dir, 'production-root');
     fs.mkdirSync(productionRoot);
-    const source = path.resolve(__dirname, '../dadyar-preview/index.html');
+    // Use a private fixture copy: the hard-link rejection case below must
+    // never change the shared checkout source's link count while other node:test
+    // files run concurrently against the same preview asset.
+    const sourceDir = path.join(dir, 'reviewed-source');
+    fs.mkdirSync(sourceDir);
+    const source = path.join(sourceDir, 'index.html');
+    fs.copyFileSync(path.resolve(__dirname, '../dadyar-preview/index.html'), source);
     const expectedSourceBlobSha = gitBlobSha(source);
     assert.throws(() => verifyPreview(source, source, productionRoot, expectedSourceBlobSha), /distinct staged file/);
     const alias = path.join(dir, 'alias.html');
