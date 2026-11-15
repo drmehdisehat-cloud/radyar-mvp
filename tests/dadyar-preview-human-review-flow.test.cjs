@@ -269,7 +269,7 @@ test('changing case evidence invalidates the draft and any earlier review state'
   assert.equal(h.get('result').hidden, true);
   assert.equal(h.get('report').textContent, '');
   assert.equal(h.get('download').disabled, true);
-  assert.equal(h.get('reviewer-name').value, '');
+  assert.equal(h.get('reviewer-name').value, 'بازبین آزمون');
 });
 
 test('mixed cheque and civil free-text is classified locally without exporting raw question text', () => {
