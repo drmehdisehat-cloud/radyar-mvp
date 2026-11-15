@@ -520,3 +520,81 @@ test('requires a canonical HTTPS origin and bounded configuration', () => {
     maxBodyBytes: 999999
   }), /maxBodyBytes/);
 });
+
+
+test('rejects duplicate cookie, authorization, origin and fetch-metadata headers before release', async () => {
+  const f = fixture();
+  await withServer(f.handler, async url => {
+    const parsed = new URL(url);
+    const body = JSON.stringify({ envelope: f.envelope });
+    const duplicateSets = [
+      ['Cookie: session=first', 'Cookie: session=second'],
+      ['Authorization: Bearer first', 'Authorization: Bearer second'],
+      ['Origin: ' + ORIGIN, 'Origin: ' + ORIGIN],
+      ['Sec-Fetch-Site: same-origin', 'Sec-Fetch-Site: same-origin']
+    ];
+
+    for (const duplicates of duplicateSets) {
+      const rawResponse = await new Promise((resolve, reject) => {
+        const socket = net.connect(Number(parsed.port), parsed.hostname);
+        let response = '';
+        socket.setEncoding('latin1');
+        socket.once('connect', () => {
+          socket.end([
+            'POST ' + DEFAULT_ROUTE_PATH + ' HTTP/1.1',
+            'Host: 127.0.0.1:' + parsed.port,
+            'Origin: ' + ORIGIN,
+            'Content-Type: application/json; charset=utf-8',
+            'Sec-Fetch-Site: same-origin',
+            'X-Test-Session: reviewer-session',
+            ...duplicates,
+            'Content-Length: ' + Buffer.byteLength(body),
+            'Connection: close',
+            '',
+            body
+          ].join('\\r\\n'));
+        });
+        socket.on('data', chunk => { response += chunk; });
+        socket.once('end', () => resolve(response));
+        socket.once('error', reject);
+      });
+      assert.match(rawResponse.split('\\r\\n', 1)[0], /^HTTP\\/1\\.1 400 /);
+      assert.match(rawResponse, /سرآیندهای تکراری یا مبهم/);
+    }
+    assert.equal(f.materialLoads, 0);
+  });
+});
+
+test('rejects ambiguous Content-Length plus Transfer-Encoding framing before release', async () => {
+  const f = fixture();
+  await withServer(f.handler, async url => {
+    const parsed = new URL(url);
+    const rawResponse = await new Promise((resolve, reject) => {
+      const socket = net.connect(Number(parsed.port), parsed.hostname);
+      let response = '';
+      socket.setEncoding('latin1');
+      socket.once('connect', () => {
+        socket.end([
+          'POST ' + DEFAULT_ROUTE_PATH + ' HTTP/1.1',
+          'Host: 127.0.0.1:' + parsed.port,
+          'Origin: ' + ORIGIN,
+          'Content-Type: application/json; charset=utf-8',
+          'Sec-Fetch-Site: same-origin',
+          'X-Test-Session: reviewer-session',
+          'Content-Length: 0',
+          'Transfer-Encoding: chunked',
+          'Connection: close',
+          '',
+          '0',
+          '',
+          ''
+        ].join('\\r\\n'));
+      });
+      socket.on('data', chunk => { response += chunk; });
+      socket.once('end', () => resolve(response));
+      socket.once('error', reject);
+    });
+    assert.match(rawResponse.split('\\r\\n', 1)[0], /^HTTP\\/1\\.1 400 /);
+    assert.equal(f.materialLoads, 0);
+  });
+});
