@@ -191,6 +191,7 @@ function verifyPreviewResponse({ statusCode, headers = {}, body, expectedSha256,
   ];
 
   const responseCspValues = headerValues(headers, 'content-security-policy');
+  if (responseCspValues.length === 0) throw new Error('preview_missing_http_csp_header');
   if (responseCspValues.length !== 1 || responseCspValues[0].includes(',')) {
     throw new Error('preview_csp_header_ambiguous');
   }
