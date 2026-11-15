@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; script-src 'sha256-SJarPW0azhn52hUnwBY15tSDPgcjed0HufQ5og5Upag='; style-src 'sha256-YKfabf3xX60zTCv1C7Gx0Vyjsf8RyuxdVMXhecUJM98='; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; script-src 'sha256-T5u4tTDmSiiqKivBZIbhcjL2bE57anxMsJRv/A/Krc4='; style-src 'sha256-YKfabf3xX60zTCv1C7Gx0Vyjsf8RyuxdVMXhecUJM98='; form-action 'none'; base-uri 'none'">
 <title>دادیار | پیش‌نمایش آفلاین چک فرضی</title>
 <style>body{font:1rem/1.9 system-ui,sans-serif;background:#f5f6fa;color:#17243b;margin:0}main{max-width:780px;margin:auto;padding:1.2rem}section{background:white;border-radius:16px;padding:1.2rem;margin:1rem 0;box-shadow:0 2px 12px #17243b12}button,select{font:inherit;min-height:44px;max-width:100%;padding:.5rem;border:1px solid #718096;border-radius:8px}input[type=checkbox]{min-width:22px;min-height:22px;vertical-align:middle}button{background:#dcecfb;cursor:pointer}button:focus-visible,select:focus-visible{outline:3px solid #2469a8}fieldset{border:1px solid #b4bfd0;border-radius:12px;margin:1rem 0}label{display:block;margin:.6rem 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}small{color:#475569}#result[hidden]{display:none}#free-question,#reviewer-name,#review-note,#delay-principal{box-sizing:border-box;width:100%;font:inherit;border:1px solid #718096;border-radius:8px;padding:.5rem}#review-note{min-height:4.5rem}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}} #delay-principal{min-height:44px}#delay-due-month,#delay-payment-month,#delay-currency{width:100%}#delay-calculate{width:100%}</style></head>
 <body><main><h1>کارگاه آزمایشی دادیار: چک فرضی</h1><p role="status">صرفاً داده‌های ازپیش‌ساخته؛ بدون ارسال اطلاعات، هوش مصنوعی یا ذخیره در سرور. پاسخ خودکار حقوقی: ارائه نمی‌شود. اطلاعات واقعی وارد نکنید.</p>
@@ -495,7 +495,7 @@ function showReviewerPrivacyWarning() {
  const unsafeName=hasSensitiveIdentifier(safeReviewText(reviewerName.value,80));
  const unsafeNote=hasSensitiveIdentifier(safeReviewText(reviewNote.value,300));
  if(unsafeName || unsafeNote) {
-  if(unsafeName) reviewerName.value='';
+  if(unsafeName) reviewerName.value='بازبین آزمون';
   if(unsafeNote) reviewNote.value='';
   invalidateHumanReview('اطلاعات بازبین احتمالاً شامل شناسه حساس بود؛ فیلد آلوده پاک شد. فقط داده ساختگی وارد کنید.');
   recordReviewButton.disabled=true;
@@ -539,7 +539,7 @@ recordReviewButton.addEventListener('click',()=>{
 // Otherwise the download button could export a different case state than the UI.
 function invalidateDraft(){
  const focusWasInDraft=box.contains(document.activeElement);
- report=''; internalTopicMatches=[]; topicScopeStatus.textContent=''; out.textContent=''; exportStatus.textContent=''; reviewRecord=null;reviewerName.value='';reviewDecision.value='pending';reviewNote.value='';reviewStatus.textContent='';document.getElementById('reset-status').textContent=''; box.hidden=true; exportEligible=false; exportAck.checked=false; updateExportPermission();
+ report=''; internalTopicMatches=[]; topicScopeStatus.textContent=''; out.textContent=''; exportStatus.textContent=''; reviewRecord=null;reviewerName.value='بازبین آزمون';reviewDecision.value='pending';reviewNote.value='';reviewStatus.textContent='';document.getElementById('reset-status').textContent=''; box.hidden=true; exportEligible=false; exportAck.checked=false; updateExportPermission();
  // Never strand keyboard focus inside a hidden result after a case-state change.
  if(focusWasInDraft) document.getElementById('generate').focus();
 }
@@ -639,7 +639,7 @@ document.getElementById('generate').addEventListener('click',()=>{
  'وضعیت تکمیل پرونده فرضی: '+(conflicts.length?'متعارض؛ نیازمند اصلاح اطلاعات':'بدون تعارض آشکار در داده‌های انتخابی')+' | پرسش‌های بی‌پاسخ: '+unresolved.length+' | مدارک انتخابی: '+evidence.length+' | احراز اصالت: صفر | بررسی قانون معتبر: انجام‌نشده | نتیجه: آماده تصمیم حقوقی نیست.',
  'منابع قانونی: تأییدنشده؛ هیچ استناد قانونی ارائه نمی‌شود.','هیچ ادعایی احراز نشده است. اصالت مدارک، متن قانون، منبع رسمی و تاریخ اعتبار باید توسط متخصص انسانی بررسی شود.',
  'این متن رأی، سند رسمی یا دستور انتظامی نیست.'].join('\n\n');
- out.textContent=report;exportEligible=conflicts.length===0 && unresolved.length===0;reviewRecord=null;reviewerName.value='';reviewDecision.value='pending';reviewNote.value='';reviewStatus.textContent='';exportAck.checked=false;updateExportPermission();
+ out.textContent=report;exportEligible=conflicts.length===0 && unresolved.length===0;reviewRecord=null;reviewerName.value='بازبین آزمون';reviewDecision.value='pending';reviewNote.value='';reviewStatus.textContent='';exportAck.checked=false;updateExportPermission();
  exportStatus.textContent=hasSensitiveIdentifier?'دریافت گزارش غیرفعال است: شناسه حساس احتمالی در پرسش آزاد وجود دارد؛ آن را حذف کنید.':questionOutsideChequeScope?'دریافت گزارش غیرفعال است: پرسش آزاد چندموضوعی، نامرتبط یا نامشخص است؛ این پیش‌نمایش فقط گزارش چک فرضی را پوشش می‌دهد.':evidence.length===0?'دریافت گزارش غیرفعال است: هیچ مدرک فرضی انتخاب نشده است. دست‌کم یک مدرک نمونه انتخاب کنید و پیش‌نویس را دوباره بسازید.':!evidence.some(e=>e.description==='تصویر چک نمونه با شماره ساختگی')?'دریافت گزارش غیرفعال است: تصویر چک نمونه انتخاب نشده است. برای ادامه، مدرک چک فرضی را انتخاب کنید.':conflicts.length>0?'دریافت گزارش به علت تناقض اطلاعات غیرفعال است. پاسخ‌ها یا مدارک فرضی را اصلاح و پیش‌نویس را دوباره تولید کنید.':unresolved.length>0?'دریافت گزارش تا پاسخ‌گویی به '+unresolved.length+' پرسش نامعلوم غیرفعال است؛ پیش‌نویس برای بررسی روی صفحه باقی می‌ماند.':'برای دریافت پیش‌نویس فرضی، ابتدا تأیید بازبینی انسانی را علامت بزنید.';
  box.hidden=false;box.focus();
 });
@@ -660,7 +660,7 @@ document.getElementById('download').addEventListener('click',()=>{
  // Consume the approval; a fresh review record is required for another export.
  reviewRecord=null;
  exportAck.checked=false;
- reviewerName.value='';
+ reviewerName.value='بازبین آزمون';
  reviewDecision.value='pending';
  reviewNote.value='';
  updateExportPermission();
