@@ -18,6 +18,10 @@ function isOutside(root, target) {
   const relative = path.relative(root, target);
   return relative === '..' || relative.startsWith('..' + path.sep) || path.isAbsolute(relative);
 }
+function pathsDisjoint(first, second) {
+  // Require separation in both directions: neither path may contain the other.
+  return isOutside(first, second) && isOutside(second, first);
+}
 function canonicalPath(target, label) {
   const absolute = path.resolve(target);
   if (target !== absolute) throw Error(label + ' path must be canonical (no dot segments or redundant separators)');
@@ -38,10 +42,12 @@ function assertRestoreEvidence({ archive, restoredRoot, productionDocumentRoot, 
   if (!fs.statSync(productionRoot).isDirectory()) throw Error('production document root must be a directory');
   if (!fs.statSync(root).isDirectory()) throw Error('restored root is not a directory');
   // Both the downloaded archive and the restored tree must be outside the live web root.
-  if (!isOutside(productionRoot, root)) throw Error('restored root must be outside production document root');
-  if (!isOutside(productionRoot, archivePath)) throw Error('archive must be outside production document root');
-  // The source archive must also be outside the isolated restore destination.
-  if (!isOutside(root, archivePath)) throw Error('archive must be outside restored root');
+  // Reject overlap in either direction. A restore root that contains the live
+  // document root is not isolated even though it is not a child of that root.
+  if (!pathsDisjoint(productionRoot, root)) throw Error('restored root must be outside production document root and must not contain it');
+  if (!pathsDisjoint(productionRoot, archivePath)) throw Error('archive must be outside production document root and must not contain it');
+  // The source archive and restored tree must be siblings or otherwise disjoint.
+  if (!pathsDisjoint(root, archivePath)) throw Error('archive must be outside restored root and must not contain it');
   if (typeof marker !== 'string' || path.isAbsolute(marker) || marker.split(/[\\/]/).includes('..')) throw Error('marker must be a relative path inside restored root');
   const markerPath = path.resolve(root, marker);
   if (!markerPath.startsWith(root + path.sep)) throw Error('marker escapes restored root');
@@ -90,4 +96,4 @@ if (require.main === module) {
     process.exitCode = 1;
   }
 }
-module.exports = { assertRestoreEvidence };
+module.exports = { assertRestoreEvidence, pathsDisjoint };

@@ -12,7 +12,7 @@ function gitBlobSha(file) {
   digest.update(bytes);
   return digest.digest('hex');
 }
-const { verifyPreview } = require('../scripts/verify-preview-destination.cjs');
+const { verifyPreview, pathsDisjoint } = require('../scripts/verify-preview-destination.cjs');
 
 test('destination verifier accepts exact synthetic offline preview copy and rejects tampering', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-destination-'));
@@ -109,4 +109,15 @@ test('destination verifier rejects non-canonical absolute paths before filesyste
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
+});
+
+
+test('destination path boundary rejects overlap in either ancestor direction', () => {
+  const base = path.resolve(path.sep, 'tmp', 'dadyar-path-boundary');
+  const parent = path.join(base, 'staging');
+  const child = path.join(parent, 'public_html');
+  const sibling = path.join(base, 'staging-archive');
+  assert.equal(pathsDisjoint(parent, child), false);
+  assert.equal(pathsDisjoint(child, parent), false);
+  assert.equal(pathsDisjoint(parent, sibling), true);
 });

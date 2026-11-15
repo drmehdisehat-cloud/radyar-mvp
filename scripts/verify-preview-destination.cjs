@@ -37,6 +37,10 @@ function isOutside(root, target) {
   const relative = path.relative(root, target);
   return relative === '..' || relative.startsWith('..' + path.sep) || path.isAbsolute(relative);
 }
+function pathsDisjoint(first, second) {
+  // Require separation in both directions so an ancestor path is not accepted.
+  return isOutside(first, second) && isOutside(second, first);
+}
 function verifyPreview(source, destination, productionDocumentRoot, expectedSourceBlobSha) {
   assert.ok(typeof expectedSourceBlobSha === 'string' && /^[a-f0-9]{40}$/i.test(expectedSourceBlobSha) && !/^0{40}$/i.test(expectedSourceBlobSha),
     'expected reviewed source Git blob SHA-1 required');
@@ -54,9 +58,9 @@ function verifyPreview(source, destination, productionDocumentRoot, expectedSour
   const protectedRoot = canonicalPath(productionDocumentRoot, 'production document root');
   const checkoutRoot = canonicalPath(REPO_ROOT, 'Git checkout root');
   assert.ok(fs.statSync(protectedRoot).isDirectory(), 'production document root must be a directory');
-  assert.ok(isOutside(protectedRoot, dst), 'destination must be outside production document root');
+  assert.ok(pathsDisjoint(protectedRoot, dst), 'destination must be outside production document root and must not contain it');
   assert.notEqual(dst, src, 'destination must be a distinct staged file');
-  assert.ok(isOutside(checkoutRoot, dst), 'destination must be outside Git checkout');
+  assert.ok(pathsDisjoint(checkoutRoot, dst), 'destination must be outside Git checkout and must not contain it');
   assert.equal(path.basename(src), 'index.html', 'source must be index.html');
   assert.equal(path.basename(dst), 'index.html', 'destination must be index.html');
   const sourcePathStat = fs.lstatSync(src, { bigint: true });
@@ -103,4 +107,4 @@ if (require.main === module) {
     catch (error) { console.error('NOT_VERIFIED:', error.message); process.exitCode = 1; }
   }
 }
-module.exports = { verifyPreview };
+module.exports = { verifyPreview, pathsDisjoint };

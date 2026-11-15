@@ -39,3 +39,24 @@ test('accept sibling archive with shared directory prefix without claiming resto
   assert.equal(evidence.restore_proven, false);
   assert.equal(evidence.evidence, 'archive-integrity-and-restored-file-only');
 });
+
+
+test('rejects a restore root that contains the production document root', t => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-restore-root-overlap-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const restoredRoot = path.join(dir, 'isolated');
+  const productionDocumentRoot = path.join(restoredRoot, 'public_html');
+  const archive = path.join(dir, 'backup.tar.gz');
+  fs.mkdirSync(productionDocumentRoot, { recursive: true });
+  fs.writeFileSync(archive, 'synthetic archive');
+  const markerPath = path.join(restoredRoot, 'restore-marker.txt');
+  fs.writeFileSync(markerPath, 'synthetic restored marker');
+  assert.throws(() => assertRestoreEvidence({
+    archive,
+    restoredRoot,
+    productionDocumentRoot,
+    marker: 'restore-marker.txt',
+    expectedArchiveSha256: sha(archive),
+    expectedMarkerSha256: sha(markerPath)
+  }), /restored root must be outside production document root/);
+});
