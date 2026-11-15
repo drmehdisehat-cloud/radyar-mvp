@@ -230,3 +230,26 @@ test('builder refuses a package when the calculator result loses its source disc
     assert.equal(fs.existsSync(destination), false);
   });
 });
+
+
+test('builder uses the explicit experimental branch identity on pull-request merge refs', t => {
+  withTemp(t, root => {
+    const previousRef = process.env.GITHUB_REF_NAME;
+    const previousBranch = process.env.DADYAR_PREVIEW_BRANCH;
+    process.env.GITHUB_REF_NAME = '8/merge';
+    process.env.DADYAR_PREVIEW_BRANCH = branch;
+    try {
+      const destination = path.join(root, 'bundle');
+      const result = buildOfflinePreviewPackage(destination, { repoRoot, sourcePath, commit });
+      assert.equal(result.source_commit, commit);
+      const metadata = JSON.parse(fs.readFileSync(path.join(destination, 'PREVIEW-METADATA.json'), 'utf8'));
+      assert.equal(metadata.source_branch, branch);
+      assert.equal(metadata.deployment_authorized, false);
+    } finally {
+      if (previousRef === undefined) delete process.env.GITHUB_REF_NAME;
+      else process.env.GITHUB_REF_NAME = previousRef;
+      if (previousBranch === undefined) delete process.env.DADYAR_PREVIEW_BRANCH;
+      else process.env.DADYAR_PREVIEW_BRANCH = previousBranch;
+    }
+  });
+});
