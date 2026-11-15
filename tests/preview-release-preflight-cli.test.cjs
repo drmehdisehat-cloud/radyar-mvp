@@ -19,6 +19,11 @@ function fixture() {
   const restore = {
     evidence: 'independent-restore-manifest-v1',
     restore_proven: true,
+    backup_provider: 'iranhost',
+    source_site_origin: 'https://mehdisehat.ir',
+    backup_id: 'synthetic-iranhost-backup-001',
+    backup_created_at: new Date(Date.now() - 240000).toISOString(),
+    archive_size_bytes: Buffer.byteLength('synthetic archive'),
     archive_sha256: digest('synthetic archive'),
     restored_marker_sha256: digest('synthetic marker'),
     restore_log_sha256: digest('synthetic restore log'),
