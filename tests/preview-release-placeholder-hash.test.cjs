@@ -7,6 +7,11 @@ const base = {
   restoreEvidence: {
     restore_proven: true,
     evidence: 'independent-restore-manifest-v1',
+    backup_provider: 'iranhost',
+    source_site_origin: 'https://mehdisehat.ir',
+    backup_id: 'synthetic-iranhost-backup-001',
+    backup_created_at: '2026-11-08T12:00:00.000Z',
+    archive_size_bytes: 12345,
     archive_sha256: 'b'.repeat(64),
     restored_marker_sha256: 'c'.repeat(64),
     restore_log_sha256: 'd'.repeat(64),
