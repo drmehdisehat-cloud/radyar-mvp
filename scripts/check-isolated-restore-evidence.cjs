@@ -4,6 +4,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { readStableRegularFile } = require('./stable-file-integrity.cjs');
+const REPO_ROOT = path.resolve(__dirname, '..');
 
 function rejectSymlinkComponents(target, label) {
   let current = path.resolve(target);
@@ -39,21 +40,23 @@ function assertRestoreEvidence({ archive, restoredRoot, productionDocumentRoot, 
   const archivePath = canonicalPath(archive, 'archive');
   const root = canonicalPath(restoredRoot, 'restored root');
   const productionRoot = canonicalPath(productionDocumentRoot, 'production document root');
+  const checkoutRoot = canonicalPath(REPO_ROOT, 'Git checkout root');
   if (!fs.statSync(productionRoot).isDirectory()) throw Error('production document root must be a directory');
   if (!fs.statSync(root).isDirectory()) throw Error('restored root is not a directory');
-  // Both the downloaded archive and the restored tree must be outside the live web root.
-  // Reject overlap in either direction. A restore root that contains the live
-  // document root is not isolated even though it is not a child of that root.
+  // Keep all backup/restore material out of both the live web root and the Git checkout.
+  // This prevents a real archive or restored client data from entering a repository tree.
   if (!pathsDisjoint(productionRoot, root)) throw Error('restored root must be outside production document root and must not contain it');
   if (!pathsDisjoint(productionRoot, archivePath)) throw Error('archive must be outside production document root and must not contain it');
+  if (!pathsDisjoint(checkoutRoot, root)) throw Error('restored root must be outside Git checkout and must not contain it');
+  if (!pathsDisjoint(checkoutRoot, archivePath)) throw Error('archive must be outside Git checkout and must not contain it');
   // The source archive and restored tree must be siblings or otherwise disjoint.
   if (!pathsDisjoint(root, archivePath)) throw Error('archive must be outside restored root and must not contain it');
-  if (typeof marker !== 'string' || path.isAbsolute(marker) || marker.split(/[\\/]/).includes('..')) throw Error('marker must be a relative path inside restored root');
+  if (typeof marker !== 'string' || path.isAbsolute(marker) || marker.split(/[\\\\/]/).includes('..')) throw Error('marker must be a relative path inside restored root');
   const markerPath = path.resolve(root, marker);
   if (!markerPath.startsWith(root + path.sep)) throw Error('marker escapes restored root');
   // Reject symlinks at every marker path component, not only the final marker.
   let component = root;
-  for (const part of marker.split(/[\\/]/)) {
+  for (const part of marker.split(/[\\\\/]/)) {
     if (!part || part === '.') continue;
     component = path.join(component, part);
     if (fs.lstatSync(component).isSymbolicLink()) throw Error('restore marker path must not contain symlinks');
@@ -80,6 +83,9 @@ function assertRestoreEvidence({ archive, restoredRoot, productionDocumentRoot, 
     marker,
     production_document_root_realpath: productionRoot,
     restored_root_realpath: root,
+    git_checkout_realpath: checkoutRoot,
+    archive_outside_git_checkout: true,
+    restored_root_outside_git_checkout: true,
     evidence: 'archive-integrity-and-restored-file-only',
     restore_proven: false
   };
