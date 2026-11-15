@@ -12,6 +12,9 @@ const OFFICIAL_HOSTS = new Set([
 ]);
 const SHA256 = /^[a-f0-9]{64}$/i;
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+// Document IDs are opaque URL tokens, not path/query syntax. Disallow delimiters
+// that can be decoded or interpreted differently by proxies and portal routers.
+const DOCUMENT_ID = /^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$/;
 const PLACEHOLDER = /^(?:tbd|todo|pending|unknown|n\/a|test|demo|نامشخص|در انتظار بررسی|بازبین فرضی)$/iu;
 const UNSAFE_METADATA_CONTROL = /[\u0000-\u001f\u007f-\u009f\u061c\u200b\u200e-\u200f\u202a-\u202e\u2060-\u206f\ufeff]/u;
 
@@ -26,7 +29,7 @@ function validDate(value) {
 
 function safeOfficialDocumentUrl(value, documentId) {
   if (typeof value !== 'string' || value.length > 2048 ||
-      typeof documentId !== 'string' || !documentId.trim() || documentId.length > 120 ||
+      typeof documentId !== 'string' || !DOCUMENT_ID.test(documentId) ||
       UNSAFE_METADATA_CONTROL.test(documentId) || UNSAFE_METADATA_CONTROL.test(value)) {
     return false;
   }
