@@ -1,0 +1,54 @@
+'use strict';
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+
+const root = path.join(__dirname, '..');
+const register = JSON.parse(fs.readFileSync(path.join(root, 'docs/legal-source-register-v1.json'), 'utf8'));
+const indexData = JSON.parse(fs.readFileSync(path.join(root, 'dadyar-preview/data/delay-damages-index.json'), 'utf8'));
+
+test('legal source register is versioned and does not promote secondary material to primary authority', () => {
+  assert.equal(register.schema, 'dadyar-legal-source-register-v1');
+  assert.equal(register.observedAt, '2026-11-16');
+  assert.equal(register.policy.defaultUseInLegalAnswers, false);
+  assert.ok(Array.isArray(register.records) && register.records.length >= 4);
+
+  const ids = register.records.map(record => record.id);
+  assert.equal(new Set(ids).size, ids.length, 'source record IDs must be unique');
+
+  for (const record of register.records) {
+    assert.equal(record.primarySourceVerified, false, record.id + ' must remain unverified until primary evidence is inspected');
+    assert.equal(record.humanReviewStatus, 'pending', record.id + ' must remain pending human review');
+    assert.equal(record.useInLegalAnswers, false, record.id + ' must not support legal answers yet');
+    assert.equal(record.primaryOfficialDocumentUrl, null, record.id + ' has no authenticated direct primary-document URL');
+    for (const lead of record.secondaryResearchLeads || []) {
+      assert.equal(lead.sourceClass, 'secondary', record.id + ' research lead must be labelled secondary');
+      assert.match(lead.url, /^https:\/\//, record.id + ' research lead must use HTTPS');
+    }
+  }
+});
+
+test('reported uniform opinion 883 remains a research lead, not an activated legal rule', () => {
+  const record = register.records.find(item => item.id === 'uniform-opinion-883');
+  assert.ok(record);
+  assert.equal(record.number, 883);
+  assert.equal(record.decisionDate, '1405-07-21');
+  assert.equal(record.reportedGazettePublication, 'secondary-claims-only');
+  assert.match(record.reportedRuleSummary, /منابع ثانویه/);
+  assert.ok(record.openQuestions.some(item => /روزنامه رسمی/.test(item)));
+  assert.equal(record.useInLegalAnswers, false);
+});
+
+test('unreconciled CBI index series cannot overwrite the owner-image series', () => {
+  const record = register.records.find(item => item.id === 'cbi-urban-consumer-index-1405');
+  assert.ok(record);
+  assert.equal(record.secondaryDiscrepancyLead.reportedValue, 836.8);
+  assert.equal(record.secondaryDiscrepancyLead.sourceClass, 'secondary-aggregator');
+  assert.equal(record.primaryOfficialDocumentUrl, null);
+
+  assert.equal(indexData.source.status, 'transcribed-not-independently-authenticated');
+  assert.equal(indexData.baseYearStatus, 'inferred-from-1395-average-100-in-owner-image; not-independently-verified');
+  assert.equal(indexData.months['7'], 3611.1);
+  assert.equal(indexData.months['7'] === 836.8, false);
+});
