@@ -87,7 +87,7 @@ jobs:
           (github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'dadyar/ai-chat-private-20261101')
         env:
           GITHUB_SHA: ${{ github.sha }}
-          GITHUB_REF_NAME: dadyar/ai-chat-private-20261101
+          DADYAR_PREVIEW_BRANCH: dadyar/ai-chat-private-20261101
         run: node scripts/build-offline-preview-package.cjs "$RUNNER_TEMP/dadyar-preview-handoff"
       - name: Create immutable offline preview artifact
         if: >-
