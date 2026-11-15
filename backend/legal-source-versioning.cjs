@@ -33,10 +33,20 @@ function safeOfficialDocumentUrl(value, documentId) {
   const pathSegments = url.pathname.split('/').filter(Boolean).map(segment => {
     try { return decodeURIComponent(segment); } catch { return segment; }
   });
-  const queryValues = Array.from(url.searchParams.values());
-  const documentIdMatches = pathSegments.includes(documentId) || queryValues.includes(documentId);
+  const queryEntries = Array.from(url.searchParams.entries());
+  const normalizedQueryKeys = queryEntries.map(([key]) => key.toLowerCase());
+  // Reject duplicate query keys (including case variants): different URL
+  // parsers and upstream portals may choose first, last, or combined values.
+  if (new Set(normalizedQueryKeys).size !== normalizedQueryKeys.length) return false;
+  const identifierOccurrences =
+    pathSegments.filter(segment => segment === documentId).length +
+    queryEntries.filter(([, value]) => value === documentId).length;
+  // A direct document identifier must appear exactly once, not in both path
+  // and query or in multiple query values.
+  const documentIdMatches = identifierOccurrences === 1;
+  const qavaninIds = queryEntries.filter(([key]) => key === 'IDS');
   const qavaninIdMatches = url.hostname.toLowerCase() !== 'qavanin.ir' ||
-    url.searchParams.get('IDS') === documentId;
+    (qavaninIds.length === 1 && qavaninIds[0][1] === documentId);
   return url.protocol === 'https:' &&
     OFFICIAL_HOSTS.has(url.hostname.toLowerCase()) &&
     (!url.port || url.port === '443') &&
