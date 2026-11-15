@@ -103,7 +103,7 @@ function verifyCspPolicy(policy, requiredDirectives, optionalDirectives, source)
     if (directives.has(name)) {
       throw new Error('preview_csp_duplicate_directive:' + name);
     }
-    directives.set(name, tokens.join(' ').toLowerCase());
+    directives.set(name, tokens.join(' '));
   }
   for (const [name, expected] of requiredDirectives) {
     if (!directives.has(name)) {
