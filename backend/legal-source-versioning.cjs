@@ -13,6 +13,7 @@ const OFFICIAL_HOSTS = new Set([
 const SHA256 = /^[a-f0-9]{64}$/i;
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const PLACEHOLDER = /^(?:tbd|todo|pending|unknown|n\/a|test|demo|نامشخص|در انتظار بررسی|بازبین فرضی)$/iu;
+const UNSAFE_METADATA_CONTROL = /[\u0000-\u001f\u007f-\u009f\u061c\u200b\u200e-\u200f\u202a-\u202e\u2060-\u206f\ufeff]/u;
 
 function validDate(value) {
   if (typeof value !== 'string' || !ISO_DATE.test(value)) return false;
@@ -25,7 +26,8 @@ function validDate(value) {
 
 function safeOfficialDocumentUrl(value, documentId) {
   if (typeof value !== 'string' || value.length > 2048 ||
-      typeof documentId !== 'string' || !documentId.trim() || documentId.length > 120) {
+      typeof documentId !== 'string' || !documentId.trim() || documentId.length > 120 ||
+      UNSAFE_METADATA_CONTROL.test(documentId) || UNSAFE_METADATA_CONTROL.test(value)) {
     return false;
   }
   let url;
@@ -34,6 +36,9 @@ function safeOfficialDocumentUrl(value, documentId) {
     try { return decodeURIComponent(segment); } catch { return segment; }
   });
   const queryEntries = Array.from(url.searchParams.entries());
+  // Reject encoded direction controls and invisible format characters after URL decoding.
+  const decodedUrlParts = [...pathSegments, ...queryEntries.flat()];
+  if (decodedUrlParts.some(part => UNSAFE_METADATA_CONTROL.test(part))) return false;
   const normalizedQueryKeys = queryEntries.map(([key]) => key.toLowerCase());
   // Reject duplicate query keys (including case variants): different URL
   // parsers and upstream portals may choose first, last, or combined values.
@@ -69,6 +74,8 @@ function validateSourceVersion(record, asOfDate) {
   for (const key of ['id', 'topic', 'instrumentId', 'title', 'documentId', 'officialDocumentUrl']) {
     if (typeof record[key] !== 'string' || !record[key].trim() || record[key].length > 2048) {
       issues.push('invalid_' + key);
+    } else if (UNSAFE_METADATA_CONTROL.test(record[key])) {
+      issues.push('unsafe_' + key);
     }
   }
   if (!['law', 'ruling'].includes(record.instrumentType)) issues.push('invalid_instrument_type');
