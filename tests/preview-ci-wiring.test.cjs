@@ -10,7 +10,7 @@ test('experimental preview branch must trigger push CI without deploy permission
   assert.ok(workflow.includes('- dadyar/ai-chat-private-20261101'));
   assert.ok(workflow.includes("github.ref == 'refs/heads/dadyar/ai-chat-private-20261101'"));
   assert.ok(workflow.includes("github.event.pull_request.head.ref == 'dadyar/ai-chat-private-20261101'"));
-  assert.ok(workflow.includes('GITHUB_REF_NAME: dadyar/ai-chat-private-20261101'));
+  assert.ok(workflow.includes('DADYAR_PREVIEW_BRANCH: dadyar/ai-chat-private-20261101'));
   assert.ok(workflow.includes('permissions:\n  contents: read'));
   assert.ok(!workflow.includes('deployments: write'));
 });
