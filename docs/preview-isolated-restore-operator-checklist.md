@@ -113,3 +113,19 @@ node scripts/verify-restore-attestation-signatures.cjs \
 ```
 
 The signature files are raw 64-byte Ed25519 signatures. The verifier rejects identical public keys, malformed signatures, a modified manifest, incomplete restore fields, symlinked evidence paths, and evidence files inside the Git checkout. Its `SIGNATURES_VERIFIED_UNTRUSTED_KEY_IDENTITY` status means only that both supplied keys verify the same canonical manifest. The owner must separately authenticate the public-key fingerprints and the reviewer must inspect the actual isolated restore log and database probe. Even after signature verification, keep the release blocked until the real restore, destination, mobile/zero-network, legal/security, and owner-approval gates pass.
+
+
+## کنترل یکپارچگی چهار فایل شواهد
+
+پس از Restore واقعی در sandbox و تهیه فایل‌های مستقل، verifier زیر را اجرا کنید. فایل manifest، آرشیو، گزارش Restore و probe دیتابیس باید خارج از restore root و Document Root تولید باشند؛ فقط نشانگر بازیابی داخل restore root قرار می‌گیرد.
+
+```sh
+node scripts/verify-restore-evidence-bundle.cjs \\
+  --manifest /secure/restore.json \\
+  --archive /secure/backup.archive \\
+  --restored-marker /secure/restored-marker.txt \\
+  --restore-log /secure/restore.log \\
+  --database-probe /secure/database-probe.json
+```
+
+خروجی موفق فقط تطبیق SHA-256 و اندازه آرشیو با manifest را ثابت می‌کند؛ اثبات عملیات Restore، هویت امضاکنندگان یا مجوز انتشار نیست. نتیجه باید همراه با دو امضای مستقل و بررسی انسانی خارج از Git نگهداری شود.
