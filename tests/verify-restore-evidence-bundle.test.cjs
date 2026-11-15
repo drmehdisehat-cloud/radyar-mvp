@@ -114,9 +114,9 @@ test('rejects a manifest archive byte count that differs from the downloaded arc
 
 test('rejects reusing one file for two evidence roles', t => {
   const fixture = makeFixture(t);
-  const shared = path.join(fixture.restoreRoot, 'shared.evidence');
+  const shared = path.join(fixture.directory, 'shared.evidence');
   fs.writeFileSync(shared, fixture.contents.archive, { mode: 0o600 });
-  assert.throws(() => verify(fixture, { archivePath: shared, restoredMarkerPath: shared }), /must_be_a_distinct_evidence_file/);
+  assert.throws(() => verify(fixture, { archivePath: shared, restoreLogPath: shared }), /must_be_a_distinct_evidence_file/);
 });
 
 test('rejects archive evidence stored under the production document root', t => {
