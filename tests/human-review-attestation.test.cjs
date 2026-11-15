@@ -127,3 +127,37 @@ test('rejects malformed signature encoding and duplicate trust-store subjects', 
   f.trustStore.reviewers.push({ ...f.trustStore.reviewers[0] });
   assert.equal(verify(f).reason, 'duplicate_trust_store_subject');
 });
+
+test('rejects non-canonical Ed25519 SPKI PEM with trailing data or an extra block', () => {
+  const f = fixture();
+  f.trustStore.reviewers[0].public_key_pem += '\\nUNTRUSTED-TRAILER\\n';
+  assert.equal(verify(f).reason, 'reviewer_public_key_not_canonical_spki');
+});
+
+test('rejects malformed, duplicate, empty and oversized reviewer role lists', () => {
+  const f = fixture();
+  for (const roles of [
+    ['preview-reviewer', 'preview-reviewer'],
+    ['preview-reviewer', { role: 'owner' }],
+    [],
+    Array.from({ length: 17 }, () => 'preview-reviewer')
+  ]) {
+    f.trustStore.reviewers[0].roles = roles;
+    assert.equal(verify(f).reason, 'invalid_trust_store_reviewer');
+  }
+});
+
+test('rejects invisible controls and surrounding whitespace in reviewer identity labels', () => {
+  const f = fixture();
+  f.trustStore.reviewers[0].subject = 'synthetic-reviewer-\\u202e01';
+  assert.equal(verify(f).reason, 'invalid_trust_store_reviewer');
+
+  f.trustStore.reviewers[0].subject = 'synthetic-reviewer-01';
+  f.trustStore.issuer = ' synthetic-owner-review-registry';
+  assert.equal(verify(f).reason, 'invalid_trust_store');
+
+  f.trustStore.issuer = f.payload.issuer;
+  f.attestation = resign(f, { subject: 'synthetic-reviewer-\\u206001' });
+  assert.equal(verify(f).reason, 'invalid_review_fields');
+});
+
