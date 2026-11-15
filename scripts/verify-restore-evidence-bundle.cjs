@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { TextDecoder } = require('node:util');
-const { hasIndependentRestoreAttestation } = require('./decide-preview-release.cjs');
+const { hasProviderBoundRestoreAttestation } = require('./decide-preview-release.cjs');
 const { parseJsonRejectDuplicateKeys } = require('./strict-json.cjs');
 const { readExternalFile } = require('./verify-restore-attestation-signatures.cjs');
 
@@ -113,7 +113,7 @@ function hashExternalEvidenceFile(file, label, maxBytes) {
 }
 
 function verifyRestoreEvidenceBundle({ manifest, archivePath, restoredMarkerPath, restoreLogPath, databaseProbePath } = {}) {
-  if (!hasIndependentRestoreAttestation(manifest)) throw new Error('restore_manifest_schema_or_consistency_invalid');
+  if (!hasProviderBoundRestoreAttestation(manifest)) throw new Error('restore_manifest_schema_or_consistency_invalid');
   const supplied = {
     archive: archivePath,
     restored_marker: restoredMarkerPath,
