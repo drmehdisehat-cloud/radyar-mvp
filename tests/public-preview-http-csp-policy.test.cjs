@@ -9,8 +9,12 @@ const {
   gitBlobSha1
 } = require('../scripts/verify-public-preview-http.cjs');
 
-const STRICT_HEADER_CSP = "default-src 'none'; connect-src 'none'; form-action 'none'; frame-ancestors 'none'";
-const STRICT_META_CSP = "default-src 'none'; connect-src 'none'; form-action 'none'";
+const INLINE_STYLE = 'body{color:black}';
+const INLINE_SCRIPT = 'void 0;';
+const STYLE_HASH = "'sha256-" + require('node:crypto').createHash('sha256').update(INLINE_STYLE, 'utf8').digest('base64') + "'";
+const SCRIPT_HASH = "'sha256-" + require('node:crypto').createHash('sha256').update(INLINE_SCRIPT, 'utf8').digest('base64') + "'";
+const STRICT_HEADER_CSP = "default-src 'none'; script-src " + SCRIPT_HASH + "; style-src " + STYLE_HASH + "; connect-src 'none'; form-action 'none'; frame-ancestors 'none'";
+const STRICT_META_CSP = "default-src 'none'; script-src " + SCRIPT_HASH + "; style-src " + STYLE_HASH + "; connect-src 'none'; form-action 'none'";
 
 function fixture({
   responseCsp = STRICT_HEADER_CSP,
@@ -23,7 +27,7 @@ function fixture({
     ...metaPolicies.map(policy =>
       '<meta http-equiv="Content-Security-Policy" content="' + policy + '">')
   ].join('');
-  const body = Buffer.from(meta, 'utf8');
+  const body = Buffer.from(meta + '<style>' + INLINE_STYLE + '</style><script>' + INLINE_SCRIPT + '</script>', 'utf8');
   const headers = {
     'content-type': 'text/html; charset=utf-8',
     'x-content-type-options': 'nosniff',
@@ -46,12 +50,12 @@ function fixture({
   };
 }
 
-test('accepts one unambiguous restrictive HTTP and meta CSP policy', () => {
+test('accepts one unambiguous restrictive HTTP and meta CSP policy with exact inline hashes', () => {
   assert.equal(verifyPreviewResponse(fixture()).verified, true);
 });
 
 test('rejects duplicate connect-src where a permissive directive appears first', () => {
-  const responseCsp = "default-src 'none'; connect-src https:; connect-src 'none'; form-action 'none'; frame-ancestors 'none'";
+  const responseCsp = "default-src 'none'; script-src " + SCRIPT_HASH + "; style-src " + STYLE_HASH + "; connect-src https:; connect-src 'none'; form-action 'none'; frame-ancestors 'none'";
   assert.throws(
     () => verifyPreviewResponse(fixture({ responseCsp })),
     /preview_csp_duplicate_directive:connect-src/
@@ -59,7 +63,7 @@ test('rejects duplicate connect-src where a permissive directive appears first',
 });
 
 test('rejects duplicate frame-ancestors where a permissive directive appears first', () => {
-  const responseCsp = "default-src 'none'; connect-src 'none'; form-action 'none'; frame-ancestors https://attacker.example; frame-ancestors 'none'";
+  const responseCsp = "default-src 'none'; script-src " + SCRIPT_HASH + "; style-src " + STYLE_HASH + "; connect-src 'none'; form-action 'none'; frame-ancestors https://attacker.example; frame-ancestors 'none'";
   assert.throws(
     () => verifyPreviewResponse(fixture({ responseCsp })),
     /preview_csp_duplicate_directive:frame-ancestors/
@@ -67,7 +71,7 @@ test('rejects duplicate frame-ancestors where a permissive directive appears fir
 });
 
 test('rejects duplicate default-src in the meta policy', () => {
-  const metaPolicy = "default-src https:; default-src 'none'; connect-src 'none'; form-action 'none'";
+  const metaPolicy = "default-src https:; default-src 'none'; script-src " + SCRIPT_HASH + "; style-src " + STYLE_HASH + "; connect-src 'none'; form-action 'none'";
   assert.throws(
     () => verifyPreviewResponse(fixture({ metaPolicies: [metaPolicy] })),
     /preview_csp_duplicate_directive:default-src/
@@ -92,6 +96,15 @@ test('rejects a coalesced CSP header with comma-separated policies', () => {
   );
 });
 
+test('rejects duplicate case-insensitive CSP header keys', () => {
+  const value = fixture();
+  value.headers['Content-Security-Policy'] = STRICT_HEADER_CSP;
+  assert.throws(
+    () => verifyPreviewResponse(value),
+    /preview_csp_header_ambiguous/
+  );
+});
+
 test('rejects multiple CSP meta elements instead of silently reading only the first', () => {
   assert.throws(
     () => verifyPreviewResponse(fixture({
@@ -102,9 +115,49 @@ test('rejects multiple CSP meta elements instead of silently reading only the fi
 });
 
 test('rejects a permissive single connect-src directive', () => {
-  const responseCsp = "default-src 'none'; connect-src https:; form-action 'none'; frame-ancestors 'none'";
+  const responseCsp = "default-src 'none'; script-src " + SCRIPT_HASH + "; style-src " + STYLE_HASH + "; connect-src https:; form-action 'none'; frame-ancestors 'none'";
   assert.throws(
     () => verifyPreviewResponse(fixture({ responseCsp })),
     /preview_csp_not_restrictive:connect-src/
+  );
+});
+
+test('rejects a permissive script-src in the meta policy', () => {
+  const metaPolicy = "default-src 'none'; script-src https:; style-src " + STYLE_HASH + "; connect-src 'none'; form-action 'none'";
+  assert.throws(
+    () => verifyPreviewResponse(fixture({ metaPolicies: [metaPolicy] })),
+    /preview_csp_not_restrictive:script-src/
+  );
+});
+
+test('rejects duplicate script-src even when the exact inline hash appears later', () => {
+  const metaPolicy = "default-src 'none'; script-src https:; script-src " + SCRIPT_HASH + "; style-src " + STYLE_HASH + "; connect-src 'none'; form-action 'none'";
+  assert.throws(
+    () => verifyPreviewResponse(fixture({ metaPolicies: [metaPolicy] })),
+    /preview_csp_duplicate_directive:script-src/
+  );
+});
+
+test('rejects a permissive style-src in the HTTP response policy', () => {
+  const responseCsp = "default-src 'none'; script-src " + SCRIPT_HASH + "; style-src https:; connect-src 'none'; form-action 'none'; frame-ancestors 'none'";
+  assert.throws(
+    () => verifyPreviewResponse(fixture({ responseCsp })),
+    /preview_csp_not_restrictive:style-src/
+  );
+});
+
+test('rejects script-src-elem overrides that bypass the exact script hash', () => {
+  const metaPolicy = STRICT_META_CSP + '; script-src-elem https:';
+  assert.throws(
+    () => verifyPreviewResponse(fixture({ metaPolicies: [metaPolicy] })),
+    /preview_csp_not_restrictive:script-src-elem/
+  );
+});
+
+test('rejects style-src-attr overrides that allow inline style attributes', () => {
+  const metaPolicy = STRICT_META_CSP + "; style-src-attr 'unsafe-inline'";
+  assert.throws(
+    () => verifyPreviewResponse(fixture({ metaPolicies: [metaPolicy] })),
+    /preview_csp_not_restrictive:style-src-attr/
   );
 });
