@@ -21,17 +21,17 @@ test('offline preview clearly states that its review acknowledgement is not auth
 });
 
 test('offline preview fixes the reviewer label to a synthetic read-only value', () => {
-  const input = preview.match(/<input\\b(?=[^>]*\\bid="reviewer-name")[^>]*>/i)?.[0];
+  const input = preview.match(/<input\b(?=[^>]*\bid="reviewer-name")[^>]*>/i)?.[0];
   assert.ok(input, 'reviewer label input must exist');
-  assert.match(input, /\\breadonly\\b/i);
+  assert.match(input, /\breadonly\b/i);
   assert.match(input, /value="بازبین آزمون"/);
   assert.doesNotMatch(input, /name="[^"]+"/i, 'reviewer label must not be submitted as a form field');
 });
 
 test('offline preview cannot call the unmounted report-release route', () => {
-  const scripts = [...preview.matchAll(/<script\\b[^>]*>([\\s\\S]*?)<\\/script>/gi)];
+  const scripts = [...preview.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)];
   assert.equal(scripts.length, 1, 'preview must remain a single inline script');
   assert.match(preview, /connect-src 'none'/);
-  assert.doesNotMatch(scripts[0][1], /\\bfetch\\s*\\(|\\bXMLHttpRequest\\b|\\bWebSocket\\b|\\bEventSource\\b|\\bsendBeacon\\b/i);
-  assert.doesNotMatch(scripts[0][1], /\\/api\\/dadyar\\/review-report/);
+  assert.doesNotMatch(scripts[0][1], /\bfetch\s*\(|\bXMLHttpRequest\b|\bWebSocket\b|\bEventSource\b|\bsendBeacon\b/i);
+  assert.doesNotMatch(scripts[0][1], /\/api\/dadyar\/review-report/);
 });
