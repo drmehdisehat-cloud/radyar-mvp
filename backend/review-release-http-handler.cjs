@@ -40,6 +40,41 @@ function canonicalHttpsOrigin(value) {
   return parsed.origin;
 }
 
+function hasAmbiguousSecurityHeaders(request) {
+  const rawHeaders = request && request.rawHeaders;
+  // This adapter is intentionally bound to Node's HTTP/1 server boundary.
+  // Without raw fields, duplicate authentication/origin headers cannot be
+  // ruled out safely, so middleware-shaped or synthetic requests fail closed.
+  if (!Array.isArray(rawHeaders) || rawHeaders.length % 2 !== 0) return true;
+
+  const singleton = new Set([
+    'host', 'origin', 'sec-fetch-site', 'sec-fetch-mode', 'sec-fetch-dest',
+    'content-type', 'content-encoding', 'content-length', 'transfer-encoding',
+    'expect', 'cookie', 'authorization', 'proxy-authorization',
+    'forwarded', 'x-forwarded-for', 'x-forwarded-host', 'x-forwarded-proto',
+    'x-original-host', 'x-authenticated-user', 'remote-user', 'x-test-session'
+  ]);
+  const seen = new Set();
+  let hasContentLength = false;
+  let hasTransferEncoding = false;
+
+  for (let index = 0; index < rawHeaders.length; index += 2) {
+    const name = rawHeaders[index];
+    const value = rawHeaders[index + 1];
+    if (typeof name !== 'string' || typeof value !== 'string') return true;
+    const lower = name.toLowerCase();
+    if (singleton.has(lower)) {
+      if (seen.has(lower)) return true;
+      seen.add(lower);
+    }
+    if (lower === 'content-length') hasContentLength = true;
+    if (lower === 'transfer-encoding') hasTransferEncoding = true;
+  }
+
+  // HTTP/1 request framing must have exactly one unambiguous source.
+  return hasContentLength && hasTransferEncoding;
+}
+
 function setSecurityHeaders(response) {
   response.setHeader('Cache-Control', 'no-store, private, max-age=0');
   response.setHeader('Pragma', 'no-cache');
@@ -179,6 +214,10 @@ function createReviewReleaseHttpHandler(options = {}) {
   }
 
   return async function dadyarReviewReportHandler(request, response) {
+    if (hasAmbiguousSecurityHeaders(request)) {
+      respondAndCloseRequest(request, response, 400, 'سرآیندهای تکراری یا مبهم درخواست پذیرفته نیستند.');
+      return;
+    }
     // Reject expectation headers before reading any request body. Use the server
     // factory below so Node does not emit an automatic 100 Continue first.
     if (request.headers && Object.prototype.hasOwnProperty.call(request.headers, 'expect')) {
