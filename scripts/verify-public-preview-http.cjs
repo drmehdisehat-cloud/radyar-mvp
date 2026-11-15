@@ -14,11 +14,15 @@ const GIT_BLOB_SHA1 = /^[a-f0-9]{40}$/i;
 
 function headerValues(headers, name) {
   const wanted = String(name).toLowerCase();
-  const key = Object.keys(headers || {}).find(candidate => candidate.toLowerCase() === wanted);
-  if (!key) return [];
-  const value = headers[key];
-  if (value == null) return [];
-  return Array.isArray(value) ? value.map(item => String(item)) : [String(value)];
+  const keys = Object.keys(headers || {}).filter(candidate => candidate.toLowerCase() === wanted);
+  const values = [];
+  for (const key of keys) {
+    const value = headers[key];
+    if (value == null) continue;
+    if (Array.isArray(value)) values.push(...value.map(item => String(item)));
+    else values.push(String(value));
+  }
+  return values;
 }
 
 function header(headers, name) {
@@ -27,6 +31,10 @@ function header(headers, name) {
 
 function sha256(bytes) {
   return crypto.createHash('sha256').update(bytes).digest('hex');
+}
+
+function cspSha256(source) {
+  return crypto.createHash('sha256').update(source, 'utf8').digest('base64');
 }
 
 function gitBlobSha1(bytes) {
@@ -69,7 +77,17 @@ function metaCspPolicies(html) {
   return policies;
 }
 
-function verifyCspPolicy(policy, requiredDirectives, source) {
+function inlineBlockContent(html, tag) {
+  const expression = new RegExp('<' + tag + '\\b([^>]*)>([\\s\\S]*?)</' + tag + '\\s*>', 'gi');
+  const matches = [...String(html).matchAll(expression)];
+  if (matches.length !== 1) throw new Error('preview_inline_' + tag + '_count_invalid');
+  if (String(matches[0][1] || '').trim()) {
+    throw new Error('preview_inline_' + tag + '_attributes_not_allowed');
+  }
+  return matches[0][2];
+}
+
+function verifyCspPolicy(policy, requiredDirectives, optionalDirectives, source) {
   if (typeof policy !== 'string' || !policy.trim()) {
     throw new Error('preview_' + source + '_csp_invalid');
   }
@@ -92,6 +110,11 @@ function verifyCspPolicy(policy, requiredDirectives, source) {
       throw new Error('preview_' + source + '_csp_missing:' + name);
     }
     if (directives.get(name) !== expected) {
+      throw new Error('preview_csp_not_restrictive:' + name);
+    }
+  }
+  for (const [name, expected] of optionalDirectives) {
+    if (directives.has(name) && directives.get(name) !== expected) {
       throw new Error('preview_csp_not_restrictive:' + name);
     }
   }
@@ -149,24 +172,36 @@ function verifyPreviewResponse({ statusCode, headers = {}, body, expectedSha256,
   const referrer = (header(headers, 'referrer-policy') + ' ' + metaContent(html, 'referrer')).toLowerCase();
   if (!/\bno-referrer\b/.test(referrer)) throw new Error('preview_must_disable_referrer');
 
+  const script = inlineBlockContent(html, 'script');
+  const style = inlineBlockContent(html, 'style');
+  const scriptSource = "'sha256-" + cspSha256(script) + "'";
+  const styleSource = "'sha256-" + cspSha256(style) + "'";
+  const requiredCspDirectives = [
+    ['default-src', "'none'"],
+    ['script-src', scriptSource],
+    ['style-src', styleSource],
+    ['connect-src', "'none'"],
+    ['form-action', "'none'"]
+  ];
+  const optionalCspDirectives = [
+    ['script-src-elem', scriptSource],
+    ['style-src-elem', styleSource],
+    ['script-src-attr', "'none'"],
+    ['style-src-attr', "'none'"]
+  ];
+
   const responseCspValues = headerValues(headers, 'content-security-policy');
   if (responseCspValues.length !== 1 || responseCspValues[0].includes(',')) {
     throw new Error('preview_csp_header_ambiguous');
   }
   verifyCspPolicy(responseCspValues[0], [
-    ['default-src', "'none'"],
-    ['connect-src', "'none'"],
-    ['form-action', "'none'"],
+    ...requiredCspDirectives,
     ['frame-ancestors', "'none'"]
-  ], 'http');
+  ], optionalCspDirectives, 'http');
 
   const metaPolicies = metaCspPolicies(html);
   if (metaPolicies.length !== 1) throw new Error('preview_meta_csp_count_invalid');
-  verifyCspPolicy(metaPolicies[0], [
-    ['default-src', "'none'"],
-    ['connect-src', "'none'"],
-    ['form-action', "'none'"]
-  ], 'meta');
+  verifyCspPolicy(metaPolicies[0], requiredCspDirectives, optionalCspDirectives, 'meta');
 
   const actualSha256 = sha256(bytes);
   const actualGitBlobSha1 = gitBlobSha1(bytes);
@@ -256,4 +291,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { fetchPreview, verifyPreviewResponse, verifyTargetUrl, sha256, gitBlobSha1 };
+module.exports = { fetchPreview, verifyPreviewResponse, verifyTargetUrl, sha256, gitBlobSha1, cspSha256 };
