@@ -9,6 +9,8 @@ const workflow = fs.readFileSync(path.join(__dirname, '../.github/workflows/ci.y
 test('experimental preview branch must trigger push CI without deploy permissions', () => {
   assert.ok(workflow.includes('- dadyar/ai-chat-private-20261101'));
   assert.ok(workflow.includes("github.ref == 'refs/heads/dadyar/ai-chat-private-20261101'"));
+  assert.ok(workflow.includes("github.event.pull_request.head.ref == 'dadyar/ai-chat-private-20261101'"));
+  assert.ok(workflow.includes('GITHUB_REF_NAME: dadyar/ai-chat-private-20261101'));
   assert.ok(workflow.includes('permissions:\n  contents: read'));
   assert.ok(!workflow.includes('deployments: write'));
 });
