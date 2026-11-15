@@ -246,3 +246,42 @@ for (const [label, protectedRoot] of [
     assert.equal(JSON.parse(result.stdout).deployment_authorized, false);
   });
 }
+
+
+if (process.platform !== 'win32') {
+  for (const [label, pathKey, mode] of [
+    ['archive', 'archive', 0o644],
+    ['restore log', 'restore_log', 0o640],
+    ['database probe', 'database_probe', 0o604]
+  ]) {
+    test('rejects group/world-accessible ' + label + ' evidence', t => {
+      const fixture = makeFixture(t);
+      fs.chmodSync(fixture.paths[pathKey], mode);
+      assert.throws(() => verify(fixture), /must_be_owner_only/);
+    });
+  }
+
+  test('rejects a group/world-writable restored marker', t => {
+    const fixture = makeFixture(t);
+    fs.chmodSync(fixture.paths.restored_marker, 0o666);
+    assert.throws(() => verify(fixture), /restored_marker_must_not_be_group_or_world_writable/);
+  });
+
+  test('CLI rejects a group/world-readable manifest before parsing it', t => {
+    const fixture = makeFixture(t);
+    const manifestPath = path.join(fixture.directory, 'manifest.json');
+    fs.writeFileSync(manifestPath, JSON.stringify(fixture.manifest), { mode: 0o600 });
+    fs.chmodSync(manifestPath, 0o644);
+    const result = spawnSync(process.execPath, [
+      SCRIPT,
+      '--manifest', manifestPath,
+      '--archive', fixture.paths.archive,
+      '--restored-marker', fixture.paths.restored_marker,
+      '--restore-log', fixture.paths.restore_log,
+      '--database-probe', fixture.paths.database_probe
+    ], { encoding: 'utf8', timeout: 5000 });
+    assert.equal(result.status, 1);
+    assert.match(result.stdout, /manifest_must_be_owner_only/);
+    assert.equal(JSON.parse(result.stdout).deployment_authorized, false);
+  });
+}

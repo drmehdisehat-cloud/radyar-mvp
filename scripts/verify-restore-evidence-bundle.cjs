@@ -59,6 +59,17 @@ function sameFileVersion(a, b) {
     a.mtimeNs === b.mtimeNs && a.ctimeNs === b.ctimeNs && a.nlink === b.nlink;
 }
 
+function assertEvidenceFilePermissions(stat, label, ownerOnly = false) {
+  // The verifier depends on POSIX O_NOFOLLOW semantics. On POSIX hosts, keep
+  // backup archives, restore logs, DB probes and manifests private to the owner.
+  // A restored marker may be readable by the sandbox web server, but never writable
+  // by group/other users. Special permission bits are never accepted.
+  if (process.platform === 'win32') return;
+  if ((stat.mode & 0o7000n) !== 0n) throw new Error(label + '_special_permission_bits_forbidden');
+  if ((stat.mode & 0o022n) !== 0n) throw new Error(label + '_must_not_be_group_or_world_writable');
+  if (ownerOnly && (stat.mode & 0o077n) !== 0n) throw new Error(label + '_must_be_owner_only');
+}
+
 function hashExternalEvidenceFile(file, label, maxBytes) {
   if (typeof file !== 'string' || !path.isAbsolute(file) || path.resolve(file) !== file) {
     throw new Error(label + '_path_must_be_absolute_canonical');
@@ -81,6 +92,7 @@ function hashExternalEvidenceFile(file, label, maxBytes) {
     const before = fs.fstatSync(fd, { bigint: true });
     if (!before.isFile()) throw new Error(label + '_must_be_regular_file');
     if (before.nlink !== 1n) throw new Error(label + '_must_not_have_hard_link_aliases');
+    assertEvidenceFilePermissions(before, label, label !== 'restored_marker');
     if (before.size === 0n || before.size > BigInt(maxBytes)) throw new Error(label + '_size_invalid');
     const pathBefore = fs.statSync(real, { bigint: true });
     if (!sameFileVersion(before, pathBefore)) throw new Error(label + '_changed_during_open');
@@ -206,6 +218,9 @@ function main(argv) {
     if (path.resolve(manifestPath) !== manifestPath || fs.realpathSync(manifestPath) !== manifestPath) {
       throw new Error('manifest_path_must_be_canonical');
     }
+    const manifestStat = fs.statSync(manifestPath, { bigint: true });
+    if (!manifestStat.isFile()) throw new Error('manifest_must_be_regular_file');
+    assertEvidenceFilePermissions(manifestStat, 'manifest', true);
     const manifestBytes = readExternalFile(manifestPath, 'manifest', MAX_MANIFEST_BYTES);
     const manifest = parseJsonRejectDuplicateKeys(decodeUtf8(manifestBytes));
     if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) throw new Error('manifest_must_be_json_object');
@@ -235,4 +250,4 @@ function main(argv) {
 }
 
 if (require.main === module) process.exitCode = main(process.argv.slice(2));
-module.exports = { LIMITS, hashExternalEvidenceFile, verifyRestoreEvidenceBundle, parseArgs, main };
+module.exports = { LIMITS, assertEvidenceFilePermissions, hashExternalEvidenceFile, verifyRestoreEvidenceBundle, parseArgs, main };
