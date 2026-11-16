@@ -40,7 +40,7 @@ const baseline = {
   destinationEvidence: { matched: true, source_blob_sha1: '1'.repeat(40), expected_source_blob_sha1: '1'.repeat(40), source_sha256: 'b'.repeat(64), destination_sha256: 'b'.repeat(64), destination_realpath: '/srv/isolated-staging/dadyar-preview/index.html', production_document_root_realpath: '/home/site/public_html', git_checkout_realpath: '/srv/radyar-checkout', destination_outside_document_root: true, destination_outside_git_checkout: true },
   mobileBrowserVerified: true,
   zeroApiRequestsVerified: true,
-  humanReviewVerified: true,
+  localHumanReviewAcknowledged: true,
   authenticatedHumanReviewAttested: true,
   authenticatedRestoreAttestation: true
 };
