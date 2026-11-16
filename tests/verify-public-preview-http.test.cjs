@@ -194,3 +194,57 @@ test('live probe performs one credential-free GET and validates the returned res
   assert.equal(seen.options.headers['accept-encoding'], 'identity');
   assert.equal(Object.keys(seen.options.headers).some(key => /authorization|cookie/i.test(key)), false);
 });
+
+
+test('rejects duplicate security response headers instead of coalescing them', () => {
+  const cases = [
+    ['content-type', ['text/html; charset=utf-8', 'text/plain']],
+    ['x-content-type-options', ['nosniff', '']],
+    ['cache-control', ['no-store', 'public, max-age=3600']],
+    ['x-frame-options', ['DENY', 'SAMEORIGIN']],
+    ['cross-origin-resource-policy', ['same-origin', 'cross-origin']],
+    ['referrer-policy', ['no-referrer', 'unsafe-url']],
+    ['x-robots-tag', ['noindex, nofollow', 'index, follow']]
+  ];
+  for (const [name, values] of cases) {
+    assert.throws(
+      () => verify({ headers: { ...headers, [name]: values } }),
+      new RegExp('preview_header_ambiguous:' + name)
+    );
+  }
+});
+
+test('rejects a coalesced Cache-Control policy that combines no-store with public caching', () => {
+  assert.throws(
+    () => verify({ headers: { ...headers, 'cache-control': 'no-store, public, max-age=3600' } }),
+    /preview_missing_no_store_header/
+  );
+});
+
+test('rejects conflicting robots directives even when noindex and nofollow are also present', () => {
+  assert.throws(
+    () => verify({ headers: { ...headers, 'x-robots-tag': 'noindex, nofollow, index, follow' } }),
+    /preview_must_be_noindex_nofollow/
+  );
+});
+
+test('requires exactly one robots and referrer meta element', () => {
+  const duplicateRobots = Buffer.from(html.replace(
+    '</head>',
+    '<meta name="robots" content="index,follow"></head>'
+  ), 'utf8');
+  assert.throws(() => verify({ body: duplicateRobots }), /preview_meta_robots_count_invalid/);
+
+  const duplicateReferrer = Buffer.from(html.replace(
+    '</head>',
+    '<meta name="referrer" content="unsafe-url"></head>'
+  ), 'utf8');
+  assert.throws(() => verify({ body: duplicateReferrer }), /preview_meta_referrer_count_invalid/);
+});
+
+test('rejects a permissive single Referrer-Policy header despite a restrictive meta fallback', () => {
+  assert.throws(
+    () => verify({ headers: { ...headers, 'referrer-policy': 'unsafe-url' } }),
+    /preview_must_disable_referrer/
+  );
+});
