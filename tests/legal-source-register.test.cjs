@@ -67,6 +67,26 @@ test('unreconciled CBI secondary index lead cannot overwrite the owner-image ser
   }
 });
 
+test('July CBI official-channel URL remains an unverified lead and cannot replace the owner-image series', () => {
+  const record = register.records.find(item => item.id === 'cbi-urban-consumer-index-1405');
+  assert.ok(record);
+  const candidate = record.officialDocumentUrlCandidates?.find(item =>
+    item.url === 'https://cbi.ir/showitem/35817.aspx'
+  );
+  assert.ok(candidate, 'July CBI direct URL must be retained as a research lead');
+  assert.equal(candidate.candidateStatus, 'official-pr-channel-link-discovered-not-fetched');
+  assert.equal(candidate.reportedPublicationDate, '1405-05-06');
+  assert.equal(candidate.reportedMonth, '1405-04');
+  assert.equal(candidate.reportedValue, 742.8);
+  assert.match(candidate.note, /سال پایه/);
+  assert.equal(record.primaryOfficialDocumentUrl, null);
+  assert.equal(record.primarySourceVerified, false);
+  assert.equal(record.humanReviewStatus, 'pending');
+  assert.equal(record.useInLegalAnswers, false);
+  assert.equal(indexData.source.status, 'transcribed-not-independently-authenticated');
+  assert.equal(indexData.months['4'], 3205.1);
+});
+
 test('direct CBI page discovery remains a research candidate until primary bytes and series are verified', () => {
   const record = register.records.find(item => item.id === 'cbi-urban-consumer-index-1405');
   assert.ok(record);
