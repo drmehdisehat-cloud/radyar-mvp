@@ -115,3 +115,10 @@ test('invalid dates and overlapping event-date versions fail closed', () => {
   assert.equal(result.valid, false);
   assert.ok(result.issues.some(issue => issue.includes('overlapping_event_date_versions')));
 });
+ 
+test('non-Qavanin official document IDs must be in a path segment, not a search query', () => {
+  assert.equal(directOfficialDocumentUrl('https://cbi.ir/search?query=35817.aspx', '35817.aspx'), false);
+  assert.equal(directOfficialDocumentUrl('https://rrk.ir/search?document=12345', '12345'), false);
+  assert.equal(directOfficialDocumentUrl('https://cbi.ir/showitem/35817.aspx', '35817.aspx'), true);
+  assert.equal(directOfficialDocumentUrl('https://qavanin.ir/Law/TreeText/?IDS=12345', '12345'), true);
+});
