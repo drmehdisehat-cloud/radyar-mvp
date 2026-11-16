@@ -40,6 +40,10 @@ test('requires the isolated staging root to be owned by the current service user
     () => assertPrivateOwnedDirectory({ mode: 0o40700 }, 'staging root', uid),
     /ownership could not be verified/
   );
+  assert.throws(
+    () => assertPrivateOwnedDirectory({ mode: 0o40700, uid }, 'staging root', null),
+    /ownership could not be verified/
+  );
 });
 
 test('rejects group- or world-writable staging roots before creating preview files', t => {
