@@ -32,9 +32,14 @@ test('legal source register is versioned and does not promote secondary material
 test('reported uniform opinion 883 remains a research lead, not an activated legal rule', () => {
   const record = register.records.find(item => item.id === 'uniform-opinion-883');
   assert.ok(record);
-  assert.equal(record.number, 883);
+  assert.equal(record.reportedNumber, 883);
+  assert.equal(record.numberStatus, 'secondary-claims-only');
+  assert.equal(record.identifierStatus, 'secondary-claims-not-reconciled');
   assert.equal(record.decisionDate, '1405-07-21');
   assert.equal(record.reportedGazettePublication, 'secondary-claims-only');
+  assert.deepEqual(record.secondaryIdentifierClaims.map(item => item.value), ['1404/2', '2/1405']);
+  assert.ok(record.secondaryIdentifierClaims.every(item => item.sourceClass === 'secondary'));
+  assert.ok(record.openQuestions.some(item => /شناسه پرونده وحدت رویه/.test(item)));
   assert.match(record.reportedRuleSummary, /منابع ثانویه/);
   assert.ok(record.openQuestions.some(item => /روزنامه رسمی/.test(item)));
   assert.equal(record.useInLegalAnswers, false);
