@@ -44,7 +44,10 @@ function assertPrivateOwnedDirectory(stat, label, expectedUid = (typeof process.
   if ((stat.mode & 0o022) !== 0) {
     fail(label + ' must not be group- or world-writable');
   }
-  if (expectedUid !== null && (!Number.isInteger(stat.uid) || stat.uid !== expectedUid)) {
+  if (!Number.isInteger(expectedUid) || !Number.isInteger(stat.uid)) {
+    fail(label + ' ownership could not be verified');
+  }
+  if (stat.uid !== expectedUid) {
     fail(label + ' must be owned by the current service user');
   }
 }
