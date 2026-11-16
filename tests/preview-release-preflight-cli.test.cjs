@@ -70,7 +70,7 @@ function fixture() {
     expected_source_blob_sha1: sourceBlobSha,
     source_sha256: sourceHash,
     destination_sha256: sourceHash,
-    destination_realpath: '/srv/dadyar-staging/preview/index.html',
+    destination_realpath: '/srv/dadyar-staging/dadyar-preview/index.html',
     production_document_root_realpath: '/var/www/production'
   };
   const { publicKey, privateKey } = crypto.generateKeyPairSync('ed25519');
