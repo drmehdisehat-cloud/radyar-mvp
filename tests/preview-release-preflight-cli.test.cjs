@@ -12,10 +12,37 @@ const { canonicalizeManifest } = require('../scripts/verify-restore-attestation-
 const CLI = path.join(__dirname, '../scripts/preview-release-preflight.cjs');
 const digest = value => crypto.createHash('sha256').update(value).digest('hex');
 
+function gitBlobSha1(bytes) {
+  const hash = crypto.createHash('sha1');
+  hash.update('blob ' + bytes.length + String.fromCharCode(0));
+  hash.update(bytes);
+  return hash.digest('hex');
+}
+
 function fixture() {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-release-preflight-'));
   const restoreCompleted = new Date(Date.now() - 120000).toISOString();
   const reviewed = new Date(Date.now() - 60000).toISOString();
+  const restoreRoot = path.join(directory, 'isolated-restore');
+  const productionRoot = path.join(directory, 'production', 'public_html');
+  fs.mkdirSync(restoreRoot, { recursive: true, mode: 0o700 });
+  fs.mkdirSync(productionRoot, { recursive: true, mode: 0o700 });
+
+  const restoreBytes = {
+    archive: Buffer.from('synthetic archive'),
+    marker: Buffer.from('synthetic marker'),
+    log: Buffer.from('synthetic restore log; exit=0'),
+    databaseProbe: Buffer.from('{"synthetic":true,"database_probe_passed":true}')
+  };
+  const restoreArchiveFile = path.join(directory, 'archive.evidence');
+  const restoredMarkerFile = path.join(restoreRoot, 'index.html');
+  const restoreLogFile = path.join(directory, 'restore.log');
+  const databaseProbeFile = path.join(directory, 'database-probe.json');
+  fs.writeFileSync(restoreArchiveFile, restoreBytes.archive, { mode: 0o600 });
+  fs.writeFileSync(restoredMarkerFile, restoreBytes.marker, { mode: 0o600 });
+  fs.writeFileSync(restoreLogFile, restoreBytes.log, { mode: 0o600 });
+  fs.writeFileSync(databaseProbeFile, restoreBytes.databaseProbe, { mode: 0o600 });
+
   const restore = {
     evidence: 'independent-restore-manifest-v1',
     restore_proven: true,
@@ -23,11 +50,11 @@ function fixture() {
     source_site_origin: 'https://mehdisehat.ir',
     backup_id: 'synthetic-iranhost-backup-001',
     backup_created_at: new Date(Date.now() - 240000).toISOString(),
-    archive_size_bytes: Buffer.byteLength('synthetic archive'),
-    archive_sha256: digest('synthetic archive'),
-    restored_marker_sha256: digest('synthetic marker'),
-    restore_log_sha256: digest('synthetic restore log'),
-    database_probe_sha256: digest('synthetic database probe'),
+    archive_size_bytes: restoreBytes.archive.length,
+    archive_sha256: digest(restoreBytes.archive),
+    restored_marker_sha256: digest(restoreBytes.marker),
+    restore_log_sha256: digest(restoreBytes.log),
+    database_probe_sha256: digest(restoreBytes.databaseProbe),
     restore_exit_code: 0,
     restore_target_isolated: true,
     production_database_untouched: true,
@@ -35,10 +62,10 @@ function fixture() {
     outbound_integrations_disabled: true,
     reviewer_attested: true,
     restore_target_id: 'synthetic-isolated-target',
-    restore_target_path: '/srv/dadyar-synthetic-restore',
-    restore_target_realpath: '/srv/dadyar-synthetic-restore',
-    production_document_root: '/var/www/production',
-    production_document_root_realpath: '/var/www/production',
+    restore_target_path: fs.realpathSync(restoreRoot),
+    restore_target_realpath: fs.realpathSync(restoreRoot),
+    production_document_root: fs.realpathSync(productionRoot),
+    production_document_root_realpath: fs.realpathSync(productionRoot),
     restore_database_name: 'synthetic_staging_db',
     production_database_name: 'synthetic_production_db',
     restore_database_user: 'synthetic_staging_user',
@@ -48,6 +75,20 @@ function fixture() {
     restore_completed_at: restoreCompleted,
     reviewed_at: reviewed
   };
+
+  const sourcePreview = path.join(path.resolve(__dirname, '..'), 'dadyar-preview', 'index.html');
+  const sourceBytes = fs.readFileSync(sourcePreview);
+  const sourceHash = digest(sourceBytes);
+  const sourceCommit = 'c'.repeat(40);
+  const sourceBlobSha = gitBlobSha1(sourceBytes);
+  const stagingDirectory = path.join(directory, 'isolated-staging', 'dadyar-preview');
+  fs.mkdirSync(stagingDirectory, { recursive: true, mode: 0o700 });
+  const previewDestination = path.join(stagingDirectory, 'index.html');
+  fs.writeFileSync(previewDestination, sourceBytes, { mode: 0o600 });
+  const destination = require('../scripts/verify-preview-destination.cjs').verifyPreview(
+    sourcePreview, previewDestination, productionRoot, sourceBlobSha
+  );
+
   const operatorKeys = crypto.generateKeyPairSync('ed25519');
   const reviewerKeys = crypto.generateKeyPairSync('ed25519');
   const canonicalRestore = Buffer.from(canonicalizeManifest(restore), 'utf8');
@@ -58,21 +99,6 @@ function fixture() {
   const operatorFingerprint = digest(operatorKeys.publicKey.export({ type: 'spki', format: 'der' }));
   const reviewerFingerprint = digest(reviewerKeys.publicKey.export({ type: 'spki', format: 'der' }));
 
-  const sourceHash = digest('synthetic reviewed preview');
-  const sourceCommit = 'c'.repeat(40);
-  const sourceBlobSha = crypto.createHash('sha1').update('synthetic git blob').digest('hex');
-  const destination = {
-    matched: true,
-    destination_outside_document_root: true,
-    destination_outside_git_checkout: true,
-    git_checkout_realpath: fs.realpathSync(path.resolve(__dirname, '..')),
-    source_blob_sha1: sourceBlobSha,
-    expected_source_blob_sha1: sourceBlobSha,
-    source_sha256: sourceHash,
-    destination_sha256: sourceHash,
-    destination_realpath: '/srv/dadyar-staging/dadyar-preview/index.html',
-    production_document_root_realpath: '/var/www/production'
-  };
   const { publicKey, privateKey } = crypto.generateKeyPairSync('ed25519');
   const payload = {
     schema: 'dadyar-human-review-attestation-v2',
@@ -102,6 +128,7 @@ function fixture() {
       public_key_pem: publicKey.export({ type: 'spki', format: 'pem' })
     }]
   };
+
   const restoreFile = path.join(directory, 'restore.json');
   const destinationFile = path.join(directory, 'destination.json');
   const attestationFile = path.join(directory, 'review-attestation.json');
@@ -110,16 +137,18 @@ function fixture() {
   const restoreOperatorSignatureFile = path.join(directory, 'restore-operator.sig');
   const restoreReviewerPublicKeyFile = path.join(directory, 'restore-reviewer-public.pem');
   const restoreReviewerSignatureFile = path.join(directory, 'restore-reviewer.sig');
-  fs.writeFileSync(restoreFile, JSON.stringify(restore));
-  fs.writeFileSync(destinationFile, JSON.stringify(destination));
-  fs.writeFileSync(attestationFile, JSON.stringify(attestation));
-  fs.writeFileSync(trustStoreFile, JSON.stringify(trustStore));
-  fs.writeFileSync(restoreOperatorPublicKeyFile, operatorPublicKeyPem);
-  fs.writeFileSync(restoreOperatorSignatureFile, operatorSignature);
-  fs.writeFileSync(restoreReviewerPublicKeyFile, reviewerPublicKeyPem);
-  fs.writeFileSync(restoreReviewerSignatureFile, reviewerSignature);
+  fs.writeFileSync(restoreFile, JSON.stringify(restore), { mode: 0o600 });
+  fs.writeFileSync(destinationFile, JSON.stringify(destination), { mode: 0o600 });
+  fs.writeFileSync(attestationFile, JSON.stringify(attestation), { mode: 0o600 });
+  fs.writeFileSync(trustStoreFile, JSON.stringify(trustStore), { mode: 0o600 });
+  fs.writeFileSync(restoreOperatorPublicKeyFile, operatorPublicKeyPem, { mode: 0o600 });
+  fs.writeFileSync(restoreOperatorSignatureFile, operatorSignature, { mode: 0o600 });
+  fs.writeFileSync(restoreReviewerPublicKeyFile, reviewerPublicKeyPem, { mode: 0o600 });
+  fs.writeFileSync(restoreReviewerSignatureFile, reviewerSignature, { mode: 0o600 });
   return {
     directory, restoreFile, destinationFile, attestationFile, trustStoreFile,
+    restoreArchiveFile, restoredMarkerFile, restoreLogFile, databaseProbeFile,
+    sourcePreview, previewDestination, productionRoot, sourceBlobSha,
     restoreOperatorPublicKeyFile, restoreOperatorSignatureFile,
     restoreReviewerPublicKeyFile, restoreReviewerSignatureFile,
     operatorFingerprint, reviewerFingerprint, sourceCommit, sourceHash
@@ -133,6 +162,10 @@ function run(args) {
 function baseArgs(f) {
   return [
     '--restore-evidence', f.restoreFile,
+    '--restore-archive', f.restoreArchiveFile,
+    '--restore-marker', f.restoredMarkerFile,
+    '--restore-log', f.restoreLogFile,
+    '--restore-database-probe', f.databaseProbeFile,
     '--restore-operator-public-key', f.restoreOperatorPublicKeyFile,
     '--restore-operator-signature', f.restoreOperatorSignatureFile,
     '--restore-reviewer-public-key', f.restoreReviewerPublicKeyFile,
@@ -140,6 +173,10 @@ function baseArgs(f) {
     '--expected-restore-operator-public-key-sha256', f.operatorFingerprint,
     '--expected-restore-reviewer-public-key-sha256', f.reviewerFingerprint,
     '--destination-evidence', f.destinationFile,
+    '--preview-source', f.sourcePreview,
+    '--preview-destination', f.previewDestination,
+    '--production-document-root', f.productionRoot,
+    '--expected-source-blob-sha1', f.sourceBlobSha,
     '--review-attestation', f.attestationFile,
     '--review-trust-store', f.trustStoreFile,
     '--expected-source-commit', f.sourceCommit,
@@ -175,11 +212,51 @@ test('read-only CLI verifies a signed synthetic review but still requires extern
     assert.equal(report.restoreAttestation.keyFingerprintsPinned, true);
     assert.equal(report.restoreAttestation.signerIdentityIndependentlyVerified, false);
     assert.equal(report.restoreAttestation.restoreOperationIndependentlyVerified, false);
+    assert.equal(report.restoreEvidenceBundle.matched, true);
+    assert.equal(report.restoreEvidenceBundle.status, 'EVIDENCE_BYTES_MATCH_MANIFEST_NOT_RESTORE_PROOF');
+    assert.deepEqual(Object.keys(report.restoreEvidenceBundle.files).sort(), ['archive', 'database_probe', 'restore_log', 'restored_marker']);
+    assert.equal(report.destinationVerification.matched, true);
+    assert.equal(report.destinationVerification.destination_realpath, f.previewDestination);
     assert.equal(report.reviewAttestation.verified, true);
     assert.equal(report.reviewAttestation.subject, 'synthetic-reviewer-01');
     assert.equal(report.reviewAttestation.trustStoreSha256, digest(fs.readFileSync(f.trustStoreFile)));
     assert.equal(report.deploymentPerformed, false);
     assert.match(report.note, /امضای دوطرفه اظهارنامه بازیابی/);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
+test('all four restore evidence files are hashed against the signed manifest', () => {
+  for (const [field, pathKey, expectedError] of [
+    ['archive', 'restoreArchiveFile', 'archive_sha256_mismatch'],
+    ['restored marker', 'restoredMarkerFile', 'restored_marker_sha256_mismatch'],
+    ['restore log', 'restoreLogFile', 'restore_log_sha256_mismatch'],
+    ['database probe', 'databaseProbeFile', 'database_probe_sha256_mismatch']
+  ]) {
+    const f = fixture();
+    try {
+      fs.appendFileSync(f[pathKey], Buffer.from('tampered'));
+      const result = run(baseArgs(f));
+      assert.equal(result.status, 2, field + ': ' + result.stderr);
+      const report = JSON.parse(result.stdout);
+      assert.equal(report.status, 'NOT_READY');
+      assert.ok(report.blockers.includes(expectedError));
+      assert.equal(report.deploymentPerformed, false);
+    } finally {
+      fs.rmSync(f.directory, { recursive: true, force: true });
+    }
+  }
+});
+
+test('missing one restore evidence file path blocks the preflight', () => {
+  const f = fixture();
+  try {
+    const result = run(removeValuePair(baseArgs(f), '--restore-database-probe'));
+    assert.equal(result.status, 2);
+    const report = JSON.parse(result.stdout);
+    assert.ok(report.blockers.includes('restore_evidence_bundle_files_required'));
+    assert.equal(report.deploymentPerformed, false);
   } finally {
     fs.rmSync(f.directory, { recursive: true, force: true });
   }
@@ -289,19 +366,15 @@ test('review signature must be bound to the exact artifact and source commit', (
   }
 });
 
-test('review approval must be bound to the exact Git blob copied to the destination', () => {
+test('the preflight re-hashes the actual staged destination instead of trusting JSON claims', () => {
   const f = fixture();
   try {
-    const destination = JSON.parse(fs.readFileSync(f.destinationFile, 'utf8'));
-    const substitutedBlob = crypto.createHash('sha1').update('different synthetic git blob').digest('hex');
-    destination.source_blob_sha1 = substitutedBlob;
-    destination.expected_source_blob_sha1 = substitutedBlob;
-    fs.writeFileSync(f.destinationFile, JSON.stringify(destination));
+    fs.writeFileSync(f.previewDestination, Buffer.from('tampered staged preview'), { mode: 0o600 });
     const result = run(baseArgs(f));
-    assert.equal(result.status, 1, result.stderr);
+    assert.equal(result.status, 2, result.stderr);
     const report = JSON.parse(result.stdout);
-    assert.equal(report.reviewAttestation.verified, false);
-    assert.equal(report.reviewAttestation.reason, 'review_target_mismatch');
+    assert.equal(report.status, 'NOT_READY');
+    assert.ok(report.blockers.some(item => /destination differs from reviewed source/.test(item)));
     assert.equal(report.deploymentPerformed, false);
   } finally {
     fs.rmSync(f.directory, { recursive: true, force: true });
@@ -402,6 +475,8 @@ test('unknown deploy-like options are rejected and the CLI exposes no deploy com
   assert.match(help.stdout, /read-only/);
   assert.match(help.stdout, /never deploys/);
   assert.match(help.stdout, /--review-attestation/);
+  assert.match(help.stdout, /--restore-archive/);
+  assert.match(help.stdout, /--preview-destination/);
   assert.match(help.stdout, /--restore-operator-public-key/);
   assert.match(help.stdout, /--expected-restore-reviewer-public-key-sha256/);
   const result = run(['--deploy']);
@@ -422,12 +497,10 @@ test('read-only preflight rejects legacy destination evidence without checkout s
     delete destination.git_checkout_realpath;
     fs.writeFileSync(f.destinationFile, JSON.stringify(destination));
     const result = run(baseArgs(f));
-    assert.equal(result.status, 1, result.stderr);
+    assert.equal(result.status, 2, result.stderr);
     const report = JSON.parse(result.stdout);
     assert.equal(report.status, 'NOT_READY');
-    assert.ok(report.blockers.includes(
-      'preview destination is not verified outside production document root and Git checkout'
-    ));
+    assert.ok(report.blockers.includes('destination_evidence_mismatch:destination_outside_git_checkout'));
     assert.equal(report.deploymentPerformed, false);
   } finally {
     fs.rmSync(f.directory, { recursive: true, force: true });
@@ -510,7 +583,15 @@ test('operator restore checklist documents only supported signed preflight optio
   const flags = [...command.matchAll(/--[a-z][a-z0-9-]+/g)].map(match => match[0]);
   assert.deepEqual(new Set(flags), new Set([
     '--restore-evidence',
+    '--restore-archive',
+    '--restore-marker',
+    '--restore-log',
+    '--restore-database-probe',
     '--destination-evidence',
+    '--preview-source',
+    '--preview-destination',
+    '--production-document-root',
+    '--expected-source-blob-sha1',
     '--review-attestation',
     '--review-trust-store',
     '--expected-source-commit',

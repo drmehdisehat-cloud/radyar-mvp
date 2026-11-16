@@ -10,6 +10,8 @@ const { parseJsonRejectDuplicateKeys } = require('./strict-json.cjs');
 const { verifyHumanReviewAttestation } = require('./verify-human-review-attestation.cjs');
 const { verifyPinnedRestoreAttestation } = require('./verify-restore-attestation-pinned.cjs');
 const { readExternalFile } = require('./verify-restore-attestation-signatures.cjs');
+const { verifyRestoreEvidenceBundle } = require('./verify-restore-evidence-bundle.cjs');
+const { verifyPreview } = require('./verify-preview-destination.cjs');
 
 const REPO_ROOT = path.resolve(__dirname, '..');
 const MAX_EVIDENCE_BYTES = 64 * 1024;
@@ -18,10 +20,16 @@ const MAX_SIGNATURE_BYTES = 64;
 const USAGE = [
   'Usage:',
   '  node scripts/preview-release-preflight.cjs --restore-evidence ABSOLUTE_JSON_PATH',
+  '    --restore-archive ABSOLUTE_FILE --restore-marker ABSOLUTE_FILE',
+  '    --restore-log ABSOLUTE_FILE --restore-database-probe ABSOLUTE_FILE',
   '    --restore-operator-public-key ABSOLUTE_PEM --restore-operator-signature ABSOLUTE_FILE',
   '    --restore-reviewer-public-key ABSOLUTE_PEM --restore-reviewer-signature ABSOLUTE_FILE',
   '    --expected-restore-operator-public-key-sha256 64_HEX --expected-restore-reviewer-public-key-sha256 64_HEX',
   '    --destination-evidence ABSOLUTE_JSON_PATH',
+  '    --preview-source CHECKOUT/dadyar-preview/index.html',
+  '    --preview-destination STAGING/dadyar-preview/index.html',
+  '    --production-document-root ABSOLUTE_PRODUCTION_DOCUMENT_ROOT',
+  '    --expected-source-blob-sha1 40_HEX',
   '    --review-attestation ABSOLUTE_JSON_PATH --review-trust-store ABSOLUTE_JSON_PATH',
   '    --expected-source-commit 40_HEX --expected-artifact-sha256 64_HEX',
   '    --expected-review-trust-store-sha256 64_HEX',
@@ -29,7 +37,8 @@ const USAGE = [
   '    --zero-api-requests-verified --human-review-verified',
   '',
   'read-only preflight; it never deploys or writes evidence.',
-  'Evidence, attestation and trust-store files must be outside the Git checkout.',
+  'Restore archive/log/database-probe and attestation files must be outside the Git checkout.',
+  'The restored marker must be inside the isolated restore target; the preview destination must be outside production and checkout.',
   'The detached Ed25519 signature is checked against the supplied trust store.',
   'This script never deploys and does not independently establish the trust-store origin or human identity.'
 ].join('\n');
@@ -42,7 +51,14 @@ const FLAG_NAMES = new Set([
 ]);
 const VALUE_NAMES = new Set([
   '--restore-evidence',
+  '--restore-archive',
+  '--restore-marker',
+  '--restore-log',
+  '--restore-database-probe',
   '--destination-evidence',
+  '--preview-source',
+  '--preview-destination',
+  '--production-document-root',
   '--review-attestation',
   '--review-trust-store',
   '--restore-operator-public-key',
@@ -51,6 +67,7 @@ const VALUE_NAMES = new Set([
   '--restore-reviewer-signature',
   '--expected-restore-operator-public-key-sha256',
   '--expected-restore-reviewer-public-key-sha256',
+  '--expected-source-blob-sha1',
   '--expected-source-commit',
   '--expected-artifact-sha256',
   '--expected-review-trust-store-sha256'
@@ -124,7 +141,9 @@ function parseArgs(argv) {
       }
       const value = argv[++i];
       if (!value || value.startsWith('--')) throw new Error('missing_value:' + arg);
-      if (['--restore-evidence', '--destination-evidence', '--review-attestation', '--review-trust-store',
+      if (['--restore-evidence', '--restore-archive', '--restore-marker', '--restore-log',
+        '--restore-database-probe', '--destination-evidence', '--preview-source',
+        '--preview-destination', '--production-document-root', '--review-attestation', '--review-trust-store',
         '--restore-operator-public-key', '--restore-operator-signature',
         '--restore-reviewer-public-key', '--restore-reviewer-signature'].includes(arg)) {
         parsed.paths[arg] = value;
@@ -156,6 +175,40 @@ function main(argv) {
     if (!restorePath || !destinationPath) throw new Error('both_evidence_files_required');
     const restoreEvidence = readEvidence('--restore-evidence', restorePath);
     const destinationEvidence = readEvidence('--destination-evidence', destinationPath);
+
+    const restoreBundlePaths = {
+      archivePath: args.paths['--restore-archive'],
+      restoredMarkerPath: args.paths['--restore-marker'],
+      restoreLogPath: args.paths['--restore-log'],
+      databaseProbePath: args.paths['--restore-database-probe']
+    };
+    if (Object.values(restoreBundlePaths).some(value => !value)) {
+      throw new Error('restore_evidence_bundle_files_required');
+    }
+    const restoreEvidenceBundle = verifyRestoreEvidenceBundle({
+      manifest: restoreEvidence,
+      ...restoreBundlePaths
+    });
+
+    const previewSource = args.paths['--preview-source'];
+    const previewDestination = args.paths['--preview-destination'];
+    const productionDocumentRoot = args.paths['--production-document-root'];
+    const expectedSourceBlobSha1 = args.values['--expected-source-blob-sha1'];
+    if (!previewSource || !previewDestination || !productionDocumentRoot || !expectedSourceBlobSha1) {
+      throw new Error('preview_destination_files_and_source_blob_pin_required');
+    }
+    const reviewedPreviewSource = path.join(REPO_ROOT, 'dadyar-preview', 'index.html');
+    if (previewSource !== reviewedPreviewSource) {
+      throw new Error('preview_source_must_be_reviewed_checkout_index');
+    }
+    const verifiedDestination = verifyPreview(
+      previewSource, previewDestination, productionDocumentRoot, expectedSourceBlobSha1
+    );
+    for (const [key, value] of Object.entries(verifiedDestination)) {
+      if (destinationEvidence[key] !== value) {
+        throw new Error('destination_evidence_mismatch:' + key);
+      }
+    }
 
     const restorePathFlags = [
       '--restore-operator-public-key', '--restore-operator-signature',
@@ -222,7 +275,7 @@ function main(argv) {
               attestation,
               trustStore: trustStoreRecord.value,
               expectedSourceCommit,
-              expectedSourceBlobSha1: destinationEvidence.expected_source_blob_sha1,
+              expectedSourceBlobSha1: verifiedDestination.expected_source_blob_sha1,
               expectedArtifactSha256
             }),
             trustStoreSha256: trustStoreRecord.sha256
@@ -237,8 +290,8 @@ function main(argv) {
 
     const decision = decidePreviewRelease({
       restoreEvidence,
-      destinationEvidence,
-      isolatedRestoreVerified: args.attestations.has('--isolated-restore-verified'),
+      destinationEvidence: verifiedDestination,
+      isolatedRestoreVerified: args.attestations.has('--isolated-restore-verified') && restoreEvidenceBundle.matched === true,
       mobileBrowserVerified: args.attestations.has('--mobile-browser-verified'),
       zeroApiRequestsVerified: args.attestations.has('--zero-api-requests-verified'),
       humanReviewVerified: args.attestations.has('--human-review-verified'),
@@ -249,6 +302,14 @@ function main(argv) {
       ...decision,
       evidenceFilesRead: true,
       attestationFlagsSupplied: args.attestations.size,
+      restoreEvidenceBundle: {
+        status: restoreEvidenceBundle.status,
+        matched: restoreEvidenceBundle.matched,
+        files: restoreEvidenceBundle.files,
+        restoreOperationIndependentlyVerified: false,
+        signerIdentityVerified: false
+      },
+      destinationVerification: verifiedDestination,
       restoreAttestation: restoreAttestation.verified ? {
         verified: true,
         status: restoreAttestation.status,
@@ -270,7 +331,7 @@ function main(argv) {
         trustStoreSha256: review.trustStoreSha256
       } : { verified: false, reason: review.reason },
       deploymentPerformed: false,
-      note: 'امضای دوطرفه اظهارنامه بازیابی و تطبیق اثرانگشت کلیدها با مقادیر ارائه‌شده از کانال مستقل، و نیز امضای بازبینی انسانی بررسی می‌شوند؛ این بررسی‌ها هویت واقعی اشخاص، انجام واقعی بازیابی، سلامت دیتابیس بازیابی‌شده، مقصد زنده یا مجوز مالک را اثبات نمی‌کنند. این ابزار هرگز مجوز انتشار صادر نمی‌کند.'
+      note: 'بایت‌های آرشیو، نشانگر بازیابی، گزارش Restore و probe دیتابیس با هش‌های manifest مقایسه می‌شوند؛ فایل منبع و مقصد پیش‌نمایش نیز از مسیر واقعی دوباره خوانده و هش می‌شوند. امضاها و pinها فقط یکپارچگی داده‌های ارائه‌شده را بررسی می‌کنند و هویت واقعی اشخاص، وقوع مستقل Restore، سلامت عملیاتی دیتابیس، پاسخ HTTPS زنده یا مجوز مالک را اثبات نمی‌کنند. این ابزار هرگز مجوز انتشار صادر نمی‌کند.'
     };
     process.stdout.write(JSON.stringify(output, null, 2) + '\n');
     return decision.blockers.length ? 1 : 3;

@@ -30,12 +30,35 @@ After collecting the real restore manifest and destination-verifier output, plac
 Run from a trusted checkout:
 
 ```sh
-node scripts/preview-release-preflight.cjs --restore-evidence /secure/local/restore-manifest.json --restore-operator-public-key /secure/local/operator-public.pem --restore-operator-signature /secure/local/operator.sig --restore-reviewer-public-key /secure/local/reviewer-public.pem --restore-reviewer-signature /secure/local/reviewer.sig --expected-restore-operator-public-key-sha256 64_HEX --expected-restore-reviewer-public-key-sha256 64_HEX --destination-evidence /secure/local/destination-evidence.json --review-attestation /secure/local/review-attestation.json --review-trust-store /secure/local/review-trust-store.json --expected-source-commit 40_HEX --expected-artifact-sha256 64_HEX --expected-review-trust-store-sha256 64_HEX --isolated-restore-verified --mobile-browser-verified --zero-api-requests-verified --human-review-verified
+node scripts/preview-release-preflight.cjs \
+  --restore-evidence /secure/local/restore-manifest.json \
+  --restore-archive /secure/local/backup.archive \
+  --restore-marker /secure/isolated-restore/index.html \
+  --restore-log /secure/local/restore.log \
+  --restore-database-probe /secure/local/database-probe.json \
+  --restore-operator-public-key /secure/local/operator-public.pem \
+  --restore-operator-signature /secure/local/operator.sig \
+  --restore-reviewer-public-key /secure/local/reviewer-public.pem \
+  --restore-reviewer-signature /secure/local/reviewer.sig \
+  --expected-restore-operator-public-key-sha256 64_HEX \
+  --expected-restore-reviewer-public-key-sha256 64_HEX \
+  --destination-evidence /secure/local/destination-evidence.json \
+  --preview-source /ABSOLUTE/TRUSTED-CHECKOUT/dadyar-preview/index.html \
+  --preview-destination /ABSOLUTE/ISOLATED-STAGING/dadyar-preview/index.html \
+  --production-document-root /ABSOLUTE/PRODUCTION-DOCUMENT-ROOT \
+  --expected-source-blob-sha1 40_HEX \
+  --review-attestation /secure/local/review-attestation.json \
+  --review-trust-store /secure/local/review-trust-store.json \
+  --expected-source-commit 40_HEX \
+  --expected-artifact-sha256 64_HEX \
+  --expected-review-trust-store-sha256 64_HEX \
+  --isolated-restore-verified --mobile-browser-verified \
+  --zero-api-requests-verified --human-review-verified
 ```
 
 The four boolean switches are explicit operator/reviewer attestations, not independently measured facts. The restore manifest must now pass two distinct Ed25519 signatures and match both public-key SHA-256 fingerprints supplied through a separate owner-approved channel. The signed human review is checked against its supplied trust store and bound to the exact source commit, exact `dadyar-preview/index.html` Git blob SHA-1, and artifact SHA-256. The CLI also requires `--expected-review-trust-store-sha256`, computed from the exact trust-store file bytes and pinned through a separate owner-approved channel; a changed or substituted trust store is rejected. This pin proves byte identity only. The owner must still verify the pinned digest, real-world reviewer identity, issuer, and key ownership through an independent trusted channel. Do not pass the removed `--authenticated-human-review-attested` boolean option: the current CLI rejects it because a bare assertion cannot authenticate a reviewer.
 
-The CLI checks evidence-file shape, consistency, stable file reads, both restore-manifest signatures, the two supplied restore-key fingerprints, the pinned review trust-store digest, and the human-review signature; it performs no network request, file copy, publication or deployment. These cryptographic checks establish integrity against supplied pins only, not real-world identity or proof that the hosting restore operation actually occurred. Evidence, attestation and trust-store files must be absolute-path regular files outside the Git checkout, without symlink or hard-link aliases, and no larger than 64 KiB. Never place client records, credentials, API keys, raw hosting logs or the backup archive in these JSON files. Exit code 1 means structural release blockers remain; exit code 2 means invalid invocation or evidence input; exit code 3 means the evidence JSON shape is internally consistent but independent authenticity checks, live-host verification, legal/security review and owner approval remain outstanding. The tool never emits a release-ready or deployment-authorized status.
+The CLI reads and hashes the actual archive, restored marker, restore log and database probe against the signed manifest; it also re-opens the actual reviewed source and staged destination, recomputes the Git blob SHA-1 and SHA-256 values, and requires the destination-evidence JSON to match those freshly computed values. It then checks evidence-file shape, consistency, both restore-manifest signatures, the two supplied restore-key fingerprints, the pinned review trust-store digest, and the human-review signature; it performs no network request, file copy, publication or deployment. These cryptographic checks establish integrity against supplied pins only, not real-world identity or proof that the hosting restore operation actually occurred. Evidence, attestation and trust-store files must be absolute-path regular files outside the Git checkout, without symlink or hard-link aliases, and no larger than 64 KiB. Never place client records, credentials, API keys, raw hosting logs or the backup archive in these JSON files. Exit code 1 means structural release blockers remain; exit code 2 means invalid invocation or evidence input; exit code 3 means the evidence JSON shape is internally consistent but independent authenticity checks, live-host verification, legal/security review and owner approval remain outstanding. The tool never emits a release-ready or deployment-authorized status. `--restore-archive`, `--restore-marker`, `--restore-log`, and `--restore-database-probe` are mandatory; a signed manifest without the four matching evidence files is insufficient. `--preview-source`, `--preview-destination`, `--production-document-root`, and `--expected-source-blob-sha1` are also mandatory; a destination JSON record without a fresh on-disk re-hash is insufficient.
 
 ## Preview artifact gate
 
@@ -117,7 +140,7 @@ The signature files are raw 64-byte Ed25519 signatures. The verifier rejects ide
 
 ## کنترل یکپارچگی چهار فایل شواهد
 
-پس از Restore واقعی در sandbox و تهیه فایل‌های مستقل، verifier زیر را اجرا کنید. فایل manifest، آرشیو، گزارش Restore و probe دیتابیس باید خارج از restore root و Document Root تولید باشند؛ فقط نشانگر بازیابی داخل restore root قرار می‌گیرد.
+پس از Restore واقعی در sandbox و تهیه فایل‌های مستقل، verifier زیر را اجرا کنید. همین کنترل اکنون داخل `preview-release-preflight.cjs` نیز اجرا می‌شود؛ preflight بدون چهار فایل واقعی و تطبیق هش آن‌ها ادامه نمی‌دهد. فایل manifest، آرشیو، گزارش Restore و probe دیتابیس باید خارج از restore root و Document Root تولید باشند؛ فقط نشانگر بازیابی داخل restore root قرار می‌گیرد.
 
 ```sh
 node scripts/verify-restore-evidence-bundle.cjs \\
