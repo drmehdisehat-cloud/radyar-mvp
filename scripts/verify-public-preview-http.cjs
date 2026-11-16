@@ -25,8 +25,16 @@ function headerValues(headers, name) {
   return values;
 }
 
-function header(headers, name) {
-  return headerValues(headers, name).join(', ');
+function singleHeader(headers, name, missingError) {
+  const values = headerValues(headers, name);
+  if (!values.length) {
+    if (missingError) throw new Error(missingError);
+    return '';
+  }
+  if (values.length !== 1) {
+    throw new Error('preview_header_ambiguous:' + String(name).toLowerCase());
+  }
+  return values[0].trim();
 }
 
 function sha256(bytes) {
@@ -59,10 +67,18 @@ function verifyTargetUrl(value) {
   return url;
 }
 
-function metaContent(html, name) {
-  const escaped = name.replace(/[.*+?^$()|[\]\\]/g, '\\$&');
-  const match = html.match(new RegExp('<meta\\s+name="' + escaped + '"\\s+content="([^"]*)"', 'i'));
-  return match ? match[1] : '';
+function metaNamedContents(html, name) {
+  const wanted = String(name).toLowerCase();
+  const tags = String(html).match(/<meta\b[^>]*>/gi) || [];
+  const values = [];
+  for (const tag of tags) {
+    const nameMatch = /\bname\s*=\s*(["'])(.*?)\1/i.exec(tag);
+    if (!nameMatch || nameMatch[2].toLowerCase() !== wanted) continue;
+    const contentMatch = /\bcontent\s*=\s*(["'])(.*?)\1/i.exec(tag);
+    if (!contentMatch) throw new Error('preview_meta_' + wanted + '_content_missing');
+    values.push(contentMatch[2]);
+  }
+  return values;
 }
 
 function metaCspPolicies(html) {
@@ -129,23 +145,32 @@ function verifyPreviewResponse({ statusCode, headers = {}, body, expectedSha256,
   if (!bytes.length || bytes.length > MAX_BODY_BYTES) throw new Error('preview_body_empty_or_too_large');
   const html = bytes.toString('utf8');
   if (!Buffer.from(html, 'utf8').equals(bytes)) throw new Error('preview_body_must_be_valid_utf8');
-  if (!/^text\/html(?:\s*;|$)/i.test(header(headers, 'content-type'))) {
+  const contentType = singleHeader(headers, 'content-type', 'preview_content_type_must_be_html');
+  if (!/^text\/html(?:\s*;|$)/i.test(contentType)) {
     throw new Error('preview_content_type_must_be_html');
   }
-  if (header(headers, 'x-content-type-options').trim().toLowerCase() !== 'nosniff') {
+  const nosniff = singleHeader(headers, 'x-content-type-options', 'preview_missing_nosniff_header');
+  if (nosniff.toLowerCase() !== 'nosniff') {
     throw new Error('preview_missing_nosniff_header');
   }
-  if (header(headers, 'set-cookie')) throw new Error('static_preview_must_not_set_cookies');
-  if (!header(headers, 'cache-control').toLowerCase().split(',').some(value => value.trim() === 'no-store')) {
+  if (headerValues(headers, 'set-cookie').length) {
+    throw new Error('static_preview_must_not_set_cookies');
+  }
+  // The preview is static and sensitive: accept exactly one Cache-Control policy.
+  // A coalesced "no-store, public" value is ambiguous and must not pass.
+  const cacheControl = singleHeader(headers, 'cache-control', 'preview_missing_no_store_header').toLowerCase();
+  if (cacheControl !== 'no-store') {
     throw new Error('preview_missing_no_store_header');
   }
-  if (header(headers, 'x-frame-options').trim().toLowerCase() !== 'deny') {
+  const frameOptions = singleHeader(headers, 'x-frame-options', 'preview_missing_x_frame_options_deny');
+  if (frameOptions.toLowerCase() !== 'deny') {
     throw new Error('preview_missing_x_frame_options_deny');
   }
-  if (header(headers, 'cross-origin-resource-policy').trim().toLowerCase() !== 'same-origin') {
+  const corp = singleHeader(headers, 'cross-origin-resource-policy', 'preview_missing_cross_origin_resource_policy');
+  if (corp.toLowerCase() !== 'same-origin') {
     throw new Error('preview_missing_cross_origin_resource_policy');
   }
-  const permissions = header(headers, 'permissions-policy').toLowerCase().replace(/\s+/g, '');
+  const permissions = singleHeader(headers, 'permissions-policy').toLowerCase().replace(/\s+/g, '');
   const permissionDirectives = new Map();
   for (const entry of permissions.split(',').map(value => value.trim()).filter(Boolean)) {
     const match = /^([a-z-]+)=\(([^()]*)\)$/.exec(entry);
@@ -165,12 +190,26 @@ function verifyPreviewResponse({ statusCode, headers = {}, body, expectedSha256,
     }
   }
 
-  const robots = (header(headers, 'x-robots-tag') + ' ' + metaContent(html, 'robots')).toLowerCase();
-  if (!/\bnoindex\b/.test(robots) || !/\bnofollow\b/.test(robots)) {
+  const robotsMeta = metaNamedContents(html, 'robots');
+  if (robotsMeta.length !== 1) throw new Error('preview_meta_robots_count_invalid');
+  const robotsHeaderValues = headerValues(headers, 'x-robots-tag');
+  if (robotsHeaderValues.length > 1) throw new Error('preview_header_ambiguous:x-robots-tag');
+  const robots = [...robotsHeaderValues, robotsMeta[0]]
+    .flatMap(value => String(value).toLowerCase().split(/[,\s]+/).filter(Boolean));
+  if (robots.some(value => ['index', 'follow', 'all'].includes(value)) ||
+      !robots.includes('noindex') || !robots.includes('nofollow')) {
     throw new Error('preview_must_be_noindex_nofollow');
   }
-  const referrer = (header(headers, 'referrer-policy') + ' ' + metaContent(html, 'referrer')).toLowerCase();
-  if (!/\bno-referrer\b/.test(referrer)) throw new Error('preview_must_disable_referrer');
+
+  const referrerMeta = metaNamedContents(html, 'referrer');
+  if (referrerMeta.length !== 1) throw new Error('preview_meta_referrer_count_invalid');
+  const referrerHeader = singleHeader(headers, 'referrer-policy').toLowerCase();
+  if (referrerHeader && referrerHeader !== 'no-referrer') {
+    throw new Error('preview_must_disable_referrer');
+  }
+  if (referrerMeta[0].trim().toLowerCase() !== 'no-referrer') {
+    throw new Error('preview_must_disable_referrer');
+  }
 
   const script = inlineBlockContent(html, 'script');
   const style = inlineBlockContent(html, 'style');
