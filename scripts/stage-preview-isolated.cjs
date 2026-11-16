@@ -88,6 +88,26 @@ function syncDirectory(directory) {
   try { fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
 }
 
+function assertDirectoryIdentity(target, label, expectedIdentity, requirePrivate = false) {
+  rejectSymlinkComponents(target, label);
+  const current = fs.lstatSync(target, { bigint: true });
+  if (!current.isDirectory() || current.isSymbolicLink() ||
+      current.dev !== expectedIdentity.dev || current.ino !== expectedIdentity.ino ||
+      fs.realpathSync(target) !== target) {
+    fail(label + ' changed during staging');
+  }
+  if (requirePrivate) {
+    if ((current.mode & 0o022n) !== 0n) {
+      fail(label + ' must not be group- or world-writable during staging');
+    }
+    const expectedUid = typeof process.getuid === 'function' ? process.getuid() : null;
+    if (!Number.isInteger(expectedUid) || current.uid !== BigInt(expectedUid)) {
+      fail(label + ' ownership changed during staging');
+    }
+  }
+  return current;
+}
+
 function rollbackCreatedPreview({ stagingRoot, stagingRootIdentity, destinationDirectory, destinationFile, directoryIdentity, fileIdentity }) {
   // Roll back only the exact directory and file created by this invocation.
   // If either path was replaced, aliased or populated by another actor, leave it untouched.
@@ -205,6 +225,13 @@ function stagePreviewIsolated({ source, stagingRoot, productionDocumentRoot, exp
     if (entries.length !== 1 || entries[0] !== 'index.html') {
       fail('staging directory must contain exactly one index.html file');
     }
+
+    // Revalidate all protected directory identities after the write and hash.
+    // In particular, the staging root must still be private and owned by this
+    // service user; a permission or path swap during the copy must fail closed.
+    assertDirectoryIdentity(root.realpath, 'isolated staging root', root.identity, true);
+    assertDirectoryIdentity(production.realpath, 'production document root', production.identity);
+    assertDirectoryIdentity(checkout.realpath, 'Git checkout', checkout.identity);
 
     return Object.freeze({
       status: 'ISOLATED_STAGING_COPY_VERIFIED_NOT_DEPLOYED',
