@@ -15,6 +15,21 @@ const STYLE_HASH = "'sha256-" + require('node:crypto').createHash('sha256').upda
 const SCRIPT_HASH = "'sha256-" + require('node:crypto').createHash('sha256').update(INLINE_SCRIPT, 'utf8').digest('base64') + "'";
 const STRICT_HEADER_CSP = "default-src 'none'; script-src " + SCRIPT_HASH + "; style-src " + STYLE_HASH + "; connect-src 'none'; form-action 'none'; frame-ancestors 'none'";
 const STRICT_META_CSP = "default-src 'none'; script-src " + SCRIPT_HASH + "; style-src " + STYLE_HASH + "; connect-src 'none'; form-action 'none'";
+const NO_NETWORK_CSP_DIRECTIVES = [
+  ['img-src', "'none'"], ['font-src', "'none'"], ['object-src', "'none'"],
+  ['frame-src', "'none'"], ['media-src', "'none'"], ['manifest-src', "'none'"],
+  ['worker-src', "'none'"], ['child-src', "'none'"], ['prefetch-src', "'none'"],
+  ['base-uri', "'none'"]
+];
+function completeCsp(policy) {
+  const existing = new Set(policy.split(';')
+    .map(part => part.trim().split(/\s+/, 1)[0].toLowerCase())
+    .filter(Boolean));
+  const additions = NO_NETWORK_CSP_DIRECTIVES
+    .filter(([name]) => !existing.has(name))
+    .map(([name, value]) => name + ' ' + value);
+  return [policy.trim().replace(/;+\s*$/, ''), ...additions].join('; ');
+}
 
 function fixture({
   responseCsp = STRICT_HEADER_CSP,
@@ -25,7 +40,7 @@ function fixture({
     '<meta name="robots" content="noindex,nofollow">',
     '<meta name="referrer" content="no-referrer">',
     ...metaPolicies.map(policy =>
-      '<meta http-equiv="Content-Security-Policy" content="' + policy + '">')
+      '<meta http-equiv="Content-Security-Policy" content="' + completeCsp(policy) + '">')
   ].join('');
   const body = Buffer.from(meta + '<style>' + INLINE_STYLE + '</style><script>' + INLINE_SCRIPT + '</script>', 'utf8');
   const headers = {
@@ -38,8 +53,10 @@ function fixture({
     'x-robots-tag': 'noindex, nofollow',
     'referrer-policy': 'no-referrer',
     'content-security-policy': responseCspValues === undefined
-      ? responseCsp
-      : responseCspValues
+      ? completeCsp(responseCsp)
+      : Array.isArray(responseCspValues)
+        ? responseCspValues.map(completeCsp)
+        : responseCspValues
   };
   return {
     statusCode: 200,
