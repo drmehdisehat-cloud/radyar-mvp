@@ -232,6 +232,44 @@ test('builder refuses a package when the calculator result loses its source disc
 });
 
 
+test('builder records the actual PR head separately from GitHub merge SHA', t => {
+  withTemp(t, root => {
+    const names = [
+      'GITHUB_SHA',
+      'DADYAR_PREVIEW_SOURCE_SHA',
+      'DADYAR_PREVIEW_WORKFLOW_SHA',
+      'DADYAR_PREVIEW_EVENT',
+      'DADYAR_PREVIEW_BRANCH',
+      'GITHUB_REF_NAME'
+    ];
+    const previous = Object.fromEntries(names.map(name => [name, process.env[name]]));
+    const mergeSha = 'f'.repeat(40);
+    process.env.GITHUB_SHA = mergeSha;
+    process.env.DADYAR_PREVIEW_SOURCE_SHA = commit;
+    process.env.DADYAR_PREVIEW_WORKFLOW_SHA = mergeSha;
+    process.env.DADYAR_PREVIEW_EVENT = 'pull_request';
+    process.env.DADYAR_PREVIEW_BRANCH = branch;
+    process.env.GITHUB_REF_NAME = '8/merge';
+    try {
+      const destination = path.join(root, 'bundle');
+      const result = buildOfflinePreviewPackage(destination, { repoRoot, sourcePath });
+      const metadata = JSON.parse(fs.readFileSync(path.join(destination, 'PREVIEW-METADATA.json'), 'utf8'));
+      assert.equal(result.source_commit, commit);
+      assert.equal(result.workflow_commit, mergeSha);
+      assert.equal(metadata.source_commit, commit);
+      assert.equal(metadata.workflow_commit, mergeSha);
+      assert.equal(metadata.workflow_event, 'pull_request');
+      assert.equal(metadata.source_branch, branch);
+      assert.equal(metadata.deployment_authorized, false);
+    } finally {
+      for (const name of names) {
+        if (previous[name] === undefined) delete process.env[name];
+        else process.env[name] = previous[name];
+      }
+    }
+  });
+});
+
 test('builder uses the explicit experimental branch identity on pull-request merge refs', t => {
   withTemp(t, root => {
     const previousRef = process.env.GITHUB_REF_NAME;
