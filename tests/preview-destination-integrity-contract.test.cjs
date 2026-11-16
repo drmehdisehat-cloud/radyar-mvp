@@ -20,7 +20,7 @@ function sandbox(fn) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-preview-integrity-'));
   try {
     const sourceDir = path.join(root, 'source');
-    const destDir = path.join(root, 'destination');
+    const destDir = path.join(root, 'dadyar-preview');
     const productionRoot = path.join(root, 'production-root');
     fs.mkdirSync(sourceDir);
     fs.mkdirSync(destDir);
@@ -62,4 +62,14 @@ test('symlinked source ancestor is rejected', () => sandbox(({root, source, dest
   fs.symlinkSync(path.dirname(source), alias, 'dir');
   fs.copyFileSync(source, destination);
   assert.throws(() => verifyPreview(path.join(alias, 'index.html'), destination, productionRoot, expectedSourceBlobSha), /symbolic link/);
+}));
+
+
+test('destination contract rejects a byte-identical file in a different folder', () => sandbox(({root, source, productionRoot, expectedSourceBlobSha}) => {
+  const wrongDir = path.join(root, 'other');
+  fs.mkdirSync(wrongDir);
+  const wrongDestination = path.join(wrongDir, 'index.html');
+  fs.copyFileSync(source, wrongDestination);
+  assert.throws(() => verifyPreview(source, wrongDestination, productionRoot, expectedSourceBlobSha),
+    /dedicated dadyar-preview directory/);
 }));

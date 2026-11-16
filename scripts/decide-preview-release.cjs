@@ -105,6 +105,8 @@ function hasVerifiedStagingDestination(evidence) {
   if (typeof evidence.destination_realpath !== 'string' || typeof evidence.production_document_root_realpath !== 'string' ||
       typeof evidence.git_checkout_realpath !== 'string' || !path.isAbsolute(evidence.destination_realpath) ||
       !path.isAbsolute(evidence.production_document_root_realpath) || !path.isAbsolute(evidence.git_checkout_realpath)) return false;
+  if (path.basename(evidence.destination_realpath) !== 'index.html' ||
+      path.basename(path.dirname(evidence.destination_realpath)) !== 'dadyar-preview') return false;
   if (path.resolve(evidence.destination_realpath) !== evidence.destination_realpath ||
       path.resolve(evidence.production_document_root_realpath) !== evidence.production_document_root_realpath ||
       path.resolve(evidence.git_checkout_realpath) !== evidence.git_checkout_realpath) return false;

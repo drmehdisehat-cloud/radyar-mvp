@@ -63,6 +63,8 @@ function verifyPreview(source, destination, productionDocumentRoot, expectedSour
   assert.ok(pathsDisjoint(checkoutRoot, dst), 'destination must be outside Git checkout and must not contain it');
   assert.equal(path.basename(src), 'index.html', 'source must be index.html');
   assert.equal(path.basename(dst), 'index.html', 'destination must be index.html');
+  assert.equal(path.basename(path.dirname(dst)), 'dadyar-preview',
+    'destination must be inside the dedicated dadyar-preview directory');
   const sourcePathStat = fs.lstatSync(src, { bigint: true });
   const destinationPathStat = fs.lstatSync(dst, { bigint: true });
   assert.ok(sourcePathStat.dev !== destinationPathStat.dev || sourcePathStat.ino !== destinationPathStat.ino,

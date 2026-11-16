@@ -56,7 +56,7 @@ function destinationEvidence(overrides = {}) {
     expected_source_blob_sha1: blob,
     source_sha256: digest,
     destination_sha256: digest,
-    destination_realpath: '/srv/dadyar-staging/preview/index.html',
+    destination_realpath: '/srv/dadyar-staging/dadyar-preview/index.html',
     production_document_root_realpath: '/var/www/production',
     git_checkout_realpath: checkout,
     ...overrides
@@ -92,4 +92,15 @@ test('staging destination rejects an ancestor of the Git checkout', () => {
 test('disjoint restore and staging paths remain structurally acceptable', () => {
   assert.equal(hasIndependentRestoreAttestation(restoreEvidence()), true);
   assert.equal(hasVerifiedStagingDestination(destinationEvidence()), true);
+});
+
+
+test('staging destination rejects an arbitrary preview folder even when hashes match', () => {
+  const evidence = destinationEvidence({ destination_realpath: '/srv/dadyar-staging/preview/index.html' });
+  assert.equal(hasVerifiedStagingDestination(evidence), false);
+});
+
+test('staging destination requires the exact index.html leaf', () => {
+  const evidence = destinationEvidence({ destination_realpath: '/srv/dadyar-staging/dadyar-preview/report.html' });
+  assert.equal(hasVerifiedStagingDestination(evidence), false);
 });

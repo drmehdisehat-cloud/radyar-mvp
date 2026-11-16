@@ -21,8 +21,8 @@ test('preview destination rejects symlinked parent even with matching independen
     const expectedSourceBlobSha = gitBlobSha(source);
     const productionRoot = path.join(root, 'production-root');
     fs.mkdirSync(productionRoot);
-    const realDir = path.join(root, 'actual-preview');
-    fs.mkdirSync(realDir);
+    const realDir = path.join(root, 'actual-preview', 'dadyar-preview');
+    fs.mkdirSync(realDir, { recursive: true });
     const realDestination = path.join(realDir, 'index.html');
     fs.copyFileSync(source, realDestination);
     assert.equal(verifyPreview(source, realDestination, productionRoot, expectedSourceBlobSha).matched, true);
@@ -43,10 +43,11 @@ test('preview destination verifier rejects a symlinked production document root'
     const source = path.resolve(__dirname, '../dadyar-preview/index.html');
     const expectedSourceBlobSha = gitBlobSha(source);
     const staging = path.join(root, 'staging');
+    const previewDirectory = path.join(staging, 'dadyar-preview');
     const realRoot = path.join(root, 'real-production-root');
     const rootAlias = path.join(root, 'production-root');
-    fs.mkdirSync(staging); fs.mkdirSync(realRoot);
-    const destination = path.join(staging, 'index.html');
+    fs.mkdirSync(previewDirectory, { recursive: true }); fs.mkdirSync(realRoot);
+    const destination = path.join(previewDirectory, 'index.html');
     fs.copyFileSync(source, destination);
     fs.symlinkSync(realRoot, rootAlias, 'dir');
     assert.throws(() => verifyPreview(source, destination, rootAlias, expectedSourceBlobSha), /production document root must not be a symbolic link/);

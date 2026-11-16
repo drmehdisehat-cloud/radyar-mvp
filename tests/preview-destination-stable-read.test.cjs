@@ -13,9 +13,10 @@ function fixture(t) {
   const production = path.join(dir, 'public_html');
   const repo = path.join(dir, 'repo');
   const staging = path.join(dir, 'staging');
-  fs.mkdirSync(production); fs.mkdirSync(repo); fs.mkdirSync(staging);
+  const previewDirectory = path.join(staging, 'dadyar-preview');
+  fs.mkdirSync(production); fs.mkdirSync(repo); fs.mkdirSync(previewDirectory, { recursive: true });
   const source = path.join(repo, 'index.html');
-  const destination = path.join(staging, 'index.html');
+  const destination = path.join(previewDirectory, 'index.html');
   const html = '<!doctype html><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; connect-src \'none\'; form-action \'none\'"><input id="export-ack"><button id="download" disabled>Download</button>';
   fs.writeFileSync(source, html);
   fs.writeFileSync(destination, html);

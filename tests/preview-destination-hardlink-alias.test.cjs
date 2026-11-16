@@ -28,8 +28,9 @@ function fixture(t, mode) {
   let destination;
   if (mode === 'staged') {
     const staging = path.join(dir, 'staging');
-    fs.mkdirSync(staging);
-    destination = path.join(staging, 'index.html');
+    const preview = path.join(staging, 'dadyar-preview');
+    fs.mkdirSync(preview, { recursive: true });
+    destination = path.join(preview, 'index.html');
   } else {
     const preview = path.join(documentRoot, 'dadyar-preview');
     fs.mkdirSync(preview);

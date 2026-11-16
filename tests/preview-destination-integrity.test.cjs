@@ -18,7 +18,9 @@ test('destination verifier accepts exact synthetic offline preview copy and reje
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-destination-'));
   try {
     const productionRoot = path.join(dir, 'production-root');
+    const previewDir = path.join(dir, 'dadyar-preview');
     fs.mkdirSync(productionRoot);
+    fs.mkdirSync(previewDir);
     // Use a private fixture copy: the hard-link rejection case below must
     // never change the shared checkout source's link count while other node:test
     // files run concurrently against the same preview asset.
@@ -31,24 +33,24 @@ test('destination verifier accepts exact synthetic offline preview copy and reje
     const alias = path.join(dir, 'alias.html');
     fs.symlinkSync(source, alias);
     assert.throws(() => verifyPreview(source, alias, productionRoot, expectedSourceBlobSha), /destination must not be a symbolic link/);
-    const linkedDir = path.join(dir, 'linked');
-    fs.mkdirSync(linkedDir);
+    const linkedDir = path.join(dir, 'linked', 'dadyar-preview');
+    fs.mkdirSync(linkedDir, { recursive: true });
     fs.symlinkSync(source, path.join(linkedDir, 'index.html'));
     assert.throws(() => verifyPreview(source, path.join(linkedDir, 'index.html'), productionRoot, expectedSourceBlobSha), /destination must not be a symbolic link/);
-    const hardLinkDir = path.join(dir, 'hard-linked');
-    fs.mkdirSync(hardLinkDir);
+    const hardLinkDir = path.join(dir, 'hard-linked', 'dadyar-preview');
+    fs.mkdirSync(hardLinkDir, { recursive: true });
     const hardLink = path.join(hardLinkDir, 'index.html');
     fs.linkSync(source, hardLink);
     assert.throws(() => verifyPreview(source, hardLink, productionRoot, expectedSourceBlobSha), /hard link to source/);
     // The hard-link rejection case must not contaminate later independent
     // digest-mismatch checks: the source must return to its single-link state.
     fs.unlinkSync(hardLink);
-    const destination = path.join(dir, 'index.html');
+    const destination = path.join(previewDir, 'index.html');
     fs.copyFileSync(source, destination);
     assert.throws(() => verifyPreview(source, destination, productionRoot), /expected reviewed source Git blob SHA-1 required/);
     assert.throws(() => verifyPreview(source, destination, productionRoot, '0'.repeat(40)), /expected reviewed source Git blob SHA-1 required/);
-    const separateLink = path.join(dir, 'symlinked', 'index.html');
-    fs.mkdirSync(path.dirname(separateLink));
+    const separateLink = path.join(dir, 'symlinked', 'dadyar-preview', 'index.html');
+    fs.mkdirSync(path.dirname(separateLink), { recursive: true });
     fs.symlinkSync(destination, separateLink);
     assert.throws(() => verifyPreview(source, separateLink, productionRoot, expectedSourceBlobSha), /destination must not be a symbolic link/);
     const result = verifyPreview(source, destination, productionRoot, expectedSourceBlobSha);
@@ -76,9 +78,11 @@ test('destination verifier requires absolute source and destination paths', () =
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-absolute-destination-'));
   try {
     const productionRoot = path.join(dir, 'production-root');
-    const destination = path.join(dir, 'index.html');
+    const previewDir = path.join(dir, 'dadyar-preview');
+    const destination = path.join(previewDir, 'index.html');
     const source = path.resolve(__dirname, '../dadyar-preview/index.html');
     fs.mkdirSync(productionRoot);
+    fs.mkdirSync(previewDir);
     fs.copyFileSync(source, destination);
     const expected = gitBlobSha(source);
     const relativeSource = path.relative(process.cwd(), source);
@@ -97,9 +101,11 @@ test('destination verifier rejects non-canonical absolute paths before filesyste
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-noncanonical-destination-'));
   try {
     const productionRoot = path.join(dir, 'production-root');
-    const destination = path.join(dir, 'index.html');
+    const previewDir = path.join(dir, 'dadyar-preview');
+    const destination = path.join(previewDir, 'index.html');
     const source = path.resolve(__dirname, '../dadyar-preview/index.html');
     fs.mkdirSync(productionRoot);
+    fs.mkdirSync(previewDir);
     fs.copyFileSync(source, destination);
     const expected = gitBlobSha(source);
     const withDotSegments = target =>
@@ -126,4 +132,20 @@ test('destination path boundary rejects overlap in either ancestor direction', (
   assert.equal(pathsDisjoint(parent, child), false);
   assert.equal(pathsDisjoint(child, parent), false);
   assert.equal(pathsDisjoint(parent, sibling), true);
+});
+
+
+test('destination verifier rejects a matching file outside the dedicated dadyar-preview directory', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-wrong-preview-dir-'));
+  try {
+    const productionRoot = path.join(dir, 'production-root');
+    const wrongDir = path.join(dir, 'other-preview');
+    const source = path.resolve(__dirname, '../dadyar-preview/index.html');
+    const destination = path.join(wrongDir, 'index.html');
+    fs.mkdirSync(productionRoot);
+    fs.mkdirSync(wrongDir);
+    fs.copyFileSync(source, destination);
+    assert.throws(() => verifyPreview(source, destination, productionRoot, gitBlobSha(source)),
+      /dedicated dadyar-preview directory/);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
