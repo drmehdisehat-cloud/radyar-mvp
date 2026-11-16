@@ -114,7 +114,7 @@ function hasVerifiedStagingDestination(evidence) {
     pathsDisjoint(evidence.destination_realpath, evidence.git_checkout_realpath);
 }
 
-function decidePreviewRelease({ restoreEvidence, destinationEvidence, isolatedRestoreVerified = false, mobileBrowserVerified = false, zeroApiRequestsVerified = false, humanReviewVerified = false, authenticatedHumanReviewAttested = false, authenticatedRestoreAttestation = false } = {}) {
+function decidePreviewRelease({ restoreEvidence, destinationEvidence, isolatedRestoreVerified = false, mobileBrowserVerified = false, zeroApiRequestsVerified = false, localHumanReviewAcknowledged = false, authenticatedHumanReviewAttested = false, authenticatedRestoreAttestation = false } = {}) {
   const blockers = [];
   if (!hasProviderBoundRestoreAttestation(restoreEvidence) || isolatedRestoreVerified !== true)
     blockers.push('independent restore attestation incomplete or unverified');
@@ -124,7 +124,7 @@ function decidePreviewRelease({ restoreEvidence, destinationEvidence, isolatedRe
     blockers.push('preview destination is not verified outside production document root and Git checkout');
   if (mobileBrowserVerified !== true) blockers.push('real mobile browser test missing');
   if (zeroApiRequestsVerified !== true) blockers.push('zero API requests not observed');
-  if (humanReviewVerified !== true) blockers.push('human review approval missing');
+  if (localHumanReviewAcknowledged !== true) blockers.push('local human review acknowledgement missing');
   if (authenticatedHumanReviewAttested !== true) blockers.push('authenticated human reviewer attestation missing');
   return Object.freeze({
     status: blockers.length ? 'NOT_READY' : 'EVIDENCE_SHAPE_VALID_REQUIRES_EXTERNAL_VERIFICATION',

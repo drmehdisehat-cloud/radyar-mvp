@@ -34,7 +34,7 @@ const USAGE = [
   '    --expected-source-commit 40_HEX --expected-artifact-sha256 64_HEX',
   '    --expected-review-trust-store-sha256 64_HEX',
   '    --isolated-restore-verified --mobile-browser-verified',
-  '    --zero-api-requests-verified --human-review-verified',
+  '    --zero-api-requests-verified --local-human-review-acknowledged',
   '',
   'read-only preflight; it never deploys or writes evidence.',
   'Restore archive/log/database-probe and attestation files must be outside the Git checkout.',
@@ -47,7 +47,7 @@ const FLAG_NAMES = new Set([
   '--isolated-restore-verified',
   '--mobile-browser-verified',
   '--zero-api-requests-verified',
-  '--human-review-verified'
+  '--local-human-review-acknowledged'
 ]);
 const VALUE_NAMES = new Set([
   '--restore-evidence',
@@ -294,7 +294,7 @@ function main(argv) {
       isolatedRestoreVerified: args.attestations.has('--isolated-restore-verified') && restoreEvidenceBundle.matched === true,
       mobileBrowserVerified: args.attestations.has('--mobile-browser-verified'),
       zeroApiRequestsVerified: args.attestations.has('--zero-api-requests-verified'),
-      humanReviewVerified: args.attestations.has('--human-review-verified'),
+      localHumanReviewAcknowledged: args.attestations.has('--local-human-review-acknowledged'),
       authenticatedHumanReviewAttested: review.verified === true,
       authenticatedRestoreAttestation: restoreAttestation.verified === true
     });

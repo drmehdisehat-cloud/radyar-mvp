@@ -185,7 +185,7 @@ function baseArgs(f) {
     '--isolated-restore-verified',
     '--mobile-browser-verified',
     '--zero-api-requests-verified',
-    '--human-review-verified'
+    '--local-human-review-acknowledged'
   ];
 }
 
@@ -435,7 +435,7 @@ test('evidence files inside the Git checkout are rejected before parsing', () =>
       '--isolated-restore-verified',
       '--mobile-browser-verified',
       '--zero-api-requests-verified',
-      '--human-review-verified'
+      '--local-human-review-acknowledged'
     ]);
     assert.equal(result.status, 2);
     const report = JSON.parse(result.stdout);
@@ -458,7 +458,7 @@ test('symlinked evidence paths are rejected', () => {
       '--isolated-restore-verified',
       '--mobile-browser-verified',
       '--zero-api-requests-verified',
-      '--human-review-verified'
+      '--local-human-review-acknowledged'
     ]);
     assert.equal(result.status, 2);
     const report = JSON.parse(result.stdout);
@@ -606,6 +606,21 @@ test('operator restore checklist documents only supported signed preflight optio
     '--isolated-restore-verified',
     '--mobile-browser-verified',
     '--zero-api-requests-verified',
-    '--human-review-verified'
+    '--local-human-review-acknowledged'
   ]));
+});
+
+
+test('ambiguous human-review-verified flag is rejected instead of being treated as authenticated review', () => {
+  const f = fixture();
+  try {
+    const args = baseArgs(f).filter(argument => argument !== '--local-human-review-acknowledged');
+    const result = run([...args, '--human-review-verified']);
+    assert.equal(result.status, 2);
+    const report = JSON.parse(result.stdout);
+    assert.ok(report.blockers.some(item => /unknown_argument/.test(item)));
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
 });

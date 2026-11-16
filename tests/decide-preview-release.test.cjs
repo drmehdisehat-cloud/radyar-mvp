@@ -45,7 +45,7 @@ test('all browser and review flags still fail without a complete restore attesta
   const decision = decidePreviewRelease({
     restoreEvidence:{restore_proven:true}, destinationEvidence,
     isolatedRestoreVerified:true, mobileBrowserVerified:true,
-    zeroApiRequestsVerified:true, humanReviewVerified:true, authenticatedHumanReviewAttested:true,
+    zeroApiRequestsVerified:true, localHumanReviewAcknowledged:true, authenticatedHumanReviewAttested:true,
     authenticatedRestoreAttestation:true
   });
   assert.equal(decision.status,'NOT_READY');
@@ -54,7 +54,7 @@ test('tampered destination hash fails even when restore attestation and other fl
   const decision = decidePreviewRelease({
     restoreEvidence, destinationEvidence:{...destinationEvidence,destination_sha256:'f'.repeat(64)},
     isolatedRestoreVerified:true, mobileBrowserVerified:true,
-    zeroApiRequestsVerified:true, humanReviewVerified:true, authenticatedHumanReviewAttested:true,
+    zeroApiRequestsVerified:true, localHumanReviewAcknowledged:true, authenticatedHumanReviewAttested:true,
     authenticatedRestoreAttestation:true
   });
   assert.equal(decision.status,'NOT_READY');
@@ -63,7 +63,7 @@ test('tampered destination hash fails even when restore attestation and other fl
 test('complete synthetic manifest and isolated staging path reach owner approval only; they are not a deployment', () => {
   const decision = decidePreviewRelease({
     restoreEvidence, destinationEvidence, isolatedRestoreVerified:true,
-    mobileBrowserVerified:true, zeroApiRequestsVerified:true, humanReviewVerified:true, authenticatedHumanReviewAttested:true,
+    mobileBrowserVerified:true, zeroApiRequestsVerified:true, localHumanReviewAcknowledged:true, authenticatedHumanReviewAttested:true,
     authenticatedRestoreAttestation:true
   });
   assert.equal(decision.status,'EVIDENCE_SHAPE_VALID_REQUIRES_EXTERNAL_VERIFICATION');
@@ -73,7 +73,7 @@ test('complete synthetic manifest and isolated staging path reach owner approval
 });
 
 test('destination evidence inside production document root is rejected even with matching hashes', () => {
-  const decision = decidePreviewRelease({ restoreEvidence, destinationEvidence: { ...destinationEvidence, destination_realpath: '/home/site/public_html/dadyar-preview/index.html' }, isolatedRestoreVerified:true, mobileBrowserVerified:true, zeroApiRequestsVerified:true, humanReviewVerified:true, authenticatedHumanReviewAttested:true, authenticatedRestoreAttestation:true });
+  const decision = decidePreviewRelease({ restoreEvidence, destinationEvidence: { ...destinationEvidence, destination_realpath: '/home/site/public_html/dadyar-preview/index.html' }, isolatedRestoreVerified:true, mobileBrowserVerified:true, zeroApiRequestsVerified:true, localHumanReviewAcknowledged:true, authenticatedHumanReviewAttested:true, authenticatedRestoreAttestation:true });
   assert.equal(decision.status, 'NOT_READY');
   assert.ok(decision.blockers.includes('preview destination is not verified outside production document root and Git checkout'));
 });
@@ -89,7 +89,7 @@ test('release gate rejects destination evidence without an independent Git-check
     isolatedRestoreVerified: true,
     mobileBrowserVerified: true,
     zeroApiRequestsVerified: true,
-    humanReviewVerified: true,
+    localHumanReviewAcknowledged: true,
     authenticatedHumanReviewAttested: true,
     authenticatedRestoreAttestation: true
   });
@@ -115,7 +115,7 @@ for (const [label, patch] of [
       isolatedRestoreVerified: true,
       mobileBrowserVerified: true,
       zeroApiRequestsVerified: true,
-      humanReviewVerified: true,
+      localHumanReviewAcknowledged: true,
       authenticatedHumanReviewAttested: true,
       authenticatedRestoreAttestation: true
     });
@@ -135,7 +135,7 @@ test('rejects an isolated restore target that contains the production document r
     isolatedRestoreVerified: true,
     mobileBrowserVerified: true,
     zeroApiRequestsVerified: true,
-    humanReviewVerified: true,
+    localHumanReviewAcknowledged: true,
     authenticatedHumanReviewAttested: true,
     authenticatedRestoreAttestation: true
   });
@@ -150,7 +150,7 @@ test('rejects a staging destination that is an ancestor of the production docume
     isolatedRestoreVerified: true,
     mobileBrowserVerified: true,
     zeroApiRequestsVerified: true,
-    humanReviewVerified: true,
+    localHumanReviewAcknowledged: true,
     authenticatedHumanReviewAttested: true,
     authenticatedRestoreAttestation: true
   });
@@ -165,7 +165,7 @@ test('rejects a staging destination that is an ancestor of the Git checkout', ()
     isolatedRestoreVerified: true,
     mobileBrowserVerified: true,
     zeroApiRequestsVerified: true,
-    humanReviewVerified: true,
+    localHumanReviewAcknowledged: true,
     authenticatedHumanReviewAttested: true,
     authenticatedRestoreAttestation: true
   });
