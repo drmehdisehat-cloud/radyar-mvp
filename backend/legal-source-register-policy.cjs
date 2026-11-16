@@ -43,12 +43,15 @@ function directOfficialDocumentUrl(value, documentId) {
   const queryKeys = queryEntries.map(([key]) => key.toLowerCase());
   if (new Set(queryKeys).size !== queryKeys.length) return false;
   if ([...pathSegments, ...queryEntries.flat()].some(part => UNSAFE_CONTROL.test(part))) return false;
-  const matches = pathSegments.filter(part => part === documentId).length +
-    queryEntries.filter(([, part]) => part === documentId).length;
-  if (matches !== 1) return false;
+  const pathMatches = pathSegments.filter(part => part === documentId).length;
+  const queryMatches = queryEntries.filter(([, part]) => part === documentId).length;
   if (host === 'qavanin.ir') {
     const ids = queryEntries.filter(([key]) => key === 'IDS');
-    if (ids.length !== 1 || ids[0][1] !== documentId) return false;
+    if (pathMatches !== 0 || queryMatches !== 1 || ids.length !== 1 || ids[0][1] !== documentId) return false;
+  } else if (pathMatches !== 1 || queryMatches !== 0) {
+    // Other official portals must identify the document in the path itself.
+    // A search URL or arbitrary query parameter is not a direct document URL.
+    return false;
   }
   return true;
 }
