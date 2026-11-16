@@ -85,6 +85,21 @@ test('a source marked for answer use is rejected when the primary source or huma
   }
 });
 
+
+test('global register errors clear all answer-eligible IDs', () => {
+  const record = approvedRecord();
+  const badDate = auditLegalSourceRegister({ ...registry([record]), observedAt: '2026-02-30' });
+  assert.equal(badDate.valid, false);
+  assert.deepEqual(badDate.answerEligibleRecordIds, []);
+
+  const badDefault = auditLegalSourceRegister({
+    ...registry([record]),
+    policy: { defaultUseInLegalAnswers: true }
+  });
+  assert.equal(badDefault.valid, false);
+  assert.deepEqual(badDefault.answerEligibleRecordIds, []);
+});
+
 test('invalid dates and overlapping event-date versions fail closed', () => {
   const invalid = approvedRecord();
   invalid.eventDateVersions[0].effectiveFrom = '2024-02-30';

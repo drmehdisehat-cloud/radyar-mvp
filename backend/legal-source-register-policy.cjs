@@ -106,6 +106,7 @@ function auditLegalSourceRegister(register) {
     return { valid: false, issues: ['register_not_object'], answerEligibleRecordIds: [], structuralOnly: true };
   }
   if (register.schema !== 'dadyar-legal-source-register-v1') issues.push('unsupported_register_schema');
+  if (register.policy?.defaultUseInLegalAnswers !== false) issues.push('default_answer_use_must_be_false');
   const observedAt = register.observedAt;
   if (!validDate(observedAt)) issues.push('invalid_register_observed_at');
   if (!Array.isArray(register.records)) issues.push('records_not_array');
@@ -165,10 +166,13 @@ function auditLegalSourceRegister(register) {
     if (claimedUse && recordHasIssues) issues.push(prefix + 'incomplete_evidence_cannot_be_used_in_answers');
   }
 
+  const valid = issues.length === 0;
   return {
-    valid: issues.length === 0,
+    valid,
     issues,
-    answerEligibleRecordIds: eligible,
+    // Never expose a promotable record when any register-level or record-level
+    // validation issue exists. Consumers must still require valid === true.
+    answerEligibleRecordIds: valid ? eligible : [],
     structuralOnly: true
   };
 }
