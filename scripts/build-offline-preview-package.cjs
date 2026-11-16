@@ -34,13 +34,23 @@ function buildOfflinePreviewPackage(destinationArg, options = {}) {
   const repoRoot = path.resolve(options.repoRoot || path.resolve(__dirname, '..'));
   const sourcePath = path.resolve(options.sourcePath || path.join(repoRoot, 'dadyar-preview', 'index.html'));
   const destination = path.resolve(destinationArg);
-  const commit = options.commit || process.env.GITHUB_SHA;
+  // On pull_request events, GITHUB_SHA is the synthetic merge commit.
+  // Bind the package to the actual branch head, while recording the workflow SHA separately.
+  const commit = options.commit || process.env.DADYAR_PREVIEW_SOURCE_SHA || process.env.GITHUB_SHA;
+  const workflowCommit = options.workflowCommit || process.env.DADYAR_PREVIEW_WORKFLOW_SHA || process.env.GITHUB_SHA || commit;
+  const workflowEvent = options.workflowEvent || process.env.DADYAR_PREVIEW_EVENT || process.env.GITHUB_EVENT_NAME || 'local-test';
   // GITHUB_REF_NAME is a reserved Actions variable and remains <number>/merge on PR runs.
   // Use a dedicated, explicitly supplied branch identity for non-deploying PR artifacts.
   const branch = options.branch || process.env.DADYAR_PREVIEW_BRANCH || process.env.GITHUB_REF_NAME;
 
   if (!/^[a-f0-9]{40}$/.test(String(commit || ''))) {
     fail('A full 40-character source commit SHA is required.');
+  }
+  if (!/^[a-f0-9]{40}$/.test(String(workflowCommit || ''))) {
+    fail('A full 40-character workflow commit SHA is required.');
+  }
+  if (typeof workflowEvent !== 'string' || !/^(push|pull_request|local-test)$/.test(workflowEvent)) {
+    fail('A supported workflow event identity is required.');
   }
   if (branch !== 'dadyar/ai-chat-private-20261101') {
     fail('The handoff package is restricted to the approved experimental branch.');
@@ -144,6 +154,8 @@ function buildOfflinePreviewPackage(destinationArg, options = {}) {
   const metadata = {
     package: 'dadyar-offline-preview-handoff',
     source_commit: commit,
+    workflow_commit: workflowCommit,
+    workflow_event: workflowEvent,
     source_branch: branch,
     target_subpath: '/dadyar-preview/',
     source_file: 'dadyar-preview/index.html',
@@ -220,6 +232,7 @@ function buildOfflinePreviewPackage(destinationArg, options = {}) {
   }
   return {
     destination, files: actualNames, source_commit: commit,
+    workflow_commit: workflowCommit,
     source_sha256: metadata.source_file_sha256,
     source_blob_sha1: metadata.source_file_git_blob_sha1,
     release_authorized: false, api_enabled: false, checksums_verified: true
