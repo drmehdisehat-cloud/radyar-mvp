@@ -50,4 +50,23 @@ node scripts/verify-preview-destination.cjs \
 4. پس از تأیید Restore، فایل مقصد، بازبینی انسانی احراز هویت‌شده، آزمون موبایل و صفر بودن درخواست‌های شبکه/API، بازبینی امنیتی و حقوقی و مجوز صریح مالک، مرحله انتشار عمومی جداگانه بررسی می‌شود.
 5. مرحله عمومی فقط مجاز است یک پوشه جدید `dadyar-preview` و یک فایل `index.html` ایجاد کند. هیچ فایل موجودی جایگزین یا حذف نشود؛ `.htaccess`، redirect، symlink یا فایل دیگری اضافه نشود.
 
+
+## کپی کنترل‌شده پیش‌نمایش به محیط staging مستقل
+
+پس از آنکه میزبان محیط staging جداگانه را ایجاد کرد و اپراتور Document Root تولید را به‌صورت canonical ثبت کرد، می‌توان فقط فایل پیش‌نمایش را در ریشه staging کپی کرد. این فرمان Restore انجام نمی‌دهد، مقصد تولید را نمی‌نویسد و مجوز انتشار صادر نمی‌کند:
+
+```sh
+node scripts/stage-preview-isolated.cjs \\
+  /ABSOLUTE/TRUSTED-CHECKOUT/dadyar-preview/index.html \\
+  /ABSOLUTE/ISOLATED-STAGING-ROOT \\
+  /ABSOLUTE/PRODUCTION-DOCUMENT-ROOT \\
+  EXPECTED_REVIEWED_GIT_BLOB_SHA1
+```
+
+- ریشه staging باید از قبل موجود، canonical، بدون symlink و غیرقابل‌نوشتن برای group/other باشد.
+- ریشه staging باید در هر دو جهت از Document Root تولید و Git checkout جدا باشد.
+- فرمان فقط یک مسیر جدید `dadyar-preview/index.html` می‌سازد؛ اگر پوشه از قبل وجود داشته باشد، هیچ فایلی را جایگزین نمی‌کند.
+- پس از کپی، Git Blob SHA-1 و SHA-256 فایل مقصد با نسخه بازبینی‌شده تطبیق داده می‌شود.
+- خروجی صریحاً `deployment_authorized: false` و `restore_proven: false` دارد؛ آزمون HTTPS زنده، احراز هویت بازبین و مجوز مالک همچنان جداگانه لازم‌اند.
+
 **ممنوع:** Restore درجا روی حساب تولید، تغییر DNS، تغییر `main`، دستکاری دیتابیس تولید، فعال‌کردن API یا گفت‌وگوی هوشمند عمومی، و قرار دادن بکاپ یا اسرار در Git/گفتگو.
