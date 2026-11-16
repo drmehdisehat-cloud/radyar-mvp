@@ -269,7 +269,7 @@ test('fails closed when the gate cannot load a bounded report', async () => {
 
 test('server factory applies bounded HTTP parser and timeout settings', () => {
   const f = fixture();
-  const server = createReviewReleaseHttpServer(f.handler);
+  const server = createReviewReleaseHttpServer(f.createHandler());
   assert.equal(server.maxHeadersCount, 64);
   assert.equal(server.requestTimeout, 15000);
   assert.equal(server.headersTimeout, 5000);
