@@ -211,3 +211,61 @@ test('accepts only the exact checked-out preview source path', t => {
   }), /reviewed dadyar-preview\/index.html in this checkout/);
   assert.equal(fs.existsSync(path.join(f.stagingRoot, 'dadyar-preview')), false);
 });
+
+
+test('rechecks staging-root ownership and permissions after copying', t => {
+  const f = fixture(t);
+  const destinationDirectory = path.join(f.stagingRoot, 'dadyar-preview');
+  const originalReadDir = fs.readdirSync;
+  let injected = false;
+  fs.readdirSync = function (target, ...args) {
+    const entries = originalReadDir.call(this, target, ...args);
+    if (!injected && typeof target === 'string' && path.resolve(target) === destinationDirectory) {
+      injected = true;
+      fs.chmodSync(f.stagingRoot, 0o777);
+    }
+    return entries;
+  };
+  try {
+    assert.throws(() => stagePreviewIsolated({
+      source, stagingRoot: f.stagingRoot, productionDocumentRoot: f.productionRoot,
+      expectedSourceBlobSha1: expectedBlob
+    }), /isolated staging root must not be group- or world-writable during staging/);
+  } finally {
+    fs.readdirSync = originalReadDir;
+  }
+  assert.equal(injected, true);
+  assert.equal(fs.existsSync(destinationDirectory), false, 'the invocation-owned preview folder should be rolled back');
+  assert.equal(fs.statSync(f.stagingRoot).mode & 0o777, 0o777, 'the external permission change must not be silently undone');
+  assert.equal(fs.readFileSync(path.join(f.productionRoot, 'keep.txt'), 'utf8'), 'production sentinel');
+});
+
+test('rejects a production document-root path replacement during final validation', t => {
+  const f = fixture(t);
+  const destinationDirectory = path.join(f.stagingRoot, 'dadyar-preview');
+  const movedProductionRoot = path.join(f.root, 'production-original');
+  const originalReadDir = fs.readdirSync;
+  let injected = false;
+  fs.readdirSync = function (target, ...args) {
+    const entries = originalReadDir.call(this, target, ...args);
+    if (!injected && typeof target === 'string' && path.resolve(target) === destinationDirectory) {
+      injected = true;
+      fs.renameSync(f.productionRoot, movedProductionRoot);
+      fs.mkdirSync(f.productionRoot, { mode: 0o755 });
+      fs.writeFileSync(path.join(f.productionRoot, 'keep.txt'), 'replacement production sentinel');
+    }
+    return entries;
+  };
+  try {
+    assert.throws(() => stagePreviewIsolated({
+      source, stagingRoot: f.stagingRoot, productionDocumentRoot: f.productionRoot,
+      expectedSourceBlobSha1: expectedBlob
+    }), /production document root changed during staging/);
+  } finally {
+    fs.readdirSync = originalReadDir;
+  }
+  assert.equal(injected, true);
+  assert.equal(fs.existsSync(destinationDirectory), false, 'the invocation-owned preview folder should be rolled back');
+  assert.equal(fs.readFileSync(path.join(movedProductionRoot, 'keep.txt'), 'utf8'), 'production sentinel');
+  assert.equal(fs.readFileSync(path.join(f.productionRoot, 'keep.txt'), 'utf8'), 'replacement production sentinel');
+});
