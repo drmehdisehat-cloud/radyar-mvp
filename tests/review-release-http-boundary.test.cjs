@@ -215,6 +215,32 @@ test('rejects duplicate Origin headers at the raw HTTP boundary', async () => {
   });
 });
 
+test('rejects duplicate Host, Cookie, Authorization and Fetch Metadata headers before the review gate', async () => {
+  const f = fixture();
+  await withServer(f, async url => {
+    const target = new URL(url);
+    const cases = [
+      ['Host', [target.host, 'attacker.example']],
+      ['Cookie', ['reviewer=session-a', 'reviewer=session-b']],
+      ['Authorization', ['Bearer synthetic-a', 'Bearer synthetic-b']],
+      ['Sec-Fetch-Site', ['same-origin', 'cross-site']]
+    ];
+
+    for (const [name, values] of cases) {
+      const pairs = rawHeaderPairs(url);
+      if (name === 'Host') {
+        pairs.unshift('Host', values[0], 'Host', values[1]);
+      } else {
+        pairs.push(name, values[0], name, values[1]);
+      }
+      const result = await rawRequest(url, 'POST', pairs, body());
+      assert.equal(result.status, 400, 'duplicate ' + name + ' must be rejected');
+      assert.equal(result.headers.connection, 'close');
+    }
+    assert.equal(f.gateCalls, 0);
+  });
+});
+
 test('rejects duplicate JSON keys instead of accepting parser-dependent values', async () => {
   const f = fixture();
   await withServer(f, async url => {
