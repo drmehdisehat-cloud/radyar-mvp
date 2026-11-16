@@ -32,11 +32,23 @@ function canonicalDirectory(target, label, requirePrivate = false) {
   if (real !== target) fail(label + ' must not use a symlink alias');
   const stat = fs.statSync(real);
   if (!stat.isDirectory()) fail(label + ' must be an existing directory');
-  if (requirePrivate && (stat.mode & 0o022) !== 0) {
-    fail(label + ' must not be group- or world-writable');
+  if (requirePrivate) {
+    assertPrivateOwnedDirectory(stat, label);
   }
   return { realpath: real, stat };
 }
+function assertPrivateOwnedDirectory(stat, label, expectedUid = (typeof process.getuid === 'function' ? process.getuid() : null)) {
+  if (!stat || !Number.isInteger(stat.mode)) {
+    fail(label + ' permissions could not be verified');
+  }
+  if ((stat.mode & 0o022) !== 0) {
+    fail(label + ' must not be group- or world-writable');
+  }
+  if (expectedUid !== null && (!Number.isInteger(stat.uid) || stat.uid !== expectedUid)) {
+    fail(label + ' must be owned by the current service user');
+  }
+}
+
 function isOutside(root, target) {
   const relative = path.relative(root, target);
   return relative === '..' || relative.startsWith('..' + path.sep) || path.isAbsolute(relative);
@@ -176,4 +188,4 @@ if (require.main === module) {
     }
   }
 }
-module.exports = { stagePreviewIsolated, pathsDisjoint };
+module.exports = { stagePreviewIsolated, pathsDisjoint, assertPrivateOwnedDirectory };
