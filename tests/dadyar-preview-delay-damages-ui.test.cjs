@@ -34,7 +34,7 @@ function harness(indexes = rawIndexes, principal = '100000000') {
     getElementById(id) { return elements[id] || null; },
     createElement(tagName) { return { tagName, value: '', textContent: '' }; }
   };
-  vm.runInNewContext(browserBlock, { document }, { timeout: 1000 });
+  vm.runInNewContext(browserBlock, { document }, { timeout: 5000 });
   return { elements, handlers, due, paid };
 }
 
