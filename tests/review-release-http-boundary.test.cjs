@@ -15,8 +15,9 @@ const SESSION = 'synthetic-reviewer-session';
 
 function fixture(options = {}) {
   let gateCalls = 0;
-  const handler = createReviewReleaseHttpHandler({
-    allowedOrigin: ORIGIN,
+  const { allowedOrigin: configuredOrigin, ...handlerOptions } = options;
+  const createHandler = (allowedOrigin = configuredOrigin || ORIGIN) => createReviewReleaseHttpHandler({
+    allowedOrigin,
     maxBodyBytes: 2048,
     maxReportBytes: 4096,
     releaseReviewedReport: async ({ request, envelope }) => {
@@ -29,29 +30,36 @@ function fixture(options = {}) {
       }
       return { reportBytes: REPORT };
     },
-    ...options
+    ...handlerOptions
   });
-  return { handler, get gateCalls() { return gateCalls; } };
+  return { createHandler, get gateCalls() { return gateCalls; } };
 }
 
-async function withServer(handler, callback) {
-  const server = createReviewReleaseHttpServer(handler);
+async function withServer(fixtureValue, callback) {
+  const server = createReviewReleaseHttpServer((_request, response) => {
+    response.statusCode = 500;
+    response.end();
+  });
   await new Promise((resolve, reject) => {
     server.once('error', reject);
     server.listen(0, '127.0.0.1', resolve);
   });
   const address = server.address();
+  const allowedOrigin = 'https://127.0.0.1:' + address.port;
+  server.removeAllListeners('request');
+  server.on('request', fixtureValue.createHandler(allowedOrigin));
   const url = 'http://127.0.0.1:' + address.port + DEFAULT_ROUTE_PATH;
   try {
-    await callback(url, server);
+    await callback(url, server, allowedOrigin);
   } finally {
     await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
   }
 }
 
-function headers(overrides = {}) {
+function headers(url, overrides = {}) {
+  const target = new URL(url);
   return {
-    Origin: ORIGIN,
+    Origin: 'https://' + target.host,
     'Content-Type': 'application/json; charset=utf-8',
     'Sec-Fetch-Site': 'same-origin',
     'X-Test-Session': SESSION,
@@ -66,7 +74,7 @@ function body(envelope = { decision: 'approved', synthetic: true }) {
 async function post(url, payload = body(), overrides = {}) {
   return fetch(url, {
     method: 'POST',
-    headers: headers(overrides),
+    headers: headers(url, overrides),
     body: payload
   });
 }
@@ -95,9 +103,10 @@ function rawRequest(url, method, headerPairs, payload) {
   });
 }
 
-function rawHeaderPairs(overrides = []) {
+function rawHeaderPairs(url, overrides = []) {
+  const target = new URL(url);
   return [
-    'Origin', ORIGIN,
+    'Origin', 'https://' + target.host,
     'Content-Type', 'application/json; charset=utf-8',
     'Sec-Fetch-Site', 'same-origin',
     'X-Test-Session', SESSION,
@@ -107,7 +116,7 @@ function rawHeaderPairs(overrides = []) {
 
 test('serves only server-loaded bytes after the injected review gate approves', async () => {
   const f = fixture();
-  await withServer(f.handler, async url => {
+  await withServer(f, async url => {
     const response = await post(url, body(), { 'X-Reviewer-Id': 'caller-controlled-id' });
     assert.equal(response.status, 200);
     assert.deepEqual(Buffer.from(await response.arrayBuffer()), REPORT);
@@ -122,7 +131,7 @@ test('serves only server-loaded bytes after the injected review gate approves', 
 
 test('does not release a report when the server-side session adapter rejects the reviewer', async () => {
   const f = fixture();
-  await withServer(f.handler, async url => {
+  await withServer(f, async url => {
     const response = await post(url, body(), { 'X-Test-Session': 'missing-session' });
     assert.equal(response.status, 401);
     assert.equal(await response.text(), 'نشست بازبین معتبر نیست.');
@@ -132,16 +141,30 @@ test('does not release a report when the server-side session adapter rejects the
 
 test('does not release a report when the review decision is rejected', async () => {
   const f = fixture();
-  await withServer(f.handler, async url => {
+  await withServer(f, async url => {
     const response = await post(url, body({ decision: 'rejected', synthetic: true }));
     assert.equal(response.status, 403);
     assert.equal(f.gateCalls, 1);
   });
 });
 
+
+test('rejects a Host header that does not match the configured HTTPS origin before invoking the review gate', async () => {
+  const f = fixture();
+  await withServer(f, async url => {
+    const result = await rawRequest(url, 'POST', rawHeaderPairs(url, [
+      'Host', 'attacker.example'
+    ]), body());
+    assert.equal(result.status, 421);
+    assert.equal(f.gateCalls, 0);
+    assert.equal(result.headers['cache-control'], 'no-store, private, max-age=0');
+    assert.equal(result.headers['x-content-type-options'], 'nosniff');
+  });
+});
+
 test('rejects cross-origin requests before invoking the review gate', async () => {
   const f = fixture();
-  await withServer(f.handler, async url => {
+  await withServer(f, async url => {
     const response = await post(url, body(), { Origin: 'https://attacker.example' });
     assert.equal(response.status, 403);
     assert.equal(f.gateCalls, 0);
@@ -150,7 +173,7 @@ test('rejects cross-origin requests before invoking the review gate', async () =
 
 test('rejects cross-site Fetch Metadata before invoking the review gate', async () => {
   const f = fixture();
-  await withServer(f.handler, async url => {
+  await withServer(f, async url => {
     const response = await post(url, body(), { 'Sec-Fetch-Site': 'cross-site' });
     assert.equal(response.status, 403);
     assert.equal(f.gateCalls, 0);
@@ -159,7 +182,7 @@ test('rejects cross-site Fetch Metadata before invoking the review gate', async 
 
 test('rejects methods other than POST and returns an explicit Allow header', async () => {
   const f = fixture();
-  await withServer(f.handler, async url => {
+  await withServer(f, async url => {
     const response = await fetch(url, { method: 'GET' });
     assert.equal(response.status, 405);
     assert.equal(response.headers.get('allow'), 'POST');
@@ -169,11 +192,11 @@ test('rejects methods other than POST and returns an explicit Allow header', asy
 
 test('rejects query, encoded and path-normalization aliases without reaching the gate', async () => {
   const f = fixture();
-  await withServer(f.handler, async url => {
+  await withServer(f, async url => {
     for (const suffix of ['?download=1', '%2fapi/dadyar/review-report', '/../api/dadyar/review-report']) {
       const response = await fetch(url.replace(DEFAULT_ROUTE_PATH, DEFAULT_ROUTE_PATH + suffix), {
         method: 'POST',
-        headers: headers(),
+        headers: headers(url),
         body: body(),
         redirect: 'manual'
       });
@@ -185,8 +208,8 @@ test('rejects query, encoded and path-normalization aliases without reaching the
 
 test('rejects duplicate Origin headers at the raw HTTP boundary', async () => {
   const f = fixture();
-  await withServer(f.handler, async url => {
-    const result = await rawRequest(url, 'POST', rawHeaderPairs(['Origin', ORIGIN]), body());
+  await withServer(f, async url => {
+    const result = await rawRequest(url, 'POST', rawHeaderPairs(url, ['Origin', 'https://attacker.example']), body());
     assert.equal(result.status, 400);
     assert.equal(f.gateCalls, 0);
   });
@@ -194,7 +217,7 @@ test('rejects duplicate Origin headers at the raw HTTP boundary', async () => {
 
 test('rejects duplicate JSON keys instead of accepting parser-dependent values', async () => {
   const f = fixture();
-  await withServer(f.handler, async url => {
+  await withServer(f, async url => {
     const response = await post(url, '{"envelope":{"decision":"approved","decision":"rejected","synthetic":true}}');
     assert.equal(response.status, 400);
     assert.equal(f.gateCalls, 0);
@@ -203,10 +226,10 @@ test('rejects duplicate JSON keys instead of accepting parser-dependent values',
 
 test('rejects malformed UTF-8 before JSON parsing', async () => {
   const f = fixture();
-  await withServer(f.handler, async url => {
+  await withServer(f, async url => {
     const bytes = Buffer.from([0x7b, 0x22, 0x65, 0x6e, 0x76, 0x65, 0x6c, 0x6f, 0x70, 0x65, 0x22, 0x3a, 0xff, 0x7d]);
     const target = new URL(url);
-    const result = await rawRequest(url, 'POST', rawHeaderPairs([
+    const result = await rawRequest(url, 'POST', rawHeaderPairs(url, [
       'Content-Length', String(bytes.length)
     ]), bytes);
     assert.equal(result.status, 400);
@@ -216,7 +239,7 @@ test('rejects malformed UTF-8 before JSON parsing', async () => {
 
 test('rejects compressed request bodies', async () => {
   const f = fixture();
-  await withServer(f.handler, async url => {
+  await withServer(f, async url => {
     const response = await post(url, body(), { 'Content-Encoding': 'gzip' });
     assert.equal(response.status, 415);
     assert.equal(f.gateCalls, 0);
@@ -225,7 +248,7 @@ test('rejects compressed request bodies', async () => {
 
 test('rejects an oversized request before invoking the review gate', async () => {
   const f = fixture({ maxBodyBytes: 1024 });
-  await withServer(f.handler, async url => {
+  await withServer(f, async url => {
     const response = await post(url, JSON.stringify({ envelope: { decision: 'approved', synthetic: true, padding: 'x'.repeat(1500) } }));
     assert.equal(response.status, 413);
     assert.equal(f.gateCalls, 0);
@@ -237,7 +260,7 @@ test('fails closed when the gate cannot load a bounded report', async () => {
     maxReportBytes: 32,
     releaseReviewedReport: async () => ({ reportBytes: Buffer.alloc(33, 0x61) })
   });
-  await withServer(f.handler, async url => {
+  await withServer(f, async url => {
     const response = await post(url);
     assert.equal(response.status, 503);
     assert.equal(f.gateCalls, 0);

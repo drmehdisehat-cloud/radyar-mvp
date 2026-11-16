@@ -35,6 +35,22 @@ function canonicalHttpsOrigin(value) {
   return parsed.origin;
 }
 
+function requestHostMatchesOrigin(request, origin) {
+  const host = request && request.headers && request.headers.host;
+  if (typeof host !== 'string' || !host || host !== host.trim()) return false;
+  let parsedHost;
+  try { parsedHost = new URL('https://' + host); }
+  catch { return false; }
+  if (parsedHost.protocol !== 'https:' || !parsedHost.hostname ||
+      parsedHost.username || parsedHost.password ||
+      parsedHost.pathname !== '/' || parsedHost.search || parsedHost.hash) return false;
+  try {
+    return parsedHost.host === new URL(origin).host;
+  } catch {
+    return false;
+  }
+}
+
 function hasAmbiguousSecurityHeaders(request) {
   const rawHeaders = request && request.rawHeaders;
   if (!Array.isArray(rawHeaders) || rawHeaders.length % 2 !== 0) return true;
@@ -177,6 +193,9 @@ function createReviewReleaseHttpHandler(options = {}) {
 
   return async function dadyarReviewReportHandler(request, response) {
     if (hasAmbiguousSecurityHeaders(request)) return respondAndCloseRequest(request, response, 400, 'سرآیندهای تکراری یا مبهم درخواست پذیرفته نیستند.');
+    if (!requestHostMatchesOrigin(request, origin)) {
+      return respondAndCloseRequest(request, response, 421, 'میزبان درخواست با مبدأ مجاز مطابقت ندارد.');
+    }
     if (request.headers && Object.prototype.hasOwnProperty.call(request.headers, 'expect')) {
       return respondAndCloseRequest(request, response, 417, 'درخواست دارای Expect پشتیبانی نمی‌شود.');
     }
@@ -263,5 +282,6 @@ module.exports = {
   createReviewReleaseHttpHandler,
   createReviewReleaseHttpServer,
   canonicalHttpsOrigin,
-  isCanonicalOriginFormPath
+  isCanonicalOriginFormPath,
+  requestHostMatchesOrigin
 };
