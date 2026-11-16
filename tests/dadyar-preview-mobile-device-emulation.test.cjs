@@ -325,8 +325,8 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.equal(snapshot.pagehideClearedCalculator, true, 'pagehide retained calculator principal, month, currency, or result');
     assert.ok(snapshot.multiTopicIds.includes('instruments'), 'cheque hint missing from internal multi-topic routing');
     assert.ok(snapshot.multiTopicIds.includes('family'), 'family hint missing from internal multi-topic routing');
-    assert.equal(snapshot.multiTopicExportEligible, false,
-      'a mixed-topic free question must be blocked by the cheque-only preview scope');
+    assert.equal(snapshot.multiTopicExportEligible, true,
+      'a mixed-topic question containing cheque must keep the synthetic cheque report eligible while other topics remain explicitly out of scope');
     assert.equal(snapshot.multiTopicInputCleared, true, 'raw free text remained in the editable field after local routing');
     assert.equal(snapshot.multiTopicRawQuestionEchoed, false, 'raw free text was copied into the report');
     assert.match(snapshot.multiTopicReport, /متن خام پرسش آزاد برای حفظ حریم خصوصی در گزارش درج نمی‌شود/);
@@ -621,7 +621,7 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
     assert.ok(snapshot.multiTopicIds.includes('family'), 'family hint missing from HTTP preview routing');
     assert.equal(snapshot.multiTopicInputCleared, true, 'raw multi-topic question remained in the editable field');
     assert.equal(snapshot.multiTopicRawQuestionEchoed, false, 'raw multi-topic question leaked into the report');
-    assert.equal(snapshot.multiTopicExportEligible, false, 'mixed-topic input must be blocked in the cheque-only preview');
+    assert.equal(snapshot.multiTopicExportEligible, true, 'mixed-topic input containing cheque must allow only the synthetic cheque report');
     assert.equal(snapshot.chequeOnlyExportEligible, true, 'a cheque-only question should remain eligible for human review');
     assert.match(snapshot.multiTopicScopeStatus, /چندموضوعی/);
     assert.equal(snapshot.sensitiveInputCleared, true, 'sensitive free text remained in the editable field');
