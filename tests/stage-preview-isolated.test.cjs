@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const { stagePreviewIsolated } = require('../scripts/stage-preview-isolated.cjs');
+const { stagePreviewIsolated, assertPrivateOwnedDirectory } = require('../scripts/stage-preview-isolated.cjs');
 
 const repoRoot = path.resolve(__dirname, '..');
 const source = path.join(repoRoot, 'dadyar-preview', 'index.html');
@@ -28,6 +28,29 @@ function fixture(t) {
   fs.writeFileSync(path.join(productionRoot, 'keep.txt'), 'production sentinel', { mode: 0o644 });
   return { root, stagingRoot, productionRoot };
 }
+
+test('requires the isolated staging root to be owned by the current service user', () => {
+  const uid = typeof process.getuid === 'function' ? process.getuid() : 1000;
+  assert.doesNotThrow(() => assertPrivateOwnedDirectory({ mode: 0o40700, uid }, 'staging root', uid));
+  assert.throws(
+    () => assertPrivateOwnedDirectory({ mode: 0o40700, uid: uid + 1 }, 'staging root', uid),
+    /owned by the current service user/
+  );
+  assert.throws(
+    () => assertPrivateOwnedDirectory({ mode: 0o40700 }, 'staging root', uid),
+    /ownership could not be verified/
+  );
+});
+
+test('rejects group- or world-writable staging roots before creating preview files', t => {
+  const f = fixture(t);
+  fs.chmodSync(f.stagingRoot, 0o777);
+  assert.throws(() => stagePreviewIsolated({
+    source, stagingRoot: f.stagingRoot, productionDocumentRoot: f.productionRoot,
+    expectedSourceBlobSha1: expectedBlob
+  }), /must not be group- or world-writable/);
+  assert.equal(fs.existsSync(path.join(f.stagingRoot, 'dadyar-preview')), false);
+});
 
 test('copies only the pinned preview into a new isolated staging folder without deployment', t => {
   const f = fixture(t);
