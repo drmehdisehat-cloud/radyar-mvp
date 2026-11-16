@@ -66,3 +66,21 @@ test('unreconciled CBI secondary index lead cannot overwrite the owner-image ser
     assert.notEqual(indexData.source.status, 'transcribed-not-independently-authenticated');
   }
 });
+
+test('direct CBI page discovery remains a research candidate until primary bytes and series are verified', () => {
+  const record = register.records.find(item => item.id === 'cbi-urban-consumer-index-1405');
+  assert.ok(record);
+  const candidate = record.officialDocumentUrlCandidates?.find(item =>
+    item.url === 'https://cbi.ir/showitem/36735.aspx'
+  );
+  assert.ok(candidate, 'direct CBI URL candidate must be retained for operator follow-up');
+  assert.equal(candidate.candidateStatus, 'direct-url-discovered-not-fetched');
+  assert.equal(candidate.reportedMonth, '1405-07');
+  assert.equal(candidate.reportedValue, 836.8);
+  assert.equal(record.primaryOfficialDocumentUrl, null);
+  assert.equal(record.primarySourceVerified, false);
+  assert.equal(record.humanReviewStatus, 'pending');
+  assert.equal(record.useInLegalAnswers, false);
+  assert.equal(indexData.source.status, 'transcribed-not-independently-authenticated');
+  assert.equal(indexData.months['7'], 3611.1);
+});
