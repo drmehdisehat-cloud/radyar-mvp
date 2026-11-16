@@ -67,10 +67,12 @@ test('only canonical official document selectors are accepted; extra query param
     ['https://qavanin.ir/Law/TreeText/?IDS=1001&redirect=https%3A%2F%2Fevil.example', '1001'],
     ['https://qavanin.ir/Law/TreeText/?IDS=1001&download=1', '1001'],
     ['https://qavanin.ir/Law/TreeText/?IDS=1001&', '1001'],
+    ['https://qavanin.ir/Law/TreeText/?IDS=1001#', '1001'],
     ['https://rrk.ir/notice/1001?lang=fa', '1001'],
     ['https://rrk.ir/notice/1001?redirect=https%3A%2F%2Fevil.example', '1001'],
     ['https://rrk.ir/notice/1001?download=1', '1001'],
-    ['https://rrk.ir/notice/1001?', '1001']
+    ['https://rrk.ir/notice/1001?', '1001'],
+    ['https://rrk.ir/notice/1001#', '1001']
   ];
   for (const [url, id] of rejected) assert.equal(safeOfficialDocumentUrl(url, id), false, url);
 });

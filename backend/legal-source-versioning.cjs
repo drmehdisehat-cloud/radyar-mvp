@@ -28,7 +28,7 @@ function validDate(value) {
 }
 
 function safeOfficialDocumentUrl(value, documentId) {
-  if (typeof value !== 'string' || value.length > 2048 ||
+  if (typeof value !== 'string' || value.length > 2048 || value.includes('#') ||
       typeof documentId !== 'string' || !DOCUMENT_ID.test(documentId) ||
       UNSAFE_METADATA_CONTROL.test(documentId) || UNSAFE_METADATA_CONTROL.test(value)) {
     return false;
@@ -61,7 +61,7 @@ function safeOfficialDocumentUrl(value, documentId) {
        queryEntries.length === 1 &&
        queryEntries[0][0] === 'IDS' &&
        queryEntries[0][1] === documentId)
-    : (url.search === '' && queryEntries.length === 0);
+    : (url.search === '' && queryEntries.length === 0 && !value.includes('?'));
   return url.protocol === 'https:' &&
     OFFICIAL_HOSTS.has(url.hostname.toLowerCase()) &&
     (!url.port || url.port === '443') &&

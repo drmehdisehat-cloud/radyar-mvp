@@ -126,4 +126,7 @@ test('non-Qavanin official document IDs must be in a path segment, not a search 
   assert.equal(directOfficialDocumentUrl('https://qavanin.ir/Law/TreeText/?IDS=12345&lang=fa', '12345'), false);
   assert.equal(directOfficialDocumentUrl('https://qavanin.ir/Law/TreeText/?IDS=12345&redirect=https%3A%2F%2Fevil.example', '12345'), false);
   assert.equal(directOfficialDocumentUrl('https://qavanin.ir/Law/TreeText/?IDS=12345&', '12345'), false);
+  assert.equal(directOfficialDocumentUrl('https://qavanin.ir/Law/TreeText/?IDS=12345#', '12345'), false);
+  assert.equal(directOfficialDocumentUrl('https://rrk.ir/Document/12345?', '12345'), false);
+  assert.equal(directOfficialDocumentUrl('https://rrk.ir/Document/12345#', '12345'), false);
 });

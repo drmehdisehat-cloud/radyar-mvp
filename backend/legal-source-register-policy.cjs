@@ -22,7 +22,7 @@ function validDate(value) {
 }
 
 function directOfficialDocumentUrl(value, documentId) {
-  if (typeof value !== 'string' || value.length > 2048 ||
+  if (typeof value !== 'string' || value.length > 2048 || value.includes('#') ||
       typeof documentId !== 'string' || !DOCUMENT_ID.test(documentId) ||
       UNSAFE_CONTROL.test(value) || UNSAFE_CONTROL.test(documentId)) return false;
   let url;
@@ -49,7 +49,7 @@ function directOfficialDocumentUrl(value, documentId) {
     const ids = queryEntries.filter(([key]) => key === 'IDS');
     if (pathMatches !== 0 || queryMatches !== 1 || queryEntries.length !== 1 ||
         url.search !== '?IDS=' + documentId || ids.length !== 1 || ids[0][1] !== documentId) return false;
-  } else if (pathMatches !== 1 || queryEntries.length !== 0 || queryMatches !== 0 || url.search !== '') {
+  } else if (pathMatches !== 1 || queryEntries.length !== 0 || queryMatches !== 0 || url.search !== '' || value.includes('?')) {
     // Other official portals must identify the document in the path itself.
     // Reject every query parameter: it may select alternate content or redirect behavior.
     return false;
