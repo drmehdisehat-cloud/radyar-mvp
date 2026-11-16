@@ -38,7 +38,7 @@ function approvedRecord(overrides = {}) {
 }
 
 function registry(records) {
-  return { schema: 'dadyar-legal-source-register-v1', observedAt: '2026-11-16', records };
+  return { schema: 'dadyar-legal-source-register-v1', observedAt: '2026-11-16', policy: { defaultUseInLegalAnswers: false }, records };
 }
 
 test('current research register remains valid but promotes no unverified record into legal answers', () => {
