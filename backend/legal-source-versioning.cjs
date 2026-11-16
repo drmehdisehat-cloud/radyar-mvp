@@ -52,9 +52,16 @@ function safeOfficialDocumentUrl(value, documentId) {
   // A direct document identifier must appear exactly once, not in both path
   // and query or in multiple query values.
   const documentIdMatches = identifierOccurrences === 1;
-  const qavaninIds = queryEntries.filter(([key]) => key === 'IDS');
-  const qavaninIdMatches = url.hostname.toLowerCase() !== 'qavanin.ir' ||
-    (qavaninIds.length === 1 && qavaninIds[0][1] === documentId);
+  const host = url.hostname.toLowerCase();
+  // Keep each portal's document selector canonical. Until a portal-specific
+  // query schema is independently reviewed, extra query parameters are not
+  // accepted as part of a direct legal-document URL.
+  const qavaninIdMatches = host === 'qavanin.ir'
+    ? (url.search === '?IDS=' + documentId &&
+       queryEntries.length === 1 &&
+       queryEntries[0][0] === 'IDS' &&
+       queryEntries[0][1] === documentId)
+    : (url.search === '' && queryEntries.length === 0);
   return url.protocol === 'https:' &&
     OFFICIAL_HOSTS.has(url.hostname.toLowerCase()) &&
     (!url.port || url.port === '443') &&

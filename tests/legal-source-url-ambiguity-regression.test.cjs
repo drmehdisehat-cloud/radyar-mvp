@@ -2,6 +2,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { safeOfficialDocumentUrl } = require('../backend/legal-source-versioning.cjs');
+const { directOfficialDocumentUrl } = require('../backend/legal-source-register-policy.cjs');
 
 test('Qavanin document URL rejects duplicate IDS parameters even when the first value matches', () => {
   assert.equal(
@@ -57,13 +58,34 @@ test('accepts a bounded opaque ASCII document token without URL delimiters', () 
   );
 });
 
-test('official document URL accepts one exact document identifier and unambiguous query keys', () => {
-  assert.equal(
-    safeOfficialDocumentUrl('https://qavanin.ir/Law/TreeText/?IDS=1001&lang=fa', '1001'),
-    true
-  );
-  assert.equal(
-    safeOfficialDocumentUrl('https://rrk.ir/notice/1001?lang=fa', '1001'),
-    true
-  );
+test('only canonical official document selectors are accepted; extra query parameters are rejected', () => {
+  assert.equal(safeOfficialDocumentUrl('https://qavanin.ir/Law/TreeText/?IDS=1001', '1001'), true);
+  assert.equal(safeOfficialDocumentUrl('https://rrk.ir/notice/1001', '1001'), true);
+
+  const rejected = [
+    ['https://qavanin.ir/Law/TreeText/?IDS=1001&lang=fa', '1001'],
+    ['https://qavanin.ir/Law/TreeText/?IDS=1001&redirect=https%3A%2F%2Fevil.example', '1001'],
+    ['https://qavanin.ir/Law/TreeText/?IDS=1001&download=1', '1001'],
+    ['https://qavanin.ir/Law/TreeText/?IDS=1001&', '1001'],
+    ['https://rrk.ir/notice/1001?lang=fa', '1001'],
+    ['https://rrk.ir/notice/1001?redirect=https%3A%2F%2Fevil.example', '1001'],
+    ['https://rrk.ir/notice/1001?download=1', '1001'],
+    ['https://rrk.ir/notice/1001?', '1001']
+  ];
+  for (const [url, id] of rejected) assert.equal(safeOfficialDocumentUrl(url, id), false, url);
+});
+
+test('version selection and answer-source registration share the same canonical query policy', () => {
+  const cases = [
+    ['https://qavanin.ir/Law/TreeText/?IDS=1001', '1001', true],
+    ['https://qavanin.ir/Law/TreeText/?IDS=1001&lang=fa', '1001', false],
+    ['https://qavanin.ir/Law/TreeText/?IDS=1001&redirect=https%3A%2F%2Fevil.example', '1001', false],
+    ['https://rrk.ir/notice/1001', '1001', true],
+    ['https://rrk.ir/notice/1001?lang=fa', '1001', false],
+    ['https://rrk.ir/notice/1001?download=1', '1001', false]
+  ];
+  for (const [url, id, expected] of cases) {
+    assert.equal(safeOfficialDocumentUrl(url, id), expected, 'version selector: ' + url);
+    assert.equal(directOfficialDocumentUrl(url, id), expected, 'answer-source register: ' + url);
+  }
 });
