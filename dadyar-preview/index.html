@@ -597,7 +597,7 @@ document.getElementById('generate').addEventListener('click',()=>{
  // Classify locally, then discard every raw question before rendering or export.
  // This prevents names, addresses or other unrecognized personal details from entering the report.
  freeQuestionField.value='';
- const questionOutsideChequeScope=Boolean(freeQuestion) && !(internalTopicMatches.length===1 && internalTopicMatches[0].id==='instruments');
+ const questionOutsideChequeScope=Boolean(freeQuestion) && !internalTopicMatches.some(topic=>topic.id==='instruments');
  // The scope decision and neutral notice are now complete; drop the raw question reference.
  freeQuestion='';
  // Topic ids and matched keywords are needed only for the scope decision. Do not
@@ -608,7 +608,7 @@ document.getElementById('generate').addEventListener('click',()=>{
  const hasCertificate=evidence.some(e=>e.description==='گواهی عدم پرداخت نمونه');
  const unknownDueDate=evidence.some(e=>e.description==='تاریخ سررسید در پرونده فرضی مشخص نیست');
  const conflicts=[];
- if(questionOutsideChequeScope) conflicts.push('پرسش آزاد خارج از دامنه این پیش‌نمایش چک فرضی است یا موضوع آن به‌طور مطمئن شناسایی نشد؛ گزارش چک فقط با پرسش خالی یا پرسشی که صرفاً در حوزه چک طبقه‌بندی شده باشد قابل دریافت است.');
+ if(questionOutsideChequeScope) conflicts.push('در پرسش آزاد هیچ نشانه قابل تشخیص از حوزه چک پیدا نشد؛ این پیش‌نمایش فقط گزارش چک فرضی را پوشش می‌دهد و پرسش خارج از این دامنه را تحلیل نمی‌کند.');
  if(hasSensitiveIdentifier) conflicts.push('پرسش آزاد احتمالاً حاوی شماره تماس، کد ملی، کارت، ایمیل یا پیوند اینترنتی احتمالی است؛ آن را پاک کنید و فقط از داده ساختگی استفاده کنید.');
  if(hasCertificate && answers[1].state==='no') conflicts.push('گواهی عدم پرداخت در فهرست مدارک انتخاب شده، اما پاسخ مصاحبه وجود آن را رد می‌کند.');
  if(!hasCertificate && answers[1].state==='yes') conflicts.push('مصاحبه وجود گواهی عدم پرداخت را اعلام می‌کند، اما مدرکی در فهرست انتخاب نشده است.');
