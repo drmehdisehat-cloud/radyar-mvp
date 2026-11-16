@@ -78,6 +78,62 @@ test('copies only the pinned preview into a new isolated staging folder without 
   assert.equal(mode & 0o022, 0, 'staged file must not be group/world writable');
 });
 
+test('rolls back its own staging file and directory when final validation fails', t => {
+  const f = fixture(t);
+  const destinationDirectory = path.join(f.stagingRoot, 'dadyar-preview');
+  const originalReadDir = fs.readdirSync;
+  let injected = false;
+  fs.readdirSync = function (target, ...args) {
+    const entries = originalReadDir.call(this, target, ...args);
+    if (!injected && typeof target === 'string' && path.resolve(target) === destinationDirectory) {
+      injected = true;
+      return [...entries, 'unexpected-entry'];
+    }
+    return entries;
+  };
+  try {
+    assert.throws(() => stagePreviewIsolated({
+      source, stagingRoot: f.stagingRoot, productionDocumentRoot: f.productionRoot,
+      expectedSourceBlobSha1: expectedBlob
+    }), /exactly one index.html file/);
+  } finally {
+    fs.readdirSync = originalReadDir;
+  }
+  assert.equal(injected, true);
+  assert.equal(fs.existsSync(destinationDirectory), false, 'only the newly created empty staging folder should be rolled back');
+  assert.equal(fs.readFileSync(path.join(f.productionRoot, 'keep.txt'), 'utf8'), 'production sentinel');
+});
+
+test('does not remove a replacement file during rollback after an identity change', t => {
+  const f = fixture(t);
+  const destinationDirectory = path.join(f.stagingRoot, 'dadyar-preview');
+  const destinationFile = path.join(destinationDirectory, 'index.html');
+  const replacementTemp = path.join(destinationDirectory, 'replacement.tmp');
+  const originalReadDir = fs.readdirSync;
+  let injected = false;
+  fs.readdirSync = function (target, ...args) {
+    const entries = originalReadDir.call(this, target, ...args);
+    if (!injected && typeof target === 'string' && path.resolve(target) === destinationDirectory) {
+      injected = true;
+      fs.writeFileSync(replacementTemp, 'replacement owned by another actor', { mode: 0o644 });
+      fs.unlinkSync(destinationFile);
+      fs.renameSync(replacementTemp, destinationFile);
+      return [...entries, 'unexpected-entry'];
+    }
+    return entries;
+  };
+  try {
+    assert.throws(() => stagePreviewIsolated({
+      source, stagingRoot: f.stagingRoot, productionDocumentRoot: f.productionRoot,
+      expectedSourceBlobSha1: expectedBlob
+    }), /exactly one index.html file/);
+  } finally {
+    fs.readdirSync = originalReadDir;
+  }
+  assert.equal(injected, true);
+  assert.equal(fs.readFileSync(destinationFile, 'utf8'), 'replacement owned by another actor');
+});
+
 test('rejects a wrong pinned source blob before creating the staging folder', t => {
   const f = fixture(t);
   assert.throws(() => stagePreviewIsolated({

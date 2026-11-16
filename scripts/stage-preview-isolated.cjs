@@ -35,7 +35,7 @@ function canonicalDirectory(target, label, requirePrivate = false) {
   if (requirePrivate) {
     assertPrivateOwnedDirectory(stat, label);
   }
-  return { realpath: real, stat };
+  return { realpath: real, stat, identity: fs.lstatSync(real, { bigint: true }) };
 }
 function assertPrivateOwnedDirectory(stat, label, expectedUid = (typeof process.getuid === 'function' ? process.getuid() : null)) {
   if (!stat || !Number.isInteger(stat.mode)) {
@@ -88,6 +88,44 @@ function syncDirectory(directory) {
   try { fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
 }
 
+function rollbackCreatedPreview({ stagingRoot, stagingRootIdentity, destinationDirectory, destinationFile, directoryIdentity, fileIdentity }) {
+  // Roll back only the exact directory and file created by this invocation.
+  // If either path was replaced, aliased or populated by another actor, leave it untouched.
+  try {
+    const currentRoot = fs.lstatSync(stagingRoot, { bigint: true });
+    if (currentRoot.isSymbolicLink() || !currentRoot.isDirectory() ||
+        currentRoot.dev !== stagingRootIdentity.dev || currentRoot.ino !== stagingRootIdentity.ino ||
+        fs.realpathSync(stagingRoot) !== stagingRoot) return false;
+
+    const currentDirectory = fs.lstatSync(destinationDirectory, { bigint: true });
+    if (currentDirectory.isSymbolicLink() || !currentDirectory.isDirectory() ||
+        currentDirectory.dev !== directoryIdentity.dev || currentDirectory.ino !== directoryIdentity.ino ||
+        fs.realpathSync(destinationDirectory) !== destinationDirectory) return false;
+
+    if (fileIdentity) {
+      let currentFile;
+      try {
+        currentFile = fs.lstatSync(destinationFile, { bigint: true });
+      } catch (error) {
+        if (error.code !== 'ENOENT') throw error;
+      }
+      if (currentFile) {
+        if (currentFile.isSymbolicLink() || !currentFile.isFile() ||
+            currentFile.dev !== fileIdentity.dev || currentFile.ino !== fileIdentity.ino ||
+            currentFile.nlink !== 1n) return false;
+        fs.unlinkSync(destinationFile);
+      }
+    }
+
+    if (fs.readdirSync(destinationDirectory).length !== 0) return false;
+    fs.rmdirSync(destinationDirectory);
+    syncDirectory(stagingRoot);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function stagePreviewIsolated({ source, stagingRoot, productionDocumentRoot, expectedSourceBlobSha1 } = {}) {
   if (typeof expectedSourceBlobSha1 !== 'string' || !GIT_BLOB_SHA1.test(expectedSourceBlobSha1) ||
       /^0{40}$/i.test(expectedSourceBlobSha1)) {
@@ -126,53 +164,74 @@ function stagePreviewIsolated({ source, stagingRoot, productionDocumentRoot, exp
 
   // mkdir is deliberately non-recursive and exclusive. The caller must prepare
   // and protect the isolated root; this function never creates or edits its parents.
-  fs.mkdirSync(destinationDirectory, { mode: 0o755 });
-  const createdDirectory = fs.lstatSync(destinationDirectory);
-  if (!createdDirectory.isDirectory() || createdDirectory.isSymbolicLink() ||
-      fs.realpathSync(destinationDirectory) !== destinationDirectory ||
-      (createdDirectory.mode & 0o022) !== 0) {
-    fail('new staging directory failed its canonical/private-directory check');
-  }
-
-  const noFollow = fs.constants.O_NOFOLLOW;
-  if (typeof noFollow !== 'number') fail('O_NOFOLLOW support is required');
-  const fd = fs.openSync(destinationFile,
-    fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | noFollow,
-    0o644);
+  let createdDirectory;
+  let createdFileIdentity = null;
   try {
-    writeAll(fd, sourceRead.bytes);
-    fs.fsyncSync(fd);
-  } finally {
-    fs.closeSync(fd);
-  }
-  syncDirectory(destinationDirectory);
+    fs.mkdirSync(destinationDirectory, { mode: 0o755 });
+    createdDirectory = fs.lstatSync(destinationDirectory, { bigint: true });
+    if (!createdDirectory.isDirectory() || createdDirectory.isSymbolicLink() ||
+        fs.realpathSync(destinationDirectory) !== destinationDirectory ||
+        (createdDirectory.mode & 0o022n) !== 0n) {
+      fail('new staging directory failed its canonical/private-directory check');
+    }
 
-  const afterDirectory = fs.lstatSync(destinationDirectory);
-  if (!afterDirectory.isDirectory() || afterDirectory.isSymbolicLink() ||
-      afterDirectory.dev !== createdDirectory.dev || afterDirectory.ino !== createdDirectory.ino ||
-      fs.realpathSync(destinationDirectory) !== destinationDirectory) {
-    fail('staging directory changed during copy');
-  }
+    const noFollow = fs.constants.O_NOFOLLOW;
+    if (typeof noFollow !== 'number') fail('O_NOFOLLOW support is required');
+    const fd = fs.openSync(destinationFile,
+      fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | noFollow,
+      0o644);
+    try {
+      const openedFile = fs.fstatSync(fd, { bigint: true });
+      if (!openedFile.isFile() || openedFile.nlink !== 1n) {
+        fail('new staging file failed its regular single-link check');
+      }
+      createdFileIdentity = { dev: openedFile.dev, ino: openedFile.ino };
+      writeAll(fd, sourceRead.bytes);
+      fs.fsyncSync(fd);
+    } finally {
+      fs.closeSync(fd);
+    }
+    syncDirectory(destinationDirectory);
 
-  const verified = verifyPreview(source, destinationFile, production.realpath, expectedSourceBlobSha1);
-  const entries = fs.readdirSync(destinationDirectory);
-  if (entries.length !== 1 || entries[0] !== 'index.html') {
-    fail('staging directory must contain exactly one index.html file');
-  }
+    const afterDirectory = fs.lstatSync(destinationDirectory, { bigint: true });
+    if (!afterDirectory.isDirectory() || afterDirectory.isSymbolicLink() ||
+        afterDirectory.dev !== createdDirectory.dev || afterDirectory.ino !== createdDirectory.ino ||
+        fs.realpathSync(destinationDirectory) !== destinationDirectory) {
+      fail('staging directory changed during copy');
+    }
 
-  return Object.freeze({
-    status: 'ISOLATED_STAGING_COPY_VERIFIED_NOT_DEPLOYED',
-    staging_root: root.realpath,
-    destination_realpath: verified.destination_realpath,
-    source_blob_sha1: verified.source_blob_sha1,
-    source_sha256: verified.source_sha256,
-    destination_sha256: verified.destination_sha256,
-    files: Object.freeze(['index.html']),
-    production_document_root_untouched: true,
-    git_checkout_untouched: true,
-    deployment_authorized: false,
-    restore_proven: false
-  });
+    const verified = verifyPreview(source, destinationFile, production.realpath, expectedSourceBlobSha1);
+    const entries = fs.readdirSync(destinationDirectory);
+    if (entries.length !== 1 || entries[0] !== 'index.html') {
+      fail('staging directory must contain exactly one index.html file');
+    }
+
+    return Object.freeze({
+      status: 'ISOLATED_STAGING_COPY_VERIFIED_NOT_DEPLOYED',
+      staging_root: root.realpath,
+      destination_realpath: verified.destination_realpath,
+      source_blob_sha1: verified.source_blob_sha1,
+      source_sha256: verified.source_sha256,
+      destination_sha256: verified.destination_sha256,
+      files: Object.freeze(['index.html']),
+      production_document_root_untouched: true,
+      git_checkout_untouched: true,
+      deployment_authorized: false,
+      restore_proven: false
+    });
+  } catch (error) {
+    if (createdDirectory) {
+      rollbackCreatedPreview({
+        stagingRoot: root.realpath,
+        stagingRootIdentity: root.identity,
+        destinationDirectory,
+        destinationFile,
+        directoryIdentity: createdDirectory,
+        fileIdentity: createdFileIdentity
+      });
+    }
+    throw error;
+  }
 }
 
 if (require.main === module) {
