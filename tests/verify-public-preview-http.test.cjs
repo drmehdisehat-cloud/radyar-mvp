@@ -17,7 +17,9 @@ function cspHash(source) {
   return "'sha256-" + crypto.createHash('sha256').update(source, 'utf8').digest('base64') + "'";
 }
 const metaPolicy = "default-src 'none'; script-src " + cspHash(inlineScript) +
-  '; style-src ' + cspHash(inlineStyle) + "; connect-src 'none'; form-action 'none'";
+  '; style-src ' + cspHash(inlineStyle) + "; connect-src 'none'; img-src 'none'; font-src 'none'; " +
+  "object-src 'none'; frame-src 'none'; media-src 'none'; manifest-src 'none'; worker-src 'none'; " +
+  "child-src 'none'; prefetch-src 'none'; form-action 'none'; base-uri 'none'";
 const html = [
   '<!doctype html>',
   '<html lang="fa" dir="rtl"><head>',
@@ -51,6 +53,37 @@ function verify(overrides = {}) {
     expectedSha256,
     expectedGitBlobSha1,
     ...overrides
+  });
+}
+
+function replaceCspDirective(policy, name, value) {
+  const parts = policy.split(';').map(part => part.trim()).filter(Boolean);
+  let matches = 0;
+  const updated = parts.map(part => {
+    const match = /^([a-z][a-z0-9-]*)\\s+(.+)$/i.exec(part);
+    if (match && match[1].toLowerCase() === name) {
+      matches++;
+      return match[1] + ' ' + value;
+    }
+    return part;
+  });
+  assert.equal(matches, 1, 'fixture must contain exactly one ' + name + ' directive');
+  return updated.join('; ');
+}
+function removeCspDirective(policy, name) {
+  const parts = policy.split(';').map(part => part.trim()).filter(Boolean);
+  const filtered = parts.filter(part => !part.split(/\\s+/, 1)[0].toLowerCase().includes(name) ||
+    part.split(/\\s+/, 1)[0].toLowerCase() !== name);
+  assert.equal(filtered.length, parts.length - 1, 'fixture must contain exactly one ' + name + ' directive');
+  return filtered.join('; ');
+}
+function verifyCandidate(candidateHtml, responsePolicy = headers['content-security-policy']) {
+  const candidateBody = Buffer.from(candidateHtml, 'utf8');
+  return verify({
+    body: candidateBody,
+    expectedSha256: sha256(candidateBody),
+    expectedGitBlobSha1: gitBlobSha1(candidateBody),
+    headers: { ...headers, 'content-security-policy': responsePolicy }
   });
 }
 
@@ -248,3 +281,36 @@ test('rejects a permissive single Referrer-Policy header despite a restrictive m
     /preview_must_disable_referrer/
   );
 });
+const noNetworkCspDirectives = [
+  'img-src', 'font-src', 'object-src', 'frame-src', 'media-src',
+  'manifest-src', 'worker-src', 'child-src', 'prefetch-src', 'base-uri'
+];
+
+test('requires explicit no-network resource directives in both HTTP and meta CSP policies', () => {
+  for (const directive of noNetworkCspDirectives) {
+    const permissiveHeader = replaceCspDirective(
+      headers['content-security-policy'], directive, 'https:'
+    );
+    assert.throws(
+      () => verifyCandidate(html, permissiveHeader),
+      new RegExp('preview_csp_not_restrictive:' + directive)
+    );
+    const missingHeader = removeCspDirective(headers['content-security-policy'], directive);
+    assert.throws(
+      () => verifyCandidate(html, missingHeader),
+      new RegExp('preview_http_csp_missing:' + directive)
+    );
+
+    const permissiveMeta = replaceCspDirective(metaPolicy, directive, 'https:');
+    assert.throws(
+      () => verifyCandidate(html.replace(metaPolicy, permissiveMeta)),
+      new RegExp('preview_csp_not_restrictive:' + directive)
+    );
+    const missingMeta = removeCspDirective(metaPolicy, directive);
+    assert.throws(
+      () => verifyCandidate(html.replace(metaPolicy, missingMeta)),
+      new RegExp('preview_meta_csp_missing:' + directive)
+    );
+  }
+});
+

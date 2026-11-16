@@ -220,7 +220,17 @@ function verifyPreviewResponse({ statusCode, headers = {}, body, expectedSha256,
     ['script-src', scriptSource],
     ['style-src', styleSource],
     ['connect-src', "'none'"],
-    ['form-action', "'none'"]
+    ['img-src', "'none'"],
+    ['font-src', "'none'"],
+    ['object-src', "'none'"],
+    ['frame-src', "'none'"],
+    ['media-src', "'none'"],
+    ['manifest-src', "'none'"],
+    ['worker-src', "'none'"],
+    ['child-src', "'none'"],
+    ['prefetch-src', "'none'"],
+    ['form-action', "'none'"],
+    ['base-uri', "'none'"]
   ];
   const optionalCspDirectives = [
     ['script-src-elem', scriptSource],
