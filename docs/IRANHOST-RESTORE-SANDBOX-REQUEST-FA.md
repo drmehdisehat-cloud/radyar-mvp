@@ -64,6 +64,7 @@ node scripts/stage-preview-isolated.cjs \\
 ```
 
 - ریشه staging باید از قبل موجود، canonical، بدون symlink و غیرقابل‌نوشتن برای group/other باشد.
+- مالکیت ریشه staging باید متعلق به همان UID کاربر سرویس اجراکننده باشد؛ اگر مالکیت قابل احراز نیست یا با UID سرویس متفاوت است، ابزار کپی باید fail-closed متوقف شود.
 - ریشه staging باید در هر دو جهت از Document Root تولید و Git checkout جدا باشد.
 - فرمان فقط یک مسیر جدید `dadyar-preview/index.html` می‌سازد؛ اگر پوشه از قبل وجود داشته باشد، هیچ فایلی را جایگزین نمی‌کند.
 - پس از کپی، Git Blob SHA-1 و SHA-256 فایل مقصد با نسخه بازبینی‌شده تطبیق داده می‌شود.
