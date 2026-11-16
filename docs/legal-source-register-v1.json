@@ -15,7 +15,10 @@
   "records": [
     {
       "id": "check-issuance-law",
-      "topicHints": ["چک", "اسناد تجاری"],
+      "topicHints": [
+        "چک",
+        "اسناد تجاری"
+      ],
       "instrumentType": "statute",
       "title": "قانون صدور چک",
       "originalAdoptionDate": "1355-04-16",
@@ -46,7 +49,10 @@
     },
     {
       "id": "uniform-opinion-850",
-      "topicHints": ["خسارت تأخیر تأدیه", "دین وجه رایج"],
+      "topicHints": [
+        "خسارت تأخیر تأدیه",
+        "دین وجه رایج"
+      ],
       "instrumentType": "uniform_opinion",
       "number": 850,
       "decisionDate": "1403-05-16",
@@ -75,9 +81,12 @@
     },
     {
       "id": "uniform-opinion-883",
-      "topicHints": ["چک", "خسارت تأخیر تأدیه", "مرور زمان تجاری"],
+      "topicHints": [
+        "چک",
+        "خسارت تأخیر تأدیه",
+        "مرور زمان تجاری"
+      ],
       "instrumentType": "uniform_opinion",
-      "number": 883,
       "decisionDate": "1405-07-21",
       "reportedSubject": "مبدأ محاسبه خسارت تأخیر تأدیه چک صادرشده از سوی غیرتاجر پس از گذشت پنج سال یا بیشتر",
       "reportedRuleSummary": "منابع ثانویه گزارش می‌کنند که گذشت پنج سال یا بیشتر مانع مطالبه خسارت تأخیر تأدیه از تاریخ مندرج در چک نیست؛ این خلاصه تا دریافت و تطبیق اصل رأی، نتیجه حقوقی تأییدشده محسوب نمی‌شود.",
@@ -97,24 +106,65 @@
           "url": "https://www.vakilsoal.com/%D8%B1%D8%A7%DB%8C-%D9%88%D8%AD%D8%AF%D8%AA-%D8%B1%D9%88%DB%8C%D9%87-%D8%B4%D9%85%D8%A7%D8%B1%D9%87-%DB%B8%DB%B8%DB%B3-%D9%85%D8%A8%D8%AF%D8%A3-%D9%85%D8%AD%D8%A7%D8%B3%D8%A8%D9%87-%D8%AE/",
           "sourceClass": "secondary",
           "note": "بازنشر ثانویه متن و تاریخ رأی؛ منبع رسمی اولیه نیست."
+        },
+        {
+          "url": "https://1ghazi.pro/item/14553262",
+          "sourceClass": "secondary",
+          "note": "بازنشر متن رأی ۸۸۳؛ شناسه پرونده وحدت رویه را ۱۴۰۴/۲ درج می‌کند. سند رسمی اولیه نیست."
+        },
+        {
+          "url": "https://karadadman.com/unified-rulings/",
+          "sourceClass": "secondary",
+          "note": "فهرست ثانویه با عنوان ۲/۱۴۰۵؛ برای شماره رسمی رأی یا پرونده قابل استناد نیست."
         }
       ],
       "openQuestions": [
         "دریافت تصویر یا PDF رسمی رأی و شماره/تاریخ انتشار روزنامه رسمی.",
         "تطبیق متن کامل، گردش کار و حدود شمول رأی نسبت به صادرکننده غیرتاجر.",
         "تعیین تاریخ اثر و نسبت آن با ماده ۳۱۸ قانون تجارت و رأی ۸۵۰.",
-        "بازبینی حقوقی مستقل پیش از هرگونه استفاده در محاسبه‌گر."
+        "بازبینی حقوقی مستقل پیش از هرگونه استفاده در محاسبه‌گر.",
+        "تطبیق شناسه پرونده وحدت رویه: دو بازنشر ثانویه مقادیر ۱۴۰۴/۲ و ۲/۱۴۰۵ را نشان می‌دهند؛ سند رسمی پرونده و رأی باید دریافت شود."
+      ],
+      "reportedNumber": 883,
+      "numberStatus": "secondary-claims-only",
+      "identifierStatus": "secondary-claims-not-reconciled",
+      "secondaryIdentifierClaims": [
+        {
+          "value": "1404/2",
+          "label": "شماره پرونده وحدت رویه ادعاشده",
+          "sourceUrl": "https://1ghazi.pro/item/14553262",
+          "sourceClass": "secondary",
+          "note": "بازنشر ثانویه این شناسه را در متن جلسه هیأت عمومی درج می‌کند؛ سند رسمی پرونده دریافت نشده است."
+        },
+        {
+          "value": "2/1405",
+          "label": "شناسه درج‌شده در فهرست ثانویه",
+          "sourceUrl": "https://karadadman.com/unified-rulings/",
+          "sourceClass": "secondary",
+          "note": "فهرست ثانویه عنوان ۲/۱۴۰۵ را نشان می‌دهد؛ نسبت آن با شماره پرونده یا شماره رأی رسمی احراز نشده است."
+        }
       ]
     },
     {
       "id": "cbi-urban-consumer-index-1405",
-      "topicHints": ["خسارت تأخیر تأدیه", "شاخص بانک مرکزی"],
+      "topicHints": [
+        "خسارت تأخیر تأدیه",
+        "شاخص بانک مرکزی"
+      ],
       "instrumentType": "statistical_series",
       "seriesName": "شاخص بهای کالاها و خدمات مصرفی در مناطق شهری ایران",
       "ownerImageSeries": {
         "baseYear": 1395,
         "baseYearStatus": "inferred-not-authenticated",
-        "monthsAvailable": [1, 2, 3, 4, 5, 6, 7],
+        "monthsAvailable": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
         "sourceStatus": "transcribed-not-independently-authenticated"
       },
       "secondaryDiscrepancyLead": {
