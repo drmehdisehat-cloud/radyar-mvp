@@ -60,10 +60,10 @@ function replaceCspDirective(policy, name, value) {
   const parts = policy.split(';').map(part => part.trim()).filter(Boolean);
   let matches = 0;
   const updated = parts.map(part => {
-    const match = /^([a-z][a-z0-9-]*)\\s+(.+)$/i.exec(part);
-    if (match && match[1].toLowerCase() === name) {
+    const directive = part.split(/\s+/, 1)[0].toLowerCase();
+    if (directive === name) {
       matches++;
-      return match[1] + ' ' + value;
+      return directive + ' ' + value;
     }
     return part;
   });
@@ -72,8 +72,7 @@ function replaceCspDirective(policy, name, value) {
 }
 function removeCspDirective(policy, name) {
   const parts = policy.split(';').map(part => part.trim()).filter(Boolean);
-  const filtered = parts.filter(part => !part.split(/\\s+/, 1)[0].toLowerCase().includes(name) ||
-    part.split(/\\s+/, 1)[0].toLowerCase() !== name);
+  const filtered = parts.filter(part => part.split(/\s+/, 1)[0].toLowerCase() !== name);
   assert.equal(filtered.length, parts.length - 1, 'fixture must contain exactly one ' + name + ' directive');
   return filtered.join('; ');
 }
