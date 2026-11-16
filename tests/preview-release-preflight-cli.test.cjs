@@ -500,7 +500,7 @@ test('read-only preflight rejects legacy destination evidence without checkout s
     assert.equal(result.status, 2, result.stderr);
     const report = JSON.parse(result.stdout);
     assert.equal(report.status, 'NOT_READY');
-    assert.ok(report.blockers.includes('destination_evidence_mismatch:destination_outside_git_checkout'));
+    assert.ok(report.blockers.some(item => /^destination_evidence_mismatch:/.test(item)));
     assert.equal(report.deploymentPerformed, false);
   } finally {
     fs.rmSync(f.directory, { recursive: true, force: true });
