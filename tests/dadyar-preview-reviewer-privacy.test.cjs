@@ -32,8 +32,10 @@ function harness() {
       for (const handler of listeners.get(id + ':click') || []) handler({ type: 'click', target: this });
     },
     contains() { return false; },
+    closest() { return { textContent: this.id }; },
     focus() {}
   });
+  const reviewChecklistItems = ['review-check-facts','review-check-conflicts','review-check-sources','review-check-privacy'].map(id => makeElement(id));
   const document = {
     activeElement: null,
     getElementById(id) {
@@ -41,6 +43,7 @@ function harness() {
       return elements.get(id);
     },
     querySelectorAll(selector) {
+      if (selector === '#review-checklist input[type="checkbox"]') return reviewChecklistItems;
       if (['#interview select', 'fieldset input[type=checkbox]', 'fieldset input[type=checkbox]:checked'].includes(selector)) return [];
       throw new Error('Unexpected preview selector: ' + selector);
     },
@@ -52,7 +55,7 @@ function harness() {
     Blob: class {},
     setTimeout() { return 0; }
   };
-  vm.runInNewContext(script + '\nglobalThis.__dadyarPrivacyTest = { hasSensitiveIdentifier, reviewerDetailsAreSafe, showReviewerPrivacyWarning, reviewerName, reviewNote, reviewDecision, exportAck, recordReviewButton, downloadButton, reviewStatus, setDraft() { report = "گزارش کاملاً ساختگی"; exportEligible = true; reviewerName.value = "بازبین آزمون"; reviewDecision.value = "approved"; reviewNote.value = "بازبینی داده ساختگی و بررسی نمونه"; exportAck.checked = true; updateExportPermission(); } };', sandbox, { timeout: 1500 });
+  vm.runInNewContext(script + '\nglobalThis.__dadyarPrivacyTest = { hasSensitiveIdentifier, reviewerDetailsAreSafe, showReviewerPrivacyWarning, reviewerName, reviewNote, reviewDecision, exportAck, recordReviewButton, downloadButton, reviewStatus, setDraft() { report = "گزارش کاملاً ساختگی"; exportEligible = true; reviewChecklistItems.forEach(item => { item.checked = true; item.dispatchEvent({ type: "change" }); }); reviewerName.value = "بازبین آزمون"; reviewDecision.value = "approved"; reviewNote.value = "بازبینی داده ساختگی و بررسی نمونه"; exportAck.checked = true; updateExportPermission(); } };', sandbox, { timeout: 1500 });
   return sandbox.__dadyarPrivacyTest;
 }
 
