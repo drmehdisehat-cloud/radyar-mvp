@@ -154,7 +154,7 @@ test('rejects duplicate JSON keys and extra top-level fields before loading a re
 
 test('maps an unauthenticated reviewer to 401 and hides internal gate failures', async () => {
   await withServer(handler(async () => {
-    throw new Error('authenticated reviewer principal is required');
+    throw Object.assign(new Error('authenticated reviewer principal is required'), { code: 'AUTHENTICATED_REVIEWER_REQUIRED' });
   }), async port => {
     const response = await send(port);
     assert.equal(response.status, 401);
@@ -162,11 +162,30 @@ test('maps an unauthenticated reviewer to 401 and hides internal gate failures',
   });
 
   await withServer(handler(async () => {
-    throw new Error('private storage path /srv/dadyar/private failed');
+    throw new Error('review report storage connection failed');
   }), async port => {
     const response = await send(port);
     assert.equal(response.status, 503);
     assert.doesNotMatch(response.body.toString('utf8'), /srv\/dadyar|private storage/);
+  });
+});
+
+test('maps only typed attestation rejection to 403 and never parses infrastructure prose', async () => {
+  await withServer(handler(async () => {
+    throw Object.assign(new Error('review attestation rejected'), {
+      code: 'REVIEW_ATTESTATION_REJECTED'
+    });
+  }), async port => {
+    const response = await send(port);
+    assert.equal(response.status, 403);
+    assert.doesNotMatch(response.body.toString('utf8'), /attestation/i);
+  });
+
+  await withServer(handler(async () => {
+    throw new Error('signature verification dependency review service unavailable');
+  }), async port => {
+    const response = await send(port);
+    assert.equal(response.status, 503);
   });
 });
 
