@@ -295,6 +295,26 @@ if (process.platform !== 'win32') {
     assert.match(result.stdout, /manifest_must_be_owner_only/);
     assert.equal(JSON.parse(result.stdout).deployment_authorized, false);
   });
+
+  test('CLI rejects a manifest below a group/world-writable parent directory', t => {
+    const fixture = makeFixture(t);
+    const manifestRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-shared-manifest-'));
+    t.after(() => fs.rmSync(manifestRoot, { recursive: true, force: true }));
+    const manifestPath = path.join(manifestRoot, 'manifest.json');
+    fs.writeFileSync(manifestPath, JSON.stringify(fixture.manifest), { mode: 0o600 });
+    fs.chmodSync(manifestRoot, 0o777);
+    const result = spawnSync(process.execPath, [
+      SCRIPT,
+      '--manifest', manifestPath,
+      '--archive', fixture.paths.archive,
+      '--restored-marker', fixture.paths.restored_marker,
+      '--restore-log', fixture.paths.restore_log,
+      '--database-probe', fixture.paths.database_probe
+    ], { encoding: 'utf8', timeout: 5000 });
+    assert.equal(result.status, 1);
+    assert.match(result.stdout, /manifest_parent_must_not_be_group_or_world_writable/);
+    assert.equal(JSON.parse(result.stdout).deployment_authorized, false);
+  });
 }
 
 
