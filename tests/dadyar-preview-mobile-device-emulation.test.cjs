@@ -242,7 +242,17 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  const calculatorPaymentMonth = document.getElementById("delay-payment-month"); calculatorPaymentMonth.value = "6";',
       '  const calculatorCurrency = document.getElementById("delay-currency"); calculatorCurrency.value = "تومان";',
       '  document.getElementById("delay-calculate").click();',
-      '  const calculatorHadValues = calculatorPrincipal.value === "987654321" && calculatorDueMonth.value === "2" && calculatorPaymentMonth.value === "6" && calculatorCurrency.value === "تومان" && /خسارت محاسباتی/.test(document.getElementById("delay-result").textContent);',
+      '  const calculatorOutput = document.getElementById("delay-result").textContent;',
+      '  const formatFa = value => new Intl.NumberFormat("fa-IR", { maximumFractionDigits: 0 }).format(value);',
+      '  const calculatorHadValues = calculatorPrincipal.value === "987654321" && calculatorDueMonth.value === "2" && calculatorPaymentMonth.value === "6" && calculatorCurrency.value === "تومان" && /خسارت محاسباتی/.test(calculatorOutput);',
+      '  const calculatorExactAmounts = calculatorOutput.includes("مبلغ با احتساب شاخص: " + formatFa(1183683336) + " تومان") && calculatorOutput.includes("خسارت محاسباتی: " + formatFa(196029015) + " تومان");',
+      '  const calculatorSourceWarning = calculatorOutput.includes("منبع داده: تصویر مالک؛ تأیید رسمی و حقوقی نشده است.");',
+      '  const calculatorAvailableMonthBounds = document.getElementById("delay-due-month").options.length === 7 && document.getElementById("delay-payment-month").options.length === 7;',
+      '  calculatorDueMonth.value = "8"; document.getElementById("delay-calculate").click();',
+      '  const calculatorUnavailableMonthBlocked = /برای ماه انتخابی شاخص تأییدشده‌ای در داده موجود نیست/.test(document.getElementById("delay-result").textContent);',
+      '  calculatorDueMonth.value = "2"; calculatorPaymentMonth.value = "6"; calculatorPrincipal.value = "-1"; document.getElementById("delay-calculate").click();',
+      '  const calculatorInvalidPrincipalBlocked = /اصل دین باید عدد صحیح مثبت و در محدوده امن باشد/.test(document.getElementById("delay-result").textContent);',
+      '  calculatorPrincipal.value = "987654321";',
       '  window.dispatchEvent(new PageTransitionEvent("pagehide"));',
       '  const pagehideClearedUnsubmittedQuestion = question.value === "";',
       '  const pagehideClearedDraft = document.getElementById("result").hidden && download.disabled;',
@@ -273,7 +283,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '    exportEnabledBeforeDownload, exportedReport, exportedFilename, approvalConsumed, repeatExportBlocked,',
       '    reviewerResetAfterDownload, reapprovalBlockedWithoutFreshDetails, postDownloadReviewStatus,',
       '    reportAfterAcknowledgement, staleDraftInvalidated, multiTopicReport, multiTopicIds,',
-      '    pagehideClearedUnsubmittedQuestion, pagehideClearedDraft, pagehideClearedReviewer, pagehideClearedSelections, pagehideClearedReviewApproval, calculatorHadValues, pagehideClearedCalculator,',
+      '    pagehideClearedUnsubmittedQuestion, pagehideClearedDraft, pagehideClearedReviewer, pagehideClearedSelections, pagehideClearedReviewApproval, calculatorHadValues, calculatorExactAmounts, calculatorSourceWarning, calculatorAvailableMonthBounds, calculatorUnavailableMonthBlocked, calculatorInvalidPrincipalBlocked, pagehideClearedCalculator,',
       '    multiTopicExportEligible, multiTopicScopeStatus, multiTopicInputCleared, multiTopicRawQuestionEchoed,',
       '    csp: document.querySelector("meta[http-equiv]")?.content || "",',
       '    externalResources',
@@ -322,6 +332,11 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.equal(snapshot.pagehideClearedSelections, true, 'pagehide retained role, interview answers, or selected evidence');
     assert.equal(snapshot.pagehideClearedReviewApproval, true, 'pagehide retained a local review approval');
     assert.equal(snapshot.calculatorHadValues, true, 'calculator fixture did not contain user-entered values before pagehide');
+    assert.equal(snapshot.calculatorExactAmounts, true, 'real mobile calculator output differs from exact scaled-integer expected amounts');
+    assert.equal(snapshot.calculatorSourceWarning, true, 'calculator result omitted the unverified owner-image provenance warning');
+    assert.equal(snapshot.calculatorAvailableMonthBounds, true, 'calculator exposed months without supplied index values');
+    assert.equal(snapshot.calculatorUnavailableMonthBlocked, true, 'calculator did not fail closed for unavailable month 8');
+    assert.equal(snapshot.calculatorInvalidPrincipalBlocked, true, 'calculator accepted a negative principal');
     assert.equal(snapshot.pagehideClearedCalculator, true, 'pagehide retained calculator principal, month, currency, or result');
     assert.ok(snapshot.multiTopicIds.includes('instruments'), 'cheque hint missing from internal multi-topic routing');
     assert.ok(snapshot.multiTopicIds.includes('family'), 'family hint missing from internal multi-topic routing');
