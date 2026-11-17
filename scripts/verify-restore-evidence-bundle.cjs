@@ -175,7 +175,7 @@ const DATABASE_IDENTIFIER = /^[A-Za-z0-9_][A-Za-z0-9_$-]{0,63}$/;
 
 function validProbeUtc(value) {
   if (typeof value !== 'string' ||
-      !/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$/.test(value)) return false;
+      !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\\.\d{3}Z$/.test(value)) return false;
   const parsed = new Date(value);
   return Number.isFinite(parsed.getTime()) && parsed.toISOString() === value;
 }
@@ -191,7 +191,7 @@ function validateDatabaseProbe(bytes, manifest) {
     'database_name_separation_verified', 'database_user_separation_verified',
     'observed_at_utc'
   ].sort();
-  if (Object.keys(probe).sort().join('\\0') !== expectedKeys.join('\\0')) {
+  if (Object.keys(probe).sort().join('|') !== expectedKeys.join('|')) {
     throw new Error('database_probe_schema_keys_invalid');
   }
   if (probe.schema !== 'dadyar-isolated-db-probe-v1' ||
@@ -213,7 +213,7 @@ function validateDatabaseProbe(bytes, manifest) {
   }
   if (typeof probe.server_version !== 'string' ||
       probe.server_version.length < 1 || probe.server_version.length > 128 ||
-      /[^\\x20-\\x7e]/.test(probe.server_version)) {
+      /[^\x20-\\x7e]/.test(probe.server_version)) {
     throw new Error('database_probe_server_version_invalid');
   }
   if (!validProbeUtc(probe.observed_at_utc)) {
