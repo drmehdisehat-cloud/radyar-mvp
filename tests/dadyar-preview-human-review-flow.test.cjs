@@ -62,9 +62,11 @@ function harness() {
     querySelectorAll(selector) {
       if (selector === '#interview select') return selects;
       if (selector === '#review-checklist input[type="checkbox"]') return reviewChecklistItems;
-      if (selector === 'fieldset input[type=checkbox]') return evidenceInputs;
+      if (selector === '#evidence-list input[type="checkbox"]') return evidenceInputs;
+      if (selector === '#evidence-list input[type="checkbox"]:checked') return evidenceInputs.filter(input => input.checked);
+      if (selector === 'fieldset input[type=checkbox]') return [...evidenceInputs, ...reviewChecklistItems];
       if (selector === 'fieldset input[type=checkbox]:checked') {
-        return evidenceInputs.filter(input => input.checked);
+        return [...evidenceInputs, ...reviewChecklistItems].filter(input => input.checked);
       }
       throw new Error('Unsupported selector in preview test: ' + selector);
     },

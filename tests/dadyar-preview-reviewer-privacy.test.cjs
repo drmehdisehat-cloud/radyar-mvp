@@ -44,7 +44,7 @@ function harness() {
     },
     querySelectorAll(selector) {
       if (selector === '#review-checklist input[type="checkbox"]') return reviewChecklistItems;
-      if (['#interview select', 'fieldset input[type=checkbox]', 'fieldset input[type=checkbox]:checked'].includes(selector)) return [];
+      if (['#interview select', '#evidence-list input[type="checkbox"]', '#evidence-list input[type="checkbox"]:checked', 'fieldset input[type=checkbox]', 'fieldset input[type=checkbox]:checked'].includes(selector)) return [];
       throw new Error('Unexpected preview selector: ' + selector);
     },
     createElement() { return { href: '', download: '', click() {} }; }

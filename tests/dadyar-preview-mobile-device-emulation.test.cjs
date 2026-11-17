@@ -212,16 +212,16 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  decision.value = "rejected"; decision.dispatchEvent(new Event("change", { bubbles: true }));',
       '  note.value = "بازبینی رد شده برای آزمون"; note.dispatchEvent(new Event("input", { bubbles: true }));',
       '  for (const id of ["review-check-facts","review-check-conflicts","review-check-sources","review-check-privacy"]) { const item = document.getElementById(id); item.checked = true; item.dispatchEvent(new Event("change", { bubbles: true })); }',
+      '  const checklistPreservedDraft = !document.getElementById("result").hidden && document.getElementById("report").textContent.length > 0 && exportEligible;',
       '  document.getElementById("export-ack").click();',
-      '  const rejectedGateState = { checklist: Array.from(document.querySelectorAll("#review-checklist input[type=checkbox]")).map(item => ({ id: item.id, checked: item.checked })), checklistComplete: reviewChecklistComplete(), exportEligible, reportLength: document.getElementById("report").textContent.length, reviewerName: reviewer.value, decision: decision.value, noteLength: note.value.length, acknowledgement: document.getElementById("export-ack").checked, recordReviewDisabled: document.getElementById("record-review").disabled };',
       '  document.getElementById("record-review").click();',
       '  const rejectedReviewKeepsExportBlocked = download.disabled;',
       '  const rejectedReviewStatus = document.getElementById("review-status").textContent;',
       '  decision.value = "approved"; decision.dispatchEvent(new Event("change", { bubbles: true }));',
       '  note.value = "بازبینی داده ساختگی"; note.dispatchEvent(new Event("input", { bubbles: true }));',
       '  for (const id of ["review-check-facts","review-check-conflicts","review-check-sources","review-check-privacy"]) { const item = document.getElementById(id); item.checked = true; item.dispatchEvent(new Event("change", { bubbles: true })); }',
+      '  const checklistPreservedDraftAfterApproval = !document.getElementById("result").hidden && document.getElementById("report").textContent.length > 0 && exportEligible;',
       '  document.getElementById("export-ack").click();',
-      '  const reviewGateState = { checklist: Array.from(document.querySelectorAll("#review-checklist input[type=checkbox]")).map(item => ({ id: item.id, checked: item.checked })), checklistComplete: reviewChecklistComplete(), exportEligible, reportLength: document.getElementById("report").textContent.length, reviewerName: reviewer.value, decision: decision.value, noteLength: note.value.length, acknowledgement: document.getElementById("export-ack").checked, recordReviewDisabled: document.getElementById("record-review").disabled };',
       '  document.getElementById("record-review").click();',
       '  const enabledAfterHumanReview = !download.disabled',
       '  const reviewStatus = document.getElementById("review-status").textContent;',
@@ -264,7 +264,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  const pagehideClearedSelections = document.getElementById("role").selectedIndex === 0 && Array.from(document.querySelectorAll("#interview select")).every(control => control.selectedIndex === 0) && Array.from(document.querySelectorAll("fieldset input[type=checkbox]")).every(control => !control.checked);',
       '  const pagehideClearedReviewApproval = document.getElementById("review-decision").value === "pending" && !document.getElementById("export-ack").checked && document.getElementById("record-review").disabled;',
       '  const pagehideClearedCalculator = calculatorPrincipal.value === "" && calculatorDueMonth.value === "1" && calculatorPaymentMonth.value === "7" && calculatorCurrency.value === "ریال" && document.getElementById("delay-result").textContent === "برای محاسبه، اصل دین و دو ماه را انتخاب کنید.";',
-      '  const sampleEvidence = document.querySelectorAll("fieldset input[type=checkbox]"); sampleEvidence[0].checked = true; sampleEvidence[2].checked = true;',
+      '  const sampleEvidence = document.querySelectorAll("#evidence-list input[type=checkbox]"); sampleEvidence[0].checked = true; sampleEvidence[2].checked = true;',
       '  for (const [id,value] of [["issue-date","yes"],["certificate","no"],["defense","yes"]]) { const control = document.getElementById(id); control.value = value; control.dispatchEvent(new Event("change", { bubbles: true })); }',
       '  const multiTopicRawQuestion = "چک و مهریه در این مثال چه موضوعاتی هستند؟";',
       '  question.value = multiTopicRawQuestion;',
@@ -283,7 +283,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '    maxTouchPoints: navigator.maxTouchPoints, coarsePointer: matchMedia("(pointer: coarse)").matches,',
       '    mobileUserAgent: /iPhone|Mobile/i.test(navigator.userAgent),',
       '    horizontalOverflow: root.scrollWidth > root.clientWidth + 1,',
-      '    initialDisabled, blockedBeforeAcknowledgement, rejectedReviewKeepsExportBlocked, rejectedReviewStatus, rejectedGateState, enabledAfterHumanReview, approvedGateState: reviewGateState, reviewStatus,',
+      '    initialDisabled, blockedBeforeAcknowledgement, rejectedReviewKeepsExportBlocked, rejectedReviewStatus, checklistPreservedDraft, checklistPreservedDraftAfterApproval, enabledAfterHumanReview, reviewStatus,',
       '    exportEnabledBeforeDownload, exportedReport, exportedFilename, approvalConsumed, repeatExportBlocked,',
       '    reviewerResetAfterDownload, reapprovalBlockedWithoutFreshDetails, postDownloadReviewStatus,',
       '    reportAfterAcknowledgement, staleDraftInvalidated, multiTopicReport, multiTopicIds,',
@@ -313,8 +313,10 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.equal(snapshot.initialDisabled, true, 'download was initially enabled');
     assert.equal(snapshot.blockedBeforeAcknowledgement, true, 'report exported before human acknowledgement');
     assert.equal(snapshot.rejectedReviewKeepsExportBlocked, true, 'a rejected human review enabled report download');
-    assert.match(snapshot.rejectedReviewStatus, /بازبینی رد شد/, JSON.stringify(snapshot.rejectedGateState));
-    assert.equal(snapshot.enabledAfterHumanReview, true, JSON.stringify(snapshot.approvedGateState));
+    assert.match(snapshot.rejectedReviewStatus, /بازبینی رد شد/);
+    assert.equal(snapshot.checklistPreservedDraft, true, 'review checklist changes must not invalidate the generated draft');
+    assert.equal(snapshot.enabledAfterHumanReview, true, 'approved human review did not enable report download');
+    assert.equal(snapshot.checklistPreservedDraftAfterApproval, true, 'approved checklist changes must preserve the generated draft');
     assert.match(snapshot.reviewStatus, /هویت بازبین در این نسخه آفلاین احراز نمی‌شود/);
     assert.equal(snapshot.exportEnabledBeforeDownload, true, 'approved local review did not enable the report download');
     assert.equal(snapshot.exportedFilename, 'dadyar-synthetic-cheque.txt');
@@ -588,8 +590,8 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
       '  const note = document.getElementById("review-note");',
       '  note.value = "بازبینی داده ساختگی"; note.dispatchEvent(new Event("input", { bubbles: true }));',
       '  for (const id of ["review-check-facts","review-check-conflicts","review-check-sources","review-check-privacy"]) { const item = document.getElementById(id); item.checked = true; item.dispatchEvent(new Event("change", { bubbles: true })); }',
+      '  const checklistPreservedDraft = !document.getElementById("result").hidden && document.getElementById("report").textContent.length > 0 && exportEligible;',
       '  document.getElementById("export-ack").click();',
-      '  const reviewGateState = { checklist: Array.from(document.querySelectorAll("#review-checklist input[type=checkbox]")).map(item => ({ id: item.id, checked: item.checked })), checklistComplete: reviewChecklistComplete(), exportEligible, reportLength: document.getElementById("report").textContent.length, reviewerName: reviewer.value, decision: decision.value, noteLength: note.value.length, acknowledgement: document.getElementById("export-ack").checked, recordReviewDisabled: document.getElementById("record-review").disabled };',
       '  document.getElementById("record-review").click();',
       '  const enabledAfterReview = !download.disabled;',
       '  const reviewStatus = document.getElementById("review-status").textContent;',
@@ -616,7 +618,7 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
       '    initiallyDisabled, blockedBeforeReview, enabledAfterReview, disabledAfterExport,',
       '    multiTopicIds, multiTopicInputCleared, multiTopicRawQuestionEchoed, multiTopicExportEligible, multiTopicScopeStatus, chequeOnlyExportEligible,',
       '    sensitiveInputCleared, sensitiveRawQuestionEchoed, sensitiveVisibleReport, sensitiveExportBlocked, sensitiveStatus,',
-      '    reviewStatus, visibleReport, resourceRequests, approvedGateState: reviewGateState',
+      '    reviewStatus, visibleReport, resourceRequests, checklistPreservedDraft',
       '  };',
       '})()'
     ].join('\n');
@@ -636,7 +638,8 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
     assert.equal(snapshot.horizontalOverflow, false);
     assert.equal(snapshot.initiallyDisabled, true);
     assert.equal(snapshot.blockedBeforeReview, true);
-    assert.equal(snapshot.enabledAfterReview, true, JSON.stringify(snapshot.approvedGateState));
+    assert.equal(snapshot.enabledAfterReview, true, 'approved local review should enable report download');
+    assert.equal(snapshot.checklistPreservedDraft, true, 'review checklist changes must not invalidate the generated HTTP preview draft');
     assert.equal(snapshot.disabledAfterExport, true, 'export must consume the local review acknowledgement');
     assert.ok(snapshot.multiTopicIds.includes('instruments'), 'cheque hint missing from HTTP preview routing');
     assert.ok(snapshot.multiTopicIds.includes('family'), 'family hint missing from HTTP preview routing');

@@ -92,8 +92,10 @@ function harness() {
     querySelectorAll(selector) {
       if (selector === '#interview select') return selects;
       if (selector === '#review-checklist input[type="checkbox"]') return reviewChecklistItems;
-      if (selector === 'fieldset input[type=checkbox]') return evidence;
-      if (selector === 'fieldset input[type=checkbox]:checked') return evidence.filter(item => item.checked);
+      if (selector === '#evidence-list input[type="checkbox"]') return evidence;
+      if (selector === '#evidence-list input[type="checkbox"]:checked') return evidence.filter(item => item.checked);
+      if (selector === 'fieldset input[type=checkbox]') return [...evidence, ...reviewChecklistItems];
+      if (selector === 'fieldset input[type=checkbox]:checked') return [...evidence, ...reviewChecklistItems].filter(item => item.checked);
       throw new Error('Unexpected selector in preview test: ' + selector);
     },
     createElement(tag) {
