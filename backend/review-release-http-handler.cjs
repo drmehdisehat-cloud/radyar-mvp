@@ -163,9 +163,12 @@ function respondAndCloseRequest(request, response, status, message) {
 }
 
 function gateFailureStatus(error) {
-  const message = error && typeof error.message === 'string' ? error.message : '';
-  if (/authenticated reviewer principal/i.test(message)) return 401;
-  if (/independent|review|signature|nonce|trusted|approved|expired|future|revoked|does not match|not bound/i.test(message)) return 403;
+  // Map only stable machine-readable codes from the trusted server-side gate.
+  // Error prose may contain words such as "review" or "signature" during an
+  // infrastructure failure and must never determine an authorization status.
+  const code = error && typeof error.code === 'string' ? error.code : '';
+  if (code === 'AUTHENTICATED_REVIEWER_REQUIRED') return 401;
+  if (code === 'REVIEW_ATTESTATION_REJECTED') return 403;
   return 503;
 }
 
