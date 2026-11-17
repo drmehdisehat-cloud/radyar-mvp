@@ -152,6 +152,19 @@ test('matches document identifiers as exact path or query values, not substrings
   assert.equal(validateSourceVersion(substringPath, AS_OF).eligible, false);
 });
 
+test('accepts canonical Central Bank document paths and rejects query variants', () => {
+  const direct = verified({
+    documentId: '35817.aspx',
+    officialDocumentUrl: 'https://cbi.ir/showitem/35817.aspx'
+  });
+  const queryVariant = verified({
+    documentId: '35817.aspx',
+    officialDocumentUrl: 'https://cbi.ir/showitem/35817.aspx?download=1'
+  });
+  assert.equal(validateSourceVersion(direct, AS_OF).eligible, true);
+  assert.equal(validateSourceVersion(queryVariant, AS_OF).eligible, false);
+});
+
 test('rejects non-official hosts and portal homepages as direct citations', () => {
   const unofficial = verified({ officialDocumentUrl: 'https://example.com/law/1001' });
   const homepage = verified({ officialDocumentUrl: 'https://qavanin.ir/' });
