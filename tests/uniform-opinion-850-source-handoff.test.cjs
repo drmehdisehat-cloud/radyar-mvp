@@ -22,3 +22,24 @@ test('uniform opinion 850 remains research-only until primary text and human rev
   assert.ok(handoff.evidenceGaps.length >= 4);
   assert.ok(handoff.secondaryLeads.every(item => item.status === 'secondary-reproduction-not-primary'));
 });
+
+test('fresh official-portal transfer shells and timeouts do not promote opinion 850', () => {
+  const retry = handoff.latestOfficialSourceRetry;
+  assert.equal(retry.observedAt, '2026-11-17');
+  assert.equal(handoff.status, 'research-only');
+  assert.equal(handoff.releaseSourceEligible, false);
+  assert.equal(handoff.legalConclusionPermitted, false);
+
+  assert.equal(retry.officialSourceAttempts.length, 3);
+  assert.ok(retry.officialSourceAttempts.some(item => item.retrievalResult === 'transfer-shell-only'));
+  assert.ok(retry.officialSourceAttempts.some(item => item.retrievalResult === 'timeout'));
+  assert.ok(retry.officialSourceAttempts.every(item => item.legalTextRetrieved === false));
+
+  assert.ok(retry.secondarySearchObservations.length >= 2);
+  assert.ok(retry.secondarySearchObservations.every(item =>
+    item.primarySourceVerified === false && item.releaseSourceEligible === false &&
+    /secondary/.test(item.sourceClass)
+  ));
+  assert.equal(handoff.humanReview.status, 'not-reviewed');
+  assert.equal(handoff.eventVersion.applicableToEventDate, 'not-determined');
+});
