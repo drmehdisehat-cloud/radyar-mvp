@@ -306,6 +306,7 @@ function main(argv) {
         status: restoreEvidenceBundle.status,
         matched: restoreEvidenceBundle.matched,
         files: restoreEvidenceBundle.files,
+        databaseProbeSchemaVerified: restoreEvidenceBundle.database_probe_schema_verified,
         restoreOperationIndependentlyVerified: false,
         signerIdentityVerified: false
       },

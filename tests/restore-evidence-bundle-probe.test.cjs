@@ -139,7 +139,7 @@ test('rejects duplicate-key JSON, unknown fields and failed SELECT results', t =
   const valid = probe();
   const duplicateJson = JSON.stringify(valid).replace('"probe_ok":true', '"probe_ok":true,"probe_ok":true');
   duplicate.writeProbe(duplicateJson);
-  assert.throws(() => duplicate.verify(), /duplicate JSON key/);
+  assert.throws(() => duplicate.verify(), /duplicate_json_key/);
 
   const unknown = fixture(t);
   unknown.writeProbe(probe({ credential: 'must-not-be-present' }));

@@ -14,11 +14,30 @@ const digest = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 function makeFixture(t) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-restore-evidence-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const now = Date.now();
+  const restoreCompleted = new Date(now - 120000).toISOString();
+  const reviewed = new Date(now - 60000).toISOString();
+  const restoreTargetId = 'synthetic-isolated-target';
+  const restoreDatabaseName = 'synthetic_restore_db';
+  const restoreDatabaseUser = 'synthetic_restore_user';
+  const databaseProbe = {
+    schema: 'dadyar-isolated-db-probe-v1',
+    probe_ok: true,
+    query: "SELECT DATABASE(), SUBSTRING_INDEX(CURRENT_USER(), '@', 1), 1, VERSION()",
+    database_name: restoreDatabaseName,
+    database_user: restoreDatabaseUser,
+    connection_test_value: 1,
+    server_version: '8.0.36',
+    restore_target_id: restoreTargetId,
+    database_name_separation_verified: true,
+    database_user_separation_verified: true,
+    observed_at_utc: new Date(now - 90000).toISOString()
+  };
   const contents = {
     archive: Buffer.from('synthetic backup archive bytes'),
     restored_marker: Buffer.from('synthetic restored marker'),
     restore_log: Buffer.from('synthetic restore completed; exit=0'),
-    database_probe: Buffer.from('{"synthetic":true,"database_probe_passed":true}')
+    database_probe: Buffer.from(JSON.stringify(databaseProbe))
   };
   const restoreRoot = path.join(directory, 'isolated-restore');
   const productionRoot = path.join(directory, 'production', 'public_html');
@@ -33,7 +52,6 @@ function makeFixture(t) {
   for (const [name, bytes] of Object.entries(contents)) {
     fs.writeFileSync(paths[name], bytes, { mode: 0o600 });
   }
-  const now = Date.now();
   const manifest = {
     evidence: 'independent-restore-manifest-v1',
     restore_proven: true,
@@ -52,19 +70,19 @@ function makeFixture(t) {
     database_probe_passed: true,
     outbound_integrations_disabled: true,
     reviewer_attested: true,
-    restore_target_id: 'synthetic-isolated-target',
+    restore_target_id: restoreTargetId,
     restore_operator: 'Synthetic Operator',
     independent_reviewer: 'Synthetic Reviewer',
-    restore_database_name: 'synthetic_restore_db',
+    restore_database_name: restoreDatabaseName,
     production_database_name: 'synthetic_live_db',
-    restore_database_user: 'synthetic_restore_user',
+    restore_database_user: restoreDatabaseUser,
     production_database_user: 'synthetic_live_user',
     restore_target_path: fs.realpathSync(restoreRoot),
     restore_target_realpath: fs.realpathSync(restoreRoot),
     production_document_root: fs.realpathSync(productionRoot),
     production_document_root_realpath: fs.realpathSync(productionRoot),
-    restore_completed_at: new Date(now - 120000).toISOString(),
-    reviewed_at: new Date(now - 60000).toISOString()
+    restore_completed_at: restoreCompleted,
+    reviewed_at: reviewed
   };
   return { directory, restoreRoot, productionRoot, contents, paths, manifest };
 }
@@ -86,6 +104,7 @@ test('all four external evidence files match the manifest without claiming resto
   assert.equal(result.status, 'EVIDENCE_BYTES_MATCH_MANIFEST_NOT_RESTORE_PROOF');
   assert.equal(result.matched, true);
   assert.deepEqual(Object.keys(result.files).sort(), ['archive', 'database_probe', 'restore_log', 'restored_marker']);
+  assert.equal(result.database_probe_schema_verified, true);
   assert.equal(result.restore_operation_independently_verified, false);
   assert.equal(result.signer_identity_verified, false);
   assert.equal(result.deployment_authorized, false);
