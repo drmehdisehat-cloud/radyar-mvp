@@ -74,6 +74,38 @@ function verifyPreview(source, destination, productionDocumentRoot, expectedSour
   // when its containing directory or the file itself is group/world writable.
   // Check the immediate staging directory here; the hosting operator must still
   // ensure the wider parent chain is owned and controlled by the staging account.
+
+function assertSafeDirectoryAncestors(target, label) {
+  if (process.platform === 'win32') return;
+  const absolute = path.resolve(target);
+  const parsed = path.parse(absolute);
+  let current = parsed.root;
+  const components = absolute.slice(parsed.root.length).split(path.sep).filter(Boolean);
+  const serviceUid = typeof process.geteuid === 'function'
+    ? BigInt(process.geteuid())
+    : null;
+
+  for (const component of components) {
+    current = path.join(current, component);
+    const stat = fs.lstatSync(current, { bigint: true });
+    assert.ok(!stat.isSymbolicLink() && stat.isDirectory(),
+      label + ' ancestor must be a real directory');
+    const rootOwned = stat.uid === 0n;
+    const serviceOwned = serviceUid !== null && stat.uid === serviceUid;
+    assert.ok(rootOwned || serviceOwned,
+      label + ' ancestor must be owned by root or the current service user');
+    const mode = stat.mode & 0o7777n;
+    assert.equal(mode & 0o6000n, 0n,
+      label + ' ancestor must not have setuid or setgid bits');
+    if ((mode & 0o022n) !== 0n) {
+      // Shared temporary parents such as /tmp are acceptable only when the
+      // sticky bit and root ownership prevent other users replacing entries.
+      assert.ok(rootOwned && (mode & 0o1000n) !== 0n,
+        label + ' ancestor must not be group or world writable unless root-owned and sticky');
+    }
+  }
+}
+
   const destinationDirectoryStat = fs.statSync(path.dirname(dst), { bigint: true });
   assert.ok(destinationDirectoryStat.isDirectory(), 'destination parent must be a directory');
   if (process.platform !== 'win32') {
@@ -82,6 +114,10 @@ function verifyPreview(source, destination, productionDocumentRoot, expectedSour
     assert.equal(destinationDirectoryStat.mode & 0o022n, 0n,
       'destination directory must not be group or world writable');
   }
+
+  // Inspect every ancestor, not only the final dadyar-preview directory. This
+  // catches a writable parent that could be used to replace the staged tree.
+  assertSafeDirectoryAncestors(path.dirname(dst), 'destination');
 
   // Stable descriptor reads reject symlinks, hard-link aliases, non-regular files,
   // and content/metadata changes during hashing. Destination remains outside web root.

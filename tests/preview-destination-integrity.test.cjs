@@ -181,3 +181,29 @@ test('destination verifier rejects unsafe POSIX write permissions on the staged 
   assert.throws(() => verifyPreview(source, destination, productionRoot, expected),
     /destination must not have special permission bits/);
 });
+
+
+test('destination verifier rejects a writable ancestor above the dedicated preview directory', t => {
+  if (process.platform === 'win32') return t.skip('POSIX directory ownership and mode policy is not portable to Windows');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-destination-ancestor-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const productionRoot = path.join(dir, 'production-root');
+  const sourceDir = path.join(dir, 'reviewed-source');
+  const unsafeParent = path.join(dir, 'staging-parent');
+  const previewDir = path.join(unsafeParent, 'dadyar-preview');
+  fs.mkdirSync(productionRoot);
+  fs.mkdirSync(sourceDir);
+  fs.mkdirSync(previewDir, { recursive: true });
+  const source = path.join(sourceDir, 'index.html');
+  const destination = path.join(previewDir, 'index.html');
+  fs.copyFileSync(path.resolve(__dirname, '../dadyar-preview/index.html'), source);
+  fs.copyFileSync(source, destination);
+  const expected = gitBlobSha(source);
+
+  fs.chmodSync(previewDir, 0o755);
+  fs.chmodSync(unsafeParent, 0o775);
+  assert.throws(
+    () => verifyPreview(source, destination, productionRoot, expected),
+    /destination ancestor must not be group or world writable unless root-owned and sticky/
+  );
+});
