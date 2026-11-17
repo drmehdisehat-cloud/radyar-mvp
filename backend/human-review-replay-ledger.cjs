@@ -70,25 +70,137 @@ function assertDirectoryStillPinned(directory) {
   }
 }
 
+function removeOwnedMarker(directory, marker) {
+  assertDirectoryStillPinned(directory);
+  const markerPath = path.join(directory.real, marker.name);
+  let current;
+  try { current = fs.lstatSync(markerPath, { bigint: true }); }
+  catch (error) {
+    if (error && error.code === 'ENOENT') return true;
+    throw error;
+  }
+  if (current.isSymbolicLink() || !current.isFile() ||
+      current.dev !== marker.dev || current.ino !== marker.ino ||
+      current.uid !== marker.uid || current.nlink !== 1n ||
+      (current.mode & PRIVATE_MODE_MASK) !== 0n) return false;
+  fs.unlinkSync(markerPath);
+  assertDirectoryStillPinned(directory);
+  return true;
+}
+
 function writeExclusiveMarker(directory, name, record) {
   assertDirectoryStillPinned(directory);
   const markerPath = path.join(directory.real, name);
-  const flags = fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | fs.constants.O_NOFOLLOW;
-  const fd = fs.openSync(markerPath, flags, 0o600);
+  const flags = fs.constants.O_WRONLY | fs.constants.O_CREAT |
+    fs.constants.O_EXCL | fs.constants.O_NOFOLLOW;
+  let marker = null;
   try {
-    const opened = fs.fstatSync(fd, { bigint: true });
-    if (!opened.isFile() || opened.nlink !== 1n || opened.uid !== directory.uid ||
-        (opened.mode & PRIVATE_MODE_MASK) !== 0n) throw new Error('ledger_marker_metadata_invalid');
-    const pathStat = fs.lstatSync(markerPath, { bigint: true });
-    if (pathStat.isSymbolicLink() || pathStat.dev !== opened.dev || pathStat.ino !== opened.ino) {
-      throw new Error('ledger_marker_path_changed');
+    const fd = fs.openSync(markerPath, flags, 0o600);
+    try {
+      const opened = fs.fstatSync(fd, { bigint: true });
+      marker = { name, dev: opened.dev, ino: opened.ino, uid: opened.uid };
+      if (!opened.isFile() || opened.nlink !== 1n || opened.uid !== directory.uid ||
+          (opened.mode & PRIVATE_MODE_MASK) !== 0n) {
+        throw new Error('ledger_marker_metadata_invalid');
+      }
+      const pathStat = fs.lstatSync(markerPath, { bigint: true });
+      if (pathStat.isSymbolicLink() || pathStat.dev !== opened.dev ||
+          pathStat.ino !== opened.ino) throw new Error('ledger_marker_path_changed');
+      fs.writeFileSync(fd, Buffer.from(JSON.stringify(record) + '\n', 'utf8'));
+      fs.fsyncSync(fd);
+    } finally {
+      fs.closeSync(fd);
     }
-    fs.writeFileSync(fd, Buffer.from(JSON.stringify(record) + '\n', 'utf8'));
-    fs.fsyncSync(fd);
-  } finally {
-    fs.closeSync(fd);
+    assertDirectoryStillPinned(directory);
+    return marker;
+  } catch (error) {
+    if (marker) {
+      try {
+        if (!removeOwnedMarker(directory, marker)) error.rollbackFailed = true;
+      } catch {
+        error.rollbackFailed = true;
+      }
+    }
+    throw error;
   }
+}
+
+function markerExists(directory, name) {
+  try {
+    fs.lstatSync(path.join(directory.real, name), { bigint: true });
+    return true;
+  } catch (error) {
+    if (error && error.code === 'ENOENT') return false;
+    throw error;
+  }
+}
+
+function releaseLedgerLock(directory, lock) {
+  let released = false;
+  try {
+    const opened = fs.fstatSync(lock.fd, { bigint: true });
+    const current = fs.lstatSync(lock.path, { bigint: true });
+    if (!opened.isFile() || !current.isFile() || current.isSymbolicLink() ||
+        opened.dev !== lock.dev || opened.ino !== lock.ino ||
+        current.dev !== lock.dev || current.ino !== lock.ino ||
+        opened.uid !== directory.uid || current.uid !== directory.uid ||
+        opened.nlink !== 1n || current.nlink !== 1n ||
+        (opened.mode & PRIVATE_MODE_MASK) !== 0n ||
+        (current.mode & PRIVATE_MODE_MASK) !== 0n) {
+      throw new Error('ledger_transaction_lock_identity_changed');
+    }
+    fs.unlinkSync(lock.path);
+    fs.fsyncSync(directory.dirFd);
+    released = true;
+  } finally {
+    try { fs.closeSync(lock.fd); } catch {}
+  }
+  return released;
+}
+
+function acquireLedgerLock(directory) {
   assertDirectoryStillPinned(directory);
+  const lockPath = path.join(directory.real, '.transaction.lock');
+  const flags = fs.constants.O_WRONLY | fs.constants.O_CREAT |
+    fs.constants.O_EXCL | fs.constants.O_NOFOLLOW;
+  let fd;
+  try {
+    fd = fs.openSync(lockPath, flags, 0o600);
+  } catch (error) {
+    if (error && error.code === 'EEXIST') {
+      const busy = new Error('ledger_transaction_busy');
+      busy.code = 'LEDGER_BUSY';
+      throw busy;
+    }
+    throw error;
+  }
+
+  const opened = fs.fstatSync(fd, { bigint: true });
+  const lock = { path: lockPath, fd, dev: opened.dev, ino: opened.ino };
+  try {
+    const current = fs.lstatSync(lockPath, { bigint: true });
+    if (!opened.isFile() || !current.isFile() || current.isSymbolicLink() ||
+        opened.nlink !== 1n || current.nlink !== 1n ||
+        opened.uid !== directory.uid || current.uid !== directory.uid ||
+        (opened.mode & PRIVATE_MODE_MASK) !== 0n ||
+        (current.mode & PRIVATE_MODE_MASK) !== 0n ||
+        opened.dev !== current.dev || opened.ino !== current.ino) {
+      throw new Error('ledger_transaction_lock_metadata_invalid');
+    }
+    fs.writeFileSync(fd, Buffer.from(JSON.stringify({
+      schema: 'dadyar-review-ledger-transaction-lock-v1',
+      pid: process.pid,
+      started_at: new Date().toISOString()
+    }) + '\n', 'utf8'));
+    fs.fsyncSync(fd);
+    assertDirectoryStillPinned(directory);
+    return lock;
+  } catch (error) {
+    // If initialization fails, leave the lock in place. This is deliberately
+    // fail-closed: an operator must inspect and remove a stale lock out of band.
+    try { fs.closeSync(fd); } catch {}
+    throw error;
+  }
 }
 
 function consumeHumanReviewAttestation({
@@ -114,8 +226,13 @@ function consumeHumanReviewAttestation({
   }
 
   let directory;
+  let lock;
+  const createdMarkers = [];
+  let keepLockForRecovery = false;
+  let result;
   try {
     directory = assertPrivateLedgerDirectory(ledgerDirectory);
+    lock = acquireLedgerLock(directory);
     const p = attestation.payload;
     const reviewIdHash = sha256(p.issuer + '\0' + p.review_id);
     const nonceHash = sha256(p.issuer + '\0' + p.nonce);
@@ -130,31 +247,75 @@ function consumeHumanReviewAttestation({
       artifact_sha256: verification.artifactSha256,
       consumed_at: consumedAt
     });
-    // Two independent exclusive claims prevent both review_id and nonce reuse.
-    // Stable ordering makes concurrent callers acquire claims in the same order.
     const claims = [
       'review-' + reviewIdHash + '.json',
       'nonce-' + nonceHash + '.json'
     ].sort();
-    for (const name of claims) writeExclusiveMarker(directory, name, record);
-    fs.fsyncSync(directory.dirFd);
-    return Object.freeze({
-      consumed: true,
-      sourceCommit: verification.sourceCommit,
-      artifactSha256: verification.artifactSha256,
-      consumedAt
-    });
-  } catch (error) {
-    if (error && error.code === 'EEXIST') {
-      return Object.freeze({ consumed: false, reason: 'review_attestation_replayed' });
+
+    // Serialize the two-key claim transaction. Preflight both keys before
+    // writing either one, so a duplicate review_id cannot burn a fresh nonce.
+    if (claims.some(name => markerExists(directory, name))) {
+      result = Object.freeze({ consumed: false, reason: 'review_attestation_replayed' });
+    } else {
+      for (const name of claims) {
+        createdMarkers.push(writeExclusiveMarker(directory, name, record));
+      }
+      fs.fsyncSync(directory.dirFd);
+      result = Object.freeze({
+        consumed: true,
+        sourceCommit: verification.sourceCommit,
+        artifactSha256: verification.artifactSha256,
+        consumedAt
+      });
     }
-    const detail = typeof error?.message === 'string' ? error.message : 'ledger_write_failed';
-    return Object.freeze({ consumed: false, reason: 'replay_ledger_unavailable', detail });
+  } catch (error) {
+    let rollbackOk = !error?.rollbackFailed;
+    for (const marker of createdMarkers.slice().reverse()) {
+      try {
+        if (!removeOwnedMarker(directory, marker)) rollbackOk = false;
+      } catch {
+        rollbackOk = false;
+      }
+    }
+    if (createdMarkers.length > 0 && rollbackOk) {
+      try { fs.fsyncSync(directory.dirFd); }
+      catch { rollbackOk = false; }
+    }
+    if (!rollbackOk && lock) keepLockForRecovery = true;
+
+    if (error && error.code === 'LEDGER_BUSY') {
+      result = Object.freeze({ consumed: false, reason: 'replay_ledger_busy' });
+    } else if (error && error.code === 'EEXIST' && rollbackOk) {
+      result = Object.freeze({ consumed: false, reason: 'review_attestation_replayed' });
+    } else {
+      const detail = typeof error?.message === 'string' ? error.message : 'ledger_write_failed';
+      result = Object.freeze({ consumed: false, reason: 'replay_ledger_unavailable', detail });
+    }
   } finally {
+    if (lock) {
+      if (keepLockForRecovery) {
+        try { fs.closeSync(lock.fd); } catch {}
+      } else {
+        try {
+          if (!releaseLedgerLock(directory, lock)) {
+            result = Object.freeze({
+              consumed: false, reason: 'replay_ledger_unavailable',
+              detail: 'ledger_transaction_lock_release_failed'
+            });
+          }
+        } catch {
+          result = Object.freeze({
+            consumed: false, reason: 'replay_ledger_unavailable',
+            detail: 'ledger_transaction_lock_release_failed'
+          });
+        }
+      }
+    }
     if (directory?.dirFd !== undefined) {
       try { fs.closeSync(directory.dirFd); } catch {}
     }
   }
+  return result || Object.freeze({ consumed: false, reason: 'replay_ledger_unavailable' });
 }
 
 module.exports = { consumeHumanReviewAttestation, assertPrivateLedgerDirectory, pathsDisjoint };
