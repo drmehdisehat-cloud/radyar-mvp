@@ -38,7 +38,8 @@ function harness() {
         for (const callback of handlers.get(id + ':click') || []) callback({ type: 'click', target: this });
       },
       focus() {},
-      contains() { return false; }
+      contains() { return false; },
+      closest() { return { textContent: id }; }
     };
     return element;
   }
@@ -83,11 +84,14 @@ function harness() {
     return element;
   });
 
+  const reviewChecklistItems = ['review-check-facts','review-check-conflicts','review-check-sources','review-check-privacy'].map(id => makeElement(id));
+
   const document = {
     activeElement: null,
     getElementById: get,
     querySelectorAll(selector) {
       if (selector === '#interview select') return selects;
+      if (selector === '#review-checklist input[type="checkbox"]') return reviewChecklistItems;
       if (selector === 'fieldset input[type=checkbox]') return evidence;
       if (selector === 'fieldset input[type=checkbox]:checked') return evidence.filter(item => item.checked);
       throw new Error('Unexpected selector in preview test: ' + selector);
@@ -118,6 +122,7 @@ function harness() {
     get,
     selects,
     evidence,
+    reviewChecklistItems,
     get exportedBlob() { return exportedBlob; },
     get exportedFilename() { return exportedFilename; },
     clearExport() { exportedBlob = null; exportedFilename = ''; }
@@ -148,6 +153,10 @@ function fillReview(h, decision = 'approved') {
   const note = h.get('review-note');
   note.value = 'بازبینی سناریوی ساختگی و تعارض مدارک نمونه';
   note.dispatchEvent({ type: 'input' });
+  for (const item of h.reviewChecklistItems) {
+    item.checked = true;
+    item.dispatchEvent({ type: 'change' });
+  }
 
   const acknowledgement = h.get('export-ack');
   acknowledgement.checked = true;
