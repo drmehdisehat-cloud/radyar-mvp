@@ -15,6 +15,14 @@ function harness() {
   const elements = new Map();
   const downloads = [];
   const blobs = [];
+  const reviewChecklistItems = ['review-check-facts','review-check-conflicts','review-check-sources','review-check-privacy'].map(id => ({
+    id, checked: false,
+    addEventListener(type, callback) {
+      const key = id + ':' + type;
+      handlers.set(key, [...(handlers.get(key) || []), callback]);
+    },
+    closest() { return { textContent: id }; }
+  }));
   const document = {
     activeElement: null,
     getElementById(id) {
@@ -53,6 +61,7 @@ function harness() {
     },
     querySelectorAll(selector) {
       if (selector === '#interview select') return selects;
+      if (selector === '#review-checklist input[type="checkbox"]') return reviewChecklistItems;
       if (selector === 'fieldset input[type=checkbox]') return evidenceInputs;
       if (selector === 'fieldset input[type=checkbox]:checked') {
         return evidenceInputs.filter(input => input.checked);
@@ -129,6 +138,7 @@ function harness() {
     handlers,
     elements,
     evidenceInputs,
+    reviewChecklistItems,
     selects,
     downloads,
     blobs,
@@ -164,6 +174,13 @@ function generateEligibleDraft(h) {
   assert.match(h.get('report').textContent, /منابع قانونی: تأییدنشده/);
 }
 
+function completeReviewChecklist(h) {
+  for (const item of h.reviewChecklistItems) {
+    item.checked = true;
+    h.fire(item.id, 'change');
+  }
+}
+
 function approveLocalReview(h) {
   h.get('reviewer-name').value = 'بازبین آزمایشی';
   h.fire('reviewer-name', 'input');
@@ -171,6 +188,7 @@ function approveLocalReview(h) {
   h.fire('review-decision', 'change');
   h.get('review-note').value = 'بررسی تعارض مدارک و محدودیت منبع';
   h.fire('review-note', 'input');
+  completeReviewChecklist(h);
   assert.equal(h.get('record-review').disabled, true, 'review cannot be recorded before explicit acknowledgement');
   h.get('export-ack').checked = true;
   h.fire('export-ack', 'change');
@@ -205,6 +223,7 @@ test('actual preview permits one report only after an approved local human-revie
 test('review note enforces the exact twelve-character minimum before approval', () => {
   const h = harness();
   generateEligibleDraft(h);
+  completeReviewChecklist(h);
   h.get('reviewer-name').value = 'بازبین آزمایشی';
   h.fire('reviewer-name', 'input');
   h.get('review-decision').value = 'approved';
@@ -234,6 +253,7 @@ test('review note enforces the exact twelve-character minimum before approval', 
 test('rejected local review never enables report download', () => {
   const h = harness();
   generateEligibleDraft(h);
+  completeReviewChecklist(h);
   h.get('reviewer-name').value = 'بازبین آزمایشی';
   h.fire('reviewer-name', 'input');
   h.get('review-decision').value = 'rejected';
