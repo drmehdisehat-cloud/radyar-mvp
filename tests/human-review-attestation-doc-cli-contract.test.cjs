@@ -33,8 +33,8 @@ test('human-review guide lists the current read-only preflight options', () => {
     assert.ok(guide.includes(flag), 'guide is missing current CLI option ' + flag);
     assert.ok(cli.includes(flag), 'CLI no longer recognizes documented option ' + flag);
   }
-  assert.ok(!guide.includes('--human-review-verified'), 'stale acknowledgement flag must not return');
-  assert.ok(!guide.includes('--authenticated-human-review-attested'), 'bare authentication assertion must not return');
+  assert.match(guide, /گزینه‌های قدیمی[\s\S]*?معتبر نیستند/);
+  assert.doesNotMatch(cli, /--human-review-verified|--authenticated-human-review-attested/);
   assert.match(cli, /const FLAG_NAMES = new Set\([\s\S]*?--local-human-review-acknowledged/);
 });
 
