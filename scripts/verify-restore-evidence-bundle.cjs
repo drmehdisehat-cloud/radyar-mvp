@@ -108,6 +108,9 @@ function hashExternalEvidenceFile(file, label, maxBytes) {
   const parentPath = path.dirname(file);
   const canonicalParent = assertCanonicalDirectory(parentPath, label + '_parent');
   const parentBefore = fs.statSync(canonicalParent, { bigint: true });
+  const filePathStat = fs.lstatSync(file, { bigint: true });
+  if (filePathStat.isSymbolicLink()) throw new Error(label + '_path_contains_symlink');
+  if (!filePathStat.isFile()) throw new Error(label + '_must_be_regular_file');
   const real = fs.realpathSync(file);
   if (real !== file || path.dirname(real) !== canonicalParent) throw new Error(label + '_path_is_not_canonical');
   if (isInside(REPO_ROOT, real)) throw new Error(label + '_path_inside_git_checkout');
