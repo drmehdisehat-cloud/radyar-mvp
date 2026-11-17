@@ -31,7 +31,14 @@ test('experimental CI push and pull-request scopes are explicit and documented',
     'dadyar/preview-auth-policy-20261030',
     'dadyar/ai-chat-private-20261101'
   ]);
-  assert.deepEqual(pullRequestBranches, ['main', 'dadyar/mvp-sync-028']);
+  assert.deepEqual(pullRequestBranches, [
+    'main',
+    'dadyar/mvp-sync-028',
+    'dadyar/replay-ledger-ci-base-20261117',
+    'dadyar/signed-gate-review-base-20261117',
+    'dadyar/restore-probe-review-base-20261117',
+    'dadyar/preview-package-layout-review-base-20261117'
+  ]);
 
   for (const branch of pushBranches) {
     assert.ok(readme.includes(fence + branch + fence), 'README omits push branch ' + branch);
