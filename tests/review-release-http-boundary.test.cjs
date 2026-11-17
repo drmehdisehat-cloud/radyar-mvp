@@ -312,3 +312,45 @@ test('rejects non-canonical or non-HTTPS origins at configuration time', () => {
     releaseReviewedReport: async () => ({ reportBytes: REPORT })
   }), /canonical HTTPS origin/);
 });
+
+test('rejects Expect: 100-continue before accepting report bytes or invoking the review gate', async () => {
+  const f = fixture();
+  await withServer(f, async url => {
+    const target = new URL(url);
+    let continueSeen = false;
+    const payload = body();
+    const response = await new Promise((resolve, reject) => {
+      const request = http.request({
+        hostname: target.hostname,
+        port: Number(target.port),
+        path: target.pathname,
+        method: 'POST',
+        headers: rawHeaderPairs(url, [
+          'Expect', '100-continue',
+          'Content-Length', String(Buffer.byteLength(payload))
+        ])
+      }, incoming => {
+        const chunks = [];
+        incoming.on('data', chunk => chunks.push(chunk));
+        incoming.on('end', () => resolve({
+          status: incoming.statusCode,
+          headers: incoming.headers,
+          body: Buffer.concat(chunks)
+        }));
+      });
+      request.on('continue', () => {
+        continueSeen = true;
+        request.end(payload);
+      });
+      request.on('error', reject);
+      request.setTimeout(3000, () => request.destroy(new Error('timed out waiting for expectation rejection')));
+      request.flushHeaders();
+    });
+
+    assert.equal(continueSeen, false);
+    assert.equal(response.status, 417);
+    assert.equal(response.headers.connection, 'close');
+    assert.equal(response.headers['cache-control'], 'no-store, private, max-age=0');
+    assert.equal(f.gateCalls, 0);
+  });
+});
