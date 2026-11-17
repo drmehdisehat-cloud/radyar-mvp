@@ -24,10 +24,14 @@ function fixture(options = {}) {
     releaseReviewedReport: async ({ request, envelope }) => {
       gateCalls += 1;
       if (request.headers['x-test-session'] !== SESSION) {
-        throw new Error('authenticated reviewer principal required');
+        throw Object.assign(new Error('authenticated reviewer principal required'), {
+          code: 'AUTHENTICATED_REVIEWER_REQUIRED'
+        });
       }
       if (!envelope || envelope.decision !== 'approved' || envelope.synthetic !== true) {
-        throw new Error('review approval is invalid');
+        throw Object.assign(new Error('review approval is invalid'), {
+          code: 'REVIEW_ATTESTATION_REJECTED'
+        });
       }
       return { reportBytes: REPORT };
     },
