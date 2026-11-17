@@ -40,6 +40,7 @@ function makeState(overrides = {}) {
     reviewNote: { value: 'بازبینی داده ساختگی' },
     reviewStatus: { textContent: '' },
     exportStatus: { textContent: '' },
+    reviewChecklistComplete: () => true,
     safeReviewText: (value, max) => String(value || '').slice(0, max),
     URL: {
       createObjectURL(blob) { blobs.push(blob); return 'blob:synthetic-report'; },
