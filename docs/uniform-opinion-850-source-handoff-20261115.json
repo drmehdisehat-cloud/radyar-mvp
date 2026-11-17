@@ -59,5 +59,55 @@
     "هش متن اولیه برای اتصال به بازبینی انسانی وجود ندارد.",
     "بازبینی و امضای حقوقی مستقل انجام نشده است."
   ],
-  "scope": "این رکورد فقط سرنخ پژوهشی است. از آن برای استناد حقوقی، محاسبه خسارت، تعیین نتیجه پرونده یا افزایش پوشش منابع تأییدشده استفاده نشود."
+  "scope": "این رکورد فقط سرنخ پژوهشی است. از آن برای استناد حقوقی، محاسبه خسارت، تعیین نتیجه پرونده یا افزایش پوشش منابع تأییدشده استفاده نشود.",
+  "latestOfficialSourceRetry": {
+    "observedAt": "2026-11-17",
+    "retrievalMethod": "direct fetch of the exact official-portal URLs; search-result leads kept separate",
+    "officialSourceAttempts": [
+      {
+        "authority": "پایگاه ملی قوانین و مقررات کشور",
+        "purpose": "متن رأی وحدت رویه ۸۵۰",
+        "url": "https://qavanin.ir/Law/TreeText/?IDS=6755160463259811436",
+        "retrievalResult": "transfer-shell-only",
+        "observedResponseLines": 7,
+        "visibleNotice": "در حال انتقال به سایت مورد نظر هستید...",
+        "legalTextRetrieved": false
+      },
+      {
+        "authority": "پایگاه ملی قوانین و مقررات کشور",
+        "purpose": "متن تجمیعی قانون صدور چک",
+        "url": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
+        "retrievalResult": "transfer-shell-only",
+        "observedResponseLines": 7,
+        "visibleNotice": "در حال انتقال به سایت مورد نظر هستید...",
+        "legalTextRetrieved": false
+      },
+      {
+        "authority": "پایگاه ملی قوانین و مقررات کشور",
+        "purpose": "فراداده قانون صدور چک",
+        "url": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
+        "retrievalResult": "timeout",
+        "legalTextRetrieved": false
+      }
+    ],
+    "secondarySearchObservations": [
+      {
+        "publisher": "پایگاه خبری اختبار",
+        "url": "https://www.ekhtebar.ir/%D8%B1%D8%A7%DB%8C-%D9%88%D8%AD%D8%AF%D8%AA-%D8%B1%D9%88%DB%8C%D9%87-%D8%B4%D9%85%D8%A7%D8%B1%D9%87-%DB%B8%DB%B5%DB%B0-%DB%B1%DB%B4%DB%B0%DB%B3-%DB%B5-%DB%B1%DB%B6-%D9%87%DB%8C%D8%A6/",
+        "sourceClass": "secondary-reproduction",
+        "searchResult": "text-reproduction-found",
+        "primarySourceVerified": false,
+        "releaseSourceEligible": false
+      },
+      {
+        "publisher": "یک قاضی",
+        "url": "https://1ghazi.pro/section/rulings",
+        "sourceClass": "secondary-index",
+        "searchResult": "entry-for-opinion-850-and-issued-date-listed",
+        "primarySourceVerified": false,
+        "releaseSourceEligible": false
+      }
+    ],
+    "conclusion": "در ۱۴۰۵/۰۸/۲۶ واکشی مستقیم هر دو صفحه TreeText فقط پوسته انتقال هفت‌خطی نشان داد و صفحه فراداده قانون صدور چک timeout شد. نتایج ثانویه برای کشف سرنخ باقی می‌مانند و جای متن اولیه، شماره/تاریخ انتشار روزنامه رسمی، نسخه معتبر در تاریخ رویداد یا بازبینی انسانی را نمی‌گیرند. هیچ متن حقوقی از نتایج ثانویه وارد رجیستری پاسخ‌گو نشد."
+  }
 }
