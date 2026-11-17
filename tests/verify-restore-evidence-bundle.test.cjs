@@ -162,6 +162,17 @@ test('rejects symlinked evidence paths', t => {
   assert.throws(() => verify(fixture, { archivePath: alias }), /archive_path_contains_symlink/);
 });
 
+test('rejects evidence files below a group/world-writable parent directory', t => {
+  const fixture = makeFixture(t);
+  const evidenceRoot = path.join(fixture.directory, 'shared-evidence');
+  fs.mkdirSync(evidenceRoot, { mode: 0o700 });
+  const unsafeArchive = path.join(evidenceRoot, 'archive.evidence');
+  fs.writeFileSync(unsafeArchive, fixture.contents.archive, { mode: 0o600 });
+  fs.chmodSync(evidenceRoot, 0o777);
+  assert.throws(() => verify(fixture, { archivePath: unsafeArchive }),
+    /archive_parent_must_not_be_group_or_world_writable/);
+});
+
 test('CLI verifies synthetic external evidence and emits non-authorizing status', t => {
   const fixture = makeFixture(t);
   const manifestPath = path.join(fixture.directory, 'manifest.json');
