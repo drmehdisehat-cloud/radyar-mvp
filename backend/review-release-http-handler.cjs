@@ -271,6 +271,26 @@ function createReviewReleaseHttpServer(handler) {
   server.headersTimeout = 5000;
   server.keepAliveTimeout = 5000;
   server.maxHeadersCount = 64;
+  // The adapter has no built-in TLS termination or trusted-proxy identity.
+  // Bind only to an explicit loopback TCP address so it cannot be exposed
+  // directly on a public interface by an accidental listen() call. A
+  // separately reviewed TLS reverse proxy may connect to this local socket.
+  const nativeListen = server.listen;
+  server.listen = function (...args) {
+    const first = args[0];
+    const listenOptions = first && typeof first === 'object' && !Array.isArray(first)
+      ? first : null;
+    const host = listenOptions ? listenOptions.host : args[1];
+    const port = listenOptions ? listenOptions.port : first;
+    if (!['127.0.0.1', '::1'].includes(host) ||
+        typeof port !== 'number' || !Number.isInteger(port) ||
+        port < 0 || port > 65535 ||
+        (listenOptions && Object.keys(listenOptions).some(key =>
+          !['port', 'host', 'backlog'].includes(key)))) {
+      throw new Error('Dadyar signed-review HTTP server requires an explicit loopback TCP listener.');
+    }
+    return nativeListen.apply(this, args);
+  };
   const rejectExpectation = (request, response) => respondAndCloseRequest(request, response, 417, 'درخواست دارای Expect پشتیبانی نمی‌شود.');
   server.on('checkContinue', rejectExpectation);
   server.on('checkExpectation', rejectExpectation);
