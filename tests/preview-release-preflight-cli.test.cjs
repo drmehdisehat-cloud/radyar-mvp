@@ -544,7 +544,7 @@ test('a modified restore manifest is rejected by the two-party signature gate', 
   const f = fixture();
   try {
     const manifest = JSON.parse(fs.readFileSync(f.restoreFile, 'utf8'));
-    manifest.restore_target_id = 'substituted-target';
+    manifest.restore_operator = 'Substituted Operator';
     fs.writeFileSync(f.restoreFile, JSON.stringify(manifest));
     const result = run(baseArgs(f));
     assert.equal(result.status, 1, result.stderr);
