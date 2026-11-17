@@ -29,7 +29,8 @@ test('reviewer privacy is part of the central fail-closed export permission gate
     recordReviewButton: { disabled: false },
     reviewerName: { value: '09000000000' },
     reviewDecision: { value: 'approved' },
-    reviewNote: { value: 'یادداشت کاملاً ساختگی برای آزمون' }
+    reviewNote: { value: 'یادداشت کاملاً ساختگی برای آزمون' },
+    reviewChecklistComplete: () => true
   };
   const executable = [
     extractFunction('hasSensitiveIdentifier'),
