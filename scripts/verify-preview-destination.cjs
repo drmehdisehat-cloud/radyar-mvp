@@ -98,6 +98,7 @@ function assertSafeDirectoryAncestors(target, label) {
     const stat = fs.lstatSync(current, { bigint: true });
     assert.ok(!stat.isSymbolicLink() && stat.isDirectory(),
       label + ' ancestor must be a real directory');
+    const rootOwned = stat.uid === 0n;
     assertTrustedOwner(stat, label + ' ancestor');
     const mode = stat.mode & 0o7777n;
     assert.equal(mode & 0o6000n, 0n,
