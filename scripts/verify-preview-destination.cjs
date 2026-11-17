@@ -70,10 +70,29 @@ function verifyPreview(source, destination, productionDocumentRoot, expectedSour
   assert.ok(sourcePathStat.dev !== destinationPathStat.dev || sourcePathStat.ino !== destinationPathStat.ino,
     'destination must not be a hard link to source; hard-link aliases are forbidden');
 
+  // A validated file can still be replaced or modified by another local account
+  // when its containing directory or the file itself is group/world writable.
+  // Check the immediate staging directory here; the hosting operator must still
+  // ensure the wider parent chain is owned and controlled by the staging account.
+  const destinationDirectoryStat = fs.statSync(path.dirname(dst), { bigint: true });
+  assert.ok(destinationDirectoryStat.isDirectory(), 'destination parent must be a directory');
+  if (process.platform !== 'win32') {
+    assert.equal(destinationDirectoryStat.mode & 0o7000n, 0n,
+      'destination directory must not have special permission bits');
+    assert.equal(destinationDirectoryStat.mode & 0o022n, 0n,
+      'destination directory must not be group or world writable');
+  }
+
   // Stable descriptor reads reject symlinks, hard-link aliases, non-regular files,
   // and content/metadata changes during hashing. Destination remains outside web root.
   const sourceRead = readStableRegularFile(src, 'source', { includeBytes: true });
   const destinationRead = readStableRegularFile(dst, 'destination', { includeBytes: true });
+  if (process.platform !== 'win32') {
+    assert.equal(destinationRead.stat.mode & 0o7000n, 0n,
+      'destination must not have special permission bits');
+    assert.equal(destinationRead.stat.mode & 0o022n, 0n,
+      'destination must not be group or world writable');
+  }
   assert.ok(sourceRead.stat.dev !== destinationRead.stat.dev || sourceRead.stat.ino !== destinationRead.stat.ino,
     'destination must not be a hard link to source');
   const sourceBlobSha = gitBlobSha(sourceRead.bytes);
