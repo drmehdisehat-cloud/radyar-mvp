@@ -212,7 +212,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  decision.value = "rejected"; decision.dispatchEvent(new Event("change", { bubbles: true }));',
       '  note.value = "بازبینی رد شده برای آزمون"; note.dispatchEvent(new Event("input", { bubbles: true }));',
       '  for (const id of ["review-check-facts","review-check-conflicts","review-check-sources","review-check-privacy"]) { const item = document.getElementById(id); item.checked = true; item.dispatchEvent(new Event("change", { bubbles: true })); }',
-      '  document.getElementById("export-ack").click();'
+      '  document.getElementById("export-ack").click();',
       '  document.getElementById("record-review").click();',
       '  const rejectedReviewKeepsExportBlocked = download.disabled;',
       '  const rejectedReviewStatus = document.getElementById("review-status").textContent;',
