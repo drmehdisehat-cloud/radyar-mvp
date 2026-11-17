@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
-const { verifyRestoreEvidenceBundle } = require('../scripts/verify-restore-evidence-bundle.cjs');
+const { assertEvidenceFilePermissions, verifyRestoreEvidenceBundle } = require('../scripts/verify-restore-evidence-bundle.cjs');
 
 const SCRIPT = path.join(__dirname, '../scripts/verify-restore-evidence-bundle.cjs');
 const digest = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
@@ -317,6 +317,29 @@ if (process.platform !== 'win32') {
   });
 }
 
+
+if (process.platform !== 'win32') {
+  test('accepts evidence files owned by root or the service user', () => {
+    const serviceUid = BigInt(process.geteuid());
+    for (const uid of new Set([0n, serviceUid])) {
+      assert.doesNotThrow(() => assertEvidenceFilePermissions({ uid, mode: 0o600n }, 'archive', true));
+      assert.doesNotThrow(() => assertEvidenceFilePermissions({ uid, mode: 0o644n }, 'restored_marker', false));
+    }
+  });
+
+  test('rejects evidence files owned by an unrelated account', () => {
+    const serviceUid = BigInt(process.geteuid());
+    const foreignUid = serviceUid === 0n ? 1n : serviceUid + 1n;
+    assert.throws(
+      () => assertEvidenceFilePermissions({ uid: foreignUid, mode: 0o644n }, 'restored_marker', false),
+      /restored_marker_must_be_owned_by_root_or_service_user/
+    );
+    assert.throws(
+      () => assertEvidenceFilePermissions({ uid: foreignUid, mode: 0o600n }, 'manifest', true),
+      /manifest_must_be_owned_by_root_or_service_user/
+    );
+  });
+}
 
 if (process.platform !== 'win32') {
   test('rejects setuid/setgid/sticky permission bits on sensitive evidence', t => {
