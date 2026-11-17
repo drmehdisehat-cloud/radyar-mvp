@@ -134,6 +134,10 @@ function verifyRestoreEvidenceBundle({ manifest, archivePath, restoredMarkerPath
   };
   const restoreRoot = assertCanonicalDirectory(manifest.restore_target_realpath, 'restore_target');
   const productionRoot = assertCanonicalDirectory(manifest.production_document_root_realpath, 'production_document_root');
+  const checkoutRoot = fs.realpathSync(REPO_ROOT);
+  if (isInside(checkoutRoot, restoreRoot) || isInside(restoreRoot, checkoutRoot)) {
+    throw new Error('restore_target_overlaps_git_checkout');
+  }
   if (isInside(productionRoot, restoreRoot) || isInside(restoreRoot, productionRoot)) {
     throw new Error('restore_target_overlaps_production_document_root');
   }
