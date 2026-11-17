@@ -96,6 +96,12 @@ function assertEvidenceFilePermissions(stat, label, ownerOnly = false) {
   // A restored marker may be readable by the sandbox web server, but never writable
   // by group/other users. Special permission bits are never accepted.
   if (process.platform === 'win32') return;
+  // The parent directory being trusted is not enough: an unrelated account
+  // must not own a marker or evidence file that it can later rewrite.
+  const serviceUid = typeof process.geteuid === 'function' ? BigInt(process.geteuid()) : null;
+  if (serviceUid === null || (stat.uid !== 0n && stat.uid !== serviceUid)) {
+    throw new Error(label + '_must_be_owned_by_root_or_service_user');
+  }
   if ((stat.mode & 0o7000n) !== 0n) throw new Error(label + '_special_permission_bits_forbidden');
   if ((stat.mode & 0o022n) !== 0n) throw new Error(label + '_must_not_be_group_or_world_writable');
   if (ownerOnly && (stat.mode & 0o077n) !== 0n) throw new Error(label + '_must_be_owner_only');
