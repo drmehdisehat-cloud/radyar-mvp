@@ -262,7 +262,7 @@ test('builder records the actual PR head separately from GitHub merge SHA', t =>
     try {
       const destination = path.join(root, 'bundle');
       const result = buildOfflinePreviewPackage(destination, { repoRoot, sourcePath });
-      const metadata = JSON.parse(fs.readFileSync(path.join(destination, 'PREVIEW-METADATA.json'), 'utf8'));
+      const metadata = JSON.parse(fs.readFileSync(path.join(destination, 'handoff', 'PREVIEW-METADATA.json'), 'utf8'));
       assert.equal(result.source_commit, commit);
       assert.equal(result.workflow_commit, mergeSha);
       assert.equal(metadata.source_commit, commit);
@@ -289,7 +289,7 @@ test('builder uses the explicit experimental branch identity on pull-request mer
       const destination = path.join(root, 'bundle');
       const result = buildOfflinePreviewPackage(destination, { repoRoot, sourcePath, commit });
       assert.equal(result.source_commit, commit);
-      const metadata = JSON.parse(fs.readFileSync(path.join(destination, 'PREVIEW-METADATA.json'), 'utf8'));
+      const metadata = JSON.parse(fs.readFileSync(path.join(destination, 'handoff', 'PREVIEW-METADATA.json'), 'utf8'));
       assert.equal(metadata.source_branch, branch);
       assert.equal(metadata.deployment_authorized, false);
     } finally {
