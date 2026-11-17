@@ -107,11 +107,13 @@ test('does not write replay markers for an invalid signature', t => {
   assert.deepEqual(fs.readdirSync(f.ledgerDirectory), []);
 });
 
-test('rejects reuse of review_id with a fresh nonce', t => {
+test('rejects reuse of review_id with a fresh nonce without burning the fresh nonce', t => {
   const f = fixture(t);
   assert.equal(consume(f).consumed, true);
+  const before = fs.readdirSync(f.ledgerDirectory).sort();
   f.attestation = resign(f, { nonce: crypto.randomBytes(32).toString('base64url') });
   assert.equal(consume(f).reason, 'review_attestation_replayed');
+  assert.deepEqual(fs.readdirSync(f.ledgerDirectory).sort(), before);
 });
 
 test('rejects reuse of nonce with a fresh review_id', t => {
@@ -147,6 +149,49 @@ test('rejects a ledger directory readable or writable by group or others', t => 
   assert.deepEqual(fs.readdirSync(f.ledgerDirectory), []);
 });
 
+test('fails closed when another ledger transaction holds the lock', t => {
+  const f = fixture(t);
+  fs.writeFileSync(path.join(f.ledgerDirectory, '.transaction.lock'), 'stale-or-active', { mode: 0o600 });
+  const result = consume(f);
+  assert.equal(result.reason, 'replay_ledger_busy');
+  assert.deepEqual(fs.readdirSync(f.ledgerDirectory), ['.transaction.lock']);
+});
+
+test('serializes concurrent approvals that reuse one review_id but have different nonces', async t => {
+  const f = fixture(t);
+  const modulePath = path.resolve(__dirname, '../backend/human-review-replay-ledger.cjs');
+  const inputs = [];
+  for (let index = 0; index < 8; index += 1) {
+    const attestation = index === 0 ? f.attestation : resign(f, {
+      nonce: crypto.randomBytes(32).toString('base64url')
+    });
+    const input = path.join(f.root, 'synthetic-attestation-' + index + '.json');
+    fs.writeFileSync(input, JSON.stringify({
+      attestation,
+      trustStore: f.trustStore,
+      expectedSourceCommit: f.expectedSourceCommit,
+      expectedSourceBlobSha1: f.expectedSourceBlobSha1,
+      expectedArtifactSha256: f.expectedArtifactSha256,
+      now: f.now
+    }), { mode: 0o600 });
+    inputs.push(input);
+  }
+  const code = [
+    "const fs=require('node:fs');",
+    "const {consumeHumanReviewAttestation}=require(" + JSON.stringify(modulePath) + ");",
+    'const f=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));',
+    'const result=consumeHumanReviewAttestation({...f,ledgerDirectory:process.argv[2]});',
+    'process.stdout.write(JSON.stringify(result));'
+  ].join('\n');
+  const results = await Promise.all(inputs.map(input => runChild(code, [input, f.ledgerDirectory])));
+  assert.equal(results.filter(result => result.consumed === true).length, 1);
+  assert.equal(results.filter(result =>
+    result.reason === 'review_attestation_replayed' || result.reason === 'replay_ledger_busy'
+  ).length, 7);
+  assert.equal(fs.readdirSync(f.ledgerDirectory).filter(name => name.endsWith('.json')).length, 2);
+  assert.equal(fs.readdirSync(f.ledgerDirectory).includes('.transaction.lock'), false);
+});
+
 test('stores only digests, not raw reviewer, review id or nonce', t => {
   const f = fixture(t);
   assert.equal(consume(f).consumed, true);
@@ -180,6 +225,10 @@ test('concurrent processes can consume the same approval exactly once', async t 
   ].join('\n');
   const results = await Promise.all(Array.from({ length: 8 }, () => runChild(code, [input, f.ledgerDirectory])));
   assert.equal(results.filter(result => result.consumed === true).length, 1);
-  assert.equal(results.filter(result => result.reason === 'review_attestation_replayed').length, 7);
-  assert.equal(fs.readdirSync(f.ledgerDirectory).length, 2);
+  assert.equal(results.filter(result =>
+    result.reason === 'review_attestation_replayed' || result.reason === 'replay_ledger_busy'
+  ).length, 7);
+  assert.equal(fs.readdirSync(f.ledgerDirectory).filter(name => name.endsWith('.json')).length, 2);
+  assert.equal(fs.readdirSync(f.ledgerDirectory).includes('.transaction.lock'), false);
+  assert.equal(consume(f).reason, 'review_attestation_replayed');
 });
