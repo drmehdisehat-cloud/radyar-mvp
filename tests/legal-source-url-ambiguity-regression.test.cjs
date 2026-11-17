@@ -84,7 +84,11 @@ test('version selection and answer-source registration share the same canonical 
     ['https://qavanin.ir/Law/TreeText/?IDS=1001&redirect=https%3A%2F%2Fevil.example', '1001', false],
     ['https://rrk.ir/notice/1001', '1001', true],
     ['https://rrk.ir/notice/1001?lang=fa', '1001', false],
-    ['https://rrk.ir/notice/1001?download=1', '1001', false]
+    ['https://rrk.ir/notice/1001?download=1', '1001', false],
+    ['https://cbi.ir/showitem/35817.aspx', '35817.aspx', true],
+    ['https://www.cbi.ir/showitem/35817.aspx', '35817.aspx', true],
+    ['https://cbi.ir/showitem/35817.aspx?download=1', '35817.aspx', false],
+    ['https://cbi.ir/showitem/35817.aspx?', '35817.aspx', false]
   ];
   for (const [url, id, expected] of cases) {
     assert.equal(safeOfficialDocumentUrl(url, id), expected, 'version selector: ' + url);
