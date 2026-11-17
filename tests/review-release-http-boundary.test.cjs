@@ -3,6 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('node:http');
+const net = require('node:net');
 const {
   DEFAULT_ROUTE_PATH,
   createReviewReleaseHttpHandler,
@@ -317,40 +318,36 @@ test('rejects Expect: 100-continue before accepting report bytes or invoking the
   const f = fixture();
   await withServer(f, async url => {
     const target = new URL(url);
-    let continueSeen = false;
     const payload = body();
-    const response = await new Promise((resolve, reject) => {
-      const request = http.request({
-        hostname: target.hostname,
-        port: Number(target.port),
-        path: target.pathname,
-        method: 'POST',
-        headers: rawHeaderPairs(url, [
-          'Expect', '100-continue',
-          'Content-Length', String(Buffer.byteLength(payload))
-        ])
-      }, incoming => {
-        const chunks = [];
-        incoming.on('data', chunk => chunks.push(chunk));
-        incoming.on('end', () => resolve({
-          status: incoming.statusCode,
-          headers: incoming.headers,
-          body: Buffer.concat(chunks)
-        }));
+    const rawResponse = await new Promise((resolve, reject) => {
+      const socket = net.connect(Number(target.port), target.hostname);
+      let response = '';
+      socket.setEncoding('latin1');
+      socket.setTimeout(3000, () => socket.destroy(new Error('timed out waiting for expectation rejection')));
+      socket.once('connect', () => {
+        socket.end([
+          'POST ' + DEFAULT_ROUTE_PATH + ' HTTP/1.1',
+          'Host: ' + target.host,
+          'Origin: https://' + target.host,
+          'Content-Type: application/json; charset=utf-8',
+          'Sec-Fetch-Site: same-origin',
+          'X-Test-Session: ' + SESSION,
+          'Expect: 100-continue',
+          'Content-Length: ' + Buffer.byteLength(payload),
+          'Connection: close',
+          '',
+          ''
+        ].join('\\r\\n'));
       });
-      request.on('continue', () => {
-        continueSeen = true;
-        request.end(payload);
-      });
-      request.on('error', reject);
-      request.setTimeout(3000, () => request.destroy(new Error('timed out waiting for expectation rejection')));
-      request.flushHeaders();
+      socket.on('data', chunk => { response += chunk; });
+      socket.once('end', () => resolve(response));
+      socket.once('error', reject);
     });
 
-    assert.equal(continueSeen, false);
-    assert.equal(response.status, 417);
-    assert.equal(response.headers.connection, 'close');
-    assert.equal(response.headers['cache-control'], 'no-store, private, max-age=0');
+    assert.match(rawResponse.split('\\r\\n', 1)[0], /^HTTP\\/1\\.1 417 /);
+    assert.doesNotMatch(rawResponse, /^HTTP\\/1\\.1 100 Continue/m);
+    assert.match(rawResponse, /Connection: close/i);
+    assert.match(rawResponse, /Cache-Control: no-store, private, max-age=0/i);
     assert.equal(f.gateCalls, 0);
   });
 });
