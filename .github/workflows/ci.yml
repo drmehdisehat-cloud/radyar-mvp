@@ -10,6 +10,10 @@ on:
     branches:
       - main
       - dadyar/mvp-sync-028
+      - dadyar/replay-ledger-ci-base-20261117
+      - dadyar/signed-gate-review-base-20261117
+      - dadyar/restore-probe-review-base-20261117
+      - dadyar/preview-package-layout-review-base-20261117
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -20,7 +24,11 @@ jobs:
     if: >-
       (github.event_name == 'push' && (github.ref == 'refs/heads/dadyar/mvp-sync-028' || github.ref == 'refs/heads/dadyar/preview-auth-policy-20261030' || github.ref == 'refs/heads/dadyar/ai-chat-private-20261101')) ||
       (github.event_name == 'pull_request' &&
-       (github.base_ref == 'main' || github.base_ref == 'dadyar/mvp-sync-028'))
+       (github.base_ref == 'main' || github.base_ref == 'dadyar/mvp-sync-028' ||
+        github.base_ref == 'dadyar/replay-ledger-ci-base-20261117' ||
+        github.base_ref == 'dadyar/signed-gate-review-base-20261117' ||
+        github.base_ref == 'dadyar/restore-probe-review-base-20261117' ||
+        github.base_ref == 'dadyar/preview-package-layout-review-base-20261117'))
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:

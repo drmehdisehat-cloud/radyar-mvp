@@ -26,3 +26,16 @@ test('CI must execute browser suites sequentially, outside the parallel contract
   assert.ok(workflow.includes('tests/dadyar-preview-mobile-device-emulation.test.cjs ]] || contracts+='));
   assert.ok(workflow.includes('test -n "$CHROME_BIN"'));
 });
+
+test('every active focused review base must trigger and execute pull-request CI', () => {
+  const reviewBases = [
+    'dadyar/replay-ledger-ci-base-20261117',
+    'dadyar/signed-gate-review-base-20261117',
+    'dadyar/restore-probe-review-base-20261117',
+    'dadyar/preview-package-layout-review-base-20261117'
+  ];
+  for (const base of reviewBases) {
+    assert.ok(workflow.includes(`      - ${base}`), `missing pull_request trigger for ${base}`);
+    assert.ok(workflow.includes(`github.base_ref == '${base}'`), `job condition excludes ${base}`);
+  }
+});
