@@ -40,15 +40,46 @@ function assertCanonicalDirectory(directory, label) {
   if (typeof directory !== 'string' || !path.isAbsolute(directory) || path.resolve(directory) !== directory) {
     throw new Error(label + '_path_must_be_absolute_canonical');
   }
-  let current = directory;
-  while (true) {
-    if (fs.lstatSync(current).isSymbolicLink()) throw new Error(label + '_path_contains_symlink');
-    const parent = path.dirname(current);
-    if (parent === current) break;
-    current = parent;
+
+  // Check every component, not only the leaf. A writable parent can otherwise
+  // let another local account replace the restore target or production root
+  // after its canonical path has been observed.
+  const root = path.parse(directory).root;
+  const chain = [root];
+  let current = root;
+  for (const component of directory.slice(root.length).split(path.sep).filter(Boolean)) {
+    current = path.join(current, component);
+    chain.push(current);
   }
-  const stat = fs.statSync(directory);
-  if (!stat.isDirectory()) throw new Error(label + '_path_must_be_directory');
+
+  for (let index = 0; index < chain.length; index++) {
+    const componentPath = chain[index];
+    const componentLabel = index === chain.length - 1 ? label : label + '_ancestor';
+    const stat = fs.lstatSync(componentPath, { bigint: true });
+    if (stat.isSymbolicLink()) throw new Error(componentLabel + '_path_contains_symlink');
+    if (!stat.isDirectory()) throw new Error(componentLabel + '_path_must_be_directory');
+
+    if (process.platform !== 'win32') {
+      const serviceUid = typeof process.geteuid === 'function' ? BigInt(process.geteuid()) : null;
+      if (serviceUid === null || (stat.uid !== 0n && stat.uid !== serviceUid)) {
+        throw new Error(componentLabel + '_must_be_owned_by_root_or_service_user');
+      }
+      const mode = stat.mode & 0o7777n;
+      if ((mode & 0o6000n) !== 0n) {
+        throw new Error(componentLabel + '_special_permission_bits_forbidden');
+      }
+      const writable = (mode & 0o022n) !== 0n;
+      const stickyRootParent = index < chain.length - 1 &&
+        stat.uid === 0n && (mode & 0o1000n) !== 0n && writable;
+      if (writable && !stickyRootParent) {
+        throw new Error(componentLabel + '_must_not_be_group_or_world_writable');
+      }
+      if ((mode & 0o1000n) !== 0n && !stickyRootParent) {
+        throw new Error(componentLabel + '_special_permission_bits_forbidden');
+      }
+    }
+  }
+
   const real = fs.realpathSync(directory);
   if (real !== directory) throw new Error(label + '_path_is_not_canonical');
   return real;

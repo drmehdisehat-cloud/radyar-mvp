@@ -307,3 +307,24 @@ test('rejects an isolated restore target inside the Git checkout', t => {
   fixture.paths.restored_marker = marker;
   assert.throws(() => verify(fixture), /restore_target_overlaps_git_checkout/);
 });
+
+
+if (process.platform !== 'win32') {
+  test('rejects a group-writable isolated restore target directory', t => {
+    const fixture = makeFixture(t);
+    fs.chmodSync(fixture.restoreRoot, 0o775);
+    assert.throws(() => verify(fixture), /restore_target_must_not_be_group_or_world_writable/);
+  });
+
+  test('rejects a world-writable production document root', t => {
+    const fixture = makeFixture(t);
+    fs.chmodSync(fixture.productionRoot, 0o777);
+    assert.throws(() => verify(fixture), /production_document_root_must_not_be_group_or_world_writable/);
+  });
+
+  test('rejects a group-writable ancestor of the isolated restore target', t => {
+    const fixture = makeFixture(t);
+    fs.chmodSync(fixture.directory, 0o777);
+    assert.throws(() => verify(fixture), /restore_target_ancestor_must_not_be_group_or_world_writable/);
+  });
+}
