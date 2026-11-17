@@ -42,6 +42,7 @@ function makeState(overrides = {}) {
     reviewStatus: { textContent: '' },
     exportStatus: { textContent: '' },
     reviewChecklistComplete: () => true,
+    reviewChecklistItems: ['review-check-facts','review-check-conflicts','review-check-sources','review-check-privacy'].map(id => ({ id, checked: true, label: id })),
     safeReviewText: (value, max) => String(value || '').slice(0, max),
     URL: {
       createObjectURL(blob) { blobs.push(blob); return 'blob:synthetic-report'; },
