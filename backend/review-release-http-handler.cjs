@@ -266,35 +266,101 @@ function createReviewReleaseHttpHandler(options = {}) {
 
 function createReviewReleaseHttpServer(handler) {
   if (typeof handler !== 'function') throw new TypeError('A review HTTP request handler is required.');
-  const server = http.createServer({ maxHeaderSize: 8192 }, handler);
+
+  // Keep the native Server instance private. Returning it directly would let a
+  // caller bypass the own listen() guard with http.Server.prototype.listen.call().
+  // The facade exposes only the lifecycle and event surface required by this
+  // adapter, and listener callbacks receive the facade rather than the native
+  // server as their `this` value.
+  let facade;
+  const server = http.createServer({ maxHeaderSize: 8192 }, (request, response) => {
+    return Reflect.apply(handler, facade, [request, response]);
+  });
   server.requestTimeout = 15000;
   server.headersTimeout = 5000;
   server.keepAliveTimeout = 5000;
   server.maxHeadersCount = 64;
-  // The adapter has no built-in TLS termination or trusted-proxy identity.
-  // Bind only to an explicit loopback TCP address so it cannot be exposed
-  // directly on a public interface by an accidental listen() call. A
-  // separately reviewed TLS reverse proxy may connect to this local socket.
-  const nativeListen = server.listen;
-  server.listen = function (...args) {
-    const first = args[0];
-    const listenOptions = first && typeof first === 'object' && !Array.isArray(first)
-      ? first : null;
-    const host = listenOptions ? listenOptions.host : args[1];
-    const port = listenOptions ? listenOptions.port : first;
-    if (!['127.0.0.1', '::1'].includes(host) ||
-        typeof port !== 'number' || !Number.isInteger(port) ||
-        port < 0 || port > 65535 ||
-        (listenOptions && Object.keys(listenOptions).some(key =>
-          !['port', 'host', 'backlog'].includes(key)))) {
-      throw new Error('Dadyar signed-review HTTP server requires an explicit loopback TCP listener.');
-    }
-    return nativeListen.apply(this, args);
+
+  const nativeListen = server.listen.bind(server);
+  const nativeOn = server.on.bind(server);
+  const nativeOnce = server.once.bind(server);
+  const nativeAddress = server.address.bind(server);
+  const nativeClose = server.close.bind(server);
+  const allowedEvents = new Set(['request', 'error', 'listening', 'close']);
+
+  facade = Object.create(null);
+  const bindListener = listener => {
+    if (typeof listener !== 'function') throw new TypeError('A server event listener must be a function.');
+    return function (...args) {
+      return Reflect.apply(listener, facade, args);
+    };
   };
-  const rejectExpectation = (request, response) => respondAndCloseRequest(request, response, 417, 'درخواست دارای Expect پشتیبانی نمی‌شود.');
-  server.on('checkContinue', rejectExpectation);
-  server.on('checkExpectation', rejectExpectation);
-  return server;
+
+  Object.defineProperties(facade, {
+    listen: {
+      enumerable: true,
+      value: function (...args) {
+        const first = args[0];
+        const listenOptions = first && typeof first === 'object' && !Array.isArray(first)
+          ? first : null;
+        const host = listenOptions ? listenOptions.host : args[1];
+        const port = listenOptions ? listenOptions.port : first;
+        if (!['127.0.0.1', '::1'].includes(host) ||
+            typeof port !== 'number' || !Number.isInteger(port) ||
+            port < 0 || port > 65535 ||
+            (listenOptions && Object.keys(listenOptions).some(key =>
+              !['port', 'host', 'backlog'].includes(key)))) {
+          throw new Error('Dadyar signed-review HTTP server requires an explicit loopback TCP listener.');
+        }
+        const forwarded = args.slice();
+        const callbackIndex = forwarded.length - 1;
+        if (typeof forwarded[callbackIndex] === 'function') {
+          forwarded[callbackIndex] = bindListener(forwarded[callbackIndex]);
+        }
+        nativeListen(...forwarded);
+        return facade;
+      }
+    },
+    on: {
+      enumerable: true,
+      value: function (event, listener) {
+        if (!allowedEvents.has(event)) throw new Error('This signed-review server event is not exposed.');
+        nativeOn(event, bindListener(listener));
+        return facade;
+      }
+    },
+    once: {
+      enumerable: true,
+      value: function (event, listener) {
+        if (!allowedEvents.has(event)) throw new Error('This signed-review server event is not exposed.');
+        nativeOnce(event, bindListener(listener));
+        return facade;
+      }
+    },
+    address: { enumerable: true, value: () => nativeAddress() },
+    close: {
+      enumerable: true,
+      value: function (callback) {
+        nativeClose(callback === undefined ? undefined : bindListener(callback));
+        return facade;
+      }
+    },
+    listening: { enumerable: true, get: () => server.listening },
+    maxHeadersCount: { enumerable: true, get: () => server.maxHeadersCount },
+    requestTimeout: { enumerable: true, get: () => server.requestTimeout },
+    headersTimeout: { enumerable: true, get: () => server.headersTimeout },
+    keepAliveTimeout: { enumerable: true, get: () => server.keepAliveTimeout }
+  });
+
+  const rejectExpectation = (request, response) =>
+    respondAndCloseRequest(request, response, 417, 'درخواست دارای Expect پشتیبانی نمی‌شود.');
+  nativeOn('checkContinue', rejectExpectation);
+  nativeOn('checkExpectation', rejectExpectation);
+
+  // A null prototype and frozen own-method surface prevent reaching the native
+  // Server prototype through the returned value. The native object never leaves
+  // this closure.
+  return Object.freeze(facade);
 }
 
 module.exports = {
