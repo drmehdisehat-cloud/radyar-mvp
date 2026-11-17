@@ -303,6 +303,17 @@ test('server factory applies bounded HTTP parser and timeout settings', () => {
   assert.equal(server.keepAliveTimeout, 5000);
 });
 
+test('server factory refuses wildcard, omitted-host, Unix-socket and pre-bound listeners', () => {
+  const server = createReviewReleaseHttpServer((_request, response) => response.end());
+  const error = /explicit loopback TCP listener/;
+  assert.throws(() => server.listen(8787, '0.0.0.0'), error);
+  assert.throws(() => server.listen(8787, '::'), error);
+  assert.throws(() => server.listen(8787), error);
+  assert.throws(() => server.listen({ port: 8787 }), error);
+  assert.throws(() => server.listen({ path: '/tmp/dadyar-review.sock', host: '127.0.0.1' }), error);
+  assert.throws(() => server.listen({ fd: 3, port: 8787, host: '127.0.0.1' }), error);
+});
+
 test('rejects non-canonical or non-HTTPS origins at configuration time', () => {
   assert.throws(() => createReviewReleaseHttpHandler({
     allowedOrigin: 'http://preview.example.test',
