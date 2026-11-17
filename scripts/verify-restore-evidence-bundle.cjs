@@ -105,15 +105,11 @@ function hashExternalEvidenceFile(file, label, maxBytes) {
   if (typeof file !== 'string' || !path.isAbsolute(file) || path.resolve(file) !== file) {
     throw new Error(label + '_path_must_be_absolute_canonical');
   }
-  let current = file;
-  while (true) {
-    if (fs.lstatSync(current).isSymbolicLink()) throw new Error(label + '_path_contains_symlink');
-    const parent = path.dirname(current);
-    if (parent === current) break;
-    current = parent;
-  }
+  const parentPath = path.dirname(file);
+  const canonicalParent = assertCanonicalDirectory(parentPath, label + '_parent');
+  const parentBefore = fs.statSync(canonicalParent, { bigint: true });
   const real = fs.realpathSync(file);
-  if (real !== file) throw new Error(label + '_path_is_not_canonical');
+  if (real !== file || path.dirname(real) !== canonicalParent) throw new Error(label + '_path_is_not_canonical');
   if (isInside(REPO_ROOT, real)) throw new Error(label + '_path_inside_git_checkout');
   if (!Number.isInteger(fs.constants.O_NOFOLLOW)) throw new Error(label + '_nofollow_open_unavailable');
 
@@ -125,7 +121,8 @@ function hashExternalEvidenceFile(file, label, maxBytes) {
     if (before.nlink !== 1n) throw new Error(label + '_must_not_have_hard_link_aliases');
     assertEvidenceFilePermissions(before, label, label !== 'restored_marker');
     if (before.size === 0n || before.size > BigInt(maxBytes)) throw new Error(label + '_size_invalid');
-    const pathBefore = fs.statSync(real, { bigint: true });
+    const pathBefore = fs.lstatSync(real, { bigint: true });
+    if (pathBefore.isSymbolicLink() || !pathBefore.isFile()) throw new Error(label + '_path_replaced_or_not_regular');
     if (!sameFileVersion(before, pathBefore)) throw new Error(label + '_changed_during_open');
 
     const hash = crypto.createHash('sha256');
@@ -140,7 +137,11 @@ function hashExternalEvidenceFile(file, label, maxBytes) {
     }
 
     const after = fs.fstatSync(fd, { bigint: true });
-    const pathAfter = fs.statSync(real, { bigint: true });
+    const pathAfter = fs.lstatSync(real, { bigint: true });
+    if (pathAfter.isSymbolicLink() || !pathAfter.isFile()) throw new Error(label + '_path_replaced_or_not_regular');
+    const parentAfter = fs.statSync(canonicalParent, { bigint: true });
+    assertCanonicalDirectory(canonicalParent, label + '_parent_after');
+    if (!sameFileVersion(parentBefore, parentAfter)) throw new Error(label + '_parent_changed_during_read');
     if (!sameFileVersion(before, after) || !sameFileVersion(before, pathAfter) || total !== before.size) {
       throw new Error(label + '_changed_during_read');
     }
