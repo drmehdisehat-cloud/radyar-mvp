@@ -294,3 +294,16 @@ if (process.platform !== 'win32') {
     assert.throws(() => verify(fixture), /archive_special_permission_bits_forbidden/);
   });
 }
+
+test('rejects an isolated restore target inside the Git checkout', t => {
+  const fixture = makeFixture(t);
+  const repoRoot = path.resolve(__dirname, '..');
+  const unsafeRestoreRoot = fs.mkdtempSync(path.join(repoRoot, '.dadyar-restore-inside-checkout-'));
+  t.after(() => fs.rmSync(unsafeRestoreRoot, { recursive: true, force: true }));
+  const marker = path.join(unsafeRestoreRoot, 'index.html');
+  fs.writeFileSync(marker, fixture.contents.restored_marker, { mode: 0o600 });
+  fixture.manifest.restore_target_path = fs.realpathSync(unsafeRestoreRoot);
+  fixture.manifest.restore_target_realpath = fs.realpathSync(unsafeRestoreRoot);
+  fixture.paths.restored_marker = marker;
+  assert.throws(() => verify(fixture), /restore_target_overlaps_git_checkout/);
+});
