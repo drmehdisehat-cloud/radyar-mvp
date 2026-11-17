@@ -254,10 +254,15 @@ function main(argv) {
     if (path.resolve(manifestPath) !== manifestPath || fs.realpathSync(manifestPath) !== manifestPath) {
       throw new Error('manifest_path_must_be_canonical');
     }
-    const manifestStat = fs.statSync(manifestPath, { bigint: true });
-    if (!manifestStat.isFile()) throw new Error('manifest_must_be_regular_file');
+    const manifestParent = assertCanonicalDirectory(path.dirname(manifestPath), 'manifest_parent');
+    const manifestParentBefore = fs.statSync(manifestParent, { bigint: true });
+    const manifestStat = fs.lstatSync(manifestPath, { bigint: true });
+    if (manifestStat.isSymbolicLink() || !manifestStat.isFile()) throw new Error('manifest_must_be_regular_file');
     assertEvidenceFilePermissions(manifestStat, 'manifest', true);
     const manifestBytes = readExternalFile(manifestPath, 'manifest', MAX_MANIFEST_BYTES);
+    const manifestParentAfter = fs.statSync(manifestParent, { bigint: true });
+    assertCanonicalDirectory(manifestParent, 'manifest_parent_after');
+    if (!sameFileVersion(manifestParentBefore, manifestParentAfter)) throw new Error('manifest_parent_changed_during_read');
     const manifest = parseJsonRejectDuplicateKeys(decodeUtf8(manifestBytes));
     if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) throw new Error('manifest_must_be_json_object');
     const restoreRoot = assertCanonicalDirectory(manifest.restore_target_realpath, 'restore_target');
