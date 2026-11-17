@@ -164,8 +164,8 @@ test('rejects symlinked evidence paths', t => {
 
 test('rejects evidence files below a group/world-writable parent directory', t => {
   const fixture = makeFixture(t);
-  const evidenceRoot = path.join(fixture.directory, 'shared-evidence');
-  fs.mkdirSync(evidenceRoot, { mode: 0o700 });
+  const evidenceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-shared-evidence-'));
+  t.after(() => fs.rmSync(evidenceRoot, { recursive: true, force: true }));
   const unsafeArchive = path.join(evidenceRoot, 'archive.evidence');
   fs.writeFileSync(unsafeArchive, fixture.contents.archive, { mode: 0o600 });
   fs.chmodSync(evidenceRoot, 0o777);
