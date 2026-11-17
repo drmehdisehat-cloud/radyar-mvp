@@ -37,17 +37,13 @@ function fixture(options = {}) {
 }
 
 async function withServer(fixtureValue, callback) {
-  const server = createReviewReleaseHttpServer((_request, response) => {
-    response.statusCode = 500;
-    response.end();
-  });
+  const server = createReviewReleaseHttpServer(() => {});
   await new Promise((resolve, reject) => {
     server.once('error', reject);
     server.listen(0, '127.0.0.1', resolve);
   });
   const address = server.address();
   const allowedOrigin = 'https://127.0.0.1:' + address.port;
-  server.removeAllListeners('request');
   server.on('request', fixtureValue.createHandler(allowedOrigin));
   const url = 'http://127.0.0.1:' + address.port + DEFAULT_ROUTE_PATH;
   try {
@@ -312,6 +308,16 @@ test('server factory refuses wildcard, omitted-host, Unix-socket and pre-bound l
   assert.throws(() => server.listen({ port: 8787 }), error);
   assert.throws(() => server.listen({ path: '/tmp/dadyar-review.sock', host: '127.0.0.1' }), error);
   assert.throws(() => server.listen({ fd: 3, port: 8787, host: '127.0.0.1' }), error);
+});
+
+test('server facade hides the native prototype escape hatch and protects expectation guards', () => {
+  const server = createReviewReleaseHttpServer(() => {});
+  assert.equal(Object.getPrototypeOf(server), null);
+  assert.equal(Object.isFrozen(server), true);
+  assert.throws(() => http.Server.prototype.listen.call(server, 8787, '0.0.0.0'));
+  assert.equal(server.listening, false);
+  assert.throws(() => server.on('checkContinue', () => {}), /event is not exposed/);
+  assert.throws(() => server.once('checkExpectation', () => {}), /event is not exposed/);
 });
 
 test('rejects non-canonical or non-HTTPS origins at configuration time', () => {
