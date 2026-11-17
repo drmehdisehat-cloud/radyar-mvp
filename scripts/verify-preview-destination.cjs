@@ -41,6 +41,14 @@ function pathsDisjoint(first, second) {
   // Require separation in both directions so an ancestor path is not accepted.
   return isOutside(first, second) && isOutside(second, first);
 }
+function assertTrustedOwner(stat, label) {
+  if (process.platform === 'win32') return;
+  const serviceUid = typeof process.geteuid === 'function'
+    ? BigInt(process.geteuid())
+    : null;
+  assert.ok(serviceUid !== null && (stat.uid === 0n || stat.uid === serviceUid),
+    label + ' must be owned by root or the current service user');
+}
 function verifyPreview(source, destination, productionDocumentRoot, expectedSourceBlobSha) {
   assert.ok(typeof expectedSourceBlobSha === 'string' && /^[a-f0-9]{40}$/i.test(expectedSourceBlobSha) && !/^0{40}$/i.test(expectedSourceBlobSha),
     'expected reviewed source Git blob SHA-1 required');
@@ -70,10 +78,10 @@ function verifyPreview(source, destination, productionDocumentRoot, expectedSour
   assert.ok(sourcePathStat.dev !== destinationPathStat.dev || sourcePathStat.ino !== destinationPathStat.ino,
     'destination must not be a hard link to source; hard-link aliases are forbidden');
 
-  // A validated file can still be replaced or modified by another local account
-  // when its containing directory or the file itself is group/world writable.
-  // Check the immediate staging directory here; the hosting operator must still
-  // ensure the wider parent chain is owned and controlled by the staging account.
+  // The immediate staging directory and every ancestor are checked below.
+  // The final file's owner and mode are checked after a stable descriptor read.
+  // The hosting operator must still validate the actual account and canonical
+  // production Document Root on the target hosting filesystem.
 
 function assertSafeDirectoryAncestors(target, label) {
   if (process.platform === 'win32') return;
@@ -90,10 +98,7 @@ function assertSafeDirectoryAncestors(target, label) {
     const stat = fs.lstatSync(current, { bigint: true });
     assert.ok(!stat.isSymbolicLink() && stat.isDirectory(),
       label + ' ancestor must be a real directory');
-    const rootOwned = stat.uid === 0n;
-    const serviceOwned = serviceUid !== null && stat.uid === serviceUid;
-    assert.ok(rootOwned || serviceOwned,
-      label + ' ancestor must be owned by root or the current service user');
+    assertTrustedOwner(stat, label + ' ancestor');
     const mode = stat.mode & 0o7777n;
     assert.equal(mode & 0o6000n, 0n,
       label + ' ancestor must not have setuid or setgid bits');
@@ -123,6 +128,7 @@ function assertSafeDirectoryAncestors(target, label) {
   // and content/metadata changes during hashing. Destination remains outside web root.
   const sourceRead = readStableRegularFile(src, 'source', { includeBytes: true });
   const destinationRead = readStableRegularFile(dst, 'destination', { includeBytes: true });
+  assertTrustedOwner(destinationRead.stat, 'destination file');
   if (process.platform !== 'win32') {
     assert.equal(destinationRead.stat.mode & 0o7000n, 0n,
       'destination must not have special permission bits');

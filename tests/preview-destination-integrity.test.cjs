@@ -207,3 +207,47 @@ test('destination verifier rejects a writable ancestor above the dedicated previ
     /destination ancestor must not be group or world writable unless root-owned and sticky/
   );
 });
+
+
+test('destination verifier rejects a staged file owned by an unrelated account', t => {
+  if (process.platform === 'win32') return t.skip('POSIX ownership policy is not portable to Windows');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-destination-owner-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const productionRoot = path.join(dir, 'production-root');
+  const previewDir = path.join(dir, 'dadyar-preview');
+  const sourceDir = path.join(dir, 'reviewed-source');
+  fs.mkdirSync(productionRoot);
+  fs.mkdirSync(previewDir);
+  fs.mkdirSync(sourceDir);
+  const source = path.join(sourceDir, 'index.html');
+  const destination = path.join(previewDir, 'index.html');
+  fs.copyFileSync(path.resolve(__dirname, '../dadyar-preview/index.html'), source);
+  fs.copyFileSync(source, destination);
+  fs.chmodSync(destination, 0o644);
+  const expected = gitBlobSha(source);
+
+  const originalOpenSync = fs.openSync;
+  const originalFstatSync = fs.fstatSync;
+  const descriptorPaths = new Map();
+  fs.openSync = function(file, ...args) {
+    const fd = originalOpenSync.call(fs, file, ...args);
+    descriptorPaths.set(fd, path.resolve(file));
+    return fd;
+  };
+  fs.fstatSync = function(fd, ...args) {
+    const stat = originalFstatSync.call(fs, fd, ...args);
+    if (descriptorPaths.get(fd) !== destination) return stat;
+    const unrelatedOwner = Object.create(stat);
+    Object.defineProperty(unrelatedOwner, 'uid', { value: stat.uid + 1n });
+    return unrelatedOwner;
+  };
+  try {
+    assert.throws(
+      () => verifyPreview(source, destination, productionRoot, expected),
+      /destination file must be owned by root or the current service user/
+    );
+  } finally {
+    fs.openSync = originalOpenSync;
+    fs.fstatSync = originalFstatSync;
+  }
+});
