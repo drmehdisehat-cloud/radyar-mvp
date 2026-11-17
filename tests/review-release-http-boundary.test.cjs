@@ -337,15 +337,15 @@ test('rejects Expect: 100-continue before accepting report bytes or invoking the
           'Connection: close',
           '',
           ''
-        ].join('\\r\\n'));
+        ].join('\r\n'));
       });
       socket.on('data', chunk => { response += chunk; });
       socket.once('end', () => resolve(response));
       socket.once('error', reject);
     });
 
-    assert.match(rawResponse.split('\\r\\n', 1)[0], /^HTTP\\/1\\.1 417 /);
-    assert.doesNotMatch(rawResponse, /^HTTP\\/1\\.1 100 Continue/m);
+    assert.match(rawResponse.split('\r\n', 1)[0], /^HTTP\/1\.1 417 /);
+    assert.doesNotMatch(rawResponse, /^HTTP\/1\.1 100 Continue/m);
     assert.match(rawResponse, /Connection: close/i);
     assert.match(rawResponse, /Cache-Control: no-store, private, max-age=0/i);
     assert.equal(f.gateCalls, 0);
