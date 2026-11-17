@@ -175,7 +175,7 @@ const DATABASE_IDENTIFIER = /^[A-Za-z0-9_][A-Za-z0-9_$-]{0,63}$/;
 
 function validProbeUtc(value) {
   if (typeof value !== 'string' ||
-      !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\\.\d{3}Z$/.test(value)) return false;
+      !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value)) return false;
   const parsed = new Date(value);
   return Number.isFinite(parsed.getTime()) && parsed.toISOString() === value;
 }
@@ -213,7 +213,7 @@ function validateDatabaseProbe(bytes, manifest) {
   }
   if (typeof probe.server_version !== 'string' ||
       probe.server_version.length < 1 || probe.server_version.length > 128 ||
-      /[^\x20-\\x7e]/.test(probe.server_version)) {
+      /[^\x20-\x7e]/.test(probe.server_version)) {
     throw new Error('database_probe_server_version_invalid');
   }
   if (!validProbeUtc(probe.observed_at_utc)) {
