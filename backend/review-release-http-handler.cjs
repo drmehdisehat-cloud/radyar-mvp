@@ -289,7 +289,8 @@ function createReviewReleaseHttpServer(handler) {
   const nativeOnce = server.once.bind(server);
   const nativeAddress = server.address.bind(server);
   const nativeClose = server.close.bind(server);
-  const allowedEvents = new Set(['request', 'error', 'listening', 'close']);
+  // Request dispatch is fixed at construction; callers may observe lifecycle events only.
+  const allowedEvents = new Set(['error', 'listening', 'close']);
 
   facade = Object.create(null);
   const bindListener = listener => {
