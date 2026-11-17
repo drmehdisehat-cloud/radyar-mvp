@@ -149,3 +149,35 @@ test('destination verifier rejects a matching file outside the dedicated dadyar-
       /dedicated dadyar-preview directory/);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
+
+
+test('destination verifier rejects unsafe POSIX write permissions on the staged file and its parent', t => {
+  if (process.platform === 'win32') return t.skip('POSIX mode-bit policy is not portable to Windows');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-destination-permissions-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const productionRoot = path.join(dir, 'production-root');
+  const previewDir = path.join(dir, 'dadyar-preview');
+  const sourceDir = path.join(dir, 'reviewed-source');
+  fs.mkdirSync(productionRoot);
+  fs.mkdirSync(previewDir);
+  fs.mkdirSync(sourceDir);
+  const source = path.join(sourceDir, 'index.html');
+  const destination = path.join(previewDir, 'index.html');
+  fs.copyFileSync(path.resolve(__dirname, '../dadyar-preview/index.html'), source);
+  fs.copyFileSync(source, destination);
+  const expected = gitBlobSha(source);
+
+  fs.chmodSync(destination, 0o666);
+  assert.throws(() => verifyPreview(source, destination, productionRoot, expected),
+    /destination must not be group or world writable/);
+
+  fs.chmodSync(destination, 0o644);
+  fs.chmodSync(previewDir, 0o777);
+  assert.throws(() => verifyPreview(source, destination, productionRoot, expected),
+    /destination directory must not be group or world writable/);
+
+  fs.chmodSync(previewDir, 0o755);
+  fs.chmodSync(destination, 0o4644);
+  assert.throws(() => verifyPreview(source, destination, productionRoot, expected),
+    /destination must not have special permission bits/);
+});
