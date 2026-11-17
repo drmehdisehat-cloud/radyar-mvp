@@ -32,11 +32,16 @@ test('handoff package is minimal, byte-identical, checksum verified and explicit
     assert.equal(result.release_authorized, false);
     assert.equal(result.api_enabled, false);
     assert.equal(result.source_commit, commit);
-    assert.deepEqual(fs.readdirSync(destination).sort(),
-      ['PREVIEW-METADATA.json', 'README-fa.txt', 'SHA256SUMS', 'index.html']);
-    assert.deepEqual(fs.readFileSync(path.join(destination, 'index.html')), fs.readFileSync(sourcePath));
+    assert.deepEqual(fs.readdirSync(destination).sort(), ['handoff', 'public']);
+    assert.deepEqual(fs.readdirSync(path.join(destination, 'public')), ['index.html']);
+    assert.deepEqual(fs.readdirSync(path.join(destination, 'handoff')).sort(),
+      ['PREVIEW-METADATA.json', 'README-fa.txt', 'SHA256SUMS']);
+    assert.deepEqual(fs.readFileSync(path.join(destination, 'public', 'index.html')), fs.readFileSync(sourcePath));
+    assert.equal(fs.statSync(path.join(destination, 'public')).mode & 0o777, 0o755);
+    assert.equal(fs.statSync(path.join(destination, 'public', 'index.html')).mode & 0o777, 0o644);
+    assert.equal(fs.statSync(path.join(destination, 'handoff')).mode & 0o777, 0o700);
 
-    const metadata = JSON.parse(fs.readFileSync(path.join(destination, 'PREVIEW-METADATA.json'), 'utf8'));
+    const metadata = JSON.parse(fs.readFileSync(path.join(destination, 'handoff', 'PREVIEW-METADATA.json'), 'utf8'));
     assert.equal(metadata.source_commit, commit);
     const sourceBytes = fs.readFileSync(sourcePath);
     assert.equal(metadata.source_file_sha256, hash(sourceBytes));
@@ -44,6 +49,8 @@ test('handoff package is minimal, byte-identical, checksum verified and explicit
     assert.equal(result.source_blob_sha1, metadata.source_file_git_blob_sha1);
     assert.equal(metadata.source_branch, branch);
     assert.equal(metadata.target_subpath, '/dadyar-preview/');
+    assert.equal(metadata.public_payload_path, 'public/index.html');
+    assert.equal(metadata.operator_handoff_path, 'handoff/');
     assert.equal(metadata.delay_damages_calculator, 'offline-only');
     assert.equal(metadata.delay_index_series, 'annual-index-published-monthly');
     assert.equal(metadata.delay_index_base_year, 1395);
@@ -57,12 +64,14 @@ test('handoff package is minimal, byte-identical, checksum verified and explicit
     assert.equal(metadata.destination_verified, false);
     assert.equal(metadata.deployment_authorized, false);
 
-    const readme = fs.readFileSync(path.join(destination, 'README-fa.txt'), 'utf8');
+    const readme = fs.readFileSync(path.join(destination, 'handoff', 'README-fa.txt'), 'utf8');
     assert.match(readme, /بازیابی بکاپ در محیط مستقل/);
     assert.match(readme, /هویت بازبین احراز نمی‌شود/);
     assert.match(readme, /مجوز استقرار نیست/);
+    assert.match(readme, /فقط public\/index\.html/);
+    assert.match(readme, /handoff\/ را بارگذاری نکنید/);
 
-    const manifest = fs.readFileSync(path.join(destination, 'SHA256SUMS'), 'utf8').trim().split('\n');
+    const manifest = fs.readFileSync(path.join(destination, 'handoff', 'SHA256SUMS'), 'utf8').trim().split('\n');
     assert.equal(manifest.length, 3);
     for (const row of manifest) {
       const match = row.match(/^([a-f0-9]{64})  (.+)$/);

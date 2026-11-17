@@ -21,8 +21,8 @@ function gitBlobSha1(bytes) {
   hash.update(bytes);
   return hash.digest('hex');
 }
-function writeExclusive(filePath, content) {
-  const fd = fs.openSync(filePath, 'wx', 0o600);
+function writeExclusive(filePath, content, mode = 0o600) {
+  const fd = fs.openSync(filePath, 'wx', mode);
   try { fs.writeFileSync(fd, content); fs.fsyncSync(fd); }
   finally { fs.closeSync(fd); }
 }
@@ -158,6 +158,8 @@ function buildOfflinePreviewPackage(destinationArg, options = {}) {
     workflow_event: workflowEvent,
     source_branch: branch,
     target_subpath: '/dadyar-preview/',
+    public_payload_path: 'public/index.html',
+    operator_handoff_path: 'handoff/',
     source_file: 'dadyar-preview/index.html',
     source_file_sha256: sha256(sourceBytes),
     source_file_git_blob_sha1: gitBlobSha1(sourceBytes),
@@ -180,6 +182,7 @@ function buildOfflinePreviewPackage(destinationArg, options = {}) {
     'دادیار | بسته تحویل پیش‌نمایش آفلاین',
     '',
     'محتوای این بسته فقط یک پیش‌نمایش ایستا و خودبسنده از سناریوی چک کاملاً ساختگی است.',
+    'ساختار بسته: پوشه public فقط public/index.html را برای بارگذاری دارد؛ پوشه handoff/ صرفاً اسناد اپراتور است و نباید وارد Document Root شود.',
     'مسیر مقصد مورد انتظار پس از اخذ مجوزهای لازم: /dadyar-preview/',
     'محاسبه‌گر خسارت تأخیر تأدیه آفلاین نیز در همین فایل تعبیه شده است؛ فقط هفت مقدار فروردین تا مهر ۱۴۰۵ از تصویر مالک رونویسی شده‌اند.',
     'سال پایه ۱۳۹۵=۱۰۰ از ردیف ۱۳۹۵ تصویر استنباط شده و هنوز با جدول رسمی بانک مرکزی تطبیق مستقل نشده است؛ سال‌ها و ماه‌های فاقد داده عمداً محاسبه نمی‌شوند.',
@@ -189,14 +192,22 @@ function buildOfflinePreviewPackage(destinationArg, options = {}) {
     'بازبینی داخل پیش‌نمایش فقط اظهار محلی است؛ هویت بازبین احراز نمی‌شود و ساعت دستگاه مهر زمانی معتبر نیست.',
     'منابع حقوقی این سناریو تأیید نشده‌اند و خروجی، مشاوره یا سند رسمی نیست.',
     'فقط از داده ساختگی استفاده کنید؛ اطلاعات موکل یا اسرار واقعی وارد نکنید.',
+    'پس از عبور همه دروازه‌ها فقط public/index.html را به /dadyar-preview/index.html منتقل کنید؛ ریشه بسته و handoff/ را بارگذاری نکنید.',
+    'به پوشه عمومی .htaccess، redirect، symlink یا فایل دیگری اضافه نکنید؛ سرآیندهای HTTP باید در سطح vhost/میزبان تنظیم شوند.',
     '',
-    'ابتدا SHA256SUMS را با sha256sum -c SHA256SUMS اعتبارسنجی کنید.',
-    'شناسه commit مبدأ، SHA-256 و Git blob SHA-1 فایل در PREVIEW-METADATA.json ثبت شده‌اند.'
+    'از ریشه بسته، فایل‌های تحویل را با sha256sum -c handoff/SHA256SUMS اعتبارسنجی کنید.',
+    'شناسه commit مبدأ، SHA-256 و Git blob SHA-1 فایل در handoff/PREVIEW-METADATA.json ثبت شده‌اند.'
   ].join('\n') + '\n';
 
-  writeExclusive(path.join(destination, 'index.html'), sourceBytes);
-  writeExclusive(path.join(destination, 'README-fa.txt'), Buffer.from(readme, 'utf8'));
-  writeExclusive(path.join(destination, 'PREVIEW-METADATA.json'),
+  const publicDirectory = path.join(destination, 'public');
+  const handoffDirectory = path.join(destination, 'handoff');
+  fs.mkdirSync(publicDirectory, { mode: 0o755 });
+  fs.chmodSync(publicDirectory, 0o755);
+  fs.mkdirSync(handoffDirectory, { mode: 0o700 });
+  fs.chmodSync(handoffDirectory, 0o700);
+  writeExclusive(path.join(publicDirectory, 'index.html'), sourceBytes, 0o644);
+  writeExclusive(path.join(handoffDirectory, 'README-fa.txt'), Buffer.from(readme, 'utf8'));
+  writeExclusive(path.join(handoffDirectory, 'PREVIEW-METADATA.json'),
     Buffer.from(JSON.stringify(metadata, null, 2) + '\n', 'utf8'));
 
   function readPackageFile(name) {
@@ -205,19 +216,32 @@ function buildOfflinePreviewPackage(destinationArg, options = {}) {
       maxBytes: MAX_PREVIEW_BYTES
     }).bytes;
   }
-  const names = ['PREVIEW-METADATA.json', 'README-fa.txt', 'index.html'];
+  const names = ['handoff/PREVIEW-METADATA.json', 'handoff/README-fa.txt', 'public/index.html'];
   const manifest = names.map(name => {
     const bytes = readPackageFile(name);
     return sha256(bytes) + '  ' + name;
   }).join('\n') + '\n';
-  writeExclusive(path.join(destination, 'SHA256SUMS'), Buffer.from(manifest, 'utf8'));
+  writeExclusive(path.join(handoffDirectory, 'SHA256SUMS'), Buffer.from(manifest, 'utf8'));
 
   const actualNames = fs.readdirSync(destination).sort();
-  const expectedNames = [...names, 'SHA256SUMS'].sort();
+  const expectedNames = ['handoff', 'public'];
   if (JSON.stringify(actualNames) !== JSON.stringify(expectedNames)) {
-    fail('Unexpected file set in preview package.');
+    fail('Unexpected top-level entry set in preview package.');
   }
-  const manifestReadback = readPackageFile('SHA256SUMS');
+  const publicNames = fs.readdirSync(publicDirectory).sort();
+  if (JSON.stringify(publicNames) !== JSON.stringify(['index.html'])) {
+    fail('Public payload must contain only index.html.');
+  }
+  const handoffNames = fs.readdirSync(handoffDirectory).sort();
+  if (JSON.stringify(handoffNames) !== JSON.stringify(['PREVIEW-METADATA.json', 'README-fa.txt', 'SHA256SUMS'])) {
+    fail('Unexpected operator handoff file set.');
+  }
+  if ((fs.statSync(publicDirectory).mode & 0o777) !== 0o755 ||
+      (fs.statSync(path.join(publicDirectory, 'index.html')).mode & 0o777) !== 0o644 ||
+      (fs.statSync(handoffDirectory).mode & 0o777) !== 0o700) {
+    fail('Preview package permissions do not match the public/private layout.');
+  }
+  const manifestReadback = readPackageFile('handoff/SHA256SUMS');
   if (!manifestReadback.equals(Buffer.from(manifest, 'utf8'))) {
     fail('Package manifest readback mismatch.');
   }
@@ -227,11 +251,12 @@ function buildOfflinePreviewPackage(destinationArg, options = {}) {
       fail('Package readback hash mismatch: ' + name);
     }
   }
-  if (!readPackageFile('index.html').equals(sourceBytes)) {
+  if (!readPackageFile('public/index.html').equals(sourceBytes)) {
     fail('Packaged preview differs from the checked source.');
   }
   return {
-    destination, files: actualNames, source_commit: commit,
+    destination, files: [...names, 'handoff/SHA256SUMS'], public_files: publicNames,
+    handoff_files: handoffNames, source_commit: commit,
     workflow_commit: workflowCommit,
     source_sha256: metadata.source_file_sha256,
     source_blob_sha1: metadata.source_file_git_blob_sha1,
