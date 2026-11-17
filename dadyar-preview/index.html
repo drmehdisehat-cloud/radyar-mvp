@@ -21,6 +21,12 @@
 <label for="reviewer-name">برچسب بازبین (فقط داده ساختگی؛ نام واقعی وارد نکنید)</label><input id="reviewer-name" type="text" maxlength="80" autocomplete="off" value="بازبین آزمون" readonly aria-readonly="true" required>
 <label for="review-decision">نتیجه بازبینی</label><select id="review-decision"><option value="pending">در انتظار بازبینی</option><option value="approved">تأیید برای دریافت آموزشی</option><option value="rejected">رد پیش‌نویس</option></select>
 <label for="review-note">یادداشت بازبین (الزامی، حداقل ۱۲ و حداکثر ۳۰۰ نویسه)</label><textarea id="review-note" minlength="12" maxlength="300" rows="2" required></textarea><small>برای این پیش‌نمایش فقط از برچسب «بازبین آزمون» و یادداشت ساختگی استفاده کنید. شماره تماس، کد ملی، کارت بانکی، ایمیل و نشانی اینترنتی وارد نکنید.</small>
+<fieldset id="review-checklist"><legend>چک‌لیست اجباری بازبینی پیش از ثبت تصمیم</legend>
+<label><input type="checkbox" id="review-check-facts"> توالی وقایع و پاسخ‌های فرضی را با مدارک انتخاب‌شده تطبیق دادم؛ اصالت هیچ مدرکی احراز نشده است.</label>
+<label><input type="checkbox" id="review-check-conflicts"> تعارض پاسخ‌ها، پرسش‌های بی‌پاسخ و محدودیت دامنه چک را بررسی کردم.</label>
+<label><input type="checkbox" id="review-check-sources"> نبود منبع رسمی تأییدشده و نبود نتیجه یا استناد حقوقی قطعی را بررسی کردم.</label>
+<label><input type="checkbox" id="review-check-privacy"> اطمینان یافتم فقط داده ساختگی استفاده شده و گزارش شناسه یا اطلاعات واقعی موکل ندارد.</label>
+</fieldset>
 <label><input type="checkbox" id="export-ack"> من، بازبین انسانی، اعلام می‌کنم که شخصاً این پیش‌نویس فرضی را بازبینی کرده‌ام و نتیجه زیر را ثبت می‌کنم؛ این اظهار به معنای تأیید قانونی، اصالت مدارک یا بررسی مستقل متخصص نیست.</label>
 <button type="button" id="record-review" disabled>ثبت اظهار محلی بازبین</button><p id="review-status" role="status" aria-live="polite"></p>
 <p><small>محدودیت مهم: این نسخه کاملاً آفلاین است و هویت بازبین احراز نمی‌شود. نام، تصمیم و زمان فقط اظهار محلی‌اند و جایگزین بازبینی مستقلِ احراز‌شده در سامانه امن نیستند. زمان ثبت با ساعت دستگاه ایجاد و در گزارش به قالب UTC تبدیل می‌شود؛ ساعت دستگاه قابل راستی‌آزمایی مستقل نیست و این زمان مهر زمانی معتبر محسوب نمی‌شود.</small></p></section>
@@ -476,6 +482,10 @@ const reviewDecision=document.getElementById('review-decision');
 const reviewNote=document.getElementById('review-note');
 const recordReviewButton=document.getElementById('record-review');
 const reviewStatus=document.getElementById('review-status');
+const reviewChecklistItems=[...document.querySelectorAll('#review-checklist input[type="checkbox"]')];
+function reviewChecklistComplete(){
+ return reviewChecklistItems.length===4 && reviewChecklistItems.every(item=>item.checked===true);
+}
 let exportEligible=false;
 let reviewRecord=null;
 function hasSensitiveIdentifier(value) {
@@ -508,9 +518,9 @@ function safeReviewText(value,max){
   .replace(/\s+/g,' ').trim().slice(0,max);
 }
 function updateExportPermission(){
- const approvedReview=Boolean(reviewRecord && reviewRecord.decision==='approved' && reviewRecord.reportSnapshot===report);
+ const approvedReview=Boolean(reviewRecord && reviewRecord.decision==='approved' && reviewRecord.reportSnapshot===report && Array.isArray(reviewRecord.checklist) && reviewRecord.checklist.length===4 && reviewRecord.checklist.every(item=>item.checked===true));
  downloadButton.disabled=!exportEligible || !exportAck.checked || !approvedReview;
- recordReviewButton.disabled=!exportEligible || !report || safeReviewText(reviewerName.value,80).length<2 || safeReviewText(reviewNote.value,300).length<12 || !['approved','rejected'].includes(reviewDecision.value) || !reviewerDetailsAreSafe() || !exportAck.checked || Boolean(reviewRecord);
+ recordReviewButton.disabled=!exportEligible || !report || safeReviewText(reviewerName.value,80).length<2 || safeReviewText(reviewNote.value,300).length<12 || !['approved','rejected'].includes(reviewDecision.value) || !reviewerDetailsAreSafe() || !reviewChecklistComplete() || !exportAck.checked || Boolean(reviewRecord);
 }
 function invalidateHumanReview(message='اطلاعات بازبینی تغییر کرد؛ نتیجه قبلی باطل شد. پس از بررسی دوباره ثبت کنید.'){
  reviewRecord=null;exportAck.checked=false;reviewStatus.textContent=message;updateExportPermission();
@@ -519,6 +529,7 @@ exportAck.addEventListener('change',()=>{
  if(!exportAck.checked) invalidateHumanReview('تأیید بازبینی برداشته شد؛ برای دریافت باید بازبینی تازه ثبت شود.');
  else updateExportPermission();
 });
+reviewChecklistItems.forEach(item=>item.addEventListener('change',()=>invalidateHumanReview('چک‌لیست بازبینی تغییر کرد؛ تصمیم قبلی باطل شد. پس از بررسی دوباره همه موارد را علامت بزنید.')));
 reviewerName.addEventListener('input',()=>invalidateHumanReview());
 reviewDecision.addEventListener('change',()=>invalidateHumanReview());
 reviewNote.addEventListener('input',()=>invalidateHumanReview());
@@ -529,7 +540,7 @@ recordReviewButton.addEventListener('click',()=>{
  if(recordReviewButton.disabled)return;
  if(!reviewerDetailsAreSafe()){showReviewerPrivacyWarning();return;}
  const decision=reviewDecision.value;
- reviewRecord={reviewer:safeReviewText(reviewerName.value,80),decision,note:safeReviewText(reviewNote.value,300),reviewedAt:new Date().toISOString(),reportSnapshot:report};
+ reviewRecord={reviewer:safeReviewText(reviewerName.value,80),decision,note:safeReviewText(reviewNote.value,300),reviewedAt:new Date().toISOString(),checklist:reviewChecklistItems.map(item=>({id:item.id,checked:item.checked,label:item.closest('label').textContent.trim()})),reportSnapshot:report};
  reviewStatus.textContent=decision==='approved'
   ? 'بازبینی انسانی با اظهار بازبین ثبت شد؛ هویت بازبین در این نسخه آفلاین احراز نمی‌شود.'
   : 'بازبینی رد شد؛ دریافت گزارش غیرفعال باقی می‌ماند.';
@@ -539,7 +550,7 @@ recordReviewButton.addEventListener('click',()=>{
 // Otherwise the download button could export a different case state than the UI.
 function invalidateDraft(){
  const focusWasInDraft=box.contains(document.activeElement);
- report=''; internalTopicMatches=[]; topicScopeStatus.textContent=''; out.textContent=''; exportStatus.textContent=''; reviewRecord=null;reviewerName.value='بازبین آزمون';reviewDecision.value='pending';reviewNote.value='';reviewStatus.textContent='';document.getElementById('reset-status').textContent=''; box.hidden=true; exportEligible=false; exportAck.checked=false; updateExportPermission();
+ report=''; internalTopicMatches=[]; topicScopeStatus.textContent=''; out.textContent=''; exportStatus.textContent=''; reviewRecord=null;reviewChecklistItems.forEach(item=>{item.checked=false;});reviewerName.value='بازبین آزمون';reviewDecision.value='pending';reviewNote.value='';reviewStatus.textContent='';document.getElementById('reset-status').textContent=''; box.hidden=true; exportEligible=false; exportAck.checked=false; updateExportPermission();
  // Never strand keyboard focus inside a hidden result after a case-state change.
  if(focusWasInDraft) document.getElementById('generate').focus();
 }
@@ -650,6 +661,7 @@ document.getElementById('download').addEventListener('click',()=>{
   'ثبت بازبینی انسانی (اظهار محلی؛ هویت احراز نشده)',
   'نام بازبین: '+reviewRecord.reviewer,
   'نتیجه بازبینی: '+(reviewRecord.decision==='approved'?'تأیید برای دریافت آموزشی':'رد'),
+  'موارد بررسی‌شده:\n'+reviewRecord.checklist.filter(item=>item.checked).map(item=>'• '+item.label).join('\n'),
   'زمان ثبت بازبینی (مبنای ساعت دستگاه؛ نمایش UTC؛ قابل راستی‌آزمایی مستقل نیست): '+reviewRecord.reviewedAt,
   'یادداشت بازبین: '+(reviewRecord.note||'ثبت نشده'),
   'محدودیت: این اظهار محلی است و تأیید حقوقی یا احراز هویت محسوب نمی‌شود.'
@@ -660,6 +672,7 @@ document.getElementById('download').addEventListener('click',()=>{
  // Consume the approval; a fresh review record is required for another export.
  reviewRecord=null;
  exportAck.checked=false;
+ reviewChecklistItems.forEach(item=>{item.checked=false;});
  reviewerName.value='بازبین آزمون';
  reviewDecision.value='pending';
  reviewNote.value='';
