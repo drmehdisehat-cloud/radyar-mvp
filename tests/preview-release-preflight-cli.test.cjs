@@ -196,16 +196,16 @@ function removeValuePair(args, flag) {
   return copy;
 }
 
-test('read-only CLI verifies a signed synthetic review but still requires external verification', () => {
+test('read-only CLI verifies a signed synthetic review but remains NOT_READY without the trusted auth adapter', () => {
   const f = fixture();
   try {
     const result = run(baseArgs(f));
-    assert.equal(result.status, 3, result.stderr);
+    assert.equal(result.status, 1, result.stderr);
     const report = JSON.parse(result.stdout);
-    assert.equal(report.status, 'EVIDENCE_SHAPE_VALID_REQUIRES_EXTERNAL_VERIFICATION');
+    assert.equal(report.status, 'NOT_READY');
     assert.equal(report.deploymentAuthorized, false);
     assert.equal(report.externalChecksPending.length, 5);
-    assert.deepEqual(report.blockers, []);
+    assert.ok(report.blockers.includes('trusted reviewer authentication adapter is not integrated and verified'));
     assert.equal(report.evidenceFilesRead, true);
     assert.equal(report.attestationFlagsSupplied, 4);
     assert.equal(report.restoreAttestation.verified, true);
