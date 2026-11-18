@@ -60,11 +60,25 @@ test('tampered destination hash fails even when restore attestation and other fl
   assert.equal(decision.status,'NOT_READY');
   assert.ok(decision.blockers.includes('preview destination is not verified outside production document root and Git checkout'));
 });
-test('complete synthetic manifest and isolated staging path reach owner approval only; they are not a deployment', () => {
+test('signed reviewer attestation cannot replace a trusted server-side reviewer authentication adapter', () => {
   const decision = decidePreviewRelease({
     restoreEvidence, destinationEvidence, isolatedRestoreVerified:true,
-    mobileBrowserVerified:true, zeroApiRequestsVerified:true, localHumanReviewAcknowledged:true, authenticatedHumanReviewAttested:true,
-    authenticatedRestoreAttestation:true
+    mobileBrowserVerified:true, zeroApiRequestsVerified:true, localHumanReviewAcknowledged:true,
+    authenticatedHumanReviewAttested:true, authenticatedRestoreAttestation:true,
+    trustedReviewerAuthenticationAdapterVerified:false
+  });
+  assert.equal(decision.status,'NOT_READY');
+  assert.ok(decision.blockers.includes('trusted reviewer authentication adapter is not integrated and verified'));
+  assert.equal(decision.deploymentAuthorized,false);
+});
+test('complete synthetic evidence shape reaches external verification only when the trusted auth adapter gate is explicitly satisfied', () => {
+  // This is a unit-test input for the decision function, not proof that a real
+  // identity provider, reviewer or restore operation has been configured.
+  const decision = decidePreviewRelease({
+    restoreEvidence, destinationEvidence, isolatedRestoreVerified:true,
+    mobileBrowserVerified:true, zeroApiRequestsVerified:true, localHumanReviewAcknowledged:true,
+    authenticatedHumanReviewAttested:true, authenticatedRestoreAttestation:true,
+    trustedReviewerAuthenticationAdapterVerified:true
   });
   assert.equal(decision.status,'EVIDENCE_SHAPE_VALID_REQUIRES_EXTERNAL_VERIFICATION');
   assert.deepEqual(decision.blockers,[]);
