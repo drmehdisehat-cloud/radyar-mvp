@@ -241,6 +241,11 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  const reportAfterAcknowledgement = document.getElementById("report").textContent;',
       '  const question = document.getElementById("free-question");',
       '  question.value = "پرسش فرضی که هنوز ثبت نشده است";',
+      '  const calculatorRoot = document.getElementById("delay-damages-calculator");',
+      '  const calculatorButton = document.getElementById("delay-calculate");',
+      '  const calculatorInitiallyBlocked = calculatorButton.disabled && document.getElementById("delay-result").textContent.includes("محاسبه مسدود است");',
+      '  // Test-only fixture: exercise arithmetic after recording both simulated approvals; production markup remains unverified.',
+      '  calculatorRoot.dataset.sourceStatus = "verified"; calculatorRoot.dataset.legalReviewStatus = "approved"; calculatorButton.disabled = false;',
       '  const calculatorPrincipal = document.getElementById("delay-principal"); calculatorPrincipal.value = "987654321";',
       '  const calculatorDueMonth = document.getElementById("delay-due-month"); calculatorDueMonth.value = "2";',
       '  const calculatorPaymentMonth = document.getElementById("delay-payment-month"); calculatorPaymentMonth.value = "6";',
@@ -257,6 +262,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  calculatorDueMonth.value = "2"; calculatorPaymentMonth.value = "6"; calculatorPrincipal.value = "-1"; document.getElementById("delay-calculate").click();',
       '  const calculatorInvalidPrincipalBlocked = /اصل دین باید عدد صحیح مثبت و در محدوده امن باشد/.test(document.getElementById("delay-result").textContent);',
       '  calculatorPrincipal.value = "987654321";',
+      '  calculatorRoot.dataset.sourceStatus = "transcribed-not-independently-authenticated"; calculatorRoot.dataset.legalReviewStatus = "not-reviewed"; calculatorButton.disabled = true;',
       '  window.dispatchEvent(new PageTransitionEvent("pagehide"));',
       '  const pagehideClearedUnsubmittedQuestion = question.value === "";',
       '  const pagehideClearedDraft = document.getElementById("result").hidden && download.disabled;',
@@ -305,7 +311,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '    exportEnabledBeforeDownload, exportedReport, exportedFilename, approvalConsumed, repeatExportBlocked,',
       '    reviewerResetAfterDownload, reapprovalBlockedWithoutFreshDetails, postDownloadReviewStatus,',
       '    reportAfterAcknowledgement, staleDraftInvalidated, multiTopicReport, multiTopicIds,',
-      '    pagehideClearedUnsubmittedQuestion, pagehideClearedDraft, pagehideClearedReviewer, pagehideClearedSelections, pagehideClearedReviewApproval, calculatorHadValues, calculatorExactAmounts, calculatorSourceWarning, calculatorAvailableMonthBounds, calculatorUnavailableMonthBlocked, calculatorInvalidPrincipalBlocked, pagehideClearedCalculator,',
+      '    pagehideClearedUnsubmittedQuestion, pagehideClearedDraft, pagehideClearedReviewer, pagehideClearedSelections, pagehideClearedReviewApproval, calculatorInitiallyBlocked, calculatorHadValues, calculatorExactAmounts, calculatorSourceWarning, calculatorAvailableMonthBounds, calculatorUnavailableMonthBlocked, calculatorInvalidPrincipalBlocked, pagehideClearedCalculator,',
       '    multiTopicExportEligible, multiTopicScopeStatus, multiTopicInputCleared, multiTopicRawQuestionEchoed,',
       '    privacyQuestionCleared, privacyRawAbsentFromDraft, privacyExportEligible, privacyReviewApproved, privacyRawAbsentFromExport,',
       '    csp: document.querySelector("meta[http-equiv]")?.content || "",',
@@ -356,6 +362,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.equal(snapshot.pagehideClearedReviewer, true, 'pagehide did not reset reviewer metadata to the fixed synthetic label');
     assert.equal(snapshot.pagehideClearedSelections, true, 'pagehide retained role, interview answers, or selected evidence');
     assert.equal(snapshot.pagehideClearedReviewApproval, true, 'pagehide retained a local review approval');
+    assert.equal(snapshot.calculatorInitiallyBlocked, true, 'calculator was usable before official-source and legal-review approval');
     assert.equal(snapshot.calculatorHadValues, true, 'calculator fixture did not contain user-entered values before pagehide');
     assert.equal(snapshot.calculatorExactAmounts, true, 'real mobile calculator output differs from exact scaled-integer expected amounts');
     assert.equal(snapshot.calculatorSourceWarning, true, 'calculator result omitted the unverified owner-image provenance warning');
