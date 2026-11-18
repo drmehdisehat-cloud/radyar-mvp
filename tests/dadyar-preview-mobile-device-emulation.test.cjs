@@ -277,6 +277,24 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  const multiTopicReport = document.getElementById("report").textContent;',
       '  const multiTopicExportEligible = exportEligible;',
       '  const multiTopicScopeStatus = document.getElementById("topic-scope-status").textContent;',
+      '  const privacyProbe = "چک فرضی برای شخص نمونه الف در نشانی فرضی خیابان آزمایش";',
+      '  question.value = privacyProbe;',
+      '  question.dispatchEvent(new Event("input", { bubbles: true }));',
+      '  document.getElementById("generate").click();',
+      '  const privacyQuestionCleared = question.value === "";',
+      '  const privacyDraft = document.getElementById("report").textContent;',
+      '  const privacyRawAbsentFromDraft = !privacyDraft.includes(privacyProbe) && !privacyDraft.includes("شخص نمونه الف") && !privacyDraft.includes("خیابان آزمایش");',
+      '  const privacyExportEligible = exportEligible;',
+      '  decision.value = "approved"; decision.dispatchEvent(new Event("change", { bubbles: true }));',
+      '  note.value = "بازبینی داده کاملاً ساختگی"; note.dispatchEvent(new Event("input", { bubbles: true }));',
+      '  for (const id of ["review-check-facts","review-check-conflicts","review-check-sources","review-check-privacy"]) { const item = document.getElementById(id); item.checked = true; item.dispatchEvent(new Event("change", { bubbles: true })); }',
+      '  document.getElementById("export-ack").click();',
+      '  document.getElementById("record-review").click();',
+      '  const privacyReviewApproved = !download.disabled;',
+      '  download.click();',
+      '  const privacyBlob = window.__dadyarExportBlob;',
+      '  const privacyExportedText = privacyBlob ? await privacyBlob.text() : "";',
+      '  const privacyRawAbsentFromExport = !privacyExportedText.includes(privacyProbe) && !privacyExportedText.includes("شخص نمونه الف") && !privacyExportedText.includes("خیابان آزمایش");',
       '  const externalResources = performance.getEntriesByType("resource").map(entry => entry.name).filter(url => /^(?:https?|wss?):/i.test(url));',
       '  return {',
       '    width: innerWidth, height: innerHeight, screenWidth: screen.width, devicePixelRatio,',
@@ -289,6 +307,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '    reportAfterAcknowledgement, staleDraftInvalidated, multiTopicReport, multiTopicIds,',
       '    pagehideClearedUnsubmittedQuestion, pagehideClearedDraft, pagehideClearedReviewer, pagehideClearedSelections, pagehideClearedReviewApproval, calculatorHadValues, calculatorExactAmounts, calculatorSourceWarning, calculatorAvailableMonthBounds, calculatorUnavailableMonthBlocked, calculatorInvalidPrincipalBlocked, pagehideClearedCalculator,',
       '    multiTopicExportEligible, multiTopicScopeStatus, multiTopicInputCleared, multiTopicRawQuestionEchoed,',
+      '    privacyQuestionCleared, privacyRawAbsentFromDraft, privacyExportEligible, privacyReviewApproved, privacyRawAbsentFromExport,',
       '    csp: document.querySelector("meta[http-equiv]")?.content || "",',
       '    externalResources',
       '  };',
@@ -355,6 +374,11 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       'the user must be told that non-cheque topics are not analyzed in this preview');
     assert.match(snapshot.multiTopicScopeStatus, /موضوع دیگر را تحلیل نمی‌کند/,
       'the multi-topic scope limitation must remain explicit');
+    assert.equal(snapshot.privacyQuestionCleared, true, 'free-text field retained the synthetic identifying probe');
+    assert.equal(snapshot.privacyExportEligible, true, 'synthetic cheque question with a non-numeric identity probe should remain eligible');
+    assert.equal(snapshot.privacyReviewApproved, true, 'approved local review did not enable the privacy regression export');
+    assert.equal(snapshot.privacyRawAbsentFromDraft, true, 'synthetic name/address text leaked into the visible report');
+    assert.equal(snapshot.privacyRawAbsentFromExport, true, 'synthetic name/address text leaked into the downloaded report');
     assert.doesNotMatch(snapshot.multiTopicReport, /دسته‌بندی داخلی:|برچسب‌های موضوعی پیشنهادی/);
     for (const topicId of snapshot.multiTopicIds) {
       assert.equal(snapshot.multiTopicReport.includes(topicId), false,
