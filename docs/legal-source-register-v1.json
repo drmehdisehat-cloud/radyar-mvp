@@ -1,6 +1,6 @@
 {
   "schema": "dadyar-legal-source-register-v1",
-  "observedAt": "2026-11-16",
+  "observedAt": "2026-11-18",
   "policy": {
     "approvalRule": "A secondary page, search result, owner image, or plausible official-portal URL is not an authenticated primary legal source.",
     "answerUse": "Only records with an independently verified primary document, event-date version, direct document URL, and approved human review may support a legal answer.",
@@ -44,7 +44,42 @@
       "openQuestions": [
         "دریافت سند اولیه قانون و اصلاحات از روزنامه رسمی یا پایگاه رسمی قوانین.",
         "ساخت نسخه زمانی ماده‌به‌ماده برای تاریخ هر رویداد.",
-        "تأیید مستقل تاریخ لازم‌الاجرا شدن هر اصلاح."
+        "تأیید مستقل تاریخ لازم‌الاجرا شدن هر اصلاح.",
+        "بازخوانی مستقیم صفحه متن تنقیحی qavanin.ir با شناسه 11400475274213876131 و ثبت بایت‌ها، هش SHA-256 و تاریخ دریافت.",
+        "دریافت و تطبیق متن رسمی قانون اصلاح قانون صدور چک مصوب ۱۴۰۰/۰۱/۲۹ از پیوند مستقیم qavanin.ir با شناسه 8508483613671622689؛ واکشی فعلی timeout شده است.",
+        "تطبیق ماده‌به‌ماده اصلاحات با تاریخ انتشار روزنامه رسمی و تاریخ لازم‌الاجراشدن هر حکم، سپس بازبینی حقوقی مستقل."
+      ],
+      "officialDocumentUrlCandidates": [
+        {
+          "url": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
+          "candidateStatus": "official-original-law-page-known-consolidated-text-timeout-2026-11-18",
+          "documentId": "11400475274213876131",
+          "sourceClass": "primary-official-qavanin",
+          "discoverySource": "docs/check-law-source-handoff-20261026.json",
+          "officialAttributeUrl": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
+          "lastDirectFetchAt": "2026-11-18",
+          "lastDirectFetchResult": "request-timeout",
+          "originalGazetteNumberShown": "9210",
+          "originalGazetteDateShown": "1355/05/19",
+          "lastStatusShown": "اصلاحي 1403/03/30",
+          "amendmentEffectiveDatesVerified": false,
+          "currentConsolidatedTextVerified": false,
+          "humanReviewStatus": "pending",
+          "useInLegalAnswers": false,
+          "note": "نشانی مستقیم متن قانون در پایگاه رسمی قوانین از فراداده رسمی پرونده پژوهشی قبلی شناخته شده است؛ صفحه فراداده، مشخصات قانون اولیه ۱۳۵۵ و برچسب آخرین وضعیت را نشان داده، اما تاریخ انتشار و لازم‌الاجراشدن اصلاحات بعدی را ثابت نمی‌کند. واکشی مستقیم متن تنقیحی در ۱۴۰۵/۰۸/۲۷ با timeout روبه‌رو شد. این نشانی سرنخ رسمی است، نه متن معتبرِ تنقیح‌شده یا نسخه زمانی تأییدشده."
+        },
+        {
+          "url": "https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689",
+          "candidateStatus": "secondary-link-discovered-not-fetched",
+          "documentId": "8508483613671622689",
+          "sourceClass": "secondary-link-discovery",
+          "discoveryLeadUrl": "https://hoghogh.ai/laws/قانون-صدور-چک/6",
+          "lastDirectFetchAt": "2026-11-18",
+          "lastDirectFetchResult": "request-timeout",
+          "humanReviewStatus": "pending",
+          "useInLegalAnswers": false,
+          "note": "این پیوند مستقیم qavanin.ir در یک صفحه ثانویه به‌عنوان متن قانون اصلاحی ۱۴۰۰/۰۱/۲۹ معرفی شده است. واکشی مستقیم آن در این نوبت timeout شد؛ بنابراین متن، شناسه سند، تاریخ انتشار رسمی، تاریخ لازم‌الاجراشدن و نسبت آن با نسخه زمانی قانون هنوز مستقلاً احراز نشده‌اند."
+        }
       ]
     },
     {
