@@ -6,11 +6,11 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
-const start = html.indexOf('function hasSensitiveIdentifier(value) {');
-assert.notEqual(start, -1, 'shared sensitive-identifier detector must exist');
-const end = html.indexOf('\n}', start);
-assert.notEqual(end, -1, 'sensitive-identifier detector must close');
-const source = html.slice(start, end + 2);
+const start = html.indexOf('function normalizeSensitiveIdentifierDigits(value) {');
+assert.notEqual(start, -1, 'shared Unicode digit normalizer must exist');
+const end = html.indexOf('function reviewerDetailsAreSafe()', start);
+assert.notEqual(end, -1, 'shared sensitive-identifier detector must close');
+const source = html.slice(start, end);
 
 function detector() {
   const sandbox = {};
