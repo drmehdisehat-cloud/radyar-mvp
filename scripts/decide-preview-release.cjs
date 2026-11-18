@@ -114,7 +114,17 @@ function hasVerifiedStagingDestination(evidence) {
     pathsDisjoint(evidence.destination_realpath, evidence.git_checkout_realpath);
 }
 
-function decidePreviewRelease({ restoreEvidence, destinationEvidence, isolatedRestoreVerified = false, mobileBrowserVerified = false, zeroApiRequestsVerified = false, localHumanReviewAcknowledged = false, authenticatedHumanReviewAttested = false, authenticatedRestoreAttestation = false } = {}) {
+function decidePreviewRelease({
+  restoreEvidence,
+  destinationEvidence,
+  isolatedRestoreVerified = false,
+  mobileBrowserVerified = false,
+  zeroApiRequestsVerified = false,
+  localHumanReviewAcknowledged = false,
+  authenticatedHumanReviewAttested = false,
+  authenticatedRestoreAttestation = false,
+  trustedReviewerAuthenticationAdapterVerified = false
+} = {}) {
   const blockers = [];
   if (!hasProviderBoundRestoreAttestation(restoreEvidence) || isolatedRestoreVerified !== true)
     blockers.push('independent restore attestation incomplete or unverified');
@@ -126,6 +136,11 @@ function decidePreviewRelease({ restoreEvidence, destinationEvidence, isolatedRe
   if (zeroApiRequestsVerified !== true) blockers.push('zero API requests not observed');
   if (localHumanReviewAcknowledged !== true) blockers.push('local human review acknowledgement missing');
   if (authenticatedHumanReviewAttested !== true) blockers.push('authenticated human reviewer attestation missing');
+  // A signed attestation alone proves possession of a trusted key, not that the
+  // server authenticated the same reviewer and bound the session to that signer.
+  // This gate is set only by a separately tested trusted server-side auth adapter.
+  if (trustedReviewerAuthenticationAdapterVerified !== true)
+    blockers.push('trusted reviewer authentication adapter is not integrated and verified');
   return Object.freeze({
     status: blockers.length ? 'NOT_READY' : 'EVIDENCE_SHAPE_VALID_REQUIRES_EXTERNAL_VERIFICATION',
     blockers,
