@@ -294,6 +294,29 @@ test('changing case evidence invalidates the draft and any earlier review state'
   assert.equal(h.get('reviewer-name').value, 'بازبین آزمون');
 });
 
+test('promissory-note and bill-of-exchange questions are outside the cheque-only preview', () => {
+  for (const question of ['سفته', 'برات', 'ظهرنویسی']) {
+    const h = harness();
+    h.get('free-question').value = 'در سناریوی ساختگی ' + question + ' چه مدارکی باید بررسی شود؟';
+    h.fire('free-question', 'input');
+    completeSyntheticInterview(h);
+    h.fire('generate', 'click');
+    assert.match(h.get('topic-scope-status').textContent, /خارج از دامنه/,
+      question + ' must not be treated as a cheque question');
+    assert.equal(h.get('free-question').value, '');
+  }
+});
+
+test('cheque mixed with a promissory note is marked as multi-topic', () => {
+  const h = harness();
+  h.get('free-question').value = 'در سناریوی ساختگی چک و سفته چه مدارکی باید بررسی شود؟';
+  h.fire('free-question', 'input');
+  completeSyntheticInterview(h);
+  h.fire('generate', 'click');
+  assert.match(h.get('topic-scope-status').textContent, /چندموضوعی/);
+  assert.equal(h.get('free-question').value, '');
+});
+
 test('mixed cheque and civil free-text is classified locally without exporting raw question text', () => {
   const h = harness();
   h.get('free-question').value = 'در این سناریوی ساختگی چک و قرارداد چه مدارکی باید بررسی شود؟';
