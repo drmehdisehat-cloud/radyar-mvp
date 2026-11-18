@@ -16,7 +16,7 @@ test('isolated database probe ignores caller-controlled PATH and uses only syste
     'password=synthetic-only-not-a-secret',
     'host=127.0.0.1',
     ''
-  ].join('\\n'), { mode: 0o600 });
+  ].join('\n'), { mode: 0o600 });
 
   const originalPath = process.env.PATH;
   let invocation;
@@ -34,7 +34,7 @@ test('isolated database probe ignores caller-controlled PATH and uses only syste
         invocation = { binary, args, options };
         return {
           status: 0,
-          stdout: 'synthetic_stage_db\\tsynthetic_stage_user\\t1\\t8.0.36\\n',
+          stdout: 'synthetic_stage_db\tsynthetic_stage_user\t1\t8.0.36\n',
           stderr: ''
         };
       }
@@ -51,7 +51,8 @@ test('isolated database probe ignores caller-controlled PATH and uses only syste
     assert.equal(invocation.options.env.LC_ALL, 'C');
     assert.equal(invocation.options.timeout, 10000);
     assert.equal(invocation.options.maxBuffer, 4096);
-    assert.match(invocation.args[0], /^--defaults-file=\\/.*\\/client\\.cnf$/);
+    assert.ok(invocation.args[0].startsWith('--defaults-file='));
+    assert.ok(invocation.args[0].endsWith('/client.cnf'));
   } finally {
     if (originalPath === undefined) delete process.env.PATH;
     else process.env.PATH = originalPath;
