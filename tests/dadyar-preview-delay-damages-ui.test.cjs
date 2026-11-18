@@ -23,10 +23,9 @@ function harness(indexes = rawIndexes, principal = '100000000') {
   });
   const root = make('delay-damages-calculator');
   root.dataset.indexes = typeof indexes === 'string' ? indexes : JSON.stringify(indexes);
-  // Unit arithmetic cases explicitly simulate both required approvals.
-  // The committed preview's actual source metadata remains unverified.
-  root.dataset.sourceStatus = 'verified';
-  root.dataset.legalReviewStatus = 'approved';
+  // Default harness state mirrors the committed preview's unverified evidence.
+  root.dataset.sourceStatus = 'transcribed-not-independently-authenticated';
+  root.dataset.legalReviewStatus = 'not-reviewed';
   const due = make('delay-due-month');
   const paid = make('delay-payment-month');
   make('delay-principal', principal);
@@ -40,6 +39,13 @@ function harness(indexes = rawIndexes, principal = '100000000') {
   };
   vm.runInNewContext(browserBlock, { document }, { timeout: 5000 });
   return { elements, handlers, due, paid, root };
+}
+
+function allowVerifiedCalculator(h) {
+  // Arithmetic-only unit cases simulate both approvals; no committed source
+  // record is changed by this test helper.
+  h.root.dataset.sourceStatus = 'verified';
+  h.root.dataset.legalReviewStatus = 'approved';
 }
 
 test('preview embeds exactly the seven owner-transcribed 1405 values and marks provenance', () => {
@@ -85,6 +91,7 @@ test('browser calculator blocks output until official source and legal review ar
 
 test('browser calculator computes the 100,000,000 rial Farvardin-to-Mehr example', () => {
   const h = harness();
+  allowVerifiedCalculator(h);
   h.handlers['delay-calculate:click']();
   const result = h.elements['delay-result'].textContent;
   assert.match(result, /۱۳۶٬۰۱۶٬۴۲۲ ریال/);
@@ -94,6 +101,7 @@ test('browser calculator computes the 100,000,000 rial Farvardin-to-Mehr example
 
 test('browser calculator rejects a payment month before the legal-origin month', () => {
   const h = harness();
+  allowVerifiedCalculator(h);
   h.due.value = '7';
   h.paid.value = '1';
   h.handlers['delay-calculate:click']();
@@ -102,6 +110,7 @@ test('browser calculator rejects a payment month before the legal-origin month',
 
 test('browser calculator rejects invalid principal and has no network/API code', () => {
   const h = harness();
+  allowVerifiedCalculator(h);
   h.elements['delay-principal'].value = '0';
   h.handlers['delay-calculate:click']();
   assert.match(h.elements['delay-result'].textContent, /اصل دین باید عدد صحیح مثبت/);
@@ -110,6 +119,7 @@ test('browser calculator rejects invalid principal and has no network/API code',
 
 test('browser calculator preserves exact rounding when the intermediate product exceeds safe Number precision', () => {
   const h = harness({ "1": 1000, "2": 110.867, "3": 110.867, "4": 110.867, "5": 110.867, "6": 110.867, "7": 110.867 }, '9007199254740991');
+  allowVerifiedCalculator(h);
   h.due.value = '1';
   h.paid.value = '2';
   h.handlers['delay-calculate:click']();
@@ -119,5 +129,6 @@ test('browser calculator preserves exact rounding when the intermediate product 
 
 test('browser calculator fails closed when a source index is zero or non-positive', () => {
   const h = harness({ "1": 0, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7 });
+  allowVerifiedCalculator(h);
   assert.match(h.elements['delay-result'].textContent, /داده شاخص نامعتبر است/);
 });
