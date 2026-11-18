@@ -712,12 +712,11 @@ if (typeof window !== 'undefined' && typeof window.addEventListener === 'functio
   const result = document.getElementById('delay-result');
   const list = document.getElementById('delay-index-list');
   const sourceReleaseAllowed = () =>
-    root.dataset.sourceStatus === 'verified' &&
-    root.dataset.legalReviewStatus === 'approved';
+    root.dataset?.sourceStatus === 'verified' &&
+    root.dataset?.legalReviewStatus === 'approved';
   const sourceBlockedMessage = 'محاسبه مسدود است: شاخص‌ها هنوز با سند رسمی تطبیق و توسط بازبین حقوقی تأیید نشده‌اند.';
   if (!sourceReleaseAllowed()) {
     calculateButton.disabled = true;
-    calculateButton.setAttribute('aria-disabled', 'true');
     result.textContent = sourceBlockedMessage;
   }
   const monthNames = [
@@ -765,8 +764,7 @@ if (typeof window !== 'undefined' && typeof window.addEventListener === 'functio
     // required before any number is calculated. This is not an auth boundary.
     if (!sourceReleaseAllowed()) {
       calculateButton.disabled = true;
-      calculateButton.setAttribute('aria-disabled', 'true');
-      result.textContent = sourceBlockedMessage;
+        result.textContent = sourceBlockedMessage;
       return;
     }
     const principal = Number(principalInput.value);
