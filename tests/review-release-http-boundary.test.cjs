@@ -23,7 +23,7 @@ function fixture(options = {}) {
     maxReportBytes: 4096,
     releaseReviewedReport: async ({ request, envelope }) => {
       gateCalls += 1;
-      if (request.headers['x-test-session'] !== SESSION) {
+      if (request.headers.cookie !== 'dadyar_session=' + SESSION) {
         throw Object.assign(new Error('authenticated reviewer principal required'), {
           code: 'AUTHENTICATED_REVIEWER_REQUIRED'
         });
@@ -71,7 +71,7 @@ function headers(url, overrides = {}) {
     Origin: 'https://' + target.host,
     'Content-Type': 'application/json; charset=utf-8',
     'Sec-Fetch-Site': 'same-origin',
-    'X-Test-Session': SESSION,
+    Cookie: 'dadyar_session=' + SESSION,
     ...overrides
   };
 }
@@ -118,7 +118,7 @@ function rawHeaderPairs(url, overrides = []) {
     'Origin', 'https://' + target.host,
     'Content-Type', 'application/json; charset=utf-8',
     'Sec-Fetch-Site', 'same-origin',
-    'X-Test-Session', SESSION,
+    'Cookie', 'dadyar_session=' + SESSION,
     ...overrides
   ];
 }
@@ -250,6 +250,32 @@ test('rejects duplicate Host, Cookie, Authorization and Fetch Metadata headers b
   });
 });
 
+test('rejects caller-supplied identity assertion headers before invoking the review gate', async () => {
+  const f = fixture();
+  await withServer(f, async url => {
+    const spoofed = [
+      ['X-Authenticated-User', 'owner'],
+      ['Remote-User', 'owner'],
+      ['X-Remote-User', 'owner'],
+      ['X-Forwarded-User', 'owner'],
+      ['X-Auth-Request-User', 'owner'],
+      ['X-Auth-Request-Email', 'owner@example.test'],
+      ['X-Auth-Request-Groups', 'preview-reviewer'],
+      ['X-Auth-Request-Roles', 'preview-reviewer'],
+      ['X-Authenticated-Subject', 'synthetic-reviewer'],
+      ['X-Reviewer-Id', 'owner'],
+      ['X-Reviewer-Role', 'preview-reviewer'],
+      ['X-Reviewer-Independent', 'true'],
+      ['X-Test-Session', SESSION]
+    ];
+    for (const [name, value] of spoofed) {
+      const result = await rawRequest(url, 'POST', rawHeaderPairs(url, [name, value]), body());
+      assert.equal(result.status, 400, name + ' must not be accepted as an identity assertion');
+      assert.equal(f.gateCalls, 0, name + ' reached the review release gate');
+    }
+  });
+});
+
 test('rejects duplicate JSON keys instead of accepting parser-dependent values', async () => {
   const f = fixture();
   await withServer(f, async url => {
@@ -362,7 +388,7 @@ test('rejects Expect: 100-continue before accepting report bytes or invoking the
           'Origin: https://' + target.host,
           'Content-Type: application/json; charset=utf-8',
           'Sec-Fetch-Site: same-origin',
-          'X-Test-Session: ' + SESSION,
+          'Cookie: dadyar_session=' + SESSION,
           'Expect: 100-continue',
           'Content-Length: ' + Buffer.byteLength(payload),
           'Connection: close',
