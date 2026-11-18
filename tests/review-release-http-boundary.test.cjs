@@ -126,7 +126,7 @@ function rawHeaderPairs(url, overrides = []) {
 test('serves only server-loaded bytes after the injected review gate approves', async () => {
   const f = fixture();
   await withServer(f, async url => {
-    const response = await post(url, body(), { 'X-Reviewer-Id': 'caller-controlled-id' });
+    const response = await post(url, body());
     assert.equal(response.status, 200);
     assert.deepEqual(Buffer.from(await response.arrayBuffer()), REPORT);
     assert.match(response.headers.get('content-disposition'), /attachment; filename="dadyar-reviewed-report\.txt"/);
@@ -141,7 +141,7 @@ test('serves only server-loaded bytes after the injected review gate approves', 
 test('does not release a report when the server-side session adapter rejects the reviewer', async () => {
   const f = fixture();
   await withServer(f, async url => {
-    const response = await post(url, body(), { 'X-Test-Session': 'missing-session' });
+    const response = await post(url, body(), { Cookie: 'dadyar_session=missing-session' });
     assert.equal(response.status, 401);
     assert.equal(await response.text(), 'نشست بازبین معتبر نیست.');
     assert.equal(f.gateCalls, 1);
