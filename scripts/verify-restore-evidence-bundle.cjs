@@ -47,8 +47,20 @@ function assertManifestOutsideCheckout(manifestPath, checkoutRoot = fs.realpathS
       path.resolve(checkoutRoot) !== checkoutRoot) {
     throw new Error('checkout_root_must_be_absolute_canonical');
   }
-  if (isInside(checkoutRoot, manifestPath)) {
+
+  // Do not trust lexical separation alone: an absolute path outside the checkout
+  // may be a symlink alias to a manifest inside it. Resolve the existing file
+  // before applying the boundary check so every caller gets the same protection.
+  const realCheckoutRoot = fs.realpathSync(checkoutRoot);
+  if (realCheckoutRoot !== checkoutRoot) {
+    throw new Error('checkout_root_must_be_canonical');
+  }
+  const realManifestPath = fs.realpathSync(manifestPath);
+  if (isInside(realCheckoutRoot, realManifestPath)) {
     throw new Error('manifest_inside_git_checkout');
+  }
+  if (realManifestPath !== manifestPath) {
+    throw new Error('manifest_path_must_be_canonical');
   }
   return true;
 }
