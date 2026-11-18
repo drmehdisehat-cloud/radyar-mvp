@@ -18,7 +18,7 @@ test('CI publishes a separate artifact containing only the public index file', (
   assert.match(step, /path: \$\{\{ runner\.temp \}\}\/dadyar-preview-handoff\/public\/index\.html/);
   assert.match(step, /if-no-files-found: error/);
   assert.match(step, /retention-days: 7/);
-  assert.doesNotMatch(step, /handoff\//, 'operator handoff files must not enter the public-only artifact');
+  assert.doesNotMatch(step, /(?:^|\/)handoff\//, 'operator handoff subdirectory must not enter the public-only artifact');
   assert.doesNotMatch(step, /\*\*|\/dadyar-preview-handoff\/$/, 'the upload must not use a directory or wildcard');
 });
 
