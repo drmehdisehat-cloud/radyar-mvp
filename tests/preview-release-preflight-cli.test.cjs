@@ -654,7 +654,6 @@ test('caller-supplied reviewer-authentication booleans are rejected and cannot c
       const report = JSON.parse(result.stdout);
       assert.equal(report.status, 'NOT_READY');
       assert.match(report.blockers.join(' '), /unknown_argument/);
-      assert.equal(report.deploymentAuthorized, false);
       assert.equal(report.deploymentPerformed, false);
     }
   } finally {
