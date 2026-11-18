@@ -368,8 +368,8 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.match(snapshot.multiTopicScopeStatus, /موضوع دیگر را تحلیل نمی‌کند/,
       'the multi-topic scope limitation must remain explicit');
     assert.equal(snapshot.privacyQuestionCleared, true, 'free-text field retained the synthetic identifying probe');
-    assert.equal(snapshot.privacyExportEligible, true, 'synthetic cheque question with a non-numeric identity probe should remain eligible');
-    assert.equal(snapshot.privacyReviewApproved, true, 'approved local review did not enable the privacy regression export');
+    assert.equal(snapshot.privacyExportEligible, false, 'address-like free text must fail closed before report approval');
+    assert.equal(snapshot.privacyReviewApproved, false, 'address-like free text must not be approved or exported');
     assert.equal(snapshot.privacyRawAbsentFromDraft, true, 'synthetic name/address text leaked into the visible report');
     assert.equal(snapshot.privacyRawAbsentFromExport, true, 'synthetic name/address text leaked into the downloaded report');
     assert.doesNotMatch(snapshot.multiTopicReport, /دسته‌بندی داخلی:|برچسب‌های موضوعی پیشنهادی/);
