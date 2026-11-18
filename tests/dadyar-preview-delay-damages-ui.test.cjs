@@ -6,8 +6,8 @@ const vm = require('node:vm');
 const path = require('node:path');
 const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
 const data = JSON.parse(fs.readFileSync(path.join(__dirname, '../dadyar-preview/data/delay-damages-index.json'), 'utf8'));
-const section = html.match(/<section\b[^>]*id="delay-damages-calculator"[^>]*>/)?.[0] || '';
-const rawIndexes = section.match(/\bdata-indexes='([^']+)'/)?.[1];
+const section = html.match(/<section\\b[^>]*id="delay-damages-calculator"[^>]*>/)?.[0] || '';
+const rawIndexes = section.match(/\\bdata-indexes='([^']+)'/)?.[1];
 const start = html.indexOf('// BEGIN delay-damages calculator');
 const end = html.indexOf('// END delay-damages calculator');
 const browserBlock = start >= 0 && end > start ? html.slice(start, end + '// END delay-damages calculator'.length) : '';
@@ -41,13 +41,6 @@ function harness(indexes = rawIndexes, principal = '100000000') {
   return { elements, handlers, due, paid, root };
 }
 
-function allowVerifiedCalculator(h) {
-  // Arithmetic-only unit cases simulate both approvals; no committed source
-  // record is changed by this test helper.
-  h.root.dataset.sourceStatus = 'verified';
-  h.root.dataset.legalReviewStatus = 'approved';
-}
-
 test('preview embeds exactly the seven owner-transcribed 1405 values and marks provenance', () => {
   assert.ok(section);
   assert.ok(rawIndexes);
@@ -58,77 +51,45 @@ test('preview embeds exactly the seven owner-transcribed 1405 values and marks p
   assert.equal(Object.keys(JSON.parse(rawIndexes)).length, 7);
 });
 
-test('browser calculator builds seven month choices and displays the index list', () => {
+test('browser calculator builds seven month choices and displays the index list while remaining disabled', () => {
   assert.ok(browserBlock);
   const h = harness();
   assert.equal(h.due.children.length, 7);
   assert.equal(h.paid.children.length, 7);
   assert.equal(h.elements['delay-index-list'].children.length, 7);
   assert.equal(h.paid.value, '7');
+  assert.equal(h.elements['delay-calculate'].disabled, true);
+  assert.match(h.elements['delay-result'].textContent, /محاسبه مسدود است/);
 });
 
-test('browser calculator blocks output until official source and legal review are both approved', () => {
+test('browser calculator cannot be unlocked by mutable provenance attributes or button-state edits', () => {
   const h = harness();
-  h.root.dataset.sourceStatus = 'transcribed-not-independently-authenticated';
-  h.root.dataset.legalReviewStatus = 'not-reviewed';
-  assert.equal(h.elements['delay-calculate'].disabled, true);
-  h.handlers['delay-calculate:click']();
-  assert.match(h.elements['delay-result'].textContent, /محاسبه مسدود است/);
-  assert.equal(h.elements['delay-calculate'].disabled, true);
-
+  const button = h.elements['delay-calculate'];
+  assert.equal(button.disabled, true);
   h.root.dataset.sourceStatus = 'verified';
-  h.root.dataset.legalReviewStatus = 'not-reviewed';
-  h.elements['delay-calculate'].disabled = false;
+  h.root.dataset.legalReviewStatus = 'approved';
+  button.disabled = false;
   h.handlers['delay-calculate:click']();
+  assert.equal(button.disabled, true);
   assert.match(h.elements['delay-result'].textContent, /محاسبه مسدود است/);
+});
 
-  h.root.dataset.sourceStatus = 'transcribed-not-independently-authenticated';
+test('browser calculator stays blocked with valid-looking inputs and contains no network/API code', () => {
+  const h = harness();
+  h.elements['delay-principal'].value = '100000000';
+  h.due.value = '1';
+  h.paid.value = '7';
+  h.root.dataset.sourceStatus = 'verified';
   h.root.dataset.legalReviewStatus = 'approved';
   h.elements['delay-calculate'].disabled = false;
   h.handlers['delay-calculate:click']();
+  assert.equal(h.elements['delay-calculate'].disabled, true);
   assert.match(h.elements['delay-result'].textContent, /محاسبه مسدود است/);
+  assert.doesNotMatch(html, /\\bfetch\\s*\\(|XMLHttpRequest|WebSocket|EventSource|sendBeacon/);
 });
 
-test('browser calculator computes the 100,000,000 rial Farvardin-to-Mehr example', () => {
-  const h = harness();
-  allowVerifiedCalculator(h);
-  h.handlers['delay-calculate:click']();
-  const result = h.elements['delay-result'].textContent;
-  assert.match(result, /۱۳۶٬۰۱۶٬۴۲۲ ریال/);
-  assert.match(result, /۳۶٬۰۱۶٬۴۲۲ ریال/);
-  assert.match(result, /تأیید رسمی و حقوقی نشده است/);
-});
-
-test('browser calculator rejects a payment month before the legal-origin month', () => {
-  const h = harness();
-  allowVerifiedCalculator(h);
-  h.due.value = '7';
-  h.paid.value = '1';
-  h.handlers['delay-calculate:click']();
-  assert.match(h.elements['delay-result'].textContent, /نباید پیش از ماه مبدأ باشد/);
-});
-
-test('browser calculator rejects invalid principal and has no network/API code', () => {
-  const h = harness();
-  allowVerifiedCalculator(h);
-  h.elements['delay-principal'].value = '0';
-  h.handlers['delay-calculate:click']();
-  assert.match(h.elements['delay-result'].textContent, /اصل دین باید عدد صحیح مثبت/);
-  assert.doesNotMatch(html, /\bfetch\s*\(|XMLHttpRequest|WebSocket|EventSource|sendBeacon/);
-});
-
-test('browser calculator preserves exact rounding when the intermediate product exceeds safe Number precision', () => {
-  const h = harness({ "1": 1000, "2": 110.867, "3": 110.867, "4": 110.867, "5": 110.867, "6": 110.867, "7": 110.867 }, '9007199254740991');
-  allowVerifiedCalculator(h);
-  h.due.value = '1';
-  h.paid.value = '2';
-  h.handlers['delay-calculate:click']();
-  const expected = new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 0 }).format(998601159775369);
-  assert.ok(h.elements['delay-result'].textContent.includes(expected), 'large-principal result lost exact integer rounding');
-});
-
-test('browser calculator fails closed when a source index is zero or non-positive', () => {
+test('browser calculator does not enable itself when a supplied index is invalid', () => {
   const h = harness({ "1": 0, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7 });
-  allowVerifiedCalculator(h);
+  assert.equal(h.elements['delay-calculate'].disabled, true);
   assert.match(h.elements['delay-result'].textContent, /داده شاخص نامعتبر است/);
 });
