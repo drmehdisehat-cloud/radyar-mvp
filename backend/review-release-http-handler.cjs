@@ -59,7 +59,18 @@ function hasAmbiguousSecurityHeaders(request) {
     'content-type', 'content-encoding', 'content-length', 'transfer-encoding',
     'expect', 'cookie', 'authorization', 'proxy-authorization',
     'forwarded', 'x-forwarded-for', 'x-forwarded-host', 'x-forwarded-proto',
-    'x-original-host', 'x-authenticated-user', 'remote-user', 'x-test-session'
+    'x-original-host', 'x-authenticated-user', 'remote-user', 'x-remote-user',
+    'x-forwarded-user', 'x-auth-request-user', 'x-auth-request-email',
+    'x-auth-request-groups', 'x-auth-request-roles', 'x-authenticated-subject',
+    'x-reviewer-id', 'x-reviewer-role', 'x-reviewer-independent', 'x-test-session'
+  ]);
+  // Identity assertions from request headers are never trusted by this adapter.
+  // The injected identity provider must validate a signed session or bearer token.
+  const callerIdentityHeaders = new Set([
+    'x-authenticated-user', 'remote-user', 'x-remote-user', 'x-forwarded-user',
+    'x-auth-request-user', 'x-auth-request-email', 'x-auth-request-groups',
+    'x-auth-request-roles', 'x-authenticated-subject', 'x-reviewer-id',
+    'x-reviewer-role', 'x-reviewer-independent', 'x-test-session'
   ]);
   const seen = new Set();
   let hasContentLength = false;
@@ -69,6 +80,7 @@ function hasAmbiguousSecurityHeaders(request) {
     const value = rawHeaders[index + 1];
     if (typeof name !== 'string' || typeof value !== 'string') return true;
     const lower = name.toLowerCase();
+    if (callerIdentityHeaders.has(lower)) return true;
     if (singleton.has(lower)) {
       if (seen.has(lower)) return true;
       seen.add(lower);
