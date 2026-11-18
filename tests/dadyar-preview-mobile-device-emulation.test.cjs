@@ -239,6 +239,13 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  const reapprovalBlockedWithoutFreshDetails = document.getElementById("record-review").disabled && download.disabled;',
       '  const postDownloadReviewStatus = document.getElementById("review-status").textContent;',
       '  const reportAfterAcknowledgement = document.getElementById("report").textContent;',
+      '  decision.value = "approved"; decision.dispatchEvent(new Event("change", { bubbles: true }));',
+      '  for (const id of ["review-check-facts","review-check-conflicts","review-check-sources","review-check-privacy"]) { const item = document.getElementById(id); item.checked = true; item.dispatchEvent(new Event("change", { bubbles: true })); }',
+      '  document.getElementById("export-ack").click();',
+      '  note.value = "یادداشت ساختگی؛ شماره دفتر ۰۲۱-۱۲۳۴۵۶۷۸"; note.dispatchEvent(new Event("input", { bubbles: true }));',
+      '  const landlineNoteCleared = note.value === "";',
+      '  const landlineNoteWarning = document.getElementById("review-status").textContent;',
+      '  const landlineNoteBlocked = document.getElementById("record-review").disabled && download.disabled;',
       '  const question = document.getElementById("free-question");',
       '  question.value = "پرسش فرضی که هنوز ثبت نشده است";',
       '  const calculatorRoot = document.getElementById("delay-damages-calculator");',
@@ -273,6 +280,12 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  const multiTopicReport = document.getElementById("report").textContent;',
       '  const multiTopicExportEligible = exportEligible;',
       '  const multiTopicScopeStatus = document.getElementById("topic-scope-status").textContent;',
+      '  const landlineQuestion = "چک فرضی؛ شماره دفتر ۰۲۱-۱۲۳۴۵۶۷۸";',
+      '  question.value = landlineQuestion; question.dispatchEvent(new Event("input", { bubbles: true }));',
+      '  document.getElementById("generate").click();',
+      '  const landlineQuestionCleared = question.value === "";',
+      '  const landlineQuestionBlocked = !exportEligible;',
+      '  const landlineQuestionNotEchoed = !document.getElementById("report").textContent.includes(landlineQuestion) && !document.getElementById("report").textContent.includes("02112345678");',
       '  const privacyProbe = "چک فرضی برای شخص نمونه الف در نشانی فرضی خیابان آزمایش";',
       '  question.value = privacyProbe;',
       '  question.dispatchEvent(new Event("input", { bubbles: true }));',
@@ -303,6 +316,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '    reportAfterAcknowledgement, staleDraftInvalidated, multiTopicReport, multiTopicIds,',
       '    pagehideClearedUnsubmittedQuestion, pagehideClearedDraft, pagehideClearedReviewer, pagehideClearedSelections, pagehideClearedReviewApproval, calculatorInitiallyBlocked, calculatorDomTamperingBlocked, calculatorAvailableMonthBounds, pagehideClearedCalculator,',
       '    multiTopicExportEligible, multiTopicScopeStatus, multiTopicInputCleared, multiTopicRawQuestionEchoed,',
+      '    landlineNoteCleared, landlineNoteWarning, landlineNoteBlocked, landlineQuestionCleared, landlineQuestionBlocked, landlineQuestionNotEchoed,',
       '    privacyQuestionCleared, privacyRawAbsentFromDraft, privacyExportEligible, privacyReviewApproved, privacyRawAbsentFromExport,',
       '    csp: document.querySelector("meta[http-equiv]")?.content || "",',
       '    externalResources',
@@ -367,6 +381,12 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       'the user must be told that non-cheque topics are not analyzed in this preview');
     assert.match(snapshot.multiTopicScopeStatus, /موضوع دیگر را تحلیل نمی‌کند/,
       'the multi-topic scope limitation must remain explicit');
+    assert.equal(snapshot.landlineNoteCleared, true, 'synthetic Iranian landline number was retained in reviewer notes');
+    assert.match(snapshot.landlineNoteWarning, /شناسه حساس/);
+    assert.equal(snapshot.landlineNoteBlocked, true, 'reviewer approval remained possible after a landline number was detected');
+    assert.equal(snapshot.landlineQuestionCleared, true, 'synthetic landline number remained in the free-text field');
+    assert.equal(snapshot.landlineQuestionBlocked, true, 'free-text landline number did not block report eligibility');
+    assert.equal(snapshot.landlineQuestionNotEchoed, true, 'synthetic landline number leaked into the report');
     assert.equal(snapshot.privacyQuestionCleared, true, 'free-text field retained the synthetic identifying probe');
     assert.equal(snapshot.privacyExportEligible, false, 'address-like free text must fail closed before report approval');
     assert.equal(snapshot.privacyReviewApproved, false, 'address-like free text must not be approved or exported');

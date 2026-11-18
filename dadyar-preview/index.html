@@ -501,7 +501,7 @@ function hasSensitiveIdentifier(value) {
  const reviewText=String(value||'');
  const normalizedReviewerDigits=reviewText.normalize('NFKC').replace(/[۰-۹]/g,d=>String(d.charCodeAt(0)-0x06F0)).replace(/[٠-٩]/g,d=>String(d.charCodeAt(0)-0x0660)).replace(/(?<=\d)[\u200c\u200d\u200e\u200f\u2060\ufeff]+(?=\d)/g,'');
  const compactReviewerDigits=normalizedReviewerDigits.replace(/(?<![A-Za-z0-9])IR[ \t\r\n\u00a0\u2007\u2009\u202f\u200c\u200d\u200e\u200f\u2060\ufeff\-–—]+(?=\d)/gi,'IR').replace(/(?<=\d)[ \t\r\n\u00a0\u2007\u2009\u202f\-–—]+(?=\d)/g,'');
- return /(?:\+?98|0)?9\d{9}(?!\d)|(?:\d[ -]?){15}\d|(?<!\d)\d{10}(?!\d)/.test(compactReviewerDigits) ||
+ return /(?:\+?98|0)?9\d{9}(?!\d)|(?<!\d)(?:\+?98|0)[1-8]\d\d{7,8}(?!\d)|(?:\d[ -]?){15}\d|(?<!\d)\d{10}(?!\d)/.test(compactReviewerDigits) ||
   /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i.test(reviewText) ||
   /(?<![A-Za-z0-9])IR\d{24}(?!\d)/i.test(compactReviewerDigits) ||
   /(?:https?:\/\/|www\.)[^\s<>]+|(?<![\p{L}\p{N}_])(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z]{2,24})(?:\/[^\s<>]*)?/iu.test(reviewText) ||
@@ -603,7 +603,7 @@ document.getElementById('generate').addEventListener('click',()=>{
  // This is a local warning, not a guarantee of anonymisation.
  let normalizedQuestionDigits=freeQuestion.normalize('NFKC').replace(/[۰-۹]/g,d=>String(d.charCodeAt(0)-0x06F0)).replace(/[٠-٩]/g,d=>String(d.charCodeAt(0)-0x0660)).replace(/(?<=\d)[\u200c\u200d\u200e\u200f\u2060\ufeff]+(?=\d)/g,'');
  let compactIdentifierDigits=normalizedQuestionDigits.replace(/(?<![A-Za-z0-9])IR[ \t\r\n\u00a0\u2007\u2009\u202f\u200c\u200d\u200e\u200f\u2060\ufeff\-–—]+(?=\d)/gi,'IR').replace(/(?<=\d)[ \t\r\n\u00a0\u2007\u2009\u202f\-–—]+(?=\d)/g,'');
- const hasSensitiveIdentifier=/(?:\+?98|0)?9\d{9}(?!\d)|(?:\d[ -]?){15}\d|(?<!\d)\d{10}(?!\d)/.test(compactIdentifierDigits) || /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i.test(freeQuestion) || /(?<![A-Za-z0-9])IR\d{24}(?!\d)/i.test(compactIdentifierDigits) || /(?:https?:\/\/|www\.)[^\s<>]+|(?<![\p{L}\p{N}_])(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z]{2,24})(?:\/[^\s<>]*)?/iu.test(freeQuestion) || /(?:نشانی|آدرس|خیابان|کوچه|بلوار|بزرگراه|میدان|پلاک|واحد|طبقه|کد[\s\u200c]*پستی|شهرک|روستا|محله)\s*[:：#\-]?\s*[\p{L}\p{N}]/iu.test(freeQuestion);
+ const hasSensitiveIdentifier=/(?:\+?98|0)?9\d{9}(?!\d)|(?<!\d)(?:\+?98|0)[1-8]\d\d{7,8}(?!\d)|(?:\d[ -]?){15}\d|(?<!\d)\d{10}(?!\d)/.test(compactIdentifierDigits) || /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i.test(freeQuestion) || /(?<![A-Za-z0-9])IR\d{24}(?!\d)/i.test(compactIdentifierDigits) || /(?:https?:\/\/|www\.)[^\s<>]+|(?<![\p{L}\p{N}_])(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z]{2,24})(?:\/[^\s<>]*)?/iu.test(freeQuestion) || /(?:نشانی|آدرس|خیابان|کوچه|بلوار|بزرگراه|میدان|پلاک|واحد|طبقه|کد[\s\u200c]*پستی|شهرک|روستا|محله)\s*[:：#\-]?\s*[\p{L}\p{N}]/iu.test(freeQuestion);
  normalizedQuestionDigits='';
  compactIdentifierDigits='';
  // Never echo suspected identifiers into the visible draft, even while export is blocked.
