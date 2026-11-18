@@ -36,6 +36,23 @@ function isInside(parent, target) {
   return relative === '' || (!relative.startsWith('..' + path.sep) && relative !== '..' && !path.isAbsolute(relative));
 }
 
+// Restore manifests can contain backup IDs, database names and private host paths.
+// Keep them outside the Git checkout, just like the raw evidence files.
+function assertManifestOutsideCheckout(manifestPath, checkoutRoot = fs.realpathSync(REPO_ROOT)) {
+  if (typeof manifestPath !== 'string' || !path.isAbsolute(manifestPath) ||
+      path.resolve(manifestPath) !== manifestPath) {
+    throw new Error('manifest_path_must_be_absolute_canonical');
+  }
+  if (typeof checkoutRoot !== 'string' || !path.isAbsolute(checkoutRoot) ||
+      path.resolve(checkoutRoot) !== checkoutRoot) {
+    throw new Error('checkout_root_must_be_absolute_canonical');
+  }
+  if (isInside(checkoutRoot, manifestPath)) {
+    throw new Error('manifest_inside_git_checkout');
+  }
+  return true;
+}
+
 function assertCanonicalDirectory(directory, label) {
   if (typeof directory !== 'string' || !path.isAbsolute(directory) || path.resolve(directory) !== directory) {
     throw new Error(label + '_path_must_be_absolute_canonical');
@@ -337,6 +354,7 @@ function main(argv) {
     if (path.resolve(manifestPath) !== manifestPath || fs.realpathSync(manifestPath) !== manifestPath) {
       throw new Error('manifest_path_must_be_canonical');
     }
+    assertManifestOutsideCheckout(manifestPath, fs.realpathSync(REPO_ROOT));
     const manifestParent = assertCanonicalDirectory(path.dirname(manifestPath), 'manifest_parent');
     const manifestParentBefore = fs.statSync(manifestParent, { bigint: true });
     const manifestStat = fs.lstatSync(manifestPath, { bigint: true });
@@ -374,4 +392,4 @@ function main(argv) {
 }
 
 if (require.main === module) process.exitCode = main(process.argv.slice(2));
-module.exports = { LIMITS, assertEvidenceFilePermissions, hashExternalEvidenceFile, verifyRestoreEvidenceBundle, parseArgs, main };
+module.exports = { LIMITS, assertEvidenceFilePermissions, assertManifestOutsideCheckout, hashExternalEvidenceFile, verifyRestoreEvidenceBundle, parseArgs, main };
