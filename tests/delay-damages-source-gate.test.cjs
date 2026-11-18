@@ -16,8 +16,12 @@ test('delay-damages preview remains fail-closed while source and human legal rev
   assert.ok(section.includes('data-source-status="transcribed-not-independently-authenticated"'));
   assert.ok(section.includes('data-legal-review-status="not-reviewed"'));
   assert.ok(calculator, 'calculator script block missing');
-  assert.ok(calculator.includes("root.dataset?.sourceStatus === 'verified'"));
-  assert.ok(calculator.includes("root.dataset?.legalReviewStatus === 'approved'"));
+  assert.ok(calculator.includes('officialSourceVerified: false'));
+  assert.ok(calculator.includes('independentLegalReviewApproved: false'));
+  assert.ok(calculator.includes('SOURCE_APPROVALS.officialSourceVerified === true'));
+  assert.ok(calculator.includes('SOURCE_APPROVALS.independentLegalReviewApproved === true'));
+  assert.equal(calculator.includes("root.dataset?.sourceStatus === 'verified'"), false);
+  assert.equal(calculator.includes("root.dataset?.legalReviewStatus === 'approved'"), false);
   assert.ok(calculator.includes('if (!sourceReleaseAllowed())'));
   assert.ok(calculator.includes('calculateButton.disabled = true'));
   assert.ok(calculator.includes('محاسبه مسدود است'));
