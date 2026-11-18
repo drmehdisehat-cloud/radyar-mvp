@@ -52,13 +52,13 @@
       "officialDocumentUrlCandidates": [
         {
           "url": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
-          "candidateStatus": "official-original-law-page-known-consolidated-text-timeout-2026-11-18",
+          "candidateStatus": "official-url-returns-transfer-interstitial-no-law-text-2026-11-18",
           "documentId": "11400475274213876131",
           "sourceClass": "primary-official-qavanin",
           "discoverySource": "docs/check-law-source-handoff-20261026.json",
           "officialAttributeUrl": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
           "lastDirectFetchAt": "2026-11-18",
-          "lastDirectFetchResult": "request-timeout",
+          "lastDirectFetchResult": "transfer-interstitial-only-no-law-text",
           "originalGazetteNumberShown": "9210",
           "originalGazetteDateShown": "1355/05/19",
           "lastStatusShown": "اصلاحي 1403/03/30",
@@ -66,7 +66,7 @@
           "currentConsolidatedTextVerified": false,
           "humanReviewStatus": "pending",
           "useInLegalAnswers": false,
-          "note": "نشانی مستقیم متن قانون در پایگاه رسمی قوانین از فراداده رسمی پرونده پژوهشی قبلی شناخته شده است؛ صفحه فراداده، مشخصات قانون اولیه ۱۳۵۵ و برچسب آخرین وضعیت را نشان داده، اما تاریخ انتشار و لازم‌الاجراشدن اصلاحات بعدی را ثابت نمی‌کند. واکشی مستقیم متن تنقیحی در ۱۴۰۵/۰۸/۲۷ با timeout روبه‌رو شد. این نشانی سرنخ رسمی است، نه متن معتبرِ تنقیح‌شده یا نسخه زمانی تأییدشده."
+          "note": "نشانی مستقیم متن قانون در پایگاه رسمی قوانین از فراداده رسمی پرونده پژوهشی قبلی شناخته شده است؛ صفحه فراداده، مشخصات قانون اولیه ۱۳۵۵ و برچسب آخرین وضعیت را نشان داده، اما تاریخ انتشار و لازم‌الاجراشدن اصلاحات بعدی را ثابت نمی‌کند. واکشی مستقیم متن تنقیحی در ۱۴۰۵/۰۸/۲۷ با timeout روبه‌رو شد. این نشانی سرنخ رسمی است، نه متن معتبرِ تنقیح‌شده یا نسخه زمانی تأییدشده. بررسی مستقل وب در ۱۴۰۵/۰۸/۲۷ فقط پیام انتقال به سایت مقصد را برگرداند و متن قانون در پاسخ قابل خواندن نبود؛ این مشاهده اثبات خرابی یا عدم دسترسی عمومی سایت نیست و منبع همچنان تأییدنشده است."
         },
         {
           "url": "https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689",
@@ -224,23 +224,27 @@
       "officialDocumentUrlCandidates": [
         {
           "url": "https://cbi.ir/showitem/35817.aspx",
-          "candidateStatus": "official-pr-channel-link-discovered-not-fetched",
+          "candidateStatus": "official-url-not-readable-in-current-independent-verification-2026-11-18",
           "reportedPublicationDate": "1405-05-06",
           "reportedMonth": "1405-04",
           "reportedValue": 742.8,
           "reportedSeriesName": "شاخص بهای کالاها و خدمات مصرفی در مناطق شهری ایران",
           "reportedSourceClass": "self-described-official-cbi-public-relations-channel",
           "discoveryLeadUrl": "https://telegram.me/s/prcbi1?before=800",
-          "note": "کانالی که خود را روابط عمومی رسمی بانک مرکزی معرفی می‌کند، برای گزارش تیر ۱۴۰۵ به این URL مستقیم cbi.ir پیوند می‌دهد و عدد ۷۴۲٫۸ را گزارش می‌کند. واکشی مستقیم صفحه بانک مرکزی در بررسی ۱۴۰۵/۰۸/۲۵ موفق نشد؛ بایت‌های سند، سال پایه و قابلیت مقایسه با سری تصویر مالک احراز نشده‌اند. این URL فقط سرنخ پژوهشی است و نباید شاخص‌های تصویر مالک را جایگزین کند."
+          "note": "کانالی که خود را روابط عمومی رسمی بانک مرکزی معرفی می‌کند، برای گزارش تیر ۱۴۰۵ به این URL مستقیم cbi.ir پیوند می‌دهد و عدد ۷۴۲٫۸ را گزارش می‌کند. واکشی مستقیم صفحه بانک مرکزی در بررسی ۱۴۰۵/۰۸/۲۵ موفق نشد؛ بایت‌های سند، سال پایه و قابلیت مقایسه با سری تصویر مالک احراز نشده‌اند. این URL فقط سرنخ پژوهشی است و نباید شاخص‌های تصویر مالک را جایگزین کند. در بررسی مستقل ۱۴۰۵/۰۸/۲۷ این نشانی از کانال واکشی فعلی قابل دریافت نبود؛ این نتیجه به‌تنهایی اثبات قطعی قطعی/خرابی وب‌سایت بانک مرکزی نیست. تا دریافت بایت‌های سند، هش، سال پایه و بازبینی انسانی، داده برای پاسخ حقوقی یا محاسبه رسمی مجاز نیست.",
+          "lastDirectFetchAt": "2026-11-18",
+          "lastDirectFetchResult": "not-accessible-via-current-independent-web-verification"
         },
         {
           "url": "https://cbi.ir/showitem/36735.aspx",
-          "candidateStatus": "direct-url-discovered-not-fetched",
+          "candidateStatus": "official-url-not-readable-in-current-independent-verification-2026-11-18",
           "reportedPublicationDate": "1405-08-19",
           "reportedMonth": "1405-07",
           "reportedValue": 836.8,
           "discoveryLeadUrl": "https://telemetr.io/ru/channels/3416137707-prcbi1/posts",
-          "note": "یک بازنشر از فید روابط عمومی بانک مرکزی به این نشانی مستقیم بانک مرکزی ارجاع می‌دهد؛ واکشی مستقیم این صفحه در اجرای 2026-11-16 موفق نشد. تا دریافت محتوای اولیه، فایل/جدول رسمی، هش سند و تطبیق سال پایه، این نشانی فقط سرنخ پژوهشی است."
+          "note": "یک بازنشر از فید روابط عمومی بانک مرکزی به این نشانی مستقیم بانک مرکزی ارجاع می‌دهد؛ واکشی مستقیم این صفحه در اجرای 2026-11-16 موفق نشد. تا دریافت محتوای اولیه، فایل/جدول رسمی، هش سند و تطبیق سال پایه، این نشانی فقط سرنخ پژوهشی است. در بررسی مستقل ۱۴۰۵/۰۸/۲۷ این نشانی از کانال واکشی فعلی قابل دریافت نبود؛ این نتیجه به‌تنهایی اثبات قطعی قطعی/خرابی وب‌سایت بانک مرکزی نیست. تا دریافت بایت‌های سند، هش، سال پایه و بازبینی انسانی، داده برای پاسخ حقوقی یا محاسبه رسمی مجاز نیست.",
+          "lastDirectFetchAt": "2026-11-18",
+          "lastDirectFetchResult": "not-accessible-via-current-independent-web-verification"
         }
       ]
     }
