@@ -11,9 +11,9 @@ const OBJECT_BATCH_SIZE = 512;
 const BLOB_BATCH_SIZE = 8;
 const signatures = [
   /-----BEGIN (?:RSA |DSA |EC |OPENSSH |ENCRYPTED )?PRIVATE KEY-----/,
-  /\\bAKIA[0-9A-Z]{16}\\b/,
-  /\\b(?:gh[pousr]_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{30,})\\b/,
-  /\\bxox[baprs]-[0-9A-Za-z-]{20,}\\b/,
+  /\bAKIA[0-9A-Z]{16}\b/,
+  /\b(?:gh[pousr]_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{30,})\b/,
+  /\bxox[baprs]-[0-9A-Za-z-]{20,}\b/,
 ];
 
 function git(args, maxBuffer = 16 * 1024 * 1024) {
@@ -31,9 +31,9 @@ function gitWithInput(args, input, maxBuffer) {
 }
 function isSensitiveHistoricalName(name) {
   const basename = name.split('/').at(-1);
-  if (/^\\.env(?:\\..+)?$/i.test(basename) &&
-      !/\\.(?:example|sample|template)$/i.test(basename)) return true;
-  return /^(?:id_(?:rsa|dsa|ecdsa|ed25519)|\\.npmrc|\\.pypirc|\\.netrc|\\.git-credentials|credentials(?:\\.json)?)$/i.test(basename);
+  if (/^\.env(?:\..+)?$/i.test(basename) &&
+      !/\.(?:example|sample|template)$/i.test(basename)) return true;
+  return /^(?:id_(?:rsa|dsa|ecdsa|ed25519)|\.npmrc|\.pypirc|\.netrc|\.git-credentials|credentials(?:\.json)?)$/i.test(basename);
 }
 function objectIdsFromInventory(inventory) {
   const seen = new Set();
@@ -53,10 +53,10 @@ function readBlobMetadata(ids, counts) {
     const batch = ids.slice(start, start + OBJECT_BATCH_SIZE);
     const output = gitWithInput(
       ['cat-file', '--batch-check=%(objectname) %(objecttype) %(objectsize)'],
-      batch.join('\\n') + '\\n',
+      batch.join('\n') + '\n',
       4 * 1024 * 1024
     ).toString('utf8').trimEnd();
-    const lines = output ? output.split('\\n') : [];
+    const lines = output ? output.split('\n') : [];
     if (lines.length !== batch.length) throw new Error('object_metadata_batch_incomplete');
     for (let index = 0; index < lines.length; index += 1) {
       const fields = lines[index].split(' ');
@@ -75,7 +75,7 @@ function scanBlobBatch(blobs, counts) {
   const maxBuffer = BLOB_BATCH_SIZE * MAX_BLOB_BYTES + 1024 * BLOB_BATCH_SIZE;
   const output = gitWithInput(
     ['cat-file', '--batch'],
-    blobs.map(blob => blob.oid).join('\\n') + '\\n',
+    blobs.map(blob => blob.oid).join('\n') + '\n',
     maxBuffer
   );
   let offset = 0;
@@ -95,7 +95,7 @@ function scanBlobBatch(blobs, counts) {
     const data = output.subarray(offset, contentEnd).toString('utf8');
     offset = contentEnd + 1;
     counts.scanned += 1;
-    if (/^version https:\\/\\/git-lfs\\.github\\.com\\/spec\\/v1\\r?\\n/.test(data)) counts.lfsPointers += 1;
+    if (/^version https:\/\/git-lfs\.github\.com\/spec\/v1\r?\n/.test(data)) counts.lfsPointers += 1;
     if (signatures.some(pattern => pattern.test(data))) counts.flagged += 1;
   }
   if (offset !== output.length) throw new Error('blob_batch_trailing_bytes');
@@ -105,10 +105,10 @@ function main() {
     throw new Error('shallow_history_not_auditable');
   }
   const inventory = git(['rev-list', '--objects', '--all'], 16 * 1024 * 1024)
-    .toString('utf8').split('\\n').filter(Boolean);
+    .toString('utf8').split('\n').filter(Boolean);
   if (!inventory.length) throw new Error('empty_git_history');
   const historicalNames = git(['log', '--all', '--format=', '--name-only', '-z'],
-    16 * 1024 * 1024).toString('utf8').split('\\0').filter(Boolean);
+    16 * 1024 * 1024).toString('utf8').split('\0').filter(Boolean);
   const historicalSensitivePaths = new Set(historicalNames.filter(isSensitiveHistoricalName)).size;
   const counts = { scanned: 0, flagged: 0, oversized: 0, lfsPointers: 0 };
   const ids = objectIdsFromInventory(inventory);
@@ -122,11 +122,11 @@ function main() {
     status, scannedBlobs: counts.scanned, flaggedBlobs: counts.flagged,
     unreviewedLargeBlobs: counts.oversized, unreviewedLfsPointers: counts.lfsPointers,
     historicalSensitivePaths
-  }) + '\\n');
+  }) + '\n');
   if (status !== 'PASS') process.exitCode = 1;
 }
 try { main(); }
 catch {
-  process.stdout.write(JSON.stringify({ status: 'NOT_READY', reason: 'history_audit_incomplete' }) + '\\n');
+  process.stdout.write(JSON.stringify({ status: 'NOT_READY', reason: 'history_audit_incomplete' }) + '\n');
   process.exitCode = 1;
 }
