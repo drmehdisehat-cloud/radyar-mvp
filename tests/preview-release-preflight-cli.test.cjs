@@ -641,3 +641,23 @@ test('ambiguous human-review-verified flag is rejected instead of being treated 
     fs.rmSync(f.directory, { recursive: true, force: true });
   }
 });
+
+test('caller-supplied reviewer-authentication booleans are rejected and cannot clear the trusted adapter gate', () => {
+  const f = fixture();
+  try {
+    for (const flag of [
+      '--trusted-reviewer-authentication-adapter-verified',
+      '--trusted-reviewer-authentication-adapter'
+    ]) {
+      const result = run([...baseArgs(f), flag]);
+      assert.equal(result.status, 2, flag + ': ' + result.stderr);
+      const report = JSON.parse(result.stdout);
+      assert.equal(report.status, 'NOT_READY');
+      assert.match(report.blockers.join(' '), /unknown_argument/);
+      assert.equal(report.deploymentAuthorized, false);
+      assert.equal(report.deploymentPerformed, false);
+    }
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
