@@ -35,6 +35,36 @@ test('legal source register is versioned and preserves fail-closed promotion rul
   assert.equal(audit.structuralOnly, true);
 });
 
+test('Qavanin cheque-law URLs remain non-authorizing research candidates until the consolidated text and event-date amendments are fetched and reviewed', () => {
+  const record = register.records.find(item => item.id === 'check-issuance-law');
+  assert.ok(record);
+  const original = record.officialDocumentUrlCandidates?.find(item =>
+    item.url === 'https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131'
+  );
+  assert.ok(original, 'official original-law text URL must remain discoverable');
+  assert.equal(original.candidateStatus, 'official-url-returns-transfer-interstitial-no-law-text-2026-11-18');
+  assert.equal(original.lastDirectFetchResult, 'transfer-interstitial-only-no-law-text');
+  assert.equal(original.currentConsolidatedTextVerified, false);
+  assert.equal(original.amendmentEffectiveDatesVerified, false);
+  assert.equal(original.humanReviewStatus, 'pending');
+  assert.equal(original.useInLegalAnswers, false);
+
+  const amendment = record.officialDocumentUrlCandidates.find(item =>
+    item.url === 'https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689'
+  );
+  assert.ok(amendment, '2020 amendment candidate must be retained for direct retrieval');
+  assert.equal(amendment.candidateStatus, 'secondary-link-discovered-not-fetched');
+  assert.equal(amendment.sourceClass, 'secondary-link-discovery');
+  assert.equal(amendment.lastDirectFetchResult, 'request-timeout');
+  assert.equal(amendment.humanReviewStatus, 'pending');
+  assert.equal(amendment.useInLegalAnswers, false);
+
+  assert.equal(record.primaryOfficialDocumentUrl, null);
+  assert.equal(record.primarySourceVerified, false);
+  assert.equal(record.humanReviewStatus, 'pending');
+  assert.equal(record.useInLegalAnswers, false);
+});
+
 test('reported uniform opinion 883 remains a research lead, not an activated legal rule', () => {
   const record = register.records.find(item => item.id === 'uniform-opinion-883');
   assert.ok(record);
@@ -74,10 +104,11 @@ test('July CBI official-channel URL remains an unverified lead and cannot replac
     item.url === 'https://cbi.ir/showitem/35817.aspx'
   );
   assert.ok(candidate, 'July CBI direct URL must be retained as a research lead');
-  assert.equal(candidate.candidateStatus, 'official-pr-channel-link-discovered-not-fetched');
+  assert.equal(candidate.candidateStatus, 'official-url-not-readable-in-current-independent-verification-2026-11-18');
   assert.equal(candidate.reportedPublicationDate, '1405-05-06');
   assert.equal(candidate.reportedMonth, '1405-04');
   assert.equal(candidate.reportedValue, 742.8);
+  assert.equal(candidate.lastDirectFetchResult, 'not-accessible-via-current-independent-web-verification');
   assert.match(candidate.note, /سال پایه/);
   assert.equal(record.primaryOfficialDocumentUrl, null);
   assert.equal(record.primarySourceVerified, false);
@@ -87,16 +118,17 @@ test('July CBI official-channel URL remains an unverified lead and cannot replac
   assert.equal(indexData.months['4'], 3205.1);
 });
 
-test('direct CBI page discovery remains a research candidate until primary bytes and series are verified', () => {
+test('direct CBI page unavailable through this verification channel remains a non-authorizing research candidate', () => {
   const record = register.records.find(item => item.id === 'cbi-urban-consumer-index-1405');
   assert.ok(record);
   const candidate = record.officialDocumentUrlCandidates?.find(item =>
     item.url === 'https://cbi.ir/showitem/36735.aspx'
   );
   assert.ok(candidate, 'direct CBI URL candidate must be retained for operator follow-up');
-  assert.equal(candidate.candidateStatus, 'direct-url-discovered-not-fetched');
+  assert.equal(candidate.candidateStatus, 'official-url-not-readable-in-current-independent-verification-2026-11-18');
   assert.equal(candidate.reportedMonth, '1405-07');
   assert.equal(candidate.reportedValue, 836.8);
+  assert.equal(candidate.lastDirectFetchResult, 'not-accessible-via-current-independent-web-verification');
   assert.equal(record.primaryOfficialDocumentUrl, null);
   assert.equal(record.primarySourceVerified, false);
   assert.equal(record.humanReviewStatus, 'pending');
