@@ -17,7 +17,7 @@
 <label for="certificate">گواهی عدم پرداخت نمونه موجود است؟</label><select id="certificate" data-question="گواهی عدم پرداخت موجود است؟"><option value="unknown">نامعلوم</option><option value="yes">در نمونه موجود است</option><option value="no">در نمونه موجود نیست</option></select>
 <label for="defense">ادعای پرداخت یا دفاعی در سناریو مطرح است؟</label><select id="defense" data-question="آیا ادعای پرداخت یا دفاع دیگری مطرح است؟"><option value="unknown">نامعلوم</option><option value="yes">صرفاً ادعا شده است</option><option value="no">در نمونه مطرح نشده</option></select>
 <p><small>پاسخ‌ها صرفاً وضعیت داده ساختگی هستند و اصالت مدارک را تأیید نمی‌کنند.</small></p></fieldset><button id="generate" type="button">ساخت پیش‌نویس غیررسمی</button> <button id="reset" type="button">پاک‌کردن انتخاب‌ها و پیش‌نویس</button><p id="reset-status" role="status" aria-live="polite"></p></section>
-<section id="result" hidden tabindex="-1" aria-live="polite"><h2>پیش‌نویس برای بازبینی انسانی</h2><p id="topic-scope-status" role="status" aria-live="polite"></p><pre id="report"></pre><section id="human-review" aria-labelledby="human-review-title"><h3 id="human-review-title">بازبینی محلی توسط انسان (بدون احراز هویت)</h3><p role="note"><strong>محدودیت این پیش‌نمایش:</strong> این مرحله فقط جریان بازبینی آفلاین را نمایش می‌دهد؛ هویت یا سمت بازبین احراز نمی‌شود و ثبت آن تأیید حقوقی یا مجوز انتشار نیست.</p><p>برای آزمون جریان آفلاین، بازبین می‌تواند نام، نتیجه و یادداشت خود را ثبت کند. فقط نتیجه «تأیید» همراه با ثبت اظهار محلی، دریافت فایل آموزشی را فعال می‌کند.</p>
+<section id="result" hidden tabindex="-1" aria-live="polite"><h2>پیش‌نویس برای بازبینی انسانی</h2><p id="topic-scope-status" role="status" aria-live="polite"></p><pre id="report"></pre><section id="human-review" aria-labelledby="human-review-title"><h3 id="human-review-title">شبیه‌سازی ثبت تصمیم بازبین (هویت احراز نمی‌شود)</h3><p role="note"><strong>محدودیت این پیش‌نمایش:</strong> این مرحله فقط جریان بازبینی آفلاین را نمایش می‌دهد؛ هویت یا سمت بازبین احراز نمی‌شود و ثبت آن تأیید حقوقی یا مجوز انتشار نیست.</p><p><strong>این نسخه بازبینی انسانیِ احراز‌شده انجام نمی‌دهد.</strong> برای آزمون آفلاین، کاربر فعلی فقط یک اظهار محلی با داده ساختگی ثبت می‌کند؛ این کلیک هویت، استقلال یا صلاحیت بازبین را اثبات نمی‌کند. در انتشار واقعی، این مرحله باید به احراز هویت مستقل و ثبت سروریِ امضاشده متصل شود.</p>
 <label for="reviewer-name">برچسب بازبین (فقط داده ساختگی؛ نام واقعی وارد نکنید)</label><input id="reviewer-name" type="text" maxlength="80" autocomplete="off" value="بازبین آزمون" readonly aria-readonly="true" required>
 <label for="review-decision">نتیجه بازبینی</label><select id="review-decision"><option value="pending">در انتظار بازبینی</option><option value="approved">تأیید برای دریافت آموزشی</option><option value="rejected">رد پیش‌نویس</option></select>
 <label for="review-note">یادداشت بازبین (الزامی، حداقل ۱۲ و حداکثر ۳۰۰ نویسه)</label><textarea id="review-note" minlength="12" maxlength="300" rows="2" required></textarea><small>برای این پیش‌نمایش فقط از برچسب «بازبین آزمون» و یادداشت ساختگی استفاده کنید. شماره تماس، کد ملی، کارت بانکی، ایمیل و نشانی اینترنتی وارد نکنید.</small>
@@ -27,7 +27,7 @@
 <label><input type="checkbox" id="review-check-sources"> نبود منبع رسمی تأییدشده و نبود نتیجه یا استناد حقوقی قطعی را بررسی کردم.</label>
 <label><input type="checkbox" id="review-check-privacy"> اطمینان یافتم فقط داده ساختگی استفاده شده و گزارش شناسه یا اطلاعات واقعی موکل ندارد.</label>
 </fieldset>
-<label><input type="checkbox" id="export-ack"> من، بازبین انسانی، اعلام می‌کنم که شخصاً این پیش‌نویس فرضی را بازبینی کرده‌ام و نتیجه زیر را ثبت می‌کنم؛ این اظهار به معنای تأیید قانونی، اصالت مدارک یا بررسی مستقل متخصص نیست.</label>
+<label><input type="checkbox" id="export-ack"> برای آزمون محلی، اظهار می‌کنم که پیش‌نویس فرضی را بررسی کرده‌ام و نتیجه زیر را ثبت می‌کنم؛ این اظهار هویت یا بازبینی انسانیِ احراز‌شده را ثابت نمی‌کند و به معنای تأیید قانونی، اصالت مدارک یا بررسی مستقل متخصص نیست.</label>
 <button type="button" id="record-review" disabled>ثبت اظهار محلی بازبین</button><p id="review-status" role="status" aria-live="polite"></p>
 <p><small>محدودیت مهم: این نسخه کاملاً آفلاین است و هویت بازبین احراز نمی‌شود. نام، تصمیم و زمان فقط اظهار محلی‌اند و جایگزین بازبینی مستقلِ احراز‌شده در سامانه امن نیستند. زمان ثبت با ساعت دستگاه ایجاد و در گزارش به قالب UTC تبدیل می‌شود؛ ساعت دستگاه قابل راستی‌آزمایی مستقل نیست و این زمان مهر زمانی معتبر محسوب نمی‌شود.</small></p></section>
 <button type="button" id="download" disabled>دریافت گزارش متنی</button><p id="export-status" role="status" aria-live="polite"></p><p><small>این خروجی رأی، دستور، ثبت رسمی سند یا مشاوره حقوقی قطعی نیست. منابع قانونی و تاریخ اعتبار بررسی نشده‌اند.</small></p></section><section id="delay-damages-calculator" data-indexes='{"1":2654.9,"2":2880.4,"3":3092.3,"4":3205.1,"5":3333.9,"6":3452.1,"7":3611.1}' data-base-year="1395" data-base-year-status="inferred-from-1395-average-100-in-owner-image; not-independently-verified" data-source-status="transcribed-not-independently-authenticated" data-legal-review-status="not-reviewed">
@@ -550,7 +550,7 @@ recordReviewButton.addEventListener('click',()=>{
  const decision=reviewDecision.value;
  reviewRecord={reviewer:safeReviewText(reviewerName.value,80),decision,note:safeReviewText(reviewNote.value,300),reviewedAt:new Date().toISOString(),checklist:reviewChecklistItems.map(item=>({id:item.id,checked:item.checked,label:item.closest('label').textContent.trim()})),reportSnapshot:report};
  reviewStatus.textContent=decision==='approved'
-  ? 'بازبینی انسانی با اظهار بازبین ثبت شد؛ هویت بازبین در این نسخه آفلاین احراز نمی‌شود.'
+  ? 'اظهار محلی بازبین ثبت شد؛ هویت او در این نسخه آفلاین احراز نمی‌شود.'
   : 'بازبینی رد شد؛ دریافت گزارش غیرفعال باقی می‌ماند.';
  updateExportPermission();
 });
@@ -667,7 +667,7 @@ document.getElementById('download').addEventListener('click',()=>{
  if(!report || downloadButton.disabled)return;
  if(!reviewRecord || reviewRecord.reportSnapshot!==report)return;
  const reviewText=[
-  'ثبت بازبینی انسانی (اظهار محلی؛ هویت احراز نشده)',
+  'ثبت اظهار محلی بازبین (بدون احراز هویت)',
   'نام بازبین: '+reviewRecord.reviewer,
   'نتیجه بازبینی: '+(reviewRecord.decision==='approved'?'تأیید برای دریافت آموزشی':'رد'),
   'موارد بررسی‌شده:\n'+reviewRecord.checklist.filter(item=>item.checked).map(item=>'• '+item.label).join('\n'),
