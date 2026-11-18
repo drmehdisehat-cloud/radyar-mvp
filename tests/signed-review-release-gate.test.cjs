@@ -186,3 +186,25 @@ test('rejects a non-canonical or incomplete composition at construction', t => {
     loadReviewedReport: async () => f.reportBytes
   }), /source commit SHA/);
 });
+
+test('fails closed when the trusted identity adapter throws or returns no principal', async t => {
+  for (const authenticateReviewer of [
+    async () => { throw new Error('synthetic identity-provider outage'); },
+    async () => null
+  ]) {
+    const f = fixture(t);
+    let loads = 0;
+    const release = gate(f, {
+      authenticateReviewer,
+      loadReviewedReport: async () => {
+        loads += 1;
+        return f.reportBytes;
+      }
+    });
+
+    await assert.rejects(() => call(release, f.attestation),
+      error => error.code === 'AUTHENTICATED_REVIEWER_REQUIRED');
+    assert.equal(loads, 0);
+    assert.deepEqual(fs.readdirSync(f.ledgerDirectory), []);
+  }
+});
