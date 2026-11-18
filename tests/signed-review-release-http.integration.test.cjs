@@ -192,3 +192,47 @@ test('integrated signed-review server refuses public listeners', t => {
   assert.throws(() => server.listen(0, '0.0.0.0'), /explicit loopback TCP listener/);
   assert.throws(() => server.listen(0, '::'), /explicit loopback TCP listener/);
 });
+
+test('integrated HTTP route rejects a signed rejected decision before loading report bytes', async t => {
+  const f = fixture(t);
+  const rejectedPayload = { ...f.envelope.payload, decision: 'rejected' };
+  const rejectedEnvelope = {
+    payload: rejectedPayload,
+    signature: crypto.sign(
+      null,
+      Buffer.from(canonicalizePayload(rejectedPayload), 'utf8'),
+      f.privateKey
+    ).toString('base64url')
+  };
+  let loads = 0;
+  await withServer(serverOptions(f, {
+    loadReviewedReport: async () => {
+      loads += 1;
+      return f.reportBytes;
+    }
+  }), async port => {
+    const response = await send(port, { envelope: rejectedEnvelope });
+    assert.equal(response.status, 403);
+    assert.equal(loads, 0);
+    assert.deepEqual(fs.readdirSync(f.ledgerDirectory), []);
+    assert.notDeepEqual(response.body, f.reportBytes);
+  });
+});
+
+test('integrated HTTP route rejects an authenticated but non-independent reviewer before report access', async t => {
+  const f = fixture(t);
+  let loads = 0;
+  await withServer(serverOptions(f, {
+    authenticateReviewer: async () => ({ ...f.principal, independent: false }),
+    loadReviewedReport: async () => {
+      loads += 1;
+      return f.reportBytes;
+    }
+  }), async port => {
+    const response = await send(port, { envelope: f.envelope });
+    assert.equal(response.status, 403);
+    assert.equal(loads, 0);
+    assert.deepEqual(fs.readdirSync(f.ledgerDirectory), []);
+    assert.notDeepEqual(response.body, f.reportBytes);
+  });
+});
