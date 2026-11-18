@@ -23,6 +23,10 @@ function harness(indexes = rawIndexes, principal = '100000000') {
   });
   const root = make('delay-damages-calculator');
   root.dataset.indexes = typeof indexes === 'string' ? indexes : JSON.stringify(indexes);
+  // Unit arithmetic cases explicitly simulate both required approvals.
+  // The committed preview's actual source metadata remains unverified.
+  root.dataset.sourceStatus = 'verified';
+  root.dataset.legalReviewStatus = 'approved';
   const due = make('delay-due-month');
   const paid = make('delay-payment-month');
   make('delay-principal', principal);
@@ -35,7 +39,7 @@ function harness(indexes = rawIndexes, principal = '100000000') {
     createElement(tagName) { return { tagName, value: '', textContent: '' }; }
   };
   vm.runInNewContext(browserBlock, { document }, { timeout: 5000 });
-  return { elements, handlers, due, paid };
+  return { elements, handlers, due, paid, root };
 }
 
 test('preview embeds exactly the seven owner-transcribed 1405 values and marks provenance', () => {
@@ -55,6 +59,28 @@ test('browser calculator builds seven month choices and displays the index list'
   assert.equal(h.paid.children.length, 7);
   assert.equal(h.elements['delay-index-list'].children.length, 7);
   assert.equal(h.paid.value, '7');
+});
+
+test('browser calculator blocks output until official source and legal review are both approved', () => {
+  const h = harness();
+  h.root.dataset.sourceStatus = 'transcribed-not-independently-authenticated';
+  h.root.dataset.legalReviewStatus = 'not-reviewed';
+  assert.equal(h.elements['delay-calculate'].disabled, true);
+  h.handlers['delay-calculate:click']();
+  assert.match(h.elements['delay-result'].textContent, /محاسبه مسدود است/);
+  assert.equal(h.elements['delay-calculate'].disabled, true);
+
+  h.root.dataset.sourceStatus = 'verified';
+  h.root.dataset.legalReviewStatus = 'not-reviewed';
+  h.elements['delay-calculate'].disabled = false;
+  h.handlers['delay-calculate:click']();
+  assert.match(h.elements['delay-result'].textContent, /محاسبه مسدود است/);
+
+  h.root.dataset.sourceStatus = 'transcribed-not-independently-authenticated';
+  h.root.dataset.legalReviewStatus = 'approved';
+  h.elements['delay-calculate'].disabled = false;
+  h.handlers['delay-calculate:click']();
+  assert.match(h.elements['delay-result'].textContent, /محاسبه مسدود است/);
 });
 
 test('browser calculator computes the 100,000,000 rial Farvardin-to-Mehr example', () => {
