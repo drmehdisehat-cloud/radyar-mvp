@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
-const { assertEvidenceFilePermissions, verifyRestoreEvidenceBundle } = require('../scripts/verify-restore-evidence-bundle.cjs');
+const { assertEvidenceFilePermissions, assertManifestOutsideCheckout, verifyRestoreEvidenceBundle } = require('../scripts/verify-restore-evidence-bundle.cjs');
 
 const SCRIPT = path.join(__dirname, '../scripts/verify-restore-evidence-bundle.cjs');
 const digest = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
@@ -190,6 +190,32 @@ test('rejects evidence files below a group/world-writable parent directory', t =
   fs.chmodSync(evidenceRoot, 0o777);
   assert.throws(() => verify(fixture, { archivePath: unsafeArchive }),
     /archive_parent_must_not_be_group_or_world_writable/);
+});
+
+test('CLI rejects a restore manifest inside the Git checkout before parsing it', t => {
+  const fixture = makeFixture(t);
+  const checkoutRoot = fs.realpathSync(path.resolve(__dirname, '..'));
+  const manifestDirectory = fs.mkdtempSync(path.join(checkoutRoot, '.dadyar-manifest-inside-checkout-'));
+  t.after(() => fs.rmSync(manifestDirectory, { recursive: true, force: true }));
+  const manifestPath = path.join(manifestDirectory, 'manifest.json');
+  fs.writeFileSync(manifestPath, JSON.stringify(fixture.manifest), { mode: 0o600 });
+
+  assert.throws(
+    () => assertManifestOutsideCheckout(manifestPath, checkoutRoot),
+    /manifest_inside_git_checkout/
+  );
+
+  const result = spawnSync(process.execPath, [
+    SCRIPT,
+    '--manifest', manifestPath,
+    '--archive', fixture.paths.archive,
+    '--restored-marker', fixture.paths.restored_marker,
+    '--restore-log', fixture.paths.restore_log,
+    '--database-probe', fixture.paths.database_probe
+  ], { encoding: 'utf8', timeout: 5000 });
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /manifest_inside_git_checkout/);
+  assert.equal(JSON.parse(result.stdout).deployment_authorized, false);
 });
 
 test('CLI verifies synthetic external evidence and emits non-authorizing status', t => {
