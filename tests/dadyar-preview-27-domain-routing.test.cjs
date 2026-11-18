@@ -121,3 +121,11 @@ test('cheque preview allows mixed free text when cheque is detected, but blocks 
   assert.match(html, /پرسش آزاد چندموضوعی تشخیص داده شد؛ این پیش‌نمایش فقط سناریوی چک فرضی را پوشش می‌دهد و موضوع دیگر را تحلیل نمی‌کند/);
   assert.match(html, /if\(questionOutsideChequeScope\) conflicts\.push\(/);
 });
+
+test('free question accepts a general legal topic while the cheque-only preview scope remains explicit', () => {
+  assert.match(html, /<label for="free-question">پرسش آزاد درباره موضوع حقوقی موردنظر/);
+  assert.match(html, /id="free-question-scope-note" role="note"/);
+  assert.match(html, /طبقه‌بندی موضوعی فقط به‌صورت محلی و چندموضوعی انجام می‌شود/);
+  assert.match(html, /این پیش‌نمایش صرفاً بخش مربوط به چک فرضی را پوشش می‌دهد و سایر موضوعات را تحلیل نمی‌کند/);
+  assert.match(html, /placeholder="در سناریوی چک تضمینی مرتبط با اجاره، چه مدارکی باید بررسی شود؟"/);
+});
