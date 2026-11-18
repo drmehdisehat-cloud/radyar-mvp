@@ -125,10 +125,10 @@ test('inline script hash remains pinned by the strict CSP and preview stays offl
   assert.doesNotMatch(script, /\b(?:fetch|XMLHttpRequest|WebSocket|sendBeacon|localStorage|sessionStorage|indexedDB)\b/);
 });
 
-test('offline preview labels the reviewer action as an unauthenticated local simulation', () => {
-  assert.match(html, /شبیه‌سازی ثبت تصمیم بازبین \(هویت احراز نمی‌شود\)/);
-  assert.match(html, /این نسخه بازبینی انسانیِ احراز‌شده انجام نمی‌دهد/);
-  assert.match(html, /برای آزمون محلی، اظهار می‌کنم/);
-  assert.match(html, /ثبت اظهار محلی بازبین \(بدون احراز هویت\)/);
-  assert.doesNotMatch(html, /من، بازبین انسانی، اعلام می‌کنم/);
+test('offline preview prominently warns that local review does not authenticate a reviewer', () => {
+  assert.match(html, /id="local-review-warning"/);
+  assert.match(html, /هویت، استقلال یا سمت بازبین احراز نمی‌شود/);
+  assert.match(html, /بازبینی محلی توسط انسان \(بدون احراز هویت\)/);
+  assert.match(html, /بازبینی انسانی با اظهار بازبین ثبت شد/);
+  assert.match(html, /ثبت بازبینی انسانی \(اظهار محلی؛ هویت احراز نشده\)/);
 });
