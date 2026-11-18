@@ -6,7 +6,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
-const reviewerDetector = html.match(/function hasSensitiveIdentifier\\(value\\) \\{[\\s\\S]*?\\n\\}/)?.[0];
+const reviewerDetector = html.match(/function hasSensitiveIdentifier\(value\) \{[\s\S]*?\n\}/)?.[0];
 const questionNormalizer = html.match(/let normalizedQuestionDigits=[^;]+;/)?.[0];
 const questionCompactor = html.match(/let compactIdentifierDigits=[^;]+;/)?.[0];
 const questionDetector = html.match(/const hasSensitiveIdentifier=[^;]+;/)?.[0];
@@ -16,8 +16,8 @@ assert.ok(questionNormalizer && questionCompactor && questionDetector, 'free-que
 
 function detectsReviewer(value) {
   const context = {};
-  vm.runInNewContext(reviewerDetector + '\\nglobalThis.detected = hasSensitiveIdentifier(value);', context, { timeout: 1000 });
-  return context.detected;
+  vm.runInNewContext(reviewerDetector + '\nglobalThis.detect = value => hasSensitiveIdentifier(value);', context, { timeout: 1000 });
+  return context.detect(value);
 }
 
 function detectsFreeQuestion(value) {
@@ -27,7 +27,7 @@ function detectsFreeQuestion(value) {
     questionCompactor,
     questionDetector,
     'globalThis.detected = hasSensitiveIdentifier;'
-  ].join('\\n'), context, { timeout: 1000 });
+  ].join('\n'), context, { timeout: 1000 });
   return context.detected;
 }
 
