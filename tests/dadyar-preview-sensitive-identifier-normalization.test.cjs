@@ -6,7 +6,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
-const reviewerDetector = html.match(/function hasSensitiveIdentifier\\(value\\) \\{[\\s\\S]*?\\n\\}/)?.[0];
+const reviewerDetector = html.match(/function hasSensitiveIdentifier\(value\) \{[\s\S]*?\n\}/)?.[0];
 const questionNormalizer = html.match(/let normalizedQuestionDigits=[^;]+;/)?.[0];
 const questionCompactor = html.match(/let compactIdentifierDigits=[^;]+;/)?.[0];
 const questionDetector = html.match(/const hasSensitiveIdentifier=[^;]+;/)?.[0];
@@ -16,7 +16,7 @@ assert.ok(questionNormalizer && questionCompactor && questionDetector, 'free-que
 
 function detectsReviewer(value) {
   const context = {};
-  vm.runInNewContext(reviewerDetector + '\\nglobalThis.detect = value => hasSensitiveIdentifier(value);', context, { timeout: 1000 });
+  vm.runInNewContext(reviewerDetector + '\nglobalThis.detect = value => hasSensitiveIdentifier(value);', context, { timeout: 1000 });
   return context.detect(value);
 }
 
@@ -27,7 +27,7 @@ function detectsFreeQuestion(value) {
     questionCompactor,
     questionDetector,
     'globalThis.detected = hasSensitiveIdentifier;'
-  ].join('\\n'), context, { timeout: 1000 });
+  ].join('\n'), context, { timeout: 1000 });
   return context.detected;
 }
 
@@ -50,18 +50,18 @@ test('reviewer name and note privacy gate catches the same punctuated identifier
 });
 
 test('privacy normalization strips Unicode punctuation only between digits and retains non-reflection', () => {
-  assert.ok(html.includes('[\\\\p{P}\\\\p{Z}\\\\s'));
-  assert.match(html, /freeQuestionField\\.value='';/);
+  assert.ok(html.includes('[\\p{P}\\p{Z}\\s'));
+  assert.match(html, /freeQuestionField\.value='';/);
   assert.match(html, /متن خام پرسش آزاد برای حفظ حریم خصوصی در گزارش درج نمی‌شود/);
-  assert.match(html, /exportEligible=conflicts\\.length===0 && unresolved\\.length===0/);
+  assert.match(html, /exportEligible=conflicts\.length===0 && unresolved\.length===0/);
 });
 
 test('reviewer privacy gate catches zero-width separators inside Persian, Arabic and Latin identifiers', () => {
   const zeroWidthIdentifiers = [
-    '۰۹۱۲\\u200c۳۴۵\\u200c۶۷۸۹',
-    '۱۲۳۴۵\\u200d۶۷۸۹۰',
-    '٠٩١٢\\u2060٣٤٥\\u2060٦٧٨٩',
-    '0912\\u200e3456789'
+    '۰۹۱۲\u200c۳۴۵\u200c۶۷۸۹',
+    '۱۲۳۴۵\u200d۶۷۸۹۰',
+    '٠٩١٢\u2060٣٤٥\u2060٦٧٨٩',
+    '0912\u200e3456789'
   ];
   for (const sample of zeroWidthIdentifiers) {
     assert.equal(detectsReviewer(sample), true, sample);
@@ -70,5 +70,5 @@ test('reviewer privacy gate catches zero-width separators inside Persian, Arabic
 });
 
 test('reviewer privacy gate does not treat Persian ZWNJ words as numeric identifiers', () => {
-  assert.equal(detectsReviewer('می\\u200cروم و می\\u200dآیم؛ سناریوی چک فرضی'), false);
+  assert.equal(detectsReviewer('می\u200cروم و می\u200dآیم؛ سناریوی چک فرضی'), false);
 });
