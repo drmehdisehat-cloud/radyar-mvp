@@ -218,6 +218,19 @@ test('CLI rejects a restore manifest inside the Git checkout before parsing it',
   assert.equal(JSON.parse(result.stdout).deployment_authorized, false);
 });
 
+test('rejects an external symlink alias whose real manifest target is inside the Git checkout', t => {
+  const fixture = makeFixture(t);
+  const checkoutRoot = fs.realpathSync(path.resolve(__dirname, '..'));
+  const internalManifestTarget = path.join(checkoutRoot, 'README.md');
+  const externalAlias = path.join(fixture.directory, 'manifest-alias.json');
+  fs.symlinkSync(internalManifestTarget, externalAlias);
+
+  assert.throws(
+    () => assertManifestOutsideCheckout(externalAlias, checkoutRoot),
+    /manifest_inside_git_checkout/
+  );
+});
+
 test('CLI verifies synthetic external evidence and emits non-authorizing status', t => {
   const fixture = makeFixture(t);
   const manifestPath = path.join(fixture.directory, 'manifest.json');
