@@ -176,7 +176,7 @@ function probeIsolatedDatabase({
       fs.closeSync(fd);
     }
     const childEnv = {
-      PATH: process.env.PATH || '/usr/bin:/bin',
+      PATH: '/usr/bin:/bin',
       HOME: tempDirectory,
       LANG: 'C',
       LC_ALL: 'C'
