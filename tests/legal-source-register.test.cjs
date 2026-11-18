@@ -35,6 +35,36 @@ test('legal source register is versioned and preserves fail-closed promotion rul
   assert.equal(audit.structuralOnly, true);
 });
 
+test('Qavanin cheque-law URLs remain non-authorizing research candidates until the consolidated text and event-date amendments are fetched and reviewed', () => {
+  const record = register.records.find(item => item.id === 'check-issuance-law');
+  assert.ok(record);
+  const original = record.officialDocumentUrlCandidates?.find(item =>
+    item.url === 'https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131'
+  );
+  assert.ok(original, 'official original-law text URL must remain discoverable');
+  assert.equal(original.candidateStatus, 'official-original-law-page-known-consolidated-text-timeout-2026-11-18');
+  assert.equal(original.lastDirectFetchResult, 'request-timeout');
+  assert.equal(original.currentConsolidatedTextVerified, false);
+  assert.equal(original.amendmentEffectiveDatesVerified, false);
+  assert.equal(original.humanReviewStatus, 'pending');
+  assert.equal(original.useInLegalAnswers, false);
+
+  const amendment = record.officialDocumentUrlCandidates.find(item =>
+    item.url === 'https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689'
+  );
+  assert.ok(amendment, '2020 amendment candidate must be retained for direct retrieval');
+  assert.equal(amendment.candidateStatus, 'secondary-link-discovered-not-fetched');
+  assert.equal(amendment.sourceClass, 'secondary-link-discovery');
+  assert.equal(amendment.lastDirectFetchResult, 'request-timeout');
+  assert.equal(amendment.humanReviewStatus, 'pending');
+  assert.equal(amendment.useInLegalAnswers, false);
+
+  assert.equal(record.primaryOfficialDocumentUrl, null);
+  assert.equal(record.primarySourceVerified, false);
+  assert.equal(record.humanReviewStatus, 'pending');
+  assert.equal(record.useInLegalAnswers, false);
+});
+
 test('reported uniform opinion 883 remains a research lead, not an activated legal rule', () => {
   const record = register.records.find(item => item.id === 'uniform-opinion-883');
   assert.ok(record);
