@@ -69,6 +69,8 @@ test('preview privacy detector catches common Iranian identifiers and contact de
     'نشانی ایمیل test@example.com',
     'شماره شبا IR 820540102680020817909002',
     'نشانی https://example.com/path',
+    'نشانی خیابان نمونه، پلاک ۱۲',
+    'آدرس: بلوار آزادی، واحد ۳',
     'وب‌سایت www.example.com'
   ]) {
     assert.equal(h.hasSensitiveIdentifier(value), true, 'sensitive value was not detected: ' + value);
@@ -84,7 +86,9 @@ test('reviewer label and note cannot be approved when they contain likely sensit
     ['reviewNote', 'بازبینی ساختگی با کد ملی ۰۰۱۲۳۴۵۶۷۸'],
     ['reviewNote', 'بازبینی ساختگی با شماره کارت 4111 1111 1111 1111'],
     ['reviewNote', 'بازبینی ساختگی با ایمیل test@example.com'],
-    ['reviewNote', 'بازبینی ساختگی با پیوند https://example.com']
+    ['reviewNote', 'بازبینی ساختگی با پیوند https://example.com'],
+    ['reviewNote', 'یادداشت ساختگی با نشانی خیابان نمونه، پلاک ۱۲'],
+    ['reviewNote', 'یادداشت ساختگی با آدرس: بلوار آزادی، واحد ۳']
   ];
   for (const [field, value] of cases) {
     const h = harness();
