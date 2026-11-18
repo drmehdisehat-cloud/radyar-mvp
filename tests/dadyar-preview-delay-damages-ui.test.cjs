@@ -16,7 +16,7 @@ function harness(indexes = rawIndexes, principal = '100000000') {
   const handlers = {};
   const elements = {};
   const make = (id, value = '') => (elements[id] = {
-    id, value, textContent: '', children: [],
+    id, value, textContent: '', children: [], disabled: false,
     dataset: {},
     append(item) { this.children.push(item); },
     addEventListener(name, fn) { handlers[id + ':' + name] = fn; }
