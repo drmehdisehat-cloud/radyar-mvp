@@ -85,7 +85,9 @@ test('browser calculator stays blocked with valid-looking inputs and contains no
   h.handlers['delay-calculate:click']();
   assert.equal(h.elements['delay-calculate'].disabled, true);
   assert.match(h.elements['delay-result'].textContent, /محاسبه مسدود است/);
-  assert.doesNotMatch(html, /\\bfetch\\s*\\(|XMLHttpRequest|WebSocket|EventSource|sendBeacon/);
+  for (const forbidden of ['fetch(', 'XMLHttpRequest', 'WebSocket', 'EventSource', 'sendBeacon']) {
+    assert.equal(html.includes(forbidden), false, 'unexpected network primitive: ' + forbidden);
+  }
 });
 
 test('browser calculator does not enable itself when a supplied index is invalid', () => {
