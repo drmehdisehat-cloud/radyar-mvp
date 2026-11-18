@@ -34,23 +34,34 @@ function summarize(raw) {
 }
 
 test('unrecognized synthetic name and street address are never reflected in the preview summary', () => {
-  const raw = 'نام فرضی: نسترن آذرخش؛ نشانی ساختگی: خیابان نمونه، پلاک ۱۲؛ جزئیات خصوصی پرونده';
+  const raw = 'نام فرضی: نسترن آذرخش؛ محل فرضی: بخش نارنجی، ساختمان ۱۲؛ جزئیات خصوصی پرونده';
   const result = summarize(raw);
   assert.equal(result.fieldValue, '');
   assert.equal(result.displayQuestion, 'متن خام پرسش آزاد برای حفظ حریم خصوصی در گزارش درج نمی‌شود');
   assert.equal(result.displayQuestion.includes('نسترن آذرخش'), false);
-  assert.equal(result.topicScopeMessage.includes('خیابان نمونه'), false);
+  assert.equal(result.topicScopeMessage.includes('بخش نارنجی'), false);
   assert.equal(JSON.stringify(result).includes(raw), false);
 });
 
 test('multi-topic synthetic question with arbitrary identity details is routed internally but not echoed', () => {
-  const raw = 'چک و اجاره؛ نام فرضی: نسترن آذرخش؛ نشانی ساختگی: خیابان نمونه پلاک ۱۲';
+  const raw = 'چک و اجاره؛ نام فرضی: نسترن آذرخش؛ محل فرضی: بخش نارنجی، ساختمان ۱۲';
   const result = summarize(raw);
   assert.equal(result.fieldValue, '');
   assert.ok(result.matches.some(item => item.id === 'instruments'));
   assert.ok(result.matches.some(item => item.id === 'property'));
   assert.equal(result.displayQuestion.includes('نسترن آذرخش'), false);
-  assert.equal(result.topicScopeMessage.includes('خیابان نمونه'), false);
+  assert.equal(result.topicScopeMessage.includes('بخش نارنجی'), false);
+  assert.equal(JSON.stringify(result).includes(raw), false);
+});
+
+
+test('address-like free text is treated as sensitive and excluded before multi-topic routing', () => {
+  const raw = 'چک و اجاره؛ نام فرضی: نسترن آذرخش؛ نشانی خیابان نمونه، پلاک ۱۲';
+  const result = summarize(raw);
+  assert.equal(result.fieldValue, '');
+  assert.equal(result.displayQuestion, 'نامشخص؛ شناسه حساس احتمالی شناسایی شد و متن ورودی حذف شد');
+  assert.equal(result.matches.length, 0);
+  assert.match(result.topicScopeMessage, /شناسه حساس/);
   assert.equal(JSON.stringify(result).includes(raw), false);
 });
 
