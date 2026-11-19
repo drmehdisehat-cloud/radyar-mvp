@@ -86,9 +86,13 @@ function fixture(t) {
     reviewer_independent: true
   };
   const header = { alg: 'RS256', kid: pinnedKey.kid, typ: 'JWT' };
-  const input = b64url(JSON.stringify(header)) + '.' + b64url(JSON.stringify(claims));
-  const sessionToken = input + '.' +
-    crypto.sign('RSA-SHA256', Buffer.from(input, 'ascii'), sessionKeys.privateKey).toString('base64url');
+  const makeSessionToken = (overrides = {}) => {
+    const sessionClaims = { ...claims, ...overrides };
+    const input = b64url(JSON.stringify(header)) + '.' + b64url(JSON.stringify(sessionClaims));
+    return input + '.' +
+      crypto.sign('RSA-SHA256', Buffer.from(input, 'ascii'), sessionKeys.privateKey).toString('base64url');
+  };
+  const sessionToken = makeSessionToken();
 
   const authenticateReviewer = createPinnedReviewerJwtAuthenticator({
     issuer: reviewerIssuer,
@@ -98,7 +102,7 @@ function fixture(t) {
   });
   return {
     ledgerDirectory, reportBytes, target, trustStore, envelope,
-    authenticateReviewer, sessionToken, now
+    authenticateReviewer, sessionToken, makeSessionToken, now
   };
 }
 
@@ -194,6 +198,40 @@ test('reviewer identity headers without a signed session cookie never load or re
     });
     assert.equal(response.status, 400);
     assert.notDeepEqual(response.body, f.reportBytes);
+    assert.equal(reportLoads(), 0);
+  });
+});
+
+
+test('a valid session for a different reviewer cannot release another reviewer’s signed report', async t => {
+  const f = fixture(t);
+  await withServer(f, async (port, reportLoads, envelope) => {
+    const response = await send(port, {
+      token: f.makeSessionToken({ sub: 'synthetic-reviewer-02' }),
+      envelope
+    });
+    assert.equal(response.status, 403);
+    assert.notDeepEqual(response.body, f.reportBytes);
+    assert.equal(reportLoads(), 0);
+  });
+});
+
+test('missing and expired reviewer sessions are rejected before the report store is read', async t => {
+  const f = fixture(t);
+  await withServer(f, async (port, reportLoads, envelope) => {
+    const missing = await send(port, { envelope });
+    assert.equal(missing.status, 401);
+    assert.notDeepEqual(missing.body, f.reportBytes);
+    assert.equal(reportLoads(), 0);
+
+    const current = Math.floor(f.now / 1000);
+    const expiredToken = f.makeSessionToken({
+      iat: current - 600,
+      exp: current - 300
+    });
+    const expired = await send(port, { token: expiredToken, envelope });
+    assert.equal(expired.status, 401);
+    assert.notDeepEqual(expired.body, f.reportBytes);
     assert.equal(reportLoads(), 0);
   });
 });
