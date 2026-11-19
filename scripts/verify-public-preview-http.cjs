@@ -162,6 +162,38 @@ function verifyPreviewResponse({ statusCode, headers = {}, body, expectedSha256,
   if (cacheControl !== 'no-store') {
     throw new Error('preview_missing_no_store_header');
   }
+
+  // The endpoint is HTTPS-only. Require a one-year HSTS policy so a later
+  // navigation cannot silently downgrade to HTTP after the first secure visit.
+  // Do not require includeSubDomains: unrelated subdomains may have separate TLS policy.
+  const strictTransportSecurity = singleHeader(
+    headers, 'strict-transport-security', 'preview_missing_hsts_header'
+  );
+  const hstsDirectives = new Map();
+  for (const token of strictTransportSecurity.split(';')) {
+    const part = token.trim();
+    if (!part) continue;
+    const match = /^([a-z][a-z0-9-]*)(?:=([0-9]+))?$/i.exec(part);
+    if (!match) throw new Error('preview_hsts_invalid');
+    const name = match[1].toLowerCase();
+    if (hstsDirectives.has(name)) throw new Error('preview_hsts_duplicate:' + name);
+    if (name === 'max-age') {
+      if (match[2] === undefined) throw new Error('preview_hsts_max_age_invalid');
+      const maxAge = Number(match[2]);
+      if (!Number.isSafeInteger(maxAge)) throw new Error('preview_hsts_max_age_invalid');
+      hstsDirectives.set(name, maxAge);
+    } else if (name === 'includesubdomains' || name === 'preload') {
+      if (match[2] !== undefined) throw new Error('preview_hsts_invalid');
+      hstsDirectives.set(name, true);
+    } else {
+      throw new Error('preview_hsts_unknown_directive:' + name);
+    }
+  }
+  const hstsMaxAge = hstsDirectives.get('max-age');
+  if (!Number.isSafeInteger(hstsMaxAge) || hstsMaxAge < 31536000) {
+    throw new Error('preview_hsts_max_age_too_short');
+  }
+
   const frameOptions = singleHeader(headers, 'x-frame-options', 'preview_missing_x_frame_options_deny');
   if (frameOptions.toLowerCase() !== 'deny') {
     throw new Error('preview_missing_x_frame_options_deny');
@@ -274,7 +306,8 @@ function verifyPreviewResponse({ statusCode, headers = {}, body, expectedSha256,
     noReferrer: true,
     connectSrcNone: true,
     restrictedPermissionsPolicy: true,
-    cookiesSet: false
+    cookiesSet: false,
+    hstsProtected: true
   });
 }
 
