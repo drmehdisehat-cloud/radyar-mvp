@@ -23,7 +23,13 @@
         "approvalDateShown": "1397/08/13",
         "textRendered": true,
         "rawBytesCaptured": false,
-        "sha256": null
+        "sha256": null,
+        "metadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=3613585600919945767",
+        "metadataRendered": true,
+        "officialGazetteNumberShown": "21467",
+        "officialGazetteDateShown": "1397/09/05",
+        "promulgationDateShown": "1397/09/03",
+        "effectiveFromShown": "1397/09/21"
       },
       {
         "documentId": "8508483613671622689",
@@ -31,7 +37,13 @@
         "guardianCouncilConfirmationDateShown": "1400/02/18",
         "textRendered": true,
         "rawBytesCaptured": false,
-        "sha256": null
+        "sha256": null,
+        "metadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=8508483613671622689",
+        "metadataRendered": true,
+        "officialGazetteNumberShown": "22188",
+        "officialGazetteDateShown": "1400/03/02",
+        "promulgationDateShown": "1400/02/28",
+        "effectiveFromShown": "1400/03/18"
       },
       {
         "documentId": "634882870797924421",
@@ -39,11 +51,18 @@
         "textRendered": false,
         "retrievalResult": "timeout",
         "rawBytesCaptured": false,
-        "sha256": null
+        "sha256": null,
+        "metadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=634882870797924421",
+        "metadataRendered": false,
+        "metadataRetrievalResult": "transfer-interstitial"
       }
     ],
     "amendmentPublicationDatesVerified": false,
-    "amendmentEffectiveDatesVerified": false
+    "amendmentEffectiveDatesVerified": false,
+    "amendmentMetadataDatesVerifiedFor": [
+      "1397/08/13",
+      "1400/01/29"
+    ]
   },
   "publicationDate": null,
   "effectiveFrom": null,
@@ -54,10 +73,10 @@
   "humanReview": null,
   "legalConclusionPermitted": false,
   "evidenceGaps": [
-    "متن تجمیعی و متن اصلاحیه‌های ۱۳۹۷ و ۱۴۰۰ در مشاهده مستقل قابل خواندن شدند، اما بایت خام پاسخ و SHA-256 دریافت نشده است.",
-    "تاریخ انتشار روزنامه رسمی و تاریخ لازم‌الاجراشدن اصلاحیه‌ها مستقلاً احراز نشده است.",
-    "صفحه مستقیم اصلاحیه ۱۴۰۳ در بررسی ۱۴۰۵/۰۸/۲۸ timeout شد؛ برچسب تنقیحی ماده ۷ جایگزین سند اصلاحی نیست.",
-    "نسخه معتبر متن در تاریخ هر رویداد و قواعد انتقالی مشخص نشده است.",
+    "متن رسمی اصلاحیه‌های ۱۳۹۷ و ۱۴۰۰ و فراداده انتشار/اجرا قابل مشاهده‌اند، اما بایت خام متن و SHA-256 دریافت نشده است.",
+    "برای اصلاحیه ۱۴۰۳ متن مستقیم timeout و صفحه اطلاعات پایه transfer interstitial برگرداند؛ شماره/تاریخ روزنامه رسمی و تاریخ اجرا هنوز احراز نشده است.",
+    "متن و فراداده رسمی اصلاحیه‌های ۱۳۷۲، ۱۳۷۶ و ۱۳۸۲ برای تکمیل زنجیره تنقیح لازم است.",
+    "نسخه معتبر متن در تاریخ هر رویداد و قواعد انتقالی هنوز با سند اولیه و بازبینی انسانی تأیید نشده است.",
     "بازبین حقوقی مستقل و تاریخ بررسی ثبت نشده است."
   ],
   "scope": "این رکورد فقط سرنخ پژوهشی و فراداده مشاهده‌شده است. پیوند رسمی به‌تنهایی اثبات اصالت متن، تکمیل اصلاحات یا اعتبار قانون در تاریخ رویداد نیست و نباید در پاسخ حقوقی به‌عنوان منبع تأییدشده استفاده شود."

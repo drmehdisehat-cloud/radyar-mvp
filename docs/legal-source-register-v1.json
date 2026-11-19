@@ -42,10 +42,10 @@
         }
       ],
       "openQuestions": [
-        "ثبت بایت خام پاسخ رسمی و SHA-256 برای متن تجمیعی و هر اصلاحیه؛ خروجی متنی مرورگر جایگزین هش بایت سند نیست.",
-        "دریافت شماره و تاریخ روزنامه رسمی هر اصلاحیه ۱۳۷۲، ۱۳۷۶، ۱۳۸۲، ۱۳۹۷، ۱۴۰۰ و ۱۴۰۳.",
-        "احراز تاریخ لازم‌الاجراشدن و قواعد انتقالی هر اصلاحیه، به‌ویژه اصلاح ماده ۷ در ۱۴۰۳/۰۳/۳۰.",
-        "ساخت نسخه‌های زمانی بدون هم‌پوشانی برای تاریخ وقوع رویداد.",
+        "ثبت بایت خام پاسخ رسمی و SHA-256 برای متن تجمیعی و اصلاحیه‌های ۱۳۹۷ و ۱۴۰۰؛ خروجی متنی مرورگر جایگزین هش بایت سند نیست.",
+        "دریافت شماره و تاریخ روزنامه رسمی و تاریخ لازم‌الاجراشدن اصلاحیه ۱۴۰۳ و بازیابی متن اولیه آن.",
+        "دریافت متن و فراداده روزنامه رسمی اصلاحیه‌های ۱۳۷۲، ۱۳۷۶ و ۱۳۸۲ برای تکمیل زنجیره تنقیح.",
+        "احراز قواعد انتقالی هر اصلاحیه و ساخت نسخه‌های زمانی بدون هم‌پوشانی برای تاریخ وقوع رویداد.",
         "بازبینی مستقل حقوقی و ثبت امضای بازبین متصل به SHA-256 همان نسخه."
       ],
       "officialDocumentUrlCandidates": [
@@ -77,7 +77,14 @@
           "lastDirectFetchResult": "official-amendment-text-readable-via-independent-web-rendering; raw-response-bytes-and-sha256-not-captured",
           "humanReviewStatus": "pending",
           "useInLegalAnswers": false,
-          "note": "صفحه مستقیم رسمی Qavanin در بررسی ۱۴۰۵/۰۸/۲۸ قابل خواندن شد و عنوان قانون اصلاح قانون صدور چک، تاریخ تصویب ۱۴۰۰/۰۱/۲۹ و تأیید شورای نگهبان در ۱۴۰۰/۰۲/۱۸ را نشان می‌دهد. شماره و تاریخ روزنامه رسمی، تاریخ لازم‌الاجراشدن، بایت خام و SHA-256 هنوز ثبت نشده‌اند؛ وضعیت همچنان پژوهشی است."
+          "note": "متن و صفحه اطلاعات پایه مستقیم رسمی Qavanin قابل خواندن شدند. فراداده رسمی شماره روزنامه رسمی ۲۲۱۸۸، تاریخ انتشار ۱۴۰۰/۰۳/۰۲، ابلاغ ۱۴۰۰/۰۲/۲۸ و تاریخ اجرا ۱۴۰۰/۰۳/۱۸ را نشان می‌دهد. بایت خام متن و SHA-256 ثبت نشده و بازبینی انسانی متصل به همان متن انجام نشده است؛ بنابراین برای پاسخ حقوقی مجاز نیست.",
+          "officialAttributeUrl": "https://qavanin.ir/Law/Attribute/?IDS=8508483613671622689",
+          "officialGazetteNumberShown": "22188",
+          "officialGazetteDateShown": "1400/03/02",
+          "promulgationDateShown": "1400/02/28",
+          "effectiveFromShown": "1400/03/18",
+          "guardianCouncilConfirmationDateShown": "1400/02/18",
+          "metadataRetrievedAt": "2026-11-19"
         },
         {
           "url": "https://qavanin.ir/Law/TreeText/?IDS=3613585600919945767",
@@ -90,7 +97,13 @@
           "guardianCouncilConfirmationDateShown": "1397/08/23",
           "humanReviewStatus": "pending",
           "useInLegalAnswers": false,
-          "note": "متن مستقیم رسمی Qavanin قابل خواندن شد. صفحه تاریخ تصویب ۱۳۹۷/۰۸/۱۳ و تأیید شورای نگهبان ۱۳۹۷/۰۸/۲۳ را نشان می‌دهد؛ شماره/تاریخ روزنامه رسمی و تاریخ لازم‌الاجراشدن در این مشاهده احراز نشد. بایت خام و هش دریافت نشده و بازبینی انسانی انجام نشده است."
+          "note": "متن و صفحه اطلاعات پایه مستقیم رسمی Qavanin قابل خواندن شدند. فراداده رسمی شماره روزنامه رسمی ۲۱۴۶۷، تاریخ انتشار ۱۳۹۷/۰۹/۰۵، ابلاغ ۱۳۹۷/۰۹/۰۳ و تاریخ اجرا ۱۳۹۷/۰۹/۲۱ را نشان می‌دهد. با وجود این، بایت خام متن و SHA-256 ثبت نشده و بازبینی انسانی متصل به همان متن انجام نشده است؛ بنابراین برای پاسخ حقوقی مجاز نیست.",
+          "officialAttributeUrl": "https://qavanin.ir/Law/Attribute/?IDS=3613585600919945767",
+          "officialGazetteNumberShown": "21467",
+          "officialGazetteDateShown": "1397/09/05",
+          "promulgationDateShown": "1397/09/03",
+          "effectiveFromShown": "1397/09/21",
+          "metadataRetrievedAt": "2026-11-19"
         },
         {
           "url": "https://qavanin.ir/Law/TreeText/?IDS=634882870797924421",
@@ -247,7 +260,8 @@
           "Build non-overlapping eventDateVersions only after those dates are proven.",
           "Obtain independent human review bound to the exact text SHA-256."
         ]
-      }
+      },
+      "latestOfficialStatusLabelShown": "اصلاحي 1403/03/30"
     },
     {
       "id": "uniform-opinion-850",

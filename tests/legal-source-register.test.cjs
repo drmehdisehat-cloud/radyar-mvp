@@ -42,8 +42,8 @@ test('Qavanin cheque-law URLs remain non-authorizing research candidates until t
     item.url === 'https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131'
   );
   assert.ok(original, 'official original-law text URL must remain discoverable');
-  assert.equal(original.candidateStatus, 'official-url-returns-transfer-interstitial-no-law-text-2026-11-18');
-  assert.equal(original.lastDirectFetchResult, 'transfer-interstitial-only-no-law-text');
+  assert.equal(original.candidateStatus, 'official-text-rendered-2026-11-19-raw-bytes-not-captured');
+  assert.equal(original.lastDirectFetchResult, 'official-law-text-readable-via-independent-web-rendering; raw-response-bytes-and-sha256-not-captured');
   assert.equal(original.currentConsolidatedTextVerified, false);
   assert.equal(original.amendmentEffectiveDatesVerified, false);
   assert.equal(original.humanReviewStatus, 'pending');
@@ -53,11 +53,30 @@ test('Qavanin cheque-law URLs remain non-authorizing research candidates until t
     item.url === 'https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689'
   );
   assert.ok(amendment, '2020 amendment candidate must be retained for direct retrieval');
-  assert.equal(amendment.candidateStatus, 'secondary-link-discovered-not-fetched');
-  assert.equal(amendment.sourceClass, 'secondary-link-discovery');
-  assert.equal(amendment.lastDirectFetchResult, 'request-timeout');
+  assert.equal(amendment.candidateStatus, 'official-primary-text-rendered-2026-11-19-raw-bytes-not-captured');
+  assert.equal(amendment.sourceClass, 'primary-official-qavanin');
+  assert.equal(amendment.lastDirectFetchResult, 'official-amendment-text-readable-via-independent-web-rendering; raw-response-bytes-and-sha256-not-captured');
+  assert.equal(amendment.officialGazetteNumberShown, '22188');
+  assert.equal(amendment.officialGazetteDateShown, '1400/03/02');
+  assert.equal(amendment.effectiveFromShown, '1400/03/18');
   assert.equal(amendment.humanReviewStatus, 'pending');
   assert.equal(amendment.useInLegalAnswers, false);
+
+  const amendment1397 = record.officialDocumentUrlCandidates.find(item =>
+    item.documentId === '3613585600919945767'
+  );
+  assert.ok(amendment1397);
+  assert.equal(amendment1397.officialGazetteNumberShown, '21467');
+  assert.equal(amendment1397.officialGazetteDateShown, '1397/09/05');
+  assert.equal(amendment1397.effectiveFromShown, '1397/09/21');
+  assert.equal(amendment1397.useInLegalAnswers, false);
+
+  const amendment1403 = record.officialDocumentUrlCandidates.find(item =>
+    item.documentId === '634882870797924421'
+  );
+  assert.ok(amendment1403);
+  assert.equal(amendment1403.lastDirectFetchResult, 'request-timeout');
+  assert.equal(amendment1403.useInLegalAnswers, false);
 
   assert.equal(record.primaryOfficialDocumentUrl, null);
   assert.equal(record.primarySourceVerified, false);

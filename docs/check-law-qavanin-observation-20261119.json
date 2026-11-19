@@ -88,10 +88,15 @@
       "textRendered": "yes",
       "rawHttpBytesCaptured": false,
       "rawResponseSha256": null,
-      "officialGazetteNumber": null,
-      "publicationDate": null,
-      "effectiveFrom": null,
-      "humanReviewStatus": "pending"
+      "officialGazetteNumber": "21467",
+      "publicationDate": "1397/09/05",
+      "effectiveFrom": "1397/09/21",
+      "humanReviewStatus": "pending",
+      "guardianCouncilConfirmationDateShown": "1397/08/23",
+      "metadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=3613585600919945767",
+      "metadataRendered": true,
+      "promulgationDateShown": "1397/09/03",
+      "lastStatusShown": "1399/09/22"
     },
     {
       "id": "check-amendment-1400",
@@ -103,10 +108,14 @@
       "textRendered": "yes",
       "rawHttpBytesCaptured": false,
       "rawResponseSha256": null,
-      "officialGazetteNumber": null,
-      "publicationDate": null,
-      "effectiveFrom": null,
-      "humanReviewStatus": "pending"
+      "officialGazetteNumber": "22188",
+      "publicationDate": "1400/03/02",
+      "effectiveFrom": "1400/03/18",
+      "humanReviewStatus": "pending",
+      "guardianCouncilConfirmationDateShown": "1400/02/18",
+      "metadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=8508483613671622689",
+      "metadataRendered": true,
+      "promulgationDateShown": "1400/02/28"
     },
     {
       "id": "check-amendment-1403",
@@ -121,22 +130,25 @@
       "officialGazetteNumber": null,
       "publicationDate": null,
       "effectiveFrom": null,
-      "humanReviewStatus": "pending"
+      "humanReviewStatus": "pending",
+      "metadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=634882870797924421",
+      "metadataRendered": false,
+      "metadataRetrievalResult": "transfer-interstitial"
     }
   ],
   "limitations": [
     "The original law's Gazette number, publication date and original effective date are metadata for the 1355 act only; they do not establish amendment dates.",
-    "The official status index displays approval dates, not amendment publication or effective dates.",
-    "The 1397 and 1400 amendment texts rendered, but their raw HTTP bytes and SHA-256 digests were not captured.",
-    "The direct 1403 amendment page timed out; the consolidated law page only displays the 1403/03/30 amendment label for Article 7.",
-    "No amendment-specific event-date intervals have been verified.",
+    "Official Qavanin metadata pages show Gazette number, publication date and effective date for the 1397 and 1400 amendments, but the exact amendment text bytes were not captured or hashed.",
+    "The 1403 amendment text timed out and its metadata page returned only a transfer interstitial; its Gazette publication and effective date remain unverified.",
+    "Older influencing acts from 1358 through 1382 still need their own official text, Gazette and commencement metadata.",
+    "No amendment-specific event-date intervals have been approved for legal-answer use.",
     "No qualified human legal review has been recorded."
   ],
   "nextActions": [
-    "Capture raw official response bytes for the consolidated law and each amendment, record SHA-256 and retrieval timestamp.",
-    "Retrieve the official Gazette issue and publication date for each amendment.",
-    "Verify the commencement/effective date and transitional rules of each amendment.",
-    "Build non-overlapping eventDateVersions only after those dates are proven.",
+    "Capture raw official response bytes for the consolidated law and the 1397/1400 amendment texts, record SHA-256 and retrieval timestamp.",
+    "Retrieve the 1403 amendment's official text, Gazette issue, publication date and effective date from a readable primary endpoint.",
+    "Retrieve primary text and Gazette/effective metadata for the 1372, 1376 and 1382 amendments that affect the consolidated law.",
+    "Build non-overlapping eventDateVersions only after the full amendment chain and transitional rules are proven.",
     "Obtain independent human review bound to the exact text SHA-256."
   ]
 }
