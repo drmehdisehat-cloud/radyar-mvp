@@ -59,7 +59,8 @@ function safeOfficialDocumentUrl(value, documentId) {
   // query schema is independently reviewed, extra query parameters are not
   // accepted as part of a direct legal-document URL.
   const qavaninIdMatches = host === 'qavanin.ir'
-    ? (url.search === '?IDS=' + documentId &&
+    ? (url.pathname === '/Law/TreeText/' &&
+       url.search === '?IDS=' + documentId &&
        queryEntries.length === 1 &&
        queryEntries[0][0] === 'IDS' &&
        queryEntries[0][1] === documentId)
