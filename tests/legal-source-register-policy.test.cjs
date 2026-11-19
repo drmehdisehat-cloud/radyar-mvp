@@ -48,10 +48,12 @@ test('current research register remains valid but promotes no unverified record 
   assert.equal(result.structuralOnly, true);
 });
 
-test('a future source can be promoted only with a direct official document, event-date version and hash-bound human review', () => {
+test('structurally complete metadata never authorizes a legal answer without authenticated source and reviewer evidence', () => {
   const result = auditLegalSourceRegister(registry([approvedRecord()]));
   assert.equal(result.valid, true, result.issues.join('\n'));
-  assert.deepEqual(result.answerEligibleRecordIds, ['synthetic-check-law']);
+  assert.deepEqual(result.structurallyCompleteRecordIds, ['synthetic-check-law']);
+  assert.deepEqual(result.answerEligibleRecordIds, []);
+  assert.equal(result.structuralOnly, true);
 });
 
 test('secondary hosts, portal homepages and mismatched document IDs are not direct primary documents', () => {
