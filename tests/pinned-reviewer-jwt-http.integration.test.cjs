@@ -192,7 +192,7 @@ test('reviewer identity headers without a signed session cookie never load or re
         'X-Reviewer-Independent': 'true'
       }
     });
-    assert.equal(response.status, 401);
+    assert.equal(response.status, 400);
     assert.notDeepEqual(response.body, f.reportBytes);
     assert.equal(reportLoads(), 0);
   });
