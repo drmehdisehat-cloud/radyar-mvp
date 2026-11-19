@@ -14,7 +14,7 @@ Use `backend/legal-source-versioning.cjs` to resolve a record by:
 A selectable record must have all of the following:
 
 1. A direct HTTPS document URL on the explicit official-host allowlist, not a portal homepage.
-2. A document ID that exactly matches one canonical selector. For Qavanin, the entire query string must be exactly `?IDS=<documentId>`; no extra parameters, fragments or trailing query delimiters are accepted. Other allowlisted portals must place the ID in exactly one path segment and have no query string until a portal-specific URL pattern is independently reviewed.
+2. A document ID that exactly matches one canonical selector. For Qavanin, the path must be exactly `/Law/TreeText/` and the entire query string must be exactly `?IDS=<documentId>`; metadata, redirect, path aliases, extra parameters, fragments and trailing query delimiters are rejected. Other allowlisted portals must place the ID in exactly one path segment and have no query string until a portal-specific URL pattern is independently reviewed.
 3. Publication date, effective-from date, optional exclusive effective-to date, and retrieval date.
 4. SHA-256 of the exact retrieved legal text.
 5. A non-placeholder human reviewer, an approved decision, a review date, and a reviewed-text SHA-256 equal to the stored text SHA-256.
