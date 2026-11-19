@@ -9,28 +9,55 @@
   "metadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
   "status": "research-only",
   "observations": {
-    "consolidatedTextRetrievedAt": "2026-10-27",
-    "metadataRecheckedAt": "2026-11-10",
-    "consolidatedTextLatestRecheck": "request-timeout",
-    "metadataLatestRecheck": "retrieved",
+    "consolidatedTextRetrievedAt": "2026-11-19",
+    "metadataRecheckedAt": "2026-11-19",
+    "consolidatedTextLatestRecheck": "official page rendered readable in independent web review; raw HTTP bytes and SHA-256 not captured",
+    "metadataLatestRecheck": "retrieved from official Qavanin metadata page",
     "lastStatusLabelObserved": "اصلاحي 1403/03/30",
     "originalGazetteNumberObserved": "9210",
     "originalGazetteDateObserved": "1355/05/19",
-    "originalEffectiveDateObserved": "1355/06/04"
+    "originalEffectiveDateObserved": "1355/06/04",
+    "amendmentTextObservations": [
+      {
+        "documentId": "3613585600919945767",
+        "approvalDateShown": "1397/08/13",
+        "textRendered": true,
+        "rawBytesCaptured": false,
+        "sha256": null
+      },
+      {
+        "documentId": "8508483613671622689",
+        "approvalDateShown": "1400/01/29",
+        "guardianCouncilConfirmationDateShown": "1400/02/18",
+        "textRendered": true,
+        "rawBytesCaptured": false,
+        "sha256": null
+      },
+      {
+        "documentId": "634882870797924421",
+        "approvalDateShown": "1403/03/30",
+        "textRendered": false,
+        "retrievalResult": "timeout",
+        "rawBytesCaptured": false,
+        "sha256": null
+      }
+    ],
+    "amendmentPublicationDatesVerified": false,
+    "amendmentEffectiveDatesVerified": false
   },
   "publicationDate": null,
   "effectiveFrom": null,
   "effectiveTo": null,
-  "retrievedAt": "2026-11-10",
+  "retrievedAt": "2026-11-19",
   "textSha256": null,
   "releaseSourceEligible": false,
   "humanReview": null,
   "legalConclusionPermitted": false,
   "evidenceGaps": [
-    "متن تجمیعی کامل در آخرین بازبینی بازیابی نشد.",
-    "تاریخ انتشار رسمی و تاریخ لازم‌الاجرا شدن هر اصلاحیه ۱۳۹۷، ۱۴۰۰، ۱۴۰۳ و اصلاحات بعدی مستقلاً احراز نشده است.",
-    "نسخه معتبر متن در تاریخ هر رویداد مشخص نشده است.",
-    "هش متن قانونی برای اتصال بازبینی انسانی ثبت نشده است.",
+    "متن تجمیعی و متن اصلاحیه‌های ۱۳۹۷ و ۱۴۰۰ در مشاهده مستقل قابل خواندن شدند، اما بایت خام پاسخ و SHA-256 دریافت نشده است.",
+    "تاریخ انتشار روزنامه رسمی و تاریخ لازم‌الاجراشدن اصلاحیه‌ها مستقلاً احراز نشده است.",
+    "صفحه مستقیم اصلاحیه ۱۴۰۳ در بررسی ۱۴۰۵/۰۸/۲۸ timeout شد؛ برچسب تنقیحی ماده ۷ جایگزین سند اصلاحی نیست.",
+    "نسخه معتبر متن در تاریخ هر رویداد و قواعد انتقالی مشخص نشده است.",
     "بازبین حقوقی مستقل و تاریخ بررسی ثبت نشده است."
   ],
   "scope": "این رکورد فقط سرنخ پژوهشی و فراداده مشاهده‌شده است. پیوند رسمی به‌تنهایی اثبات اصالت متن، تکمیل اصلاحات یا اعتبار قانون در تاریخ رویداد نیست و نباید در پاسخ حقوقی به‌عنوان منبع تأییدشده استفاده شود."

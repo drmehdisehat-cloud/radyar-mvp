@@ -1,0 +1,142 @@
+{
+  "schema": "dadyar-qavanin-check-law-observation-v1",
+  "topic": "check",
+  "observedAt": "2026-11-19",
+  "status": "research-only",
+  "legalAnswerUsePermitted": false,
+  "primarySourceVerified": false,
+  "humanReviewStatus": "pending",
+  "sourceMethod": "independent web rendering of direct Qavanin pages; raw HTTP response bytes were not captured",
+  "originalLawMetadata": {
+    "directTextUrl": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
+    "directMetadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
+    "approvalDateShown": "1355/04/16",
+    "promulgationDateShown": "1355/05/09",
+    "officialGazetteNumberShown": "9210",
+    "officialGazetteDateShown": "1355/05/19",
+    "originalEffectiveDateShown": "1355/06/04",
+    "latestStatusLabelShown": "اصلاحي 1403/03/30",
+    "rawHttpBytesCaptured": false,
+    "rawResponseSha256": null
+  },
+  "officialStatusIndex": {
+    "url": "https://qavanin.ir/Law/StatusIndex/?IDS=11400475274213876131",
+    "retrievedAt": "2026-11-19",
+    "retrievalResult": "readable",
+    "dateFieldMeaning": "approval dates displayed by the official status index; not publication or effective dates",
+    "influencingActs": [
+      {
+        "title": "لايحه قانوني اصلاح ماده 17 قانون صدور چك",
+        "approvalDate": "1358/04/31",
+        "kind": "legislative act"
+      },
+      {
+        "title": "قانون اصلاح موادي از قانون صدور چك مصوب تيرماه 1355",
+        "approvalDate": "1372/08/11",
+        "kind": "law"
+      },
+      {
+        "title": "قانون الحاق يك تبصره به ماده 2 قانون اصلاح موادي از قانون صدورچك",
+        "approvalDate": "1376/03/10",
+        "kind": "law"
+      },
+      {
+        "title": "قانون اصلاح ذيل تبصره (1) ماده (14) قانون صدور چك و الحاق يك تبصره به آن",
+        "approvalDate": "1376/10/14",
+        "kind": "law"
+      },
+      {
+        "title": "قانون استفساريه تبصرۀ الحاقي به ماده 2 قانون اصلاح موادي از قانون صدور چك",
+        "approvalDate": "1377/09/21",
+        "kind": "law"
+      },
+      {
+        "title": "قانون اصلاح موادي از قانون صدور چك",
+        "approvalDate": "1382/06/02",
+        "kind": "law"
+      },
+      {
+        "title": "قانون اصلاح قانون صدور چك",
+        "approvalDate": "1397/08/13",
+        "kind": "law"
+      },
+      {
+        "title": "جلسه چهل و پنجم ستاد ملي مديريت كرونا",
+        "approvalDate": "1399/09/01",
+        "kind": "administrative meeting"
+      },
+      {
+        "title": "قانون اصلاح قانون صدور چك",
+        "approvalDate": "1400/01/29",
+        "kind": "law"
+      },
+      {
+        "title": "اصلاح ميزان مبالغ مربوط به جرائم و تخلفات مندرج در قوانين مختلف",
+        "approvalDate": "1403/03/30",
+        "kind": "law"
+      }
+    ]
+  },
+  "amendmentPages": [
+    {
+      "id": "check-amendment-1397",
+      "title": "قانون اصلاح قانون صدور چك",
+      "documentId": "3613585600919945767",
+      "url": "https://qavanin.ir/Law/TreeText/?IDS=3613585600919945767",
+      "approvalDateShown": "1397/08/13",
+      "GuardianCouncilConfirmationDateShown": "1397/08/23",
+      "textRendered": "yes",
+      "rawHttpBytesCaptured": false,
+      "rawResponseSha256": null,
+      "officialGazetteNumber": null,
+      "publicationDate": null,
+      "effectiveFrom": null,
+      "humanReviewStatus": "pending"
+    },
+    {
+      "id": "check-amendment-1400",
+      "title": "قانون اصلاح قانون صدور چك",
+      "documentId": "8508483613671622689",
+      "url": "https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689",
+      "approvalDateShown": "1400/01/29",
+      "GuardianCouncilConfirmationDateShown": "1400/02/18",
+      "textRendered": "yes",
+      "rawHttpBytesCaptured": false,
+      "rawResponseSha256": null,
+      "officialGazetteNumber": null,
+      "publicationDate": null,
+      "effectiveFrom": null,
+      "humanReviewStatus": "pending"
+    },
+    {
+      "id": "check-amendment-1403",
+      "title": "اصلاح ميزان مبالغ مربوط به جرائم و تخلفات مندرج در قوانين مختلف",
+      "documentId": "634882870797924421",
+      "url": "https://qavanin.ir/Law/TreeText/?IDS=634882870797924421",
+      "approvalDateShown": "1403/03/30",
+      "textRendered": "no",
+      "retrievalResult": "timeout on 2026-11-19",
+      "rawHttpBytesCaptured": false,
+      "rawResponseSha256": null,
+      "officialGazetteNumber": null,
+      "publicationDate": null,
+      "effectiveFrom": null,
+      "humanReviewStatus": "pending"
+    }
+  ],
+  "limitations": [
+    "The original law's Gazette number, publication date and original effective date are metadata for the 1355 act only; they do not establish amendment dates.",
+    "The official status index displays approval dates, not amendment publication or effective dates.",
+    "The 1397 and 1400 amendment texts rendered, but their raw HTTP bytes and SHA-256 digests were not captured.",
+    "The direct 1403 amendment page timed out; the consolidated law page only displays the 1403/03/30 amendment label for Article 7.",
+    "No amendment-specific event-date intervals have been verified.",
+    "No qualified human legal review has been recorded."
+  ],
+  "nextActions": [
+    "Capture raw official response bytes for the consolidated law and each amendment, record SHA-256 and retrieval timestamp.",
+    "Retrieve the official Gazette issue and publication date for each amendment.",
+    "Verify the commencement/effective date and transitional rules of each amendment.",
+    "Build non-overlapping eventDateVersions only after those dates are proven.",
+    "Obtain independent human review bound to the exact text SHA-256."
+  ]
+}

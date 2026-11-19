@@ -102,7 +102,7 @@ test('both legal-source selectors reject Qavanin raw-path aliases before URL nor
     'https://qavanin.ir/Law/%2e%2e/Law/TreeText/?IDS=1001',
     'https://qavanin.ir/Law/TreeText/./?IDS=1001',
     'https://qavanin.ir//Law/TreeText/?IDS=1001',
-    'https://qavanin.ir/Law\\\\TreeText/?IDS=1001',
+    'https://qavanin.ir/Law' + String.fromCharCode(92) + 'TreeText/?IDS=1001',
     'https://qavanin.ir/Law/%54reeText/?IDS=1001'
   ];
   for (const url of aliases) {

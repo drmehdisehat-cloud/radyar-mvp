@@ -1,6 +1,6 @@
 {
   "schema": "dadyar-legal-source-register-v1",
-  "observedAt": "2026-11-18",
+  "observedAt": "2026-11-19",
   "policy": {
     "approvalRule": "A secondary page, search result, owner image, or plausible official-portal URL is not an authenticated primary legal source.",
     "answerUse": "Only records with an independently verified primary document, event-date version, direct document URL, and approved human review may support a legal answer.",
@@ -42,23 +42,22 @@
         }
       ],
       "openQuestions": [
-        "دریافت سند اولیه قانون و اصلاحات از روزنامه رسمی یا پایگاه رسمی قوانین.",
-        "ساخت نسخه زمانی ماده‌به‌ماده برای تاریخ هر رویداد.",
-        "تأیید مستقل تاریخ لازم‌الاجرا شدن هر اصلاح.",
-        "بازخوانی مستقیم صفحه متن تنقیحی qavanin.ir با شناسه 11400475274213876131 و ثبت بایت‌ها، هش SHA-256 و تاریخ دریافت.",
-        "دریافت و تطبیق متن رسمی قانون اصلاح قانون صدور چک مصوب ۱۴۰۰/۰۱/۲۹ از پیوند مستقیم qavanin.ir با شناسه 8508483613671622689؛ واکشی فعلی timeout شده است.",
-        "تطبیق ماده‌به‌ماده اصلاحات با تاریخ انتشار روزنامه رسمی و تاریخ لازم‌الاجراشدن هر حکم، سپس بازبینی حقوقی مستقل."
+        "ثبت بایت خام پاسخ رسمی و SHA-256 برای متن تجمیعی و هر اصلاحیه؛ خروجی متنی مرورگر جایگزین هش بایت سند نیست.",
+        "دریافت شماره و تاریخ روزنامه رسمی هر اصلاحیه ۱۳۷۲، ۱۳۷۶، ۱۳۸۲، ۱۳۹۷، ۱۴۰۰ و ۱۴۰۳.",
+        "احراز تاریخ لازم‌الاجراشدن و قواعد انتقالی هر اصلاحیه، به‌ویژه اصلاح ماده ۷ در ۱۴۰۳/۰۳/۳۰.",
+        "ساخت نسخه‌های زمانی بدون هم‌پوشانی برای تاریخ وقوع رویداد.",
+        "بازبینی مستقل حقوقی و ثبت امضای بازبین متصل به SHA-256 همان نسخه."
       ],
       "officialDocumentUrlCandidates": [
         {
           "url": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
-          "candidateStatus": "official-url-returns-transfer-interstitial-no-law-text-2026-11-18",
+          "candidateStatus": "official-text-rendered-2026-11-19-raw-bytes-not-captured",
           "documentId": "11400475274213876131",
           "sourceClass": "primary-official-qavanin",
           "discoverySource": "docs/check-law-source-handoff-20261026.json",
           "officialAttributeUrl": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
-          "lastDirectFetchAt": "2026-11-18",
-          "lastDirectFetchResult": "transfer-interstitial-only-no-law-text",
+          "lastDirectFetchAt": "2026-11-19",
+          "lastDirectFetchResult": "official-law-text-readable-via-independent-web-rendering; raw-response-bytes-and-sha256-not-captured",
           "originalGazetteNumberShown": "9210",
           "originalGazetteDateShown": "1355/05/19",
           "lastStatusShown": "اصلاحي 1403/03/30",
@@ -66,21 +65,189 @@
           "currentConsolidatedTextVerified": false,
           "humanReviewStatus": "pending",
           "useInLegalAnswers": false,
-          "note": "نشانی مستقیم متن قانون در پایگاه رسمی قوانین از فراداده رسمی پرونده پژوهشی قبلی شناخته شده است؛ صفحه فراداده، مشخصات قانون اولیه ۱۳۵۵ و برچسب آخرین وضعیت را نشان داده، اما تاریخ انتشار و لازم‌الاجراشدن اصلاحات بعدی را ثابت نمی‌کند. واکشی مستقیم متن تنقیحی در ۱۴۰۵/۰۸/۲۷ با timeout روبه‌رو شد. این نشانی سرنخ رسمی است، نه متن معتبرِ تنقیح‌شده یا نسخه زمانی تأییدشده. بررسی مستقل وب در ۱۴۰۵/۰۸/۲۷ فقط پیام انتقال به سایت مقصد را برگرداند و متن قانون در پاسخ قابل خواندن نبود؛ این مشاهده اثبات خرابی یا عدم دسترسی عمومی سایت نیست و منبع همچنان تأییدنشده است."
+          "note": "پیوند مستقیم متن قانون در پایگاه رسمی قوانین در بررسی مستقل ۱۴۰۵/۰۸/۲۸ قابل خواندن شد. صفحه عنوان قانون، تاریخ تصویب ۱۳۵۵/۰۴/۱۶ و برچسب اصلاحی ۱۴۰۳/۰۳/۳۰ را نشان می‌دهد؛ صفحه اطلاعات پایه نیز شماره روزنامه رسمی ۹۲۱۰، تاریخ انتشار ۱۳۵۵/۰۵/۱۹ و تاریخ اجرای قانون اولیه ۱۳۵۵/۰۶/۰۴ را نمایش می‌دهد. این تاریخ‌های اولیه، تاریخ اثر اصلاحات بعدی نیستند. بایت خام پاسخ و SHA-256 در این اجرا ثبت نشد؛ بنابراین متن و نسخه زمانی هنوز برای پاسخ حقوقی تأیید نشده‌اند."
         },
         {
           "url": "https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689",
-          "candidateStatus": "secondary-link-discovered-not-fetched",
+          "candidateStatus": "official-primary-text-rendered-2026-11-19-raw-bytes-not-captured",
           "documentId": "8508483613671622689",
-          "sourceClass": "secondary-link-discovery",
+          "sourceClass": "primary-official-qavanin",
           "discoveryLeadUrl": "https://hoghogh.ai/laws/قانون-صدور-چک/6",
-          "lastDirectFetchAt": "2026-11-18",
-          "lastDirectFetchResult": "request-timeout",
+          "lastDirectFetchAt": "2026-11-19",
+          "lastDirectFetchResult": "official-amendment-text-readable-via-independent-web-rendering; raw-response-bytes-and-sha256-not-captured",
           "humanReviewStatus": "pending",
           "useInLegalAnswers": false,
-          "note": "این پیوند مستقیم qavanin.ir در یک صفحه ثانویه به‌عنوان متن قانون اصلاحی ۱۴۰۰/۰۱/۲۹ معرفی شده است. واکشی مستقیم آن در این نوبت timeout شد؛ بنابراین متن، شناسه سند، تاریخ انتشار رسمی، تاریخ لازم‌الاجراشدن و نسبت آن با نسخه زمانی قانون هنوز مستقلاً احراز نشده‌اند."
+          "note": "صفحه مستقیم رسمی Qavanin در بررسی ۱۴۰۵/۰۸/۲۸ قابل خواندن شد و عنوان قانون اصلاح قانون صدور چک، تاریخ تصویب ۱۴۰۰/۰۱/۲۹ و تأیید شورای نگهبان در ۱۴۰۰/۰۲/۱۸ را نشان می‌دهد. شماره و تاریخ روزنامه رسمی، تاریخ لازم‌الاجراشدن، بایت خام و SHA-256 هنوز ثبت نشده‌اند؛ وضعیت همچنان پژوهشی است."
+        },
+        {
+          "url": "https://qavanin.ir/Law/TreeText/?IDS=3613585600919945767",
+          "candidateStatus": "official-primary-text-rendered-2026-11-19-raw-bytes-not-captured",
+          "documentId": "3613585600919945767",
+          "sourceClass": "primary-official-qavanin",
+          "lastDirectFetchAt": "2026-11-19",
+          "lastDirectFetchResult": "official-amendment-text-readable-via-independent-web-rendering; raw-response-bytes-and-sha256-not-captured",
+          "approvalDateShown": "1397/08/13",
+          "guardianCouncilConfirmationDateShown": "1397/08/23",
+          "humanReviewStatus": "pending",
+          "useInLegalAnswers": false,
+          "note": "متن مستقیم رسمی Qavanin قابل خواندن شد. صفحه تاریخ تصویب ۱۳۹۷/۰۸/۱۳ و تأیید شورای نگهبان ۱۳۹۷/۰۸/۲۳ را نشان می‌دهد؛ شماره/تاریخ روزنامه رسمی و تاریخ لازم‌الاجراشدن در این مشاهده احراز نشد. بایت خام و هش دریافت نشده و بازبینی انسانی انجام نشده است."
+        },
+        {
+          "url": "https://qavanin.ir/Law/TreeText/?IDS=634882870797924421",
+          "candidateStatus": "official-status-index-lead-direct-text-timeout-2026-11-19",
+          "documentId": "634882870797924421",
+          "sourceClass": "primary-official-qavanin",
+          "discoverySource": "https://qavanin.ir/Law/StatusIndex/?IDS=11400475274213876131",
+          "lastDirectFetchAt": "2026-11-19",
+          "lastDirectFetchResult": "request-timeout",
+          "approvalDateShown": "1403/03/30",
+          "humanReviewStatus": "pending",
+          "useInLegalAnswers": false,
+          "note": "فهرست تنقیحی رسمی قانون، این مصوبه را با تاریخ تصویب ۱۴۰۳/۰۳/۳۰ به‌عنوان قانون اثرگذار معرفی می‌کند؛ واکشی مستقیم متن در همین تاریخ timeout شد. برچسب اصلاحی ماده ۷ در متن تجمیعی به‌تنهایی شماره/تاریخ روزنامه رسمی یا تاریخ لازم‌الاجراشدن را اثبات نمی‌کند."
         }
-      ]
+      ],
+      "officialPortalObservation": {
+        "schema": "dadyar-qavanin-check-law-observation-v1",
+        "topic": "check",
+        "observedAt": "2026-11-19",
+        "status": "research-only",
+        "legalAnswerUsePermitted": false,
+        "primarySourceVerified": false,
+        "humanReviewStatus": "pending",
+        "sourceMethod": "independent web rendering of direct Qavanin pages; raw HTTP response bytes were not captured",
+        "originalLawMetadata": {
+          "directTextUrl": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
+          "directMetadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
+          "approvalDateShown": "1355/04/16",
+          "promulgationDateShown": "1355/05/09",
+          "officialGazetteNumberShown": "9210",
+          "officialGazetteDateShown": "1355/05/19",
+          "originalEffectiveDateShown": "1355/06/04",
+          "latestStatusLabelShown": "اصلاحي 1403/03/30",
+          "rawHttpBytesCaptured": false,
+          "rawResponseSha256": null
+        },
+        "officialStatusIndex": {
+          "url": "https://qavanin.ir/Law/StatusIndex/?IDS=11400475274213876131",
+          "retrievedAt": "2026-11-19",
+          "retrievalResult": "readable",
+          "dateFieldMeaning": "approval dates displayed by the official status index; not publication or effective dates",
+          "influencingActs": [
+            {
+              "title": "لايحه قانوني اصلاح ماده 17 قانون صدور چك",
+              "approvalDate": "1358/04/31",
+              "kind": "legislative act"
+            },
+            {
+              "title": "قانون اصلاح موادي از قانون صدور چك مصوب تيرماه 1355",
+              "approvalDate": "1372/08/11",
+              "kind": "law"
+            },
+            {
+              "title": "قانون الحاق يك تبصره به ماده 2 قانون اصلاح موادي از قانون صدورچك",
+              "approvalDate": "1376/03/10",
+              "kind": "law"
+            },
+            {
+              "title": "قانون اصلاح ذيل تبصره (1) ماده (14) قانون صدور چك و الحاق يك تبصره به آن",
+              "approvalDate": "1376/10/14",
+              "kind": "law"
+            },
+            {
+              "title": "قانون استفساريه تبصرۀ الحاقي به ماده 2 قانون اصلاح موادي از قانون صدور چك",
+              "approvalDate": "1377/09/21",
+              "kind": "law"
+            },
+            {
+              "title": "قانون اصلاح موادي از قانون صدور چك",
+              "approvalDate": "1382/06/02",
+              "kind": "law"
+            },
+            {
+              "title": "قانون اصلاح قانون صدور چك",
+              "approvalDate": "1397/08/13",
+              "kind": "law"
+            },
+            {
+              "title": "جلسه چهل و پنجم ستاد ملي مديريت كرونا",
+              "approvalDate": "1399/09/01",
+              "kind": "administrative meeting"
+            },
+            {
+              "title": "قانون اصلاح قانون صدور چك",
+              "approvalDate": "1400/01/29",
+              "kind": "law"
+            },
+            {
+              "title": "اصلاح ميزان مبالغ مربوط به جرائم و تخلفات مندرج در قوانين مختلف",
+              "approvalDate": "1403/03/30",
+              "kind": "law"
+            }
+          ]
+        },
+        "amendmentPages": [
+          {
+            "id": "check-amendment-1397",
+            "title": "قانون اصلاح قانون صدور چك",
+            "documentId": "3613585600919945767",
+            "url": "https://qavanin.ir/Law/TreeText/?IDS=3613585600919945767",
+            "approvalDateShown": "1397/08/13",
+            "GuardianCouncilConfirmationDateShown": "1397/08/23",
+            "textRendered": "yes",
+            "rawHttpBytesCaptured": false,
+            "rawResponseSha256": null,
+            "officialGazetteNumber": null,
+            "publicationDate": null,
+            "effectiveFrom": null,
+            "humanReviewStatus": "pending"
+          },
+          {
+            "id": "check-amendment-1400",
+            "title": "قانون اصلاح قانون صدور چك",
+            "documentId": "8508483613671622689",
+            "url": "https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689",
+            "approvalDateShown": "1400/01/29",
+            "GuardianCouncilConfirmationDateShown": "1400/02/18",
+            "textRendered": "yes",
+            "rawHttpBytesCaptured": false,
+            "rawResponseSha256": null,
+            "officialGazetteNumber": null,
+            "publicationDate": null,
+            "effectiveFrom": null,
+            "humanReviewStatus": "pending"
+          },
+          {
+            "id": "check-amendment-1403",
+            "title": "اصلاح ميزان مبالغ مربوط به جرائم و تخلفات مندرج در قوانين مختلف",
+            "documentId": "634882870797924421",
+            "url": "https://qavanin.ir/Law/TreeText/?IDS=634882870797924421",
+            "approvalDateShown": "1403/03/30",
+            "textRendered": "no",
+            "retrievalResult": "timeout on 2026-11-19",
+            "rawHttpBytesCaptured": false,
+            "rawResponseSha256": null,
+            "officialGazetteNumber": null,
+            "publicationDate": null,
+            "effectiveFrom": null,
+            "humanReviewStatus": "pending"
+          }
+        ],
+        "limitations": [
+          "The original law's Gazette number, publication date and original effective date are metadata for the 1355 act only; they do not establish amendment dates.",
+          "The official status index displays approval dates, not amendment publication or effective dates.",
+          "The 1397 and 1400 amendment texts rendered, but their raw HTTP bytes and SHA-256 digests were not captured.",
+          "The direct 1403 amendment page timed out; the consolidated law page only displays the 1403/03/30 amendment label for Article 7.",
+          "No amendment-specific event-date intervals have been verified.",
+          "No qualified human legal review has been recorded."
+        ],
+        "nextActions": [
+          "Capture raw official response bytes for the consolidated law and each amendment, record SHA-256 and retrieval timestamp.",
+          "Retrieve the official Gazette issue and publication date for each amendment.",
+          "Verify the commencement/effective date and transitional rules of each amendment.",
+          "Build non-overlapping eventDateVersions only after those dates are proven.",
+          "Obtain independent human review bound to the exact text SHA-256."
+        ]
+      }
     },
     {
       "id": "uniform-opinion-850",
