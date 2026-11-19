@@ -15,7 +15,7 @@ const {
 } = require('../backend/legal-topic-routing.cjs');
 
 const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
-const script = html.match(/<script>([\\s\\S]*?)<\\/script>/)?.[1];
+const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 
 function loadPreviewRouter() {
   assert.ok(script, 'offline preview inline script missing');
@@ -43,7 +43,7 @@ function loadPreviewRouter() {
   };
   const sandbox = { document, URL: {}, Blob: class {}, setTimeout() {} };
   vm.runInNewContext(
-    script + '\\nglobalThis.__topicHints = topicHints; ' +
+    script + '\nglobalThis.__topicHints = topicHints; ' +
       'globalThis.__classifyQuestion = classifyQuestion; ' +
       'globalThis.__normalizeTopicText = normalizeTopicText;',
     sandbox,
