@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
-const handler = html.match(/document\.getElementById\('generate'\)\.addEventListener\('click',\(\)=>\{([\s\\S]*?)\n\}\);/)?.[1];
+const handler = html.match(/document\.getElementById\('generate'\)\.addEventListener\('click',\(\)=>\{([\s\S]*?)\n\}\);/)?.[1];
 
 test('free-question textarea is cleared before normalization and local topic classification', () => {
   assert.ok(handler, 'synthetic cheque generate handler must exist');
