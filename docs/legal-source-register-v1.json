@@ -42,9 +42,9 @@
         }
       ],
       "openQuestions": [
-        "ثبت بایت خام پاسخ رسمی و SHA-256 برای متن تجمیعی و اصلاحیه‌های ۱۳۹۷ و ۱۴۰۰؛ خروجی متنی مرورگر جایگزین هش بایت سند نیست.",
+        "ثبت بایت خام پاسخ رسمی و SHA-256 برای متن تجمیعی و اصلاحیه‌های ۱۳۷۲، ۱۳۹۷ و ۱۴۰۰؛ خروجی متنی مرورگر جایگزین هش بایت سند نیست.",
         "دریافت شماره و تاریخ روزنامه رسمی و تاریخ لازم‌الاجراشدن اصلاحیه ۱۴۰۳ و بازیابی متن اولیه آن.",
-        "دریافت متن و فراداده روزنامه رسمی اصلاحیه‌های ۱۳۷۲، ۱۳۷۶ و ۱۳۸۲ برای تکمیل زنجیره تنقیح.",
+        "دریافت فراداده روزنامه رسمی و تاریخ اجرا برای اصلاحیه ۱۳۷۲؛ دریافت متن و فراداده رسمی اصلاحیه‌های ۱۳۵۸، ۱۳۷۶، ۱۳۷۷ و ۱۳۸۲ برای تکمیل زنجیره تنقیح.",
         "احراز قواعد انتقالی هر اصلاحیه و ساخت نسخه‌های زمانی بدون هم‌پوشانی برای تاریخ وقوع رویداد.",
         "بازبینی مستقل حقوقی و ثبت امضای بازبین متصل به SHA-256 همان نسخه."
       ],
@@ -117,6 +117,23 @@
           "humanReviewStatus": "pending",
           "useInLegalAnswers": false,
           "note": "فهرست تنقیحی رسمی قانون، این مصوبه را با تاریخ تصویب ۱۴۰۳/۰۳/۳۰ به‌عنوان قانون اثرگذار معرفی می‌کند؛ واکشی مستقیم متن در همین تاریخ timeout شد. برچسب اصلاحی ماده ۷ در متن تجمیعی به‌تنهایی شماره/تاریخ روزنامه رسمی یا تاریخ لازم‌الاجراشدن را اثبات نمی‌کند."
+        },
+        {
+          "url": "https://qavanin.ir/Law/TreeText/?IDS=16863897128756457315",
+          "candidateStatus": "official-primary-text-rendered-2026-11-19-metadata-unavailable-raw-bytes-not-captured",
+          "documentId": "16863897128756457315",
+          "sourceClass": "primary-official-qavanin",
+          "lastDirectFetchAt": "2026-11-19",
+          "lastDirectFetchResult": "official-amendment-text-readable-via-independent-web-rendering; metadata-endpoint-not-readable; raw-response-bytes-and-sha256-not-captured",
+          "approvalDateShown": "1372/08/11",
+          "guardianCouncilConfirmationDateShown": "1372/08/19",
+          "officialAttributeUrl": "https://qavanin.ir/Law/Attribute/?IDS=16863897128756457315",
+          "officialGazetteNumberShown": null,
+          "officialGazetteDateShown": null,
+          "effectiveFromShown": null,
+          "humanReviewStatus": "pending",
+          "useInLegalAnswers": false,
+          "note": "متن اصلاحیه ۱۳۷۲ در صفحه مستقیم پایگاه رسمی Qavanin قابل مشاهده شد؛ صفحه اطلاعات پایه در واکشی مستقل فعلی قابل دریافت نبود. شماره/تاریخ روزنامه رسمی، تاریخ اجرا، بایت خام و SHA-256 احراز نشده و بازبینی انسانی متصل به متن انجام نشده است؛ این رکورد فقط سرنخ پژوهشی است."
         }
       ],
       "officialPortalObservation": {
@@ -127,7 +144,7 @@
         "legalAnswerUsePermitted": false,
         "primarySourceVerified": false,
         "humanReviewStatus": "pending",
-        "sourceMethod": "independent web rendering of direct Qavanin pages; raw HTTP response bytes were not captured",
+        "sourceMethod": "independent web rendering of direct Qavanin text and metadata/status pages; raw HTTP response bytes were not captured",
         "originalLawMetadata": {
           "directTextUrl": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
           "directMetadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
@@ -209,10 +226,15 @@
             "textRendered": "yes",
             "rawHttpBytesCaptured": false,
             "rawResponseSha256": null,
-            "officialGazetteNumber": null,
-            "publicationDate": null,
-            "effectiveFrom": null,
-            "humanReviewStatus": "pending"
+            "officialGazetteNumber": "21467",
+            "publicationDate": "1397/09/05",
+            "effectiveFrom": "1397/09/21",
+            "humanReviewStatus": "pending",
+            "guardianCouncilConfirmationDateShown": "1397/08/23",
+            "metadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=3613585600919945767",
+            "metadataRendered": true,
+            "promulgationDateShown": "1397/09/03",
+            "lastStatusShown": "1399/09/22"
           },
           {
             "id": "check-amendment-1400",
@@ -224,10 +246,14 @@
             "textRendered": "yes",
             "rawHttpBytesCaptured": false,
             "rawResponseSha256": null,
-            "officialGazetteNumber": null,
-            "publicationDate": null,
-            "effectiveFrom": null,
-            "humanReviewStatus": "pending"
+            "officialGazetteNumber": "22188",
+            "publicationDate": "1400/03/02",
+            "effectiveFrom": "1400/03/18",
+            "humanReviewStatus": "pending",
+            "guardianCouncilConfirmationDateShown": "1400/02/18",
+            "metadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=8508483613671622689",
+            "metadataRendered": true,
+            "promulgationDateShown": "1400/02/28"
           },
           {
             "id": "check-amendment-1403",
@@ -242,22 +268,44 @@
             "officialGazetteNumber": null,
             "publicationDate": null,
             "effectiveFrom": null,
+            "humanReviewStatus": "pending",
+            "metadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=634882870797924421",
+            "metadataRendered": false,
+            "metadataRetrievalResult": "transfer-interstitial"
+          },
+          {
+            "id": "check-amendment-1372",
+            "title": "قانون اصلاح موادي از قانون صدور چك مصوب تيرماه 1355",
+            "documentId": "16863897128756457315",
+            "url": "https://qavanin.ir/Law/TreeText/?IDS=16863897128756457315",
+            "approvalDateShown": "1372/08/11",
+            "guardianCouncilConfirmationDateShown": "1372/08/19",
+            "textRendered": "yes",
+            "rawHttpBytesCaptured": false,
+            "rawResponseSha256": null,
+            "metadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=16863897128756457315",
+            "metadataRendered": false,
+            "metadataRetrievalResult": "not-readable-via-independent-web-fetch",
+            "officialGazetteNumber": null,
+            "publicationDate": null,
+            "effectiveFrom": null,
             "humanReviewStatus": "pending"
           }
         ],
         "limitations": [
           "The original law's Gazette number, publication date and original effective date are metadata for the 1355 act only; they do not establish amendment dates.",
-          "The official status index displays approval dates, not amendment publication or effective dates.",
-          "The 1397 and 1400 amendment texts rendered, but their raw HTTP bytes and SHA-256 digests were not captured.",
-          "The direct 1403 amendment page timed out; the consolidated law page only displays the 1403/03/30 amendment label for Article 7.",
-          "No amendment-specific event-date intervals have been verified.",
+          "Official Qavanin metadata pages show Gazette number, publication date and effective date for the 1397 and 1400 amendments, but the exact amendment text bytes were not captured or hashed.",
+          "The 1403 amendment text timed out and its metadata page returned only a transfer interstitial; its Gazette publication and effective date remain unverified.",
+          "The 1372 amendment text rendered on the official Qavanin page, but its metadata endpoint was not readable in the current independent fetch; raw bytes, SHA-256, Gazette publication and effective date remain unverified.",
+          "The 1358, 1376, 1377 and 1382 influencing acts still need their own primary text and Gazette/commencement metadata.",
+          "No amendment-specific event-date intervals have been approved for legal-answer use.",
           "No qualified human legal review has been recorded."
         ],
         "nextActions": [
-          "Capture raw official response bytes for the consolidated law and each amendment, record SHA-256 and retrieval timestamp.",
-          "Retrieve the official Gazette issue and publication date for each amendment.",
-          "Verify the commencement/effective date and transitional rules of each amendment.",
-          "Build non-overlapping eventDateVersions only after those dates are proven.",
+          "Capture raw official response bytes for the consolidated law and the 1372/1397/1400 amendment texts, record SHA-256 and retrieval timestamps.",
+          "Retrieve the 1372 amendment metadata and Gazette publication/effective dates; retrieve primary text and metadata for the 1358, 1376, 1377 and 1382 influencing acts.",
+          "Retrieve the 1403 amendment's official text, Gazette issue, publication date and effective date from a readable primary endpoint.",
+          "Build non-overlapping eventDateVersions only after the full amendment chain and transitional rules are proven.",
           "Obtain independent human review bound to the exact text SHA-256."
         ]
       },
