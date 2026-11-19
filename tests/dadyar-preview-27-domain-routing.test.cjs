@@ -129,3 +129,18 @@ test('free question accepts a general legal topic while the cheque-only preview 
   assert.match(html, /این پیش‌نمایش صرفاً بخش مربوط به چک فرضی را پوشش می‌دهد و سایر موضوعات را تحلیل نمی‌کند/);
   assert.match(html, /placeholder="در سناریوی چک تضمینی مرتبط با اجاره، چه مدارکی باید بررسی شود؟"/);
 });
+
+test('preview keeps keyboard focus visible on text, textarea and checkbox controls with a matching CSP style hash', () => {
+  const crypto = require('node:crypto');
+  const style = html.match(/<style>([\\s\\S]*?)<\\/style>/)?.[1];
+  assert.ok(style, 'inline preview style missing');
+  assert.match(style, /textarea:focus-visible/);
+  assert.match(style, /input:not\\(\\[type=checkbox\\]\\):focus-visible/);
+  assert.match(style, /input\\[type=checkbox\\]:focus-visible/);
+  const digest = crypto.createHash('sha256').update(style, 'utf8').digest('base64');
+  const csp = html.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/)?.[1];
+  assert.ok(csp, 'preview Content Security Policy missing');
+  const styleSource = csp.match(/(?:^|;)\\s*style-src\\s+'sha256-([^']+)'/);
+  assert.ok(styleSource, 'CSP must pin the inline style with a SHA-256 source');
+  assert.equal(styleSource[1], digest, 'CSP style hash must match the exact inline CSS bytes');
+});
