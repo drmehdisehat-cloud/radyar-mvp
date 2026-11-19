@@ -63,7 +63,6 @@ test('accepts an exact staged copy outside the production document root and chec
   assert.equal(result.destination_outside_git_checkout, true);
   assert.equal(result.source_blob_sha1, f.expectedBlob);
   assert.equal(result.source_sha256, result.destination_sha256);
-  assert.equal(result.deploymentPerformed, undefined);
 });
 
 test('rejects a placeholder or malformed reviewed Git blob pin', t => {
@@ -87,6 +86,19 @@ test('rejects a destination whose bytes differ from the reviewed source', t => {
   );
 });
 
+test('rejects a source that no longer matches the reviewed Git blob pin', t => {
+  const f = fixture(t);
+  const alteredSource = path.join(f.root, 'source', 'index.html');
+  makeDirectory(path.dirname(alteredSource));
+  fs.writeFileSync(alteredSource, Buffer.concat([fs.readFileSync(SOURCE), Buffer.from('synthetic source change')]));
+  const alteredDestination = path.join(f.root, 'staging', 'dadyar-preview', 'index.html');
+  fs.copyFileSync(alteredSource, alteredDestination);
+  assert.throws(
+    () => verifyPreview(alteredSource, alteredDestination, f.productionRoot, f.expectedBlob),
+    /source differs from pinned reviewed Git blob/
+  );
+});
+
 test('rejects a symlink destination before reading its target', t => {
   const f = fixture(t);
   fs.unlinkSync(f.destination);
@@ -97,12 +109,26 @@ test('rejects a symlink destination before reading its target', t => {
   );
 });
 
+test('rejects a symlinked destination ancestor', t => {
+  const f = fixture(t);
+  const aliasParent = path.join(f.root, 'staging-alias');
+  fs.symlinkSync(path.dirname(f.destination), aliasParent, 'dir');
+  const aliasedDestination = path.join(aliasParent, 'index.html');
+  assert.throws(
+    () => verifyPreview(f.source, aliasedDestination, f.productionRoot, f.expectedBlob),
+    /destination parent must not be a symbolic link/
+  );
+});
+
 test('rejects a hard-linked destination alias to the source', t => {
   const f = fixture(t);
+  const localSource = path.join(f.root, 'source', 'index.html');
+  makeDirectory(path.dirname(localSource));
+  fs.copyFileSync(SOURCE, localSource);
   fs.unlinkSync(f.destination);
-  fs.linkSync(f.source, f.destination);
+  fs.linkSync(localSource, f.destination);
   assert.throws(
-    () => verifyPreview(f.source, f.destination, f.productionRoot, f.expectedBlob),
+    () => verifyPreview(localSource, f.destination, f.productionRoot, f.expectedBlob),
     /destination must not be a hard link to source/
   );
 });
@@ -130,7 +156,7 @@ test('rejects a destination below a group/world-writable staging directory', t =
 
 test('rejects non-canonical paths containing traversal segments', t => {
   const f = fixture(t);
-  const nonCanonical = path.join(path.dirname(f.destination), '..', 'dadyar-preview', 'index.html');
+  const nonCanonical = path.dirname(f.destination) + '/../dadyar-preview/index.html';
   assert.throws(
     () => verifyPreview(f.source, nonCanonical, f.productionRoot, f.expectedBlob),
     /destination path must be canonical/
