@@ -55,11 +55,17 @@ function safeOfficialDocumentUrl(value, documentId) {
   // and query or in multiple query values.
   const documentIdMatches = identifierOccurrences === 1;
   const host = url.hostname.toLowerCase();
+  // WHATWG URL parsing normalizes dot segments before exposing pathname.
+  // Preserve the raw path as well, so an alias such as /Law/../Law/TreeText/
+  // cannot masquerade as the canonical official document endpoint.
+  const rawPathMatch = value.match(/^https:\/\/[^/?#]+([^?#]*)/i);
+  const rawPath = rawPathMatch && rawPathMatch[1] ? rawPathMatch[1] : '/';
   // Keep each portal's document selector canonical. Until a portal-specific
   // query schema is independently reviewed, extra query parameters are not
   // accepted as part of a direct legal-document URL.
   const qavaninIdMatches = host === 'qavanin.ir'
-    ? (url.pathname === '/Law/TreeText/' &&
+    ? (rawPath === '/Law/TreeText/' &&
+       url.pathname === '/Law/TreeText/' &&
        url.search === '?IDS=' + documentId &&
        queryEntries.length === 1 &&
        queryEntries[0][0] === 'IDS' &&
