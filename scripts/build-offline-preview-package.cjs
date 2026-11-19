@@ -41,9 +41,9 @@ function assertSelfContainedHtml(html) {
   }
   // SVG can fetch external resources through href/xlink:href even when
   // there is no HTML img/src or CSS url(). Permit only same-document fragments.
-  const svgResourceTags = html.match(/<(?:image|feImage|use)\\b[^>]*>/gi) || [];
+  const svgResourceTags = html.match(/<(?:image|feImage|use)\b[^>]*>/gi) || [];
   for (const tag of svgResourceTags) {
-    const hrefAttributes = [...tag.matchAll(/(?:^|\\s)(?:xlink:)?href\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))/gi)];
+    const hrefAttributes = [...tag.matchAll(/(?:^|\s)(?:xlink:)?href\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gi)];
     for (const attribute of hrefAttributes) {
       const value = attribute[1] ?? attribute[2] ?? attribute[3] ?? '';
       if (!value.startsWith('#') || value.length < 2) {
