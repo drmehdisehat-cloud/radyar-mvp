@@ -71,6 +71,29 @@ test('Qavanin cheque-law URLs remain non-authorizing research candidates until t
   assert.equal(amendment1397.effectiveFromShown, '1397/09/21');
   assert.equal(amendment1397.useInLegalAnswers, false);
 
+
+  const amendment1372 = record.officialDocumentUrlCandidates.find(item =>
+    item.documentId === '16863897128756457315'
+  );
+  assert.ok(amendment1372, '1372 official Qavanin text lead must be retained');
+  assert.equal(amendment1372.candidateStatus,
+    'official-primary-text-rendered-2026-11-19-metadata-unavailable-raw-bytes-not-captured');
+  assert.equal(amendment1372.approvalDateShown, '1372/08/11');
+  assert.equal(amendment1372.guardianCouncilConfirmationDateShown, '1372/08/19');
+  assert.equal(amendment1372.officialGazetteNumberShown, null);
+  assert.equal(amendment1372.effectiveFromShown, null);
+  assert.equal(amendment1372.humanReviewStatus, 'pending');
+  assert.equal(amendment1372.useInLegalAnswers, false);
+
+  const observed1372 = record.officialPortalObservation.amendmentPages.find(item =>
+    item.id === 'check-amendment-1372'
+  );
+  assert.ok(observed1372);
+  assert.equal(observed1372.rawHttpBytesCaptured, false);
+  assert.equal(observed1372.rawResponseSha256, null);
+  assert.equal(observed1372.metadataRendered, false);
+  assert.equal(observed1372.humanReviewStatus, 'pending');
+
   const amendment1403 = record.officialDocumentUrlCandidates.find(item =>
     item.documentId === '634882870797924421'
   );
