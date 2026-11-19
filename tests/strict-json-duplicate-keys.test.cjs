@@ -51,7 +51,7 @@ test('release preflight evidence reader rejects duplicate keys before accepting 
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-strict-json-'));
   const file = path.join(directory, 'restore-manifest.json');
   try {
-    fs.writeFileSync(file, '{"evidence":"independent-restore-manifest-v1","restore_proven":false,"restore_proven":true}');
+    fs.writeFileSync(file, '{"evidence":"independent-restore-manifest-v1","restore_proven":false,"restore_proven":true}', { mode: 0o600 });
     assert.throws(
       () => readEvidence('--restore-evidence', file),
       /duplicate_json_key:restore_proven/
@@ -66,7 +66,7 @@ test('restore-signature canonicalization CLI rejects duplicate manifest keys', (
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-signature-json-'));
   const manifest = path.join(directory, 'manifest.json');
   try {
-    fs.writeFileSync(manifest, '{"restore_proven":false,"restore_proven":true}');
+    fs.writeFileSync(manifest, '{"restore_proven":false,"restore_proven":true}', { mode: 0o600 });
     const script = path.join(__dirname, '../scripts/verify-restore-attestation-signatures.cjs');
     const result = require('node:child_process').spawnSync(
       process.execPath,
@@ -84,7 +84,7 @@ test('pinned restore verifier rejects duplicate manifest keys before reading key
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-pinned-json-'));
   const manifest = path.join(directory, 'manifest.json');
   try {
-    fs.writeFileSync(manifest, '{"restore_proven":false,"restore_proven":true}');
+    fs.writeFileSync(manifest, '{"restore_proven":false,"restore_proven":true}', { mode: 0o600 });
     const script = path.join(__dirname, '../scripts/verify-restore-attestation-pinned.cjs');
     const args = [
       script,
