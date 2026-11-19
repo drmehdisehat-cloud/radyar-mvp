@@ -39,7 +39,7 @@ test('reviewer notes are normalized but remain plain text, and approval is bound
   const payload = '<img src=x onerror=alert(1)>\u202eیادداشت';
   assert.equal(sanitize(payload, 300), '<img src=x onerror=alert(1)>یادداشت');
   const handler = script.slice(script.indexOf("document.getElementById('download').addEventListener"));
-  assert.match(handler, /reviewRecord\\.reportSnapshot!==report/);
+  assert.match(handler, /reviewRecord\.reportSnapshot!==report/);
   assert.match(handler, /type:'text\/plain;charset=utf-8'/);
   assert.match(handler, /reviewRecord=null/);
   assert.match(handler, /بازبینی تازه را از ابتدا ثبت کنید/);
