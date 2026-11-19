@@ -107,8 +107,8 @@ function readExternalFile(file, label, maxBytes) {
   try {
     const before = fs.fstatSync(fd, { bigint: true });
     if (!before.isFile()) throw new Error(label + '_must_be_regular_file');
-    assertExternalEvidencePermissions(before, label);
     if (before.nlink !== 1n) throw new Error(label + '_must_not_have_hard_link_aliases');
+    assertExternalEvidencePermissions(before, label);
     if (before.size === 0n || before.size > BigInt(maxBytes)) throw new Error(label + '_size_invalid');
     const pathStat = fs.statSync(real, { bigint: true });
     if (pathStat.dev !== before.dev || pathStat.ino !== before.ino) {
