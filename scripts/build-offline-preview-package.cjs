@@ -160,7 +160,7 @@ function buildOfflinePreviewPackage(destinationArg, options = {}) {
   if (/\b(?:fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon)\b/i.test(html)) {
     fail('Preview must not contain network-capable browser APIs.');
   }
-  if (/<form\\b/i.test(html)) {
+  if (/<form\b/i.test(html)) {
     fail('Preview must remain self-contained and must not contain forms.');
   }
   assertSelfContainedHtml(html);
