@@ -28,18 +28,18 @@ function writeExclusive(filePath, content, mode = 0o600) {
 }
 
 function assertSelfContainedHtml(html) {
-  const resourceTags = html.match(/<(?:script|link|iframe|img|audio|video|source|track|object|embed|base)\\b[^>]*>/gi) || [];
+  const resourceTags = html.match(/<(?:script|link|iframe|img|audio|video|source|track|object|embed|base)\b[^>]*>/gi) || [];
   for (const tag of resourceTags) {
-    if (/\\b(?:src|href|poster|data|srcset)\\s*=/i.test(tag)) {
+    if (/\b(?:src|href|poster|data|srcset)\s*=/i.test(tag)) {
       fail('Preview must be fully self-contained; resource references are not allowed.');
     }
   }
-  if (/<(?:iframe|audio|video|source|track|object|embed|base)\\b/i.test(html) ||
-      /<style\\b[^>]*>[\\s\\S]*?(?:\\burl\\s*\\(|@import\\b)/i.test(html) ||
-      /\\bstyle\\s*=\\s*(?:"[^"]*(?:\\burl\\s*\\(|@import\\b)[^"]*"|'[^']*(?:\\burl\\s*\\(|@import\\b)[^']*')/i.test(html)) {
+  if (/<(?:iframe|audio|video|source|track|object|embed|base)\b/i.test(html) ||
+      /<style\b[^>]*>[\s\S]*?(?:\burl\s*\(|@import\b)/i.test(html) ||
+      /\bstyle\s*=\s*(?:"[^"]*(?:\burl\s*\(|@import\b)[^"]*"|'[^']*(?:\burl\s*\(|@import\b)[^']*')/i.test(html)) {
     fail('Preview must be fully self-contained; resource references are not allowed.');
   }
-  if (/<meta\\b[^>]*\\bhttp-equiv\\s*=\\s*["']?refresh\\b/i.test(html)) {
+  if (/<meta\b[^>]*\bhttp-equiv\s*=\s*["']?refresh\b/i.test(html)) {
     fail('Preview must not use meta refresh navigation.');
   }
 }
