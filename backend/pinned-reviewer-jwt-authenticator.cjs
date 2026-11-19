@@ -79,6 +79,7 @@ function createPinnedReviewerJwtAuthenticator(options = {}) {
     audience,
     keys,
     isSessionActive,
+    sessionStatusTimeoutMs = 1000,
     cookieName = DEFAULT_COOKIE,
     now = Date.now,
     clockSkewSeconds = 60,
@@ -91,6 +92,9 @@ function createPinnedReviewerJwtAuthenticator(options = {}) {
   if (cookieName !== DEFAULT_COOKIE) throw new TypeError('The fixed __Host- reviewer cookie name is required.');
   if (typeof now !== 'function') throw new TypeError('A clock function is required.');
   if (typeof isSessionActive !== 'function') throw new TypeError('A trusted server-side session status callback is required.');
+  if (!Number.isSafeInteger(sessionStatusTimeoutMs) || sessionStatusTimeoutMs < 10 || sessionStatusTimeoutMs > 5000) {
+    throw new TypeError('sessionStatusTimeoutMs must be an integer from 10 through 5000.');
+  }
   if (!Number.isSafeInteger(clockSkewSeconds) || clockSkewSeconds < 0 || clockSkewSeconds > 120) {
     throw new TypeError('clockSkewSeconds must be an integer from 0 through 120.');
   }
@@ -187,16 +191,28 @@ function createPinnedReviewerJwtAuthenticator(options = {}) {
       // Consult a trusted server-side session/revocation store for every request.
       // False, malformed or unavailable status must fail closed.
       let sessionActive;
+      const controller = new AbortController();
+      let timeout;
       try {
-        sessionActive = await isSessionActive(Object.freeze({
+        const statusPromise = Promise.resolve().then(() => isSessionActive(Object.freeze({
           issuer: pinnedIssuer,
           subject: claims.sub,
           tokenId: claims.jti,
           issuedAt: iat,
-          expiresAt: exp
-        }));
+          expiresAt: exp,
+          signal: controller.signal
+        })));
+        const timeoutPromise = new Promise((_, reject) => {
+          timeout = setTimeout(() => {
+            controller.abort();
+            reject(unauthenticated());
+          }, sessionStatusTimeoutMs);
+        });
+        sessionActive = await Promise.race([statusPromise, timeoutPromise]);
       } catch {
         throw unauthenticated();
+      } finally {
+        if (timeout) clearTimeout(timeout);
       }
       if (sessionActive !== true) throw unauthenticated();
 
