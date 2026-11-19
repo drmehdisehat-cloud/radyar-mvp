@@ -25,6 +25,23 @@ test('official Qavanin pages are recorded as primary research observations witho
     'approval dates displayed by the official status index; not publication or effective dates');
 });
 
+test('1372 primary text is rendered but remains unverified without bytes, metadata and human review', () => {
+  const source = observation.amendmentPages.find(item => item.id === 'check-amendment-1372');
+  assert.ok(source);
+  assert.equal(source.documentId, '16863897128756457315');
+  assert.equal(source.url, 'https://qavanin.ir/Law/TreeText/?IDS=16863897128756457315');
+  assert.equal(source.approvalDateShown, '1372/08/11');
+  assert.equal(source.guardianCouncilConfirmationDateShown, '1372/08/19');
+  assert.equal(source.textRendered, 'yes');
+  assert.equal(source.rawHttpBytesCaptured, false);
+  assert.equal(source.rawResponseSha256, null);
+  assert.equal(source.metadataRendered, false);
+  assert.equal(source.officialGazetteNumber, null);
+  assert.equal(source.publicationDate, null);
+  assert.equal(source.effectiveFrom, null);
+  assert.equal(source.humanReviewStatus, 'pending');
+});
+
 test('1397 and 1400 primary texts are readable but remain unverified until byte hashing and event-date review', () => {
   for (const id of ['check-amendment-1397', 'check-amendment-1400']) {
     const source = observation.amendmentPages.find(item => item.id === id);
