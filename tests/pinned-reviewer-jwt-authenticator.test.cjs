@@ -70,7 +70,7 @@ test('rejects a missing, oversized or duplicated reviewer cookie', async () => {
   const authenticate = f.authenticate();
   await rejectsAuthentication(authenticate, { headers: {} });
   await rejectsAuthentication(authenticate, { headers: { cookie: DEFAULT_COOKIE + '=' + 'x'.repeat(8200) } });
-  await rejectsAuthentication(authenticate, f.request(f.token()) && {
+  await rejectsAuthentication(authenticate, {
     headers: { cookie: DEFAULT_COOKIE + '=' + f.token() + '; ' + DEFAULT_COOKIE + '=' + f.token() }
   });
 });
@@ -176,6 +176,11 @@ test('rejects invalid issuer, non-HTTPS configuration and unpinned or weak keys 
 test('never accepts reviewer identity or role assertions from request headers', async () => {
   const f = fixture();
   const authenticate = f.authenticate();
+  await rejectsAuthentication(authenticate, { headers: {
+    'x-authenticated-user': 'synthetic-reviewer-01',
+    'x-reviewer-role': 'preview-reviewer',
+    'x-reviewer-independent': 'true'
+  } });
   const request = f.request(f.token());
   request.headers['x-authenticated-user'] = 'synthetic-reviewer-01';
   request.headers['x-reviewer-role'] = 'preview-reviewer';
