@@ -149,6 +149,13 @@ function verifyPreviewResponse({ statusCode, headers = {}, body, expectedSha256,
   if (!/^text\/html(?:\s*;|$)/i.test(contentType)) {
     throw new Error('preview_content_type_must_be_html');
   }
+  // A static preview must render in the browser, not be forced into a download.
+  // Absence is the normal HTML default; if the host sets the header, accept only
+  // one exact "inline" value and reject attachment or ambiguous duplicates.
+  const contentDisposition = singleHeader(headers, 'content-disposition');
+  if (contentDisposition && contentDisposition.toLowerCase() !== 'inline') {
+    throw new Error('preview_content_disposition_must_be_inline');
+  }
   const nosniff = singleHeader(headers, 'x-content-type-options', 'preview_missing_nosniff_header');
   if (nosniff.toLowerCase() !== 'nosniff') {
     throw new Error('preview_missing_nosniff_header');
@@ -307,6 +314,7 @@ function verifyPreviewResponse({ statusCode, headers = {}, body, expectedSha256,
     connectSrcNone: true,
     restrictedPermissionsPolicy: true,
     cookiesSet: false,
+    renderableInline: true,
     hstsProtected: true
   });
 }
