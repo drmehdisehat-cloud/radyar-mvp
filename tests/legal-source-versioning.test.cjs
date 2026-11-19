@@ -177,7 +177,12 @@ test('Qavanin source URLs must use the exact direct law-text endpoint, not metad
     'https://qavanin.ir/Law/Attribute/?IDS=1001',
     'https://qavanin.ir/redirect/?IDS=1001',
     'https://qavanin.ir/Law/TreeText/extra?IDS=1001',
-    'https://qavanin.ir/Law/%54reeText/?IDS=1001'
+    'https://qavanin.ir/Law/%54reeText/?IDS=1001',
+    'https://qavanin.ir/Law/../Law/TreeText/?IDS=1001',
+    'https://qavanin.ir/Law/%2e%2e/Law/TreeText/?IDS=1001',
+    'https://qavanin.ir/Law/TreeText/./?IDS=1001',
+    'https://qavanin.ir//Law/TreeText/?IDS=1001',
+    'https://qavanin.ir/Law\\TreeText/?IDS=1001'
   ]) {
     assert.equal(validateSourceVersion(verified({ officialDocumentUrl }), AS_OF).eligible, false, officialDocumentUrl);
   }
