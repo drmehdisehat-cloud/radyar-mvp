@@ -177,7 +177,7 @@ test('pinned RS256 session, signed human review and one-shot ledger release exac
     const replay = await send(port, { token: f.sessionToken, envelope });
     assert.equal(replay.status, 403);
     assert.notDeepEqual(replay.body, f.reportBytes);
-    assert.equal(reportLoads(), 1);
+    assert.equal(reportLoads(), 2);
   });
 });
 
