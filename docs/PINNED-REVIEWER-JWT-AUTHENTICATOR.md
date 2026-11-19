@@ -2,11 +2,11 @@
 
 **وضعیت: adapter قابل‌آزمایش با کلید و ادعاهای ساختگی؛ هنوز IdP یا نشست واقعی مالک پیکربندی نشده است.**
 
-فایل \`backend/pinned-reviewer-jwt-authenticator.cjs\` یک assertion نشست بازبین با امضای RS256 را فقط با کلیدهای عمومی از پیش pin‌شده بررسی می‌کند. این ماژول login، صدور نشست، کشف JWKS، refresh token، TLS termination یا اتصال به سرور سایت را پیاده‌سازی نمی‌کند. بدون callback وضعیت نشست، ساخت adapter عمداً شکست می‌خورد؛ عمر کوتاه JWT جایگزین ابطال فوری نیست.
+فایل \`backend/pinned-reviewer-jwt-authenticator.cjs\` یک assertion نشست بازبین با امضای RS256 را فقط با کلیدهای عمومی از پیش pin‌شده بررسی می‌کند. این ماژول login، صدور نشست، کشف JWKS، refresh token، TLS termination یا اتصال به سرور سایت را پیاده‌سازی نمی‌کند. بدون callback وضعیت نشست، ساخت adapter عمداً شکست می‌خورد؛ عمر کوتاه JWT جایگزین ابطال فوری نیست. بررسی وضعیت نشست حداکثر ۱۰۰۰ میلی‌ثانیه (قابل تنظیم در بازه ۱۰ تا ۵۰۰۰ میلی‌ثانیه) منتظر می‌ماند و در timeout، درخواست رد و AbortSignal به callback ارسال می‌شود.
 
 ## قرارداد پیکربندی
 
-- isSessionActive(context): callback اجباری سمت سرور برای بررسی وضعیت فعال/ابطال نشست با issuer، subject و tokenId (مقدار jti). فقط مقدار دقیق true پذیرفته می‌شود؛ پاسخ false، خطا یا عدم دسترسی به مخزن ابطال به معنی رد نشست است.
+- isSessionActive(context): callback اجباری سمت سرور برای بررسی وضعیت فعال/ابطال نشست با issuer، subject و tokenId (مقدار jti). فقط مقدار دقیق true پذیرفته می‌شود؛ پاسخ false، خطا، timeout یا عدم دسترسی به مخزن ابطال به معنی رد نشست است. context.signal یک AbortSignal است؛ callback باید آن را به عملیات I/O خود منتقل کند و هنگام abort، کار معلق را لغو کند.
 - \`issuer\`: نشانی canonical با HTTPS که دقیقاً با claim مربوط به \`iss\` برابر باشد.
 - \`audience\`: شناسه دقیق سرویس بازبینی پیش‌نمایش.
 - \`keys\`: فهرست حداکثر ۱۶ کلید RSA عمومی SPKI با \`kid\` یکتا؛ کلید باید حداقل ۲۰۴۸ بیت باشد. واکشی شبکه‌ای یا اعتماد به \`kid\` ناشناخته وجود ندارد.
@@ -27,6 +27,7 @@ const authenticateReviewer = createPinnedReviewerJwtAuthenticator({
   issuer: process.env.DADYAR_REVIEWER_ISSUER,
   audience: 'dadyar-preview-review',
   keys: loadOwnerPinnedPublicKeys(),
+  sessionStatusTimeoutMs: 1000,
   isSessionActive: checkOwnerSessionRevocationStore
 });
 
