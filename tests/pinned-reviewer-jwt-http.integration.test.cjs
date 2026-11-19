@@ -95,14 +95,18 @@ function fixture(t) {
   };
   const sessionToken = makeSessionToken();
 
-  const sessionStatus = { available: true, revoked: new Set() };
+  const sessionStatus = { available: true, stalled: false, revoked: new Set() };
   const authenticateReviewer = createPinnedReviewerJwtAuthenticator({
     issuer: reviewerIssuer,
     audience,
     keys: [pinnedKey],
     now: () => now,
-    isSessionActive: async ({ tokenId }) => {
+    sessionStatusTimeoutMs: 20,
+    isSessionActive: async ({ tokenId, signal }) => {
       if (!sessionStatus.available) throw new Error('synthetic revocation store unavailable');
+      if (sessionStatus.stalled) return new Promise((resolve, reject) => {
+        signal.addEventListener('abort', () => reject(new Error('synthetic lookup aborted')), { once: true });
+      });
       return !sessionStatus.revoked.has(tokenId);
     }
   });
@@ -235,6 +239,17 @@ test('revoked sessions and unavailable revocation state never release a report',
     const unavailable = await send(port, { token: f.sessionToken, envelope });
     assert.equal(unavailable.status, 401);
     assert.notDeepEqual(unavailable.body, f.reportBytes);
+    assert.equal(reportLoads(), 0);
+  });
+});
+
+test('a stalled revocation lookup is aborted and cannot reach the report store', async t => {
+  const f = fixture(t);
+  await withServer(f, async (port, reportLoads, envelope) => {
+    f.sessionStatus.stalled = true;
+    const response = await send(port, { token: f.sessionToken, envelope });
+    assert.equal(response.status, 401);
+    assert.notDeepEqual(response.body, f.reportBytes);
     assert.equal(reportLoads(), 0);
   });
 });
