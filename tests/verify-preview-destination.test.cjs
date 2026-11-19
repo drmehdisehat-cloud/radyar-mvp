@@ -181,3 +181,23 @@ test('rejects a destination inside the Git checkout', t => {
     fs.rmSync(internalDirectory, { recursive: true, force: true });
   }
 });
+
+test('rejects a writable ancestor above the dedicated preview directory', t => {
+  const f = fixture(t);
+  const stagingRoot = path.dirname(path.dirname(f.destination));
+  fs.chmodSync(stagingRoot, 0o777);
+  assert.throws(
+    () => verifyPreview(f.source, f.destination, f.productionRoot, f.expectedBlob),
+    /destination ancestor must not be group or world writable unless root-owned and sticky/
+  );
+});
+
+test('rejects setgid or setuid bits on an ancestor above the preview directory', t => {
+  const f = fixture(t);
+  const stagingRoot = path.dirname(path.dirname(f.destination));
+  fs.chmodSync(stagingRoot, 0o2770);
+  assert.throws(
+    () => verifyPreview(f.source, f.destination, f.productionRoot, f.expectedBlob),
+    /destination ancestor must not have setuid or setgid bits/
+  );
+});
