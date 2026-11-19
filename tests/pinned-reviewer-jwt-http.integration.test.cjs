@@ -80,6 +80,7 @@ function fixture(t) {
     iss: reviewerIssuer,
     sub: subject,
     aud: audience,
+    jti: 'synthetic-session-jti-0001',
     iat: Math.floor(now / 1000),
     exp: Math.floor(now / 1000) + 300,
     roles: ['preview-reviewer'],
@@ -94,15 +95,20 @@ function fixture(t) {
   };
   const sessionToken = makeSessionToken();
 
+  const sessionStatus = { available: true, revoked: new Set() };
   const authenticateReviewer = createPinnedReviewerJwtAuthenticator({
     issuer: reviewerIssuer,
     audience,
     keys: [pinnedKey],
-    now: () => now
+    now: () => now,
+    isSessionActive: async ({ tokenId }) => {
+      if (!sessionStatus.available) throw new Error('synthetic revocation store unavailable');
+      return !sessionStatus.revoked.has(tokenId);
+    }
   });
   return {
     ledgerDirectory, reportBytes, target, trustStore, envelope,
-    authenticateReviewer, sessionToken, makeSessionToken, now
+    authenticateReviewer, sessionToken, makeSessionToken, now, sessionStatus
   };
 }
 
@@ -212,6 +218,23 @@ test('a valid session for a different reviewer cannot release another reviewerâ€
     });
     assert.equal(response.status, 403);
     assert.notDeepEqual(response.body, f.reportBytes);
+    assert.equal(reportLoads(), 0);
+  });
+});
+
+test('revoked sessions and unavailable revocation state never release a report', async t => {
+  const f = fixture(t);
+  await withServer(f, async (port, reportLoads, envelope) => {
+    f.sessionStatus.revoked.add('synthetic-session-jti-0001');
+    const revoked = await send(port, { token: f.sessionToken, envelope });
+    assert.equal(revoked.status, 401);
+    assert.equal(reportLoads(), 0);
+
+    f.sessionStatus.revoked.clear();
+    f.sessionStatus.available = false;
+    const unavailable = await send(port, { token: f.sessionToken, envelope });
+    assert.equal(unavailable.status, 401);
+    assert.notDeepEqual(unavailable.body, f.reportBytes);
     assert.equal(reportLoads(), 0);
   });
 });

@@ -11,6 +11,7 @@ const SAFE_LABEL = /^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,255}$/;
 const KID = /^[A-Za-z0-9._-]{1,128}$/;
 const BASE64URL = /^[A-Za-z0-9_-]+$/;
 const ROLE = /^[a-z][a-z0-9-]{0,63}$/;
+const JTI = /^[A-Za-z0-9_-]{22,128}$/;
 const IDENTITY_CONTROL = /[\u0000-\u001f\u007f-\u009f\u00ad\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff]/u;
 
 function unauthenticated() {
@@ -77,6 +78,7 @@ function createPinnedReviewerJwtAuthenticator(options = {}) {
     issuer,
     audience,
     keys,
+    isSessionActive,
     cookieName = DEFAULT_COOKIE,
     now = Date.now,
     clockSkewSeconds = 60,
@@ -88,6 +90,7 @@ function createPinnedReviewerJwtAuthenticator(options = {}) {
   if (!safeIdentity(audience)) throw new TypeError('A safe, exact reviewer audience is required.');
   if (cookieName !== DEFAULT_COOKIE) throw new TypeError('The fixed __Host- reviewer cookie name is required.');
   if (typeof now !== 'function') throw new TypeError('A clock function is required.');
+  if (typeof isSessionActive !== 'function') throw new TypeError('A trusted server-side session status callback is required.');
   if (!Number.isSafeInteger(clockSkewSeconds) || clockSkewSeconds < 0 || clockSkewSeconds > 120) {
     throw new TypeError('clockSkewSeconds must be an integer from 0 through 120.');
   }
@@ -149,7 +152,7 @@ function createPinnedReviewerJwtAuthenticator(options = {}) {
         throw unauthenticated();
       }
       if (!plainObject(claims) || claims.iss !== pinnedIssuer ||
-          !safeIdentity(claims.sub) || claims.reviewer_independent !== true ||
+          !safeIdentity(claims.sub) || !JTI.test(claims.jti) || claims.reviewer_independent !== true ||
           !Array.isArray(claims.roles) || claims.roles.length < 1 || claims.roles.length > 32 ||
           claims.roles.some(role => typeof role !== 'string' || !ROLE.test(role)) ||
           new Set(claims.roles).size !== claims.roles.length ||
@@ -179,6 +182,23 @@ function createPinnedReviewerJwtAuthenticator(options = {}) {
           (nbf !== undefined && nbf > currentSeconds + clockSkewSeconds)) {
         throw unauthenticated();
       }
+
+      // A valid signature and short expiry do not provide immediate revocation.
+      // Consult a trusted server-side session/revocation store for every request.
+      // False, malformed or unavailable status must fail closed.
+      let sessionActive;
+      try {
+        sessionActive = await isSessionActive(Object.freeze({
+          issuer: pinnedIssuer,
+          subject: claims.sub,
+          tokenId: claims.jti,
+          issuedAt: iat,
+          expiresAt: exp
+        }));
+      } catch {
+        throw unauthenticated();
+      }
+      if (sessionActive !== true) throw unauthenticated();
 
       return Object.freeze({
         authenticated: true,

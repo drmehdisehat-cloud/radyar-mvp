@@ -25,6 +25,7 @@ function fixture() {
     iss: issuer,
     sub: 'synthetic-reviewer-01',
     aud: audience,
+    jti: 'synthetic-session-jti-0001',
     iat: Math.floor(now / 1000),
     exp: Math.floor(now / 1000) + 300,
     roles: ['preview-reviewer'],
@@ -38,7 +39,9 @@ function fixture() {
     return input + '.' + signature.toString('base64url');
   };
   const authenticate = (overrides = {}) => createPinnedReviewerJwtAuthenticator({
-    issuer, audience, keys: [key], now: () => now, ...overrides
+    issuer, audience, keys: [key], now: () => now,
+    isSessionActive: async () => true,
+    ...overrides
   });
   const request = value => ({ headers: { cookie: DEFAULT_COOKIE + '=' + value } });
   return { issuer, audience, key, privateKey, now, payload, token, authenticate, request };
@@ -48,6 +51,13 @@ async function rejectsAuthentication(authenticator, request) {
   await assert.rejects(() => authenticator(request), error =>
     error && error.code === 'AUTHENTICATED_REVIEWER_REQUIRED');
 }
+
+test('requires a trusted server-side session status callback at construction', () => {
+  const f = fixture();
+  assert.throws(() => createPinnedReviewerJwtAuthenticator({
+    issuer: f.issuer, audience: f.audience, keys: [f.key], now: () => f.now
+  }), /session status callback/);
+});
 
 test('accepts a current pinned RS256 reviewer session and returns only the verified principal', async () => {
   const f = fixture();
@@ -63,6 +73,29 @@ test('accepts a current pinned RS256 reviewer session and returns only the verif
   assert.equal(authenticate.adapterId, 'dadyar-pinned-rs256-reviewer-session-v1');
   assert.equal(Object.isFrozen(authenticate), true);
   assert.equal(Object.isFrozen(principal.roles), true);
+});
+
+test('requires a fresh active server-side session and fails closed on revocation-store outage', async () => {
+  const f = fixture();
+  const revoked = f.authenticate({ isSessionActive: async ({ tokenId }) => tokenId !== f.payload.jti });
+  await rejectsAuthentication(revoked, f.request(f.token()));
+
+  const unavailable = f.authenticate({ isSessionActive: async () => { throw new Error('synthetic status store outage'); } });
+  await rejectsAuthentication(unavailable, f.request(f.token()));
+});
+
+test('binds session-status lookup to the verified issuer, subject and token identifier', async () => {
+  const f = fixture();
+  let observed;
+  const authenticate = f.authenticate({ isSessionActive: async context => { observed = context; return true; } });
+  await authenticate(f.request(f.token()));
+  assert.deepEqual(observed, {
+    issuer: f.issuer,
+    subject: f.payload.sub,
+    tokenId: f.payload.jti,
+    issuedAt: f.payload.iat,
+    expiresAt: f.payload.exp
+  });
 });
 
 test('rejects a missing, oversized or duplicated reviewer cookie', async () => {
@@ -152,6 +185,9 @@ test('requires the signed preview-reviewer role and an explicit independence cla
   })));
   await rejectsAuthentication(authenticate, f.request(f.token({
     ...f.payload, reviewer_independent: false
+  })));
+  await rejectsAuthentication(authenticate, f.request(f.token({
+    ...f.payload, jti: 'short'
   })));
   await rejectsAuthentication(authenticate, f.request(f.token({
     ...f.payload, sub: 'synthetic-reviewer-\u202e01'

@@ -2,10 +2,11 @@
 
 **وضعیت: adapter قابل‌آزمایش با کلید و ادعاهای ساختگی؛ هنوز IdP یا نشست واقعی مالک پیکربندی نشده است.**
 
-فایل \`backend/pinned-reviewer-jwt-authenticator.cjs\` یک assertion نشست بازبین با امضای RS256 را فقط با کلیدهای عمومی از پیش pin‌شده بررسی می‌کند. این ماژول login، صدور نشست، کشف JWKS، refresh token، TLS termination یا اتصال به سرور سایت را پیاده‌سازی نمی‌کند.
+فایل \`backend/pinned-reviewer-jwt-authenticator.cjs\` یک assertion نشست بازبین با امضای RS256 را فقط با کلیدهای عمومی از پیش pin‌شده بررسی می‌کند. این ماژول login، صدور نشست، کشف JWKS، refresh token، TLS termination یا اتصال به سرور سایت را پیاده‌سازی نمی‌کند. بدون callback وضعیت نشست، ساخت adapter عمداً شکست می‌خورد؛ عمر کوتاه JWT جایگزین ابطال فوری نیست.
 
 ## قرارداد پیکربندی
 
+- isSessionActive(context): callback اجباری سمت سرور برای بررسی وضعیت فعال/ابطال نشست با issuer، subject و tokenId (مقدار jti). فقط مقدار دقیق true پذیرفته می‌شود؛ پاسخ false، خطا یا عدم دسترسی به مخزن ابطال به معنی رد نشست است.
 - \`issuer\`: نشانی canonical با HTTPS که دقیقاً با claim مربوط به \`iss\` برابر باشد.
 - \`audience\`: شناسه دقیق سرویس بازبینی پیش‌نمایش.
 - \`keys\`: فهرست حداکثر ۱۶ کلید RSA عمومی SPKI با \`kid\` یکتا؛ کلید باید حداقل ۲۰۴۸ بیت باشد. واکشی شبکه‌ای یا اعتماد به \`kid\` ناشناخته وجود ندارد.
@@ -25,7 +26,8 @@ const { createSignedReviewReleaseHttpServer } =
 const authenticateReviewer = createPinnedReviewerJwtAuthenticator({
   issuer: process.env.DADYAR_REVIEWER_ISSUER,
   audience: 'dadyar-preview-review',
-  keys: loadOwnerPinnedPublicKeys()
+  keys: loadOwnerPinnedPublicKeys(),
+  isSessionActive: checkOwnerSessionRevocationStore
 });
 
 const server = createSignedReviewReleaseHttpServer({
@@ -47,7 +49,8 @@ server.listen(8787, '127.0.0.1');
 
 ## محدودیت‌های لازم پیش از استفاده واقعی
 
-1. مالک باید IdP یا سرویس هویت سازمانی را انتخاب و issuer، audience، claim نقش و claim استقلال را در آن تعریف کند.
+1. مالک باید IdP یا سرویس هویت سازمانی را انتخاب و issuer، audience، claim نقش، claim استقلال و شناسه یکتای jti را در آن تعریف کند.
+1.1. callback isSessionActive باید در هر درخواست وضعیت نشست را از مخزن ابطال/نشست سمت سرور بررسی کند؛ logout، ابطال کاربر و تعلیق نقش باید فوراً در آن منعکس شوند. cache با امکان پذیرش نشست ابطال‌شده مجاز نیست.
 2. کلید عمومی و trust store باید از کانالی مستقل به‌وسیله مالک pin شوند؛ دریافت کلید از همان درخواست یا از شبکه در این adapter مجاز نیست.
 3. IdP باید کوکی میزبان‌محدود را با صفات امن صادر کند و چرخه عمر نشست، خروج و ابطال را مدیریت کند.
 4. reverse proxy باید فقط از loopback به این سرور وصل شود؛ TLS معتبر، Origin دقیق و هدرهای امنیتی در محیط واقعی باید جداگانه آزموده شوند.
