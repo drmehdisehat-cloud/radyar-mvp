@@ -102,8 +102,8 @@ function fixture(t) {
   };
 }
 
-function send(port, { token, origin = ORIGIN, headers = {} } = {}) {
-  const body = JSON.stringify({ envelope: fixtureEnvelope });
+function send(port, { token, envelope, origin = ORIGIN, headers = {} } = {}) {
+  const body = JSON.stringify({ envelope });
   return new Promise((resolve, reject) => {
     const request = http.request({
       hostname: '127.0.0.1',
@@ -134,10 +134,7 @@ function send(port, { token, origin = ORIGIN, headers = {} } = {}) {
   });
 }
 
-let fixtureEnvelope;
-
 async function withServer(f, callback) {
-  fixtureEnvelope = f.envelope;
   let reportLoads = 0;
   const server = createSignedReviewReleaseHttpServer({
     allowedOrigin: ORIGIN,
@@ -158,7 +155,7 @@ async function withServer(f, callback) {
     server.listen(0, '127.0.0.1', resolve);
   });
   try {
-    await callback(server.address().port, () => reportLoads);
+    await callback(server.address().port, () => reportLoads, f.envelope);
   } finally {
     await new Promise((resolve, reject) => {
       server.close(error => error ? reject(error) : resolve());
@@ -168,8 +165,8 @@ async function withServer(f, callback) {
 
 test('pinned RS256 session, signed human review and one-shot ledger release exact report bytes over loopback HTTP', async t => {
   const f = fixture(t);
-  await withServer(f, async (port, reportLoads) => {
-    const first = await send(port, { token: f.sessionToken });
+  await withServer(f, async (port, reportLoads, envelope) => {
+    const first = await send(port, { token: f.sessionToken, envelope });
     assert.equal(first.status, 200);
     assert.deepEqual(first.body, f.reportBytes);
     assert.match(first.headers['content-disposition'], /attachment/);
@@ -177,7 +174,7 @@ test('pinned RS256 session, signed human review and one-shot ledger release exac
     assert.equal(first.headers['set-cookie'], undefined);
     assert.equal(reportLoads(), 1);
 
-    const replay = await send(port, { token: f.sessionToken });
+    const replay = await send(port, { token: f.sessionToken, envelope });
     assert.equal(replay.status, 403);
     assert.notDeepEqual(replay.body, f.reportBytes);
     assert.equal(reportLoads(), 1);
@@ -186,8 +183,9 @@ test('pinned RS256 session, signed human review and one-shot ledger release exac
 
 test('reviewer identity headers without a signed session cookie never load or release a report', async t => {
   const f = fixture(t);
-  await withServer(f, async (port, reportLoads) => {
+  await withServer(f, async (port, reportLoads, envelope) => {
     const response = await send(port, {
+      envelope,
       headers: {
         'X-Authenticated-User': 'synthetic-reviewer-01',
         'X-Reviewer-Role': 'preview-reviewer',
