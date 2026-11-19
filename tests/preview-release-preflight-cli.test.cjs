@@ -660,3 +660,34 @@ test('caller-supplied reviewer-authentication booleans are rejected and cannot c
     fs.rmSync(f.directory, { recursive: true, force: true });
   }
 });
+
+
+test('preflight rejects owner-readable JSON evidence instead of accepting a broadly readable manifest', () => {
+  if (process.platform === 'win32') return;
+  const f = fixture();
+  try {
+    fs.chmodSync(f.restoreFile, 0o644);
+    const result = run(baseArgs(f));
+    assert.equal(result.status, 2, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.ok(report.blockers.includes('--restore-evidence_must_be_owner_only'));
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
+test('preflight rejects a group/world-writable reviewer trust store before parsing it', () => {
+  if (process.platform === 'win32') return;
+  const f = fixture();
+  try {
+    fs.chmodSync(f.trustStoreFile, 0o666);
+    const result = run(baseArgs(f));
+    assert.equal(result.status, 2, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.ok(report.blockers.includes('--review-trust-store_must_not_be_group_or_world_writable'));
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
