@@ -138,6 +138,19 @@ test('requires HTML content type, nosniff and no cookies', () => {
   assert.throws(() => verify({ headers: { ...headers, 'set-cookie': ['session=fake'] } }), /static_preview_must_not_set_cookies/);
 });
 
+test('rejects attachment disposition so the preview remains renderable as a page', () => {
+  assert.throws(
+    () => verify({ headers: { ...headers, 'content-disposition': 'attachment; filename="preview.html"' } }),
+    /preview_content_disposition_must_be_inline/
+  );
+  assert.throws(
+    () => verify({ headers: { ...headers, 'content-disposition': ['inline', 'attachment'] } }),
+    /preview_header_ambiguous:content-disposition/
+  );
+  assert.equal(verify({ headers: { ...headers, 'content-disposition': 'inline' } }).renderableInline, true);
+  assert.equal(verify().renderableInline, true);
+});
+
 test('requires noindex, nofollow, no-referrer and a restrictive CSP', () => {
   const withoutRobots = Buffer.from(html.replace('noindex,nofollow,noarchive', 'index,follow'));
   assert.throws(() => verify({ body: withoutRobots }), /preview_must_be_noindex_nofollow/);
