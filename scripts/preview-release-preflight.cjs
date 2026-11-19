@@ -38,6 +38,7 @@ const USAGE = [
   '',
   'read-only preflight; it never deploys or writes evidence.',
   'Restore archive/log/database-probe and attestation files must be outside the Git checkout.',
+  'On POSIX, JSON evidence, attestations and trust stores must be root/service-owned and owner-only (0600/0400), without special bits.',
   'The restored marker must be inside the isolated restore target; the preview destination must be outside production and checkout.',
   'The detached Ed25519 signature is checked against the supplied trust store.',
   'This script never deploys and does not independently establish the trust-store origin or human identity.'
@@ -89,6 +90,19 @@ function assertNoSymlinkComponents(target) {
   }
 }
 
+function assertPrivateEvidencePermissions(stat, label) {
+  if (process.platform === 'win32') return;
+  const serviceUid = typeof process.geteuid === 'function' ? BigInt(process.geteuid()) : null;
+  if (serviceUid === null || (stat.uid !== 0n && stat.uid !== serviceUid)) {
+    throw new Error(label + '_must_be_owned_by_root_or_service_user');
+  }
+  const mode = stat.mode & 0o7777n;
+  if ((mode & 0o7000n) !== 0n) throw new Error(label + '_special_permission_bits_forbidden');
+  if ((mode & 0o022n) !== 0n) throw new Error(label + '_must_not_be_group_or_world_writable');
+  if ((mode & 0o400n) === 0n) throw new Error(label + '_must_be_owner_readable');
+  if ((mode & 0o077n) !== 0n) throw new Error(label + '_must_be_owner_only');
+}
+
 function readEvidenceRecord(flag, file) {
   if (!path.isAbsolute(file)) throw new Error(flag + '_must_be_absolute');
   assertNoSymlinkComponents(file);
@@ -101,6 +115,7 @@ function readEvidenceRecord(flag, file) {
     includeBytes: true,
     maxBytes: MAX_EVIDENCE_BYTES
   });
+  assertPrivateEvidencePermissions(stable.stat, flag);
   let decoded;
   try {
     decoded = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(stable.bytes);
