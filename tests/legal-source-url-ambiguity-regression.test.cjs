@@ -95,3 +95,18 @@ test('version selection and answer-source registration share the same canonical 
     assert.equal(directOfficialDocumentUrl(url, id), expected, 'answer-source register: ' + url);
   }
 });
+
+test('both legal-source selectors reject Qavanin raw-path aliases before URL normalization', () => {
+  const aliases = [
+    'https://qavanin.ir/Law/../Law/TreeText/?IDS=1001',
+    'https://qavanin.ir/Law/%2e%2e/Law/TreeText/?IDS=1001',
+    'https://qavanin.ir/Law/TreeText/./?IDS=1001',
+    'https://qavanin.ir//Law/TreeText/?IDS=1001',
+    'https://qavanin.ir/Law\\\\TreeText/?IDS=1001',
+    'https://qavanin.ir/Law/%54reeText/?IDS=1001'
+  ];
+  for (const url of aliases) {
+    assert.equal(safeOfficialDocumentUrl(url, '1001'), false, 'version selector: ' + url);
+    assert.equal(directOfficialDocumentUrl(url, '1001'), false, 'answer register: ' + url);
+  }
+});
