@@ -27,35 +27,98 @@ function writeExclusive(filePath, content, mode = 0o600) {
   finally { fs.closeSync(fd); }
 }
 
-function assertSelfContainedHtml(html) {
-  const resourceTags = html.match(/<(?:script|link|iframe|img|audio|video|source|track|object|embed|base)\b[^>]*>/gi) || [];
-  for (const tag of resourceTags) {
-    if (/\b(?:src|href|poster|data|srcset)\s*=/i.test(tag)) {
-      fail('Preview must be fully self-contained; resource references are not allowed.');
-    }
-  }
-  if (/<(?:iframe|audio|video|source|track|object|embed|base)\b/i.test(html) ||
-      /<style\b[^>]*>[\s\S]*?(?:\burl\s*\(|@import\b)/i.test(html) ||
-      /\bstyle\s*=\s*(?:"[^"]*(?:\burl\s*\(|@import\b)[^"]*"|'[^']*(?:\burl\s*\(|@import\b)[^']*')/i.test(html)) {
-    fail('Preview must be fully self-contained; resource references are not allowed.');
-  }
-  // SVG can fetch external resources through href/xlink:href even when
-  // there is no HTML img/src or CSS url(). Permit only same-document fragments.
-  const svgResourceTags = html.match(/<(?:image|feImage|use)\b[^>]*>/gi) || [];
-  for (const tag of svgResourceTags) {
-    const hrefAttributes = [...tag.matchAll(/(?:^|\s)(?:xlink:)?href\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gi)];
-    for (const attribute of hrefAttributes) {
-      const value = attribute[1] ?? attribute[2] ?? attribute[3] ?? '';
-      if (!value.startsWith('#') || value.length < 2) {
-        fail('Preview must be fully self-contained; external SVG references are not allowed.');
+function parseOpeningTagAttributes(tagText, tagName) {
+  let index = 1 + tagName.length;
+  const attributes = [];
+  while (index < tagText.length - 1) {
+    while (index < tagText.length - 1 && /\\s|\\//.test(tagText[index])) index++;
+    if (tagText[index] === '>') break;
+    const nameStart = index;
+    while (index < tagText.length - 1 && !/[\\s=/>]/.test(tagText[index])) index++;
+    if (index === nameStart) fail('Preview contains a malformed resource tag.');
+    const name = tagText.slice(nameStart, index).toLowerCase();
+    while (index < tagText.length - 1 && /\\s/.test(tagText[index])) index++;
+    let value = null;
+    if (tagText[index] === '=') {
+      index++;
+      while (index < tagText.length - 1 && /\\s/.test(tagText[index])) index++;
+      const quote = tagText[index] === '"' || tagText[index] === "'" ? tagText[index] : null;
+      if (quote) {
+        index++;
+        const valueStart = index;
+        while (index < tagText.length - 1 && tagText[index] !== quote) index++;
+        if (index >= tagText.length - 1) fail('Preview contains a malformed resource tag.');
+        value = tagText.slice(valueStart, index);
+        index++;
+      } else {
+        const valueStart = index;
+        while (index < tagText.length - 1 && !/[\\s>]/.test(tagText[index])) index++;
+        value = tagText.slice(valueStart, index);
       }
     }
+    attributes.push({ name, value });
   }
-  if (/<meta\b[^>]*\bhttp-equiv\s*=\s*["']?refresh\b/i.test(html)) {
-    fail('Preview must not use meta refresh navigation.');
-  }
+  return attributes;
 }
 
+function findOpeningTags(html, names) {
+  const pattern = new RegExp('<(' + names.join('|') + ')\\\\b', 'gi');
+  const tags = [];
+  let match;
+  while ((match = pattern.exec(html)) !== null) {
+    let quote = null;
+    let end = -1;
+    for (let index = pattern.lastIndex; index < html.length; index++) {
+      const character = html[index];
+      if (quote) {
+        if (character === quote) quote = null;
+      } else if (character === '"' || character === "'") {
+        quote = character;
+      } else if (character === '>') {
+        end = index;
+        break;
+      }
+    }
+    if (end < 0 || quote !== null) fail('Preview contains a malformed resource tag.');
+    const name = match[1].toLowerCase();
+    const raw = html.slice(match.index, end + 1);
+    tags.push({ name, raw, attributes: parseOpeningTagAttributes(raw, name) });
+    pattern.lastIndex = end + 1;
+  }
+  return tags;
+}
+
+function assertSelfContainedHtml(html) {
+  const resourceNames = ['script', 'link', 'iframe', 'img', 'audio', 'video', 'source', 'track', 'object', 'embed', 'base'];
+  const svgNames = ['image', 'feImage', 'use'];
+  const tags = findOpeningTags(html, [...resourceNames, ...svgNames, 'meta']);
+  const forbiddenResourceAttributes = new Set(['src', 'href', 'poster', 'data', 'srcset']);
+  for (const tag of tags) {
+    if (resourceNames.includes(tag.name) &&
+        tag.attributes.some(attribute => forbiddenResourceAttributes.has(attribute.name))) {
+      fail('Preview must be fully self-contained; resource references are not allowed.');
+    }
+    if (svgNames.some(name => name.toLowerCase() === tag.name)) {
+      for (const attribute of tag.attributes) {
+        if (attribute.name === 'href' || attribute.name === 'xlink:href') {
+          const value = attribute.value ?? '';
+          if (!value.startsWith('#') || value.length < 2) {
+            fail('Preview must be fully self-contained; external SVG references are not allowed.');
+          }
+        }
+      }
+    }
+    if (tag.name === 'meta' && tag.attributes.some(attribute =>
+      attribute.name === 'http-equiv' && String(attribute.value ?? '').trim().toLowerCase() === 'refresh')) {
+      fail('Preview must not use meta refresh navigation.');
+    }
+  }
+  if (/<(?:iframe|audio|video|source|track|object|embed|base)\\b/i.test(html) ||
+      /<style\\b[^>]*>[\\s\\S]*?(?:\\burl\\s*\\(|@import\\b)/i.test(html) ||
+      /\\bstyle\\s*=\\s*(?:"[^"]*(?:\\burl\\s*\\(|@import\\b)[^"]*"|'[^']*(?:\\burl\\s*\\(|@import\\b)[^']*')/i.test(html)) {
+    fail('Preview must be fully self-contained; resource references are not allowed.');
+  }
+}
 function buildOfflinePreviewPackage(destinationArg, options = {}) {
   if (typeof destinationArg !== 'string' || !destinationArg.trim()) {
     fail('A dedicated destination directory is required.');
@@ -301,4 +364,4 @@ if (require.main === module) {
     process.exitCode = 1;
   }
 }
-module.exports = { buildOfflinePreviewPackage };
+module.exports = { buildOfflinePreviewPackage, assertSelfContainedHtml };
