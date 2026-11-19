@@ -31,17 +31,17 @@ function parseOpeningTagAttributes(tagText, tagName) {
   let index = 1 + tagName.length;
   const attributes = [];
   while (index < tagText.length - 1) {
-    while (index < tagText.length - 1 && /\\s|\\//.test(tagText[index])) index++;
+    while (index < tagText.length - 1 && (/\s/.test(tagText[index]) || tagText[index] === '/')) index++;
     if (tagText[index] === '>') break;
     const nameStart = index;
-    while (index < tagText.length - 1 && !/[\\s=/>]/.test(tagText[index])) index++;
+    while (index < tagText.length - 1 && !/[\s=/>]/.test(tagText[index])) index++;
     if (index === nameStart) fail('Preview contains a malformed resource tag.');
     const name = tagText.slice(nameStart, index).toLowerCase();
-    while (index < tagText.length - 1 && /\\s/.test(tagText[index])) index++;
+    while (index < tagText.length - 1 && /\s/.test(tagText[index])) index++;
     let value = null;
     if (tagText[index] === '=') {
       index++;
-      while (index < tagText.length - 1 && /\\s/.test(tagText[index])) index++;
+      while (index < tagText.length - 1 && /\s/.test(tagText[index])) index++;
       const quote = tagText[index] === '"' || tagText[index] === "'" ? tagText[index] : null;
       if (quote) {
         index++;
@@ -52,7 +52,7 @@ function parseOpeningTagAttributes(tagText, tagName) {
         index++;
       } else {
         const valueStart = index;
-        while (index < tagText.length - 1 && !/[\\s>]/.test(tagText[index])) index++;
+        while (index < tagText.length - 1 && !/[\s>]/.test(tagText[index])) index++;
         value = tagText.slice(valueStart, index);
       }
     }
@@ -62,7 +62,7 @@ function parseOpeningTagAttributes(tagText, tagName) {
 }
 
 function findOpeningTags(html, names) {
-  const pattern = new RegExp('<(' + names.join('|') + ')\\\\b', 'gi');
+  const pattern = new RegExp('<(' + names.join('|') + ')\\b', 'gi');
   const tags = [];
   let match;
   while ((match = pattern.exec(html)) !== null) {
@@ -113,9 +113,9 @@ function assertSelfContainedHtml(html) {
       fail('Preview must not use meta refresh navigation.');
     }
   }
-  if (/<(?:iframe|audio|video|source|track|object|embed|base)\\b/i.test(html) ||
-      /<style\\b[^>]*>[\\s\\S]*?(?:\\burl\\s*\\(|@import\\b)/i.test(html) ||
-      /\\bstyle\\s*=\\s*(?:"[^"]*(?:\\burl\\s*\\(|@import\\b)[^"]*"|'[^']*(?:\\burl\\s*\\(|@import\\b)[^']*')/i.test(html)) {
+  if (/<(?:iframe|audio|video|source|track|object|embed|base)\b/i.test(html) ||
+      /<style\b[^>]*>[\s\S]*?(?:\burl\s*\(|@import\b)/i.test(html) ||
+      /\bstyle\s*=\s*(?:"[^"]*(?:\burl\s*\(|@import\b)[^"]*"|'[^']*(?:\burl\s*\(|@import\b)[^']*')/i.test(html)) {
     fail('Preview must be fully self-contained; resource references are not allowed.');
   }
 }
