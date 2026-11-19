@@ -172,6 +172,18 @@ test('rejects non-official hosts and portal homepages as direct citations', () =
   assert.equal(validateSourceVersion(homepage, AS_OF).eligible, false);
 });
 
+test('Qavanin source URLs must use the exact direct law-text endpoint, not metadata or redirect paths', () => {
+  for (const officialDocumentUrl of [
+    'https://qavanin.ir/Law/Attribute/?IDS=1001',
+    'https://qavanin.ir/redirect/?IDS=1001',
+    'https://qavanin.ir/Law/TreeText/extra?IDS=1001',
+    'https://qavanin.ir/Law/%54reeText/?IDS=1001'
+  ]) {
+    assert.equal(validateSourceVersion(verified({ officialDocumentUrl }), AS_OF).eligible, false, officialDocumentUrl);
+  }
+  assert.equal(validateSourceVersion(verified(), AS_OF).eligible, true);
+});
+
 test('fails closed when two verified versions overlap on the same event date', () => {
   const first = verified({ id: 'v1', effectiveFrom: '2020-01-01', effectiveTo: null });
   const second = verified({ id: 'v2', effectiveFrom: '2024-01-01', effectiveTo: null });
