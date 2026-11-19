@@ -72,6 +72,25 @@ test('package builder rejects meta refresh navigation in the public payload', t 
   });
 });
 
+test('package builder rejects HTML form submission controls in the public payload', t => {
+  const html = sourceHtml.replace('</body>',
+    '<FORM action="/submit" method="post"><button>ارسال</button></FORM></body>');
+  withFixture(t, html, fixture => {
+    assert.throws(() => build(fixture), /forms|self-contained|resource reference/i);
+    assert.equal(fs.existsSync(fixture.destination), false);
+  });
+});
+
+test('package builder does not mistake a longer custom element name for a form', t => {
+  const html = sourceHtml.replace('</body>', '<formality>نمونه</formality></body>');
+  withFixture(t, html, fixture => {
+    const result = build(fixture);
+    assert.equal(result.checksums_verified, true);
+    assert.equal(result.release_authorized, false);
+    assert.equal(result.api_enabled, false);
+  });
+});
+
 test('the current offline preview remains eligible as a self-contained single HTML file', t => {
   withFixture(t, sourceHtml, fixture => {
     const result = build(fixture);
