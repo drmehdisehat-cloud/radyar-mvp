@@ -59,6 +59,28 @@ test('requires a trusted server-side session status callback at construction', (
   }), /session status callback/);
 });
 
+test('bounds the session-status timeout configuration', () => {
+  const f = fixture();
+  for (const value of [0, 9, 5001, 1.5, NaN]) {
+    assert.throws(() => f.authenticate({ sessionStatusTimeoutMs: value }), /10 through 5000/);
+  }
+});
+
+test('aborts and rejects a reviewer session when the status store stalls', async () => {
+  const f = fixture();
+  let observedSignal;
+  const authenticate = f.authenticate({
+    sessionStatusTimeoutMs: 20,
+    isSessionActive: ({ signal }) => new Promise((resolve, reject) => {
+      observedSignal = signal;
+      signal.addEventListener('abort', () => reject(new Error('synthetic lookup aborted')), { once: true });
+    })
+  });
+  await rejectsAuthentication(authenticate, f.request(f.token()));
+  assert.ok(observedSignal instanceof AbortSignal);
+  assert.equal(observedSignal.aborted, true);
+});
+
 test('accepts a current pinned RS256 reviewer session and returns only the verified principal', async () => {
   const f = fixture();
   const authenticate = f.authenticate();
@@ -89,13 +111,21 @@ test('binds session-status lookup to the verified issuer, subject and token iden
   let observed;
   const authenticate = f.authenticate({ isSessionActive: async context => { observed = context; return true; } });
   await authenticate(f.request(f.token()));
-  assert.deepEqual(observed, {
+  assert.deepEqual({
+    issuer: observed.issuer,
+    subject: observed.subject,
+    tokenId: observed.tokenId,
+    issuedAt: observed.issuedAt,
+    expiresAt: observed.expiresAt
+  }, {
     issuer: f.issuer,
     subject: f.payload.sub,
     tokenId: f.payload.jti,
     issuedAt: f.payload.iat,
     expiresAt: f.payload.exp
   });
+  assert.ok(observed.signal instanceof AbortSignal);
+  assert.equal(observed.signal.aborted, false);
 });
 
 test('rejects a missing, oversized or duplicated reviewer cookie', async () => {
