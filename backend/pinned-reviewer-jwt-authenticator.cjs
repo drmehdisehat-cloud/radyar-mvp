@@ -3,6 +3,7 @@
 // Verifies a short-lived, owner-pinned RS256 reviewer session assertion.
 // It does not perform login, discover keys over the network, or trust identity headers.
 const crypto = require('node:crypto');
+const { TextDecoder } = require('node:util');
 const { parseJsonRejectDuplicateKeys } = require('../scripts/strict-json.cjs');
 
 const DEFAULT_COOKIE = '__Host-dadyar-review-session';
@@ -132,8 +133,9 @@ function createPinnedReviewerJwtAuthenticator(options = {}) {
         throw unauthenticated();
       }
 
-      const header = parseJsonRejectDuplicateKeys(headerBytes.toString('utf8'));
-      const claims = parseJsonRejectDuplicateKeys(payloadBytes.toString('utf8'));
+      const decoder = new TextDecoder('utf-8', { fatal: true });
+      const header = parseJsonRejectDuplicateKeys(decoder.decode(headerBytes));
+      const claims = parseJsonRejectDuplicateKeys(decoder.decode(payloadBytes));
       if (!plainObject(header) || Object.keys(header).sort().join(',') !== 'alg,kid,typ' ||
           header.alg !== 'RS256' || header.typ !== 'JWT' ||
           typeof header.kid !== 'string' || !KID.test(header.kid)) {
