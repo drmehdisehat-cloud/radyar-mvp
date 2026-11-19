@@ -92,6 +92,7 @@ test('global register errors clear all answer-eligible IDs', () => {
   const record = approvedRecord();
   const badDate = auditLegalSourceRegister({ ...registry([record]), observedAt: '2026-02-30' });
   assert.equal(badDate.valid, false);
+  assert.deepEqual(badDate.structurallyCompleteRecordIds, []);
   assert.deepEqual(badDate.answerEligibleRecordIds, []);
 
   const badDefault = auditLegalSourceRegister({
@@ -99,6 +100,7 @@ test('global register errors clear all answer-eligible IDs', () => {
     policy: { defaultUseInLegalAnswers: true }
   });
   assert.equal(badDefault.valid, false);
+  assert.deepEqual(badDefault.structurallyCompleteRecordIds, []);
   assert.deepEqual(badDefault.answerEligibleRecordIds, []);
 });
 
