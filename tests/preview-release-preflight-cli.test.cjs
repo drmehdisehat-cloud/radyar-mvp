@@ -691,3 +691,19 @@ test('preflight rejects a group/world-writable reviewer trust store before parsi
     fs.rmSync(f.directory, { recursive: true, force: true });
   }
 });
+
+
+test('preflight rejects a group/world-readable human-review attestation before signature verification', () => {
+  if (process.platform === 'win32') return;
+  const f = fixture();
+  try {
+    fs.chmodSync(f.attestationFile, 0o644);
+    const result = run(baseArgs(f));
+    assert.equal(result.status, 2, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.ok(report.blockers.includes('--review-attestation_must_be_owner_only'));
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
