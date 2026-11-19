@@ -47,7 +47,7 @@ function directOfficialDocumentUrl(value, documentId) {
   const queryMatches = queryEntries.filter(([, part]) => part === documentId).length;
   if (host === 'qavanin.ir') {
     const ids = queryEntries.filter(([key]) => key === 'IDS');
-    if (pathMatches !== 0 || queryMatches !== 1 || queryEntries.length !== 1 ||
+    if (url.pathname !== '/Law/TreeText/' || pathMatches !== 0 || queryMatches !== 1 || queryEntries.length !== 1 ||
         url.search !== '?IDS=' + documentId || ids.length !== 1 || ids[0][1] !== documentId) return false;
   } else if (pathMatches !== 1 || queryEntries.length !== 0 || queryMatches !== 0 || url.search !== '' || value.includes('?')) {
     // Other official portals must identify the document in the path itself.
