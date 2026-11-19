@@ -27,6 +27,23 @@ function writeExclusive(filePath, content, mode = 0o600) {
   finally { fs.closeSync(fd); }
 }
 
+function assertSelfContainedHtml(html) {
+  const resourceTags = html.match(/<(?:script|link|iframe|img|audio|video|source|track|object|embed|base)\\b[^>]*>/gi) || [];
+  for (const tag of resourceTags) {
+    if (/\\b(?:src|href|poster|data|srcset)\\s*=/i.test(tag)) {
+      fail('Preview must be fully self-contained; resource references are not allowed.');
+    }
+  }
+  if (/<(?:iframe|audio|video|source|track|object|embed|base)\\b/i.test(html) ||
+      /<style\\b[^>]*>[\\s\\S]*?(?:\\burl\\s*\\(|@import\\b)/i.test(html) ||
+      /\\bstyle\\s*=\\s*(?:"[^"]*(?:\\burl\\s*\\(|@import\\b)[^"]*"|'[^']*(?:\\burl\\s*\\(|@import\\b)[^']*')/i.test(html)) {
+    fail('Preview must be fully self-contained; resource references are not allowed.');
+  }
+  if (/<meta\\b[^>]*\\bhttp-equiv\\s*=\\s*["']?refresh\\b/i.test(html)) {
+    fail('Preview must not use meta refresh navigation.');
+  }
+}
+
 function buildOfflinePreviewPackage(destinationArg, options = {}) {
   if (typeof destinationArg !== 'string' || !destinationArg.trim()) {
     fail('A dedicated destination directory is required.');
@@ -131,10 +148,10 @@ function buildOfflinePreviewPackage(destinationArg, options = {}) {
   if (/\b(?:fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon)\b/i.test(html)) {
     fail('Preview must not contain network-capable browser APIs.');
   }
-  if (/<form\b/i.test(html) ||
-      /<(?:script|link|iframe|img|audio|video|source)\b[^>]*\b(?:src|href)\s*=\s*['"]?\s*(?:https?:|\/\/)/i.test(html)) {
-    fail('Preview must remain self-contained and must not load remote resources.');
+  if (/<form\\b/i.test(html)) {
+    fail('Preview must remain self-contained and must not contain forms.');
   }
+  assertSelfContainedHtml(html);
 
   const parentDirectory = path.dirname(destination);
   const parentStat = fs.lstatSync(parentDirectory);
