@@ -300,3 +300,40 @@ test('builder uses the explicit experimental branch identity on pull-request mer
     }
   });
 });
+
+
+test('builder rejects external SVG image, filter and use references while allowing same-document fragments', t => {
+  withTemp(t, root => {
+    const fakeRoot = path.join(root, 'repo');
+    const previewDir = path.join(fakeRoot, 'dadyar-preview');
+    fs.mkdirSync(previewDir, { recursive: true });
+    const original = fs.readFileSync(sourcePath, 'utf8');
+    const fixtures = [
+      '<svg><image href="https://example.invalid/pixel.svg"></image></svg>',
+      '<svg><image xlink:href="//example.invalid/pixel.svg"></image></svg>',
+      '<svg><feImage href="data:image/png;base64,AAAA"></feImage></svg>',
+      '<svg><use href="icons.svg#mark"></use></svg>',
+      '<svg><use href="#local" xlink:href="https://example.invalid/sprite.svg#remote"></use></svg>'
+    ];
+
+    fixtures.forEach((fixture, index) => {
+      const unsafeSource = path.join(previewDir, 'unsafe-' + index + '.html');
+      fs.writeFileSync(unsafeSource, original.replace('</body>', fixture + '</body>'));
+      const destination = path.join(root, 'unsafe-bundle-' + index);
+      assert.throws(() => buildOfflinePreviewPackage(destination, {
+        repoRoot: fakeRoot, sourcePath: unsafeSource, commit, branch
+      }), /external SVG references/);
+      assert.equal(fs.existsSync(destination), false);
+    });
+
+    const safeSource = path.join(previewDir, 'safe.html');
+    fs.writeFileSync(safeSource, original.replace('</body>',
+      '<svg><symbol id="local-mark"><path d="M0 0h1v1z"></path></symbol><use href="#local-mark"></use></svg></body>'));
+    const safeDestination = path.join(root, 'safe-bundle');
+    const result = buildOfflinePreviewPackage(safeDestination, {
+      repoRoot: fakeRoot, sourcePath: safeSource, commit, branch
+    });
+    assert.equal(result.checksums_verified, true);
+    assert.equal(fs.existsSync(path.join(safeDestination, 'public', 'index.html')), true);
+  });
+});

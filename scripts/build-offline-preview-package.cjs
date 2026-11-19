@@ -39,6 +39,18 @@ function assertSelfContainedHtml(html) {
       /\bstyle\s*=\s*(?:"[^"]*(?:\burl\s*\(|@import\b)[^"]*"|'[^']*(?:\burl\s*\(|@import\b)[^']*')/i.test(html)) {
     fail('Preview must be fully self-contained; resource references are not allowed.');
   }
+  // SVG can fetch external resources through href/xlink:href even when
+  // there is no HTML img/src or CSS url(). Permit only same-document fragments.
+  const svgResourceTags = html.match(/<(?:image|feImage|use)\\b[^>]*>/gi) || [];
+  for (const tag of svgResourceTags) {
+    const hrefAttributes = [...tag.matchAll(/(?:^|\\s)(?:xlink:)?href\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))/gi)];
+    for (const attribute of hrefAttributes) {
+      const value = attribute[1] ?? attribute[2] ?? attribute[3] ?? '';
+      if (!value.startsWith('#') || value.length < 2) {
+        fail('Preview must be fully self-contained; external SVG references are not allowed.');
+      }
+    }
+  }
   if (/<meta\b[^>]*\bhttp-equiv\s*=\s*["']?refresh\b/i.test(html)) {
     fail('Preview must not use meta refresh navigation.');
   }
