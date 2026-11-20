@@ -40,3 +40,9 @@ The metadata page was observed again on 2026-11-10, but the consolidated-text pa
 `tests/legal-source-versioning.test.cjs` uses synthetic statute records only. It covers amendment boundaries, event-date selection, missing and research-only sources, URL/document-ID binding, hash-to-review binding, future observations, overlapping versions, duplicate IDs, and rejected human review.
 
 Do not copy real client facts, raw legal documents, private hosting evidence, credentials, or API keys into the registry or tests. Keep source text in a controlled evidence store; commit only approved public metadata and hashes after independent review.
+
+
+## ترتیب زمانی شواهد
+
+برای هر نسخه‌ای که قرار است به‌عنوان منبع بررسی‌شده انتخاب شود، تاریخ انتشار رسمی نباید بعد از تاریخ دریافت متن باشد (`publicationDate <= retrievedAt`). تاریخ بازبینی نیز نباید پیش از دریافت همان نسخه باشد (`reviewedAt >= retrievedAt`). تاریخ اثر (`effectiveFrom`) جداگانه نگهداری می‌شود و ممکن است طبق حکم صریح سند با تاریخ انتشار یکسان نباشد؛ این کنترل صرفاً ترتیب زمانی مشاهده و بازبینی را می‌سنجد و درباره اثر عطف‌به‌ماسبق نتیجه‌گیری نمی‌کند.
+
