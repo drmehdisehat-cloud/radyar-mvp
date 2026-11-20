@@ -35,6 +35,8 @@
 
 نمونه زیر نام تمام گزینه‌های لازم را مطابق `scripts/preview-release-preflight.cjs` نشان می‌دهد. مسیرها و اثرانگشت‌ها نمونه‌اند و باید با شواهد واقعی همان اجرای مستقل جایگزین شوند:
 
+پیش از اجرا، مالک میزبان باید هش SHA-256 فایل trust store تأییدشده را خارج از فرمان و خارج از ورودی کاربر در محیط سرویس تنظیم کند: `DADYAR_REVIEW_TRUST_STORE_SHA256=64_HEX`. گزینه `--expected-review-trust-store-sha256` فقط برای کنترل تطابق با این مقدار است و به‌تنهایی ریشه اعتماد محسوب نمی‌شود.
+
 ```sh
 node scripts/preview-release-preflight.cjs \
   --restore-evidence /secure/local/restore-manifest.json \
@@ -66,8 +68,9 @@ node scripts/preview-release-preflight.cjs \
 
 نکات مهم CLI:
 
+- `DADYAR_REVIEW_TRUST_STORE_SHA256` باید خارج از ورودی فرمان و توسط مالک میزبان در محیط سرویس تنظیم شود؛ بدون آن، حتی گواهی امضاشده و هش ارائه‌شده در CLI رد می‌شوند.
 - `--local-human-review-acknowledged` فقط اعلام می‌کند چک‌باکس بازبینی محلی در پیش‌نمایش آفلاین تأیید شده است؛ این گزینه احراز هویت یا امضای بازبین نیست.
-- احراز بازبینی مستقل از طریق `--review-attestation`، `--review-trust-store` و `--expected-review-trust-store-sha256` انجام می‌شود و گواهی به commit، Git blob و artifact دقیق متصل است.
+- احراز بازبینی مستقل از طریق `--review-attestation` و `--review-trust-store` انجام می‌شود و گواهی به commit، Git blob و artifact دقیق متصل است. هش trust store باید از متغیر محیطی `DADYAR_REVIEW_TRUST_STORE_SHA256` که مالک در محیط سرویس تنظیم کرده pin شود؛ گزینه CLI صرفاً کنترل تطابق است.
 - بازیابی بکاپ به چهار فایل واقعی آرشیو، نشانگر، گزارش Restore و probe دیتابیس نیاز دارد. دو امضای Ed25519 و اثرانگشت کلیدهای عمومی نیز باید از کانال مستقل مالک pin شوند.
 - همه فایل‌های شواهد، trust store، امضاها و آرشیو باید بیرون از checkout و Document Root باشند. داده موکل، رمز، API Key و کلید خصوصی وارد Git یا گفتگو نشوند.
 - گزینه‌های قدیمی `--human-review-verified` و `--authenticated-human-review-attested` در CLI فعلی معتبر نیستند و باید رد شوند.
