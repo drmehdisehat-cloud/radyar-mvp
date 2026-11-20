@@ -295,11 +295,11 @@ test('a missing owner-pinned trust-store digest cannot authenticate a reviewer',
   const f = fixture();
   try {
     const args = removeValuePair(baseArgs(f), '--expected-review-trust-store-sha256');
-    const result = run(args);
+    const result = run(args, { ownerPin: null });
     assert.equal(result.status, 1, result.stderr);
     const report = JSON.parse(result.stdout);
     assert.equal(report.reviewAttestation.verified, false);
-    assert.equal(report.reviewAttestation.reason, 'review_trust_store_digest_required');
+    assert.equal(report.reviewAttestation.reason, 'owner_managed_review_trust_store_pin_missing_or_invalid');
     assert.equal(report.deploymentPerformed, false);
   } finally {
     fs.rmSync(f.directory, { recursive: true, force: true });
@@ -310,10 +310,11 @@ test('a substituted trust store is rejected when its bytes differ from the owner
   const f = fixture();
   try {
     const args = baseArgs(f);
+    const ownerPin = digest(fs.readFileSync(f.trustStoreFile));
     const trustStore = JSON.parse(fs.readFileSync(f.trustStoreFile, 'utf8'));
     trustStore.issuer = 'substituted-trust-store';
     fs.writeFileSync(f.trustStoreFile, JSON.stringify(trustStore));
-    const result = run(args);
+    const result = run(args, { ownerPin });
     assert.equal(result.status, 1, result.stderr);
     const report = JSON.parse(result.stdout);
     assert.equal(report.reviewAttestation.verified, false);
@@ -334,7 +335,7 @@ test('malformed and all-zero trust-store digests are rejected', () => {
       const result = run(args);
       assert.equal(result.status, 1, result.stderr);
       const report = JSON.parse(result.stdout);
-      assert.equal(report.reviewAttestation.reason, 'invalid_expected_review_trust_store_sha256');
+      assert.equal(report.reviewAttestation.reason, 'review_trust_store_cli_pin_mismatch');
       assert.equal(report.deploymentPerformed, false);
     }
   } finally {
