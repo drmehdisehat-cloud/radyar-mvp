@@ -136,6 +136,27 @@ function assertEvidenceFilePermissions(stat, label, ownerOnly = false) {
   if (ownerOnly && (stat.mode & 0o077n) !== 0n) throw new Error(label + '_must_be_owner_only');
 }
 
+function assertEvidenceOutsideCheckout(filePath, checkoutRoot = REPO_ROOT, label = 'evidence') {
+  if (typeof filePath !== 'string' || !path.isAbsolute(filePath) || path.resolve(filePath) !== filePath) {
+    throw new Error(label + '_path_must_be_absolute_canonical');
+  }
+  if (typeof checkoutRoot !== 'string' || !path.isAbsolute(checkoutRoot) || path.resolve(checkoutRoot) !== checkoutRoot) {
+    throw new Error('checkout_root_must_be_absolute_canonical');
+  }
+
+  // Resolve the checkout root before comparing it with the already-canonical
+  // evidence path. A checkout reached through a symlink must not make files
+  // inside the real Git tree appear external.
+  const realCheckoutRoot = fs.realpathSync(checkoutRoot);
+  if (!fs.statSync(realCheckoutRoot).isDirectory()) throw new Error('checkout_root_must_be_directory');
+  const realFilePath = fs.realpathSync(filePath);
+  if (realFilePath !== filePath) throw new Error(label + '_path_is_not_canonical');
+  if (isInside(realCheckoutRoot, realFilePath)) {
+    throw new Error(label + '_path_inside_git_checkout');
+  }
+  return true;
+}
+
 function hashExternalEvidenceFile(file, label, maxBytes) {
   if (typeof file !== 'string' || !path.isAbsolute(file) || path.resolve(file) !== file) {
     throw new Error(label + '_path_must_be_absolute_canonical');
@@ -148,7 +169,7 @@ function hashExternalEvidenceFile(file, label, maxBytes) {
   if (!filePathStat.isFile()) throw new Error(label + '_must_be_regular_file');
   const real = fs.realpathSync(file);
   if (real !== file || path.dirname(real) !== canonicalParent) throw new Error(label + '_path_is_not_canonical');
-  if (isInside(REPO_ROOT, real)) throw new Error(label + '_path_inside_git_checkout');
+  assertEvidenceOutsideCheckout(real, REPO_ROOT, label);
   if (!Number.isInteger(fs.constants.O_NOFOLLOW)) throw new Error(label + '_nofollow_open_unavailable');
 
   const flags = fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | (fs.constants.O_NONBLOCK || 0);
