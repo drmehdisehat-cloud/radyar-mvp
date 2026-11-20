@@ -39,3 +39,30 @@ test('owner handoff does not request credentials or private keys in chat', () =>
   assert.doesNotMatch(content, /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/);
   assert.doesNotMatch(content, /\b(?:sk-[A-Za-z0-9]{20,}|gh[pousr]_[A-Za-z0-9]{20,})\b/);
 });
+
+test('IranHost handoff documents every live preview header and keeps the public folder single-file', () => {
+  const checklist = fs.readFileSync(
+    path.resolve(__dirname, '../docs/preview-isolated-restore-operator-checklist.md'),
+    'utf8'
+  );
+  for (const required of [
+    'must contain exactly one file, `index.html`',
+    'do not add an `.htaccess` file',
+    'hosting/vhost level',
+    '`Content-Type: text/html; charset=utf-8`',
+    '`Cache-Control: no-store`',
+    '`Strict-Transport-Security: max-age=31536000`',
+    '`X-Content-Type-Options: nosniff`',
+    '`Content-Security-Policy`',
+    "`frame-ancestors 'none'`",
+    '`X-Frame-Options: DENY`',
+    '`Cross-Origin-Resource-Policy: same-origin`',
+    '`Permissions-Policy: camera=(), microphone=(), geolocation=()`',
+    '`X-Robots-Tag: noindex, nofollow`',
+    '`Referrer-Policy: no-referrer`',
+    '`Content-Disposition` must be absent or exactly `inline`',
+    'Do not set cookies'
+  ]) {
+    assert.ok(checklist.includes(required), 'missing host handoff requirement: ' + required);
+  }
+});
