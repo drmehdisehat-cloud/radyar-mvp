@@ -96,6 +96,15 @@ function hasProviderBoundRestoreAttestation(evidence) {
   return true;
 }
 
+function hasBackupMetadataClaim(evidence) {
+  if (!evidence || typeof evidence !== 'object' || Array.isArray(evidence)) return false;
+  const status = evidence.backup_status ?? evidence.status;
+  const completeLabel = typeof status === 'string' && status.trim().toLowerCase() === 'complete';
+  const archiveSizeReported = Number.isSafeInteger(evidence.archive_size_bytes) &&
+    evidence.archive_size_bytes > 0;
+  return completeLabel || archiveSizeReported;
+}
+
 function hasVerifiedStagingDestination(evidence) {
   if (!evidence || evidence.matched !== true || evidence.destination_outside_document_root !== true ||
       evidence.destination_outside_git_checkout !== true) return false;
@@ -126,8 +135,13 @@ function decidePreviewRelease({
   trustedReviewerAuthenticationAdapterVerified = false
 } = {}) {
   const blockers = [];
-  if (!hasProviderBoundRestoreAttestation(restoreEvidence) || isolatedRestoreVerified !== true)
+  const providerBoundRestoreVerified = hasProviderBoundRestoreAttestation(restoreEvidence);
+  if (!providerBoundRestoreVerified || isolatedRestoreVerified !== true) {
     blockers.push('independent restore attestation incomplete or unverified');
+    if (!providerBoundRestoreVerified && hasBackupMetadataClaim(restoreEvidence)) {
+      blockers.push('backup metadata is not proof of an isolated restore');
+    }
+  }
   if (authenticatedRestoreAttestation !== true)
     blockers.push('two-party restore signatures and independently pinned key fingerprints missing');
   if (!hasVerifiedStagingDestination(destinationEvidence))
