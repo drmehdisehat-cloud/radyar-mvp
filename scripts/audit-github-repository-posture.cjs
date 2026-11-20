@@ -22,32 +22,31 @@ async function getJson(url, fetchImpl, token) {
   return response.json();
 }
 
-function inspectPosture(repository, branch, repoInfo, branchInfo) {
+function inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo) {
   const blockers = [];
   if (repoInfo.full_name !== repository) blockers.push('repository_identity_mismatch');
   if (repoInfo.private !== true) blockers.push('repository_must_be_private');
   if (branchInfo.name !== branch) blockers.push('release_branch_identity_mismatch');
   if (branchInfo.protected !== true) blockers.push('release_branch_protection_disabled');
 
-  const protection = branchInfo.protection;
-  if (!protection || protection.enabled !== true) {
+  if (branchInfo.protected === true && !protectionInfo) {
     blockers.push('branch_protection_details_unavailable');
-  } else {
-    const checks = protection.required_status_checks;
+  } else if (protectionInfo) {
+    const checks = protectionInfo.required_status_checks;
     const contexts = checks && Array.isArray(checks.contexts) ? checks.contexts : [];
-    if (!checks || checks.enforcement_level !== 'everyone' ||
+    if (!checks || !Array.isArray(checks.contexts) ||
         !contexts.some(value => value === REQUIRED_CHECK ||
           (typeof value === 'string' && value.endsWith('/ ' + REQUIRED_CHECK)))) {
       blockers.push('required_dadyar_ci_check_not_enforced');
     }
 
-    const reviews = protection.required_pull_request_reviews;
+    const reviews = protectionInfo.required_pull_request_reviews;
     if (!reviews || !Number.isSafeInteger(reviews.required_approving_review_count) ||
         reviews.required_approving_review_count < 1 || reviews.dismiss_stale_reviews !== true) {
       blockers.push('independent_pull_request_review_policy_missing');
     }
 
-    if (!protection.enforce_admins || protection.enforce_admins.enabled !== true) {
+    if (!protectionInfo.enforce_admins || protectionInfo.enforce_admins.enabled !== true) {
       blockers.push('branch_protection_not_enforced_for_admins');
     }
   }
@@ -98,7 +97,15 @@ async function auditRepositoryPosture({
       getJson(API + '/repos/' + repository, fetchImpl, token),
       getJson(API + '/repos/' + repository + '/branches/' + encodedBranch, fetchImpl, token)
     ]);
-    return inspectPosture(repository, branch, repoInfo, branchInfo);
+    let protectionInfo = null;
+    if (branchInfo.protected === true) {
+      protectionInfo = await getJson(
+        API + '/repos/' + repository + '/branches/' + encodedBranch + '/protection',
+        fetchImpl,
+        token
+      );
+    }
+    return inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo);
   } catch {
     return Object.freeze({
       schema: 'dadyar-github-release-posture-observation-v1',
