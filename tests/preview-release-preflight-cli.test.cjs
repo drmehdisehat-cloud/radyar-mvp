@@ -171,8 +171,20 @@ function fixture() {
   };
 }
 
-function run(args) {
-  return spawnSync(process.execPath, [CLI, ...args], { encoding: 'utf8', timeout: 5000 });
+function run(args, options = {}) {
+  const env = { ...process.env };
+  if (Object.prototype.hasOwnProperty.call(options, 'ownerPin')) {
+    if (options.ownerPin === null) delete env.DADYAR_REVIEW_TRUST_STORE_SHA256;
+    else env.DADYAR_REVIEW_TRUST_STORE_SHA256 = options.ownerPin;
+  } else {
+    const trustIndex = args.indexOf('--review-trust-store');
+    if (trustIndex >= 0 && args[trustIndex + 1]) {
+      env.DADYAR_REVIEW_TRUST_STORE_SHA256 = digest(fs.readFileSync(args[trustIndex + 1]));
+    } else {
+      delete env.DADYAR_REVIEW_TRUST_STORE_SHA256;
+    }
+  }
+  return spawnSync(process.execPath, [CLI, ...args], { encoding: 'utf8', timeout: 5000, env });
 }
 
 function baseArgs(f) {
@@ -702,6 +714,49 @@ test('preflight rejects a group/world-readable human-review attestation before s
     assert.equal(result.status, 2, result.stderr);
     const report = JSON.parse(result.stdout);
     assert.ok(report.blockers.includes('--review-attestation_must_be_owner_only'));
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
+
+test('CLI-provided trust-store digest cannot establish its own trust anchor', () => {
+  const f = fixture();
+  try {
+    const result = run(baseArgs(f), { ownerPin: null });
+    assert.equal(result.status, 1, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.reviewAttestation.verified, false);
+    assert.equal(report.reviewAttestation.reason, 'owner_managed_review_trust_store_pin_missing_or_invalid');
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
+test('owner-pinned trust-store digest mismatch blocks a signed review', () => {
+  const f = fixture();
+  try {
+    const result = run(baseArgs(f), { ownerPin: 'f'.repeat(64) });
+    assert.equal(result.status, 1, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.reviewAttestation.verified, false);
+    assert.equal(report.reviewAttestation.reason, 'review_trust_store_cli_pin_mismatch');
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
+test('owner-pinned environment digest can verify the trust store without a caller-supplied digest', () => {
+  const f = fixture();
+  try {
+    const args = removeValuePair(baseArgs(f), '--expected-review-trust-store-sha256');
+    const result = run(args);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.reviewAttestation.verified, true, result.stderr);
+    assert.equal(report.reviewAttestation.trustStoreSha256, digest(fs.readFileSync(f.trustStoreFile)));
     assert.equal(report.deploymentPerformed, false);
   } finally {
     fs.rmSync(f.directory, { recursive: true, force: true });
