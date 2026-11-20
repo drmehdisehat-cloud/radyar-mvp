@@ -25,9 +25,11 @@ async function getJson(url, fetchImpl, token) {
 function inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo) {
   const blockers = [];
   if (repoInfo.full_name !== repository) blockers.push('repository_identity_mismatch');
-  if (repoInfo.private !== true) blockers.push('repository_must_be_private');
+  if (typeof repoInfo.private !== 'boolean') blockers.push('repository_visibility_unavailable');
+  else if (repoInfo.private !== true) blockers.push('repository_must_be_private');
   if (branchInfo.name !== branch) blockers.push('release_branch_identity_mismatch');
-  if (branchInfo.protected !== true) blockers.push('release_branch_protection_disabled');
+  if (typeof branchInfo.protected !== 'boolean') blockers.push('release_branch_protection_status_unavailable');
+  else if (branchInfo.protected !== true) blockers.push('release_branch_protection_disabled');
 
   if (branchInfo.protected === true && !protectionInfo) {
     blockers.push('branch_protection_details_unavailable');
@@ -58,9 +60,9 @@ function inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo
     schema: 'dadyar-github-release-posture-observation-v1',
     status: blockers.length ? 'NOT_READY' : 'POSTURE_VERIFIED',
     repository,
-    visibility: repoInfo.private === true ? 'private' : 'public-or-unknown',
+    visibility: repoInfo.private === true ? 'private' : repoInfo.private === false ? 'public' : 'unknown',
     branch,
-    branchProtected: branchInfo.protected === true,
+    branchProtected: typeof branchInfo.protected === 'boolean' ? branchInfo.protected : null,
     headSha: branchInfo.commit && typeof branchInfo.commit.sha === 'string'
       ? branchInfo.commit.sha : null,
     blockers: Object.freeze(blockers),

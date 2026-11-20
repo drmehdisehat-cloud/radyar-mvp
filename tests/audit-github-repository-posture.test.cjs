@@ -72,6 +72,26 @@ test('blocks the currently public repository posture', async () => {
   assert.equal(result.deploymentAuthorized, false);
 });
 
+test('reports unknown repository visibility without mislabelling it public', async () => {
+  const fixtures = verifiedFixtures();
+  delete fixtures.repository.private;
+  const result = await auditRepositoryPosture({ fetchImpl: fakeFetch(fixtures) });
+  assert.equal(result.status, 'NOT_READY');
+  assert.equal(result.visibility, 'unknown');
+  assert.ok(result.blockers.includes('repository_visibility_unavailable'));
+  assert.ok(!result.blockers.includes('repository_must_be_private'));
+});
+
+test('reports unknown branch protection without claiming it is disabled', async () => {
+  const fixtures = verifiedFixtures();
+  delete fixtures.branch.protected;
+  const result = await auditRepositoryPosture({ fetchImpl: fakeFetch(fixtures) });
+  assert.equal(result.status, 'NOT_READY');
+  assert.equal(result.branchProtected, null);
+  assert.ok(result.blockers.includes('release_branch_protection_status_unavailable'));
+  assert.ok(!result.blockers.includes('release_branch_protection_disabled'));
+});
+
 test('blocks an unprotected release branch even when repository visibility is private', async () => {
   const fixtures = verifiedFixtures();
   fixtures.branch.protected = false;
