@@ -89,6 +89,13 @@ test('uses the new version exactly at an amendment effective-date boundary', () 
   assert.equal(resolve([oldVersion, newVersion], '2024-07-01').source.id, 'cheque-v2');
 });
 
+test('refuses to project a currently known version onto a future event date', () => {
+  const result = resolve([verified()], '2026-11-13', '2026-11-12');
+  assert.equal(result.status, 'invalid_request');
+  assert.equal(result.reason, 'event_date_after_as_of_date');
+  assert.equal(result.legalConclusionPermitted, false);
+});
+
 test('does not select research-only records even when an official-looking URL exists', () => {
   const candidate = verified({
     status: 'research-only',

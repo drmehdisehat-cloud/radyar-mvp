@@ -174,6 +174,15 @@ function resolveLegalVersion(records, options = {}) {
       !validDate(eventDate) || !validDate(asOfDate)) {
     return { status: 'invalid_request', legalConclusionPermitted: false };
   }
+  // Do not project today's known law onto a future event. A later amendment or
+  // commencement may change the applicable version before that event occurs.
+  if (eventDate > asOfDate) {
+    return {
+      status: 'invalid_request',
+      reason: 'event_date_after_as_of_date',
+      legalConclusionPermitted: false
+    };
+  }
   const candidates = records.filter(record =>
     record && record.topic === topic &&
     record.instrumentId === instrumentId &&
