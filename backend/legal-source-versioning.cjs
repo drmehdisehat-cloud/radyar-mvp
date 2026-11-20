@@ -121,6 +121,13 @@ function validateSourceVersion(record, asOfDate) {
     if (!validDate(record[key])) issues.push('invalid_' + key);
     else if (validDate(asOfDate) && record[key] > asOfDate) issues.push('future_' + key);
   }
+  // A document cannot be retrieved before its stated official publication date.
+  // Keep this chronology check separate from effectiveFrom: some instruments
+  // may expressly have retroactive effect, but retrieval cannot predate publication.
+  if (validDate(record.publicationDate) && validDate(record.retrievedAt) &&
+      record.publicationDate > record.retrievedAt) {
+    issues.push('publication_after_retrieval');
+  }
   if (record.effectiveTo !== null &&
       (!validDate(record.effectiveTo) || (validDate(record.effectiveFrom) && record.effectiveTo <= record.effectiveFrom))) {
     issues.push('invalid_effective_to');
@@ -142,6 +149,10 @@ function validateSourceVersion(record, asOfDate) {
     if (review.decision !== 'approved') issues.push('human_review_not_approved');
     if (!validDate(review.reviewedAt)) issues.push('invalid_reviewed_at');
     else if (validDate(asOfDate) && review.reviewedAt > asOfDate) issues.push('future_reviewed_at');
+    if (validDate(review.reviewedAt) && validDate(record.retrievedAt) &&
+        review.reviewedAt < record.retrievedAt) {
+      issues.push('review_before_retrieval');
+    }
     if (!SHA256.test(String(review.reviewedTextSha256 || '')) ||
         !SHA256.test(String(record.textSha256 || '')) ||
         String(review.reviewedTextSha256).toLowerCase() !== String(record.textSha256).toLowerCase()) {
