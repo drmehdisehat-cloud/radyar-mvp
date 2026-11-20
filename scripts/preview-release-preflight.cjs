@@ -32,7 +32,8 @@ const USAGE = [
   '    --expected-source-blob-sha1 40_HEX',
   '    --review-attestation ABSOLUTE_JSON_PATH --review-trust-store ABSOLUTE_JSON_PATH',
   '    --expected-source-commit 40_HEX --expected-artifact-sha256 64_HEX',
-  '    --expected-review-trust-store-sha256 64_HEX',
+  '    --expected-review-trust-store-sha256 64_HEX (optional consistency check)',
+  '  Owner-controlled environment pin: DADYAR_REVIEW_TRUST_STORE_SHA256=64_HEX',
   '    --isolated-restore-verified --mobile-browser-verified',
   '    --zero-api-requests-verified --local-human-review-acknowledged',
   '',
@@ -41,7 +42,8 @@ const USAGE = [
   'On POSIX, JSON evidence, attestations and trust stores must be root/service-owned and owner-only (0600/0400), without special bits.',
   'The restored marker must be inside the isolated restore target; the preview destination must be outside production and checkout.',
   'The detached Ed25519 signature is checked against the supplied trust store.',
-  'This script never deploys and does not independently establish the trust-store origin or human identity.'
+  'The trust-store digest is anchored by the owner-controlled DADYAR_REVIEW_TRUST_STORE_SHA256 environment setting; the CLI digest is only an optional consistency check.',
+  'This script never deploys and does not independently establish human identity or the organizational independence of a key holder.'
 ].join('\n');
 
 const FLAG_NAMES = new Set([
@@ -139,6 +141,21 @@ function readEvidenceRecord(flag, file) {
 
 function readEvidence(flag, file) {
   return readEvidenceRecord(flag, file).value;
+}
+
+function resolveOwnerPinnedReviewTrustStoreSha256(cliValue, env = process.env) {
+  const configured = env && env.DADYAR_REVIEW_TRUST_STORE_SHA256;
+  if (typeof configured !== 'string' || !/^[a-f0-9]{64}$/i.test(configured) ||
+      /^0{64}$/i.test(configured)) {
+    return { digest: null, reason: 'owner_managed_review_trust_store_pin_missing_or_invalid' };
+  }
+  const digest = configured.toLowerCase();
+  if (cliValue !== undefined &&
+      (typeof cliValue !== 'string' || !/^[a-f0-9]{64}$/i.test(cliValue) ||
+       cliValue.toLowerCase() !== digest)) {
+    return { digest: null, reason: 'review_trust_store_cli_pin_mismatch' };
+  }
+  return { digest, reason: null };
 }
 
 function parseArgs(argv) {
@@ -267,12 +284,18 @@ function main(argv) {
       restoreAttestation = { verified: false, reason: 'restore_attestation_inputs_incomplete' };
     }
 
-    let review = { verified: false, reason: 'review_attestation_and_trust_store_required' };
+    const ownerTrustPin = resolveOwnerPinnedReviewTrustStoreSha256(
+      args.values['--expected-review-trust-store-sha256']
+    );
+    let review = {
+      verified: false,
+      reason: ownerTrustPin.reason || 'review_attestation_and_trust_store_required'
+    };
     const reviewPath = args.paths['--review-attestation'];
     const trustPath = args.paths['--review-trust-store'];
     const expectedSourceCommit = args.values['--expected-source-commit'];
     const expectedArtifactSha256 = args.values['--expected-artifact-sha256'];
-    const expectedTrustStoreSha256 = args.values['--expected-review-trust-store-sha256'];
+    const expectedTrustStoreSha256 = ownerTrustPin.digest;
     const hasCoreReviewInputs = reviewPath && trustPath && expectedSourceCommit && expectedArtifactSha256;
     if (hasCoreReviewInputs && expectedTrustStoreSha256) {
       const attestation = readEvidence('--review-attestation', reviewPath);
@@ -362,4 +385,4 @@ function main(argv) {
   }
 }
 if (require.main === module) process.exitCode = main(process.argv.slice(2));
-module.exports = { main, parseArgs, readEvidence, readEvidenceRecord };
+module.exports = { main, parseArgs, readEvidence, readEvidenceRecord, resolveOwnerPinnedReviewTrustStoreSha256 };
