@@ -5,7 +5,7 @@
 const API = 'https://api.github.com';
 const EXPECTED_REPOSITORY = 'drmehdisehat-cloud/radyar-mvp';
 const EXPECTED_BRANCH = 'dadyar/ai-chat-private-20261101';
-const REQUIRED_CHECK = 'verify-existing-frontend';
+const REQUIRED_CHECK = 'Dadyar stage-0 experimental CI / verify-existing-frontend';
 
 async function getJson(url, fetchImpl, token) {
   const headers = {
@@ -34,10 +34,13 @@ function inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo
   } else if (protectionInfo) {
     const checks = protectionInfo.required_status_checks;
     const contexts = checks && Array.isArray(checks.contexts) ? checks.contexts : [];
-    if (!checks || !Array.isArray(checks.contexts) ||
-        !contexts.some(value => value === REQUIRED_CHECK ||
-          (typeof value === 'string' && value.endsWith('/ ' + REQUIRED_CHECK)))) {
+    if (!checks || !Array.isArray(checks.contexts) || !contexts.includes(REQUIRED_CHECK)) {
       blockers.push('required_dadyar_ci_check_not_enforced');
+    }
+    // The check must be strict: a branch that is allowed to lag behind its base
+    // can otherwise satisfy a stale success from a different merge base.
+    if (!checks || checks.strict !== true) {
+      blockers.push('required_dadyar_ci_check_not_strict');
     }
 
     const reviews = protectionInfo.required_pull_request_reviews;
