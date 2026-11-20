@@ -147,7 +147,8 @@ function createSignedReviewReleaseGate(options = {}) {
     }
     if (principal.independent !== true ||
         !Array.isArray(principal.roles) ||
-        !principal.roles.includes('preview-reviewer') ||
+        principal.roles.length !== 1 ||
+        principal.roles[0] !== 'preview-reviewer' ||
         typeof principal.issuer !== 'string' ||
         principal.issuer !== pinnedTrustStore.issuer ||
         typeof principal.subject !== 'string' ||
