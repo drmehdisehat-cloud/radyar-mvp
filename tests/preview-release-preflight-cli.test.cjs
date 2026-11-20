@@ -763,3 +763,41 @@ test('owner-pinned environment digest can verify the trust store without a calle
     fs.rmSync(f.directory, { recursive: true, force: true });
   }
 });
+
+
+test('a correct CLI trust-store digest cannot replace the owner-managed environment pin', () => {
+  const f = fixture();
+  try {
+    const args = baseArgs(f);
+    // baseArgs includes the correct digest, but no owner-managed environment pin is supplied.
+    const result = run(args, { ownerPin: null });
+    assert.equal(result.status, 1, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.reviewAttestation.verified, false);
+    assert.equal(report.reviewAttestation.reason, 'owner_managed_review_trust_store_pin_missing_or_invalid');
+    assert.equal(report.deploymentAuthorized, false);
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
+test('a valid but substituted CLI trust-store digest cannot override the owner-managed pin', () => {
+  const f = fixture();
+  try {
+    const args = baseArgs(f);
+    const ownerPin = digest(fs.readFileSync(f.trustStoreFile));
+    const index = args.indexOf('--expected-review-trust-store-sha256') + 1;
+    assert.ok(index > 0);
+    args[index] = ownerPin === 'f'.repeat(64) ? 'e'.repeat(64) : 'f'.repeat(64);
+    const result = run(args, { ownerPin });
+    assert.equal(result.status, 1, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.reviewAttestation.verified, false);
+    assert.equal(report.reviewAttestation.reason, 'review_trust_store_cli_pin_mismatch');
+    assert.equal(report.deploymentAuthorized, false);
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
