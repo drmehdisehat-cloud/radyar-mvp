@@ -13,7 +13,7 @@
 - \`now\`: ساعت قابل تزریق برای آزمون؛ در اجرا باید ساعت سیستم میزبان معتبر باشد.
 - کوکی ثابت \`__Host-dadyar-review-session\` است. سرویس هویت بالادستی باید آن را با \`Secure\`, \`HttpOnly\`, \`Path=/\` و \`SameSite=Strict\` صادر کند.
 
-JWT باید \`alg=RS256\`, \`typ=JWT\`, \`iss\`, \`sub\`, \`aud\`, \`iat\`, \`exp\`, \`roles\` و \`reviewer_independent=true\` داشته باشد. اگر audience چندگانه است، \`azp\` باید دقیقاً برابر audience مورد انتظار باشد. نقش \`preview-reviewer\` اجباری است. زمان عمر و تازگی توکن محدود است.
+JWT باید \`alg=RS256\`, \`typ=JWT\`, \`iss\`, \`sub\`, \`aud\`, \`iat\`, \`exp\`, \`roles\` و \`reviewer_independent=true\` داشته باشد. اگر audience چندگانه است، \`azp\` باید دقیقاً برابر audience مورد انتظار باشد. نقش \`preview-reviewer\` باید تنها عضو آرایه roles باشد؛ نقش اضافه، حتی اگر از نظر قالب معتبر باشد (مانند admin یا legal-reviewer)، رد می‌شود تا ادعای مجوز اضافی به مصرف‌کنندگان بعدی principal منتقل نشود. زمان عمر و تازگی توکن محدود است.
 
 ## اتصال آزمایشی به دروازه
 
