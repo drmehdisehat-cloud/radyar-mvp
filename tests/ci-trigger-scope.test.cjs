@@ -33,6 +33,7 @@ test('experimental CI push and pull-request scopes are explicit and documented',
   ]);
   assert.deepEqual(pullRequestBranches, [
     'main',
+    'dadyar/ai-chat-private-20261101',
     'dadyar/mvp-sync-028',
     'dadyar/replay-ledger-ci-base-20261117',
     'dadyar/signed-gate-review-base-20261117',
