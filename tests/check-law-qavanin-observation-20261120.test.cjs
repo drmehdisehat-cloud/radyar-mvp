@@ -48,12 +48,18 @@ test('the 1403 approval date is not treated as Gazette publication or commenceme
   assert.match(status.dateMeaning, /not, by itself, a Gazette publication date or commencement date/);
 });
 
-test('the readable 1400 amendment remains non-authorizing until bytes and human review are bound', () => {
+test('the 1400 amendment remains non-authorizing until bytes and human review are bound', () => {
   const amendment = observation.observations.amendment1400;
   assert.equal(amendment.textRendered, true);
+  assert.equal(amendment.sourceObservationDate, '2026-11-20');
+  assert.deepEqual(amendment.officialTextLines, [42, 55]);
+  assert.match(amendment.provisionsObserved.article2, /after the end of Esfand 1399/);
+  assert.equal(amendment.metadataObservation.retrievalResult, 'readable');
+  assert.deepEqual(amendment.metadataObservation.lines, [19, 34]);
   assert.equal(amendment.metadataObservation.officialGazetteNumberShown, '22188');
   assert.equal(amendment.metadataObservation.effectiveDateShown, '1400/03/18');
   assert.equal(amendment.metadataObservation.rawHttpBytesCaptured, false);
+  assert.equal(amendment.metadataObservation.officialGazetteIssueBytesRetrieved, false);
   assert.equal(amendment.humanReviewStatus, 'pending');
   assert.equal(amendment.legalAnswerUsePermitted, false);
 });

@@ -76,17 +76,32 @@
       "directTextUrl": "https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689",
       "approvalDateShown": "1400/01/29",
       "guardianCouncilConfirmationDateShown": "1400/02/18",
+      "sourceObservationDate": "2026-11-20",
+      "instrumentType": "parliamentary-amending-act",
+      "authorityShown": "مجلس شوراي اسلامي",
       "textRendered": true,
-      "lines": [42, 55],
+      "officialTextLines": [42, 55],
+      "provisionsObserved": {
+        "article1": "Removes the cheque validity-period phrases and the three-year maximum period from Article 6 of the Cheque Issuance Act.",
+        "article2": "Changes the transitional rule for Article 21 bis by tying the new Sayad registration regime to cheque leaves from cheque books supplied after the end of Esfand 1399; older cheque books remain subject to the earlier rule described in the amendment.",
+        "article3": "Adds Article 24 governing guaranteed cheques.",
+        "finalLegislativeNote": "The portal text states approval by Parliament on 1400/01/29 and Guardian Council confirmation on 1400/02/18."
+      },
       "metadataObservation": {
-        "sourceObservationDate": "2026-11-19",
+        "sourceObservationDate": "2026-11-20",
+        "sourceUrl": "https://qavanin.ir/Law/Attribute/?IDS=8508483613671622689",
+        "retrievalResult": "readable",
+        "lines": [19, 34],
         "officialGazetteNumberShown": "22188",
         "officialGazettePublicationDateShown": "1400/03/02",
         "promulgationDateShown": "1400/02/28",
         "effectiveDateShown": "1400/03/18",
+        "officialGazetteIssueBytesRetrieved": false,
         "rawHttpBytesCaptured": false,
         "rawResponseSha256": null
       },
+      "rawHttpBytesCaptured": false,
+      "rawResponseSha256": null,
       "humanReviewStatus": "pending",
       "legalAnswerUsePermitted": false
     }
@@ -99,11 +114,11 @@
     "The official portal's current consolidated text is readable, but raw response bytes and a reproducible SHA-256 were not captured.",
     "The 1403 instrument's direct text endpoint timed out. Its official Qavanin metadata page rendered Gazette number 23097, publication date 1403/04/23 and execution date 1403/05/08, but the Gazette issue bytes and signed appendix were not independently retrieved.",
     "The secondary reported 1403/05/07 date conflicts with the official Qavanin metadata's 1403/05/08 execution-date display; the conflict remains unresolved for event-date application.",
-    "The 1400 amendment text and metadata remain research observations only because raw bytes and text-bound human review are absent.",
+    "The 1400 amendment text and metadata were rendered from official Qavanin pages on 2026-11-20, but raw response bytes, a reproducible SHA-256 and text-bound human review are absent.",
     "No non-overlapping event-date version has been approved, and no qualified human legal review is recorded."
   ],
   "nextActions": [
-    "Capture raw official response bytes for the consolidated law, the 1400 amendment and the 1403 regulation text from a reproducible primary endpoint; record retrieval time and SHA-256.",
+    "Capture raw official response bytes for the consolidated law, the 1400 amendment and the 1403 regulation text from reproducible primary endpoints; record retrieval time and SHA-256.",
     "Retrieve the signed 1403 regulation and official Gazette issue 23097; reconcile the portal-observed 1403/05/08 execution date with the secondary 1403/05/07 lead, then verify temporal and transitional application.",
     "Complete the full amendment chain and transitional-rule analysis before creating eventDateVersions.",
     "Obtain independent legal review bound to the exact text SHA-256 and record reviewer identity, date and decision."
