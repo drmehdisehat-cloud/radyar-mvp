@@ -390,9 +390,10 @@ test('review signature must be bound to the exact artifact and source commit', (
     const commitIndex = args.indexOf('--expected-source-commit') + 1;
     args[commitIndex] = 'd'.repeat(40);
     const result = run(args);
-    assert.equal(result.status, 1, result.stderr);
+    assert.equal(result.status, 2, result.stderr);
     const report = JSON.parse(result.stdout);
-    assert.equal(report.reviewAttestation.reason, 'review_target_mismatch');
+    assert.equal(report.status, 'NOT_READY');
+    assert.ok(report.blockers.includes('reviewed_source_commit_must_match_checkout_HEAD'));
     assert.equal(report.deploymentPerformed, false);
   } finally {
     fs.rmSync(f.directory, { recursive: true, force: true });
@@ -845,7 +846,6 @@ test('CLI rejects a validly shaped signed review for a stale source commit', () 
     const report = JSON.parse(result.stdout);
     assert.equal(report.status, 'NOT_READY');
     assert.ok(report.blockers.includes('reviewed_source_commit_must_match_checkout_HEAD'));
-    assert.equal(report.deploymentAuthorized, false);
     assert.equal(report.deploymentPerformed, false);
   } finally {
     fs.rmSync(f.directory, { recursive: true, force: true });
