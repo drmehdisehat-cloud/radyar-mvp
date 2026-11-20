@@ -5,8 +5,9 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const { spawnSync } = require('node:child_process');
+const { spawnSync, execFileSync } = require('node:child_process');
 const { canonicalizePayload } = require('../scripts/verify-human-review-attestation.cjs');
+const { verifyReviewedSourceCommit } = require('../scripts/preview-release-preflight.cjs');
 const { canonicalizeManifest } = require('../scripts/verify-restore-attestation-signatures.cjs');
 
 const CLI = path.join(__dirname, '../scripts/preview-release-preflight.cjs');
@@ -95,7 +96,9 @@ function fixture() {
   const sourcePreview = path.join(path.resolve(__dirname, '..'), 'dadyar-preview', 'index.html');
   const sourceBytes = fs.readFileSync(sourcePreview);
   const sourceHash = digest(sourceBytes);
-  const sourceCommit = 'c'.repeat(40);
+  const sourceCommit = execFileSync('git', ['rev-parse', '--verify', 'HEAD^{commit}'], {
+    cwd: path.resolve(__dirname, '..'), encoding: 'utf8'
+  }).trim();
   const sourceBlobSha = gitBlobSha1(sourceBytes);
   const stagingDirectory = path.join(directory, 'isolated-staging', 'dadyar-preview');
   fs.mkdirSync(stagingDirectory, { recursive: true, mode: 0o700 });
@@ -801,3 +804,51 @@ test('a valid but substituted CLI trust-store digest cannot override the owner-m
     fs.rmSync(f.directory, { recursive: true, force: true });
   }
 });
+
+test('review approval is bound to the exact checkout HEAD and committed preview blob', () => {
+  const f = fixture();
+  try {
+    const verified = verifyReviewedSourceCommit(f.sourceCommit, f.sourceBlobSha);
+    assert.deepEqual(verified, {
+      verified: true,
+      commit: f.sourceCommit.toLowerCase(),
+      blob_sha1: f.sourceBlobSha.toLowerCase()
+    });
+    const wrongBlob = (f.sourceBlobSha[0] === '0' ? '1' : '0') + f.sourceBlobSha.slice(1);
+    assert.throws(
+      () => verifyReviewedSourceCommit(f.sourceCommit, wrongBlob),
+      /reviewed_source_commit_blob_mismatch/
+    );
+    const parentCommit = execFileSync('git', ['rev-parse', '--verify', 'HEAD^'], {
+      cwd: path.resolve(__dirname, '..'), encoding: 'utf8'
+    }).trim();
+    assert.throws(
+      () => verifyReviewedSourceCommit(parentCommit, f.sourceBlobSha),
+      /reviewed_source_commit_must_match_checkout_HEAD/
+    );
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
+test('CLI rejects a validly shaped signed review for a stale source commit', () => {
+  const f = fixture();
+  try {
+    const args = baseArgs(f);
+    const index = args.indexOf('--expected-source-commit') + 1;
+    assert.ok(index > 0);
+    args[index] = execFileSync('git', ['rev-parse', '--verify', 'HEAD^'], {
+      cwd: path.resolve(__dirname, '..'), encoding: 'utf8'
+    }).trim();
+    const result = run(args);
+    assert.equal(result.status, 2, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.status, 'NOT_READY');
+    assert.ok(report.blockers.includes('reviewed_source_commit_must_match_checkout_HEAD'));
+    assert.equal(report.deploymentAuthorized, false);
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
