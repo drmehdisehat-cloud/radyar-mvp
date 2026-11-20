@@ -1,6 +1,7 @@
 'use strict';
 // Local, read-only release preflight. This script never deploys or writes evidence.
 const fs = require('node:fs');
+const { execFileSync } = require('node:child_process');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { TextDecoder } = require('node:util');
@@ -14,6 +15,38 @@ const { verifyRestoreEvidenceBundle } = require('./verify-restore-evidence-bundl
 const { verifyPreview } = require('./verify-preview-destination.cjs');
 
 const REPO_ROOT = path.resolve(__dirname, '..');
+
+// Bind a signed review to the exact checkout being preflighted, not merely to
+// a caller-supplied 40-hex label and a separately matching local file.
+function verifyReviewedSourceCommit(expectedCommit, expectedBlobSha1) {
+  const commit = typeof expectedCommit === 'string' ? expectedCommit.toLowerCase() : '';
+  const blob = typeof expectedBlobSha1 === 'string' ? expectedBlobSha1.toLowerCase() : '';
+  if (!/^[a-f0-9]{40}$/.test(commit) || /^0{40}$/.test(commit)) {
+    throw new Error('invalid_reviewed_source_commit');
+  }
+  if (!/^[a-f0-9]{40}$/.test(blob) || /^0{40}$/.test(blob)) {
+    throw new Error('invalid_reviewed_source_blob_sha1');
+  }
+  const git = (...args) => {
+    try {
+      return execFileSync('git', args, {
+        cwd: REPO_ROOT,
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe']
+      }).trim().toLowerCase();
+    } catch {
+      throw new Error('reviewed_source_git_verification_failed');
+    }
+  };
+  const head = git('rev-parse', '--verify', 'HEAD^{commit}');
+  if (head !== commit) throw new Error('reviewed_source_commit_must_match_checkout_HEAD');
+  const committedBlob = git('rev-parse', '--verify', commit + ':dadyar-preview/index.html');
+  if (!/^[a-f0-9]{40}$/.test(committedBlob)) {
+    throw new Error('reviewed_source_commit_preview_blob_invalid');
+  }
+  if (committedBlob !== blob) throw new Error('reviewed_source_commit_blob_mismatch');
+  return Object.freeze({ verified: true, commit: head, blob_sha1: committedBlob });
+}
 const MAX_EVIDENCE_BYTES = 64 * 1024;
 const MAX_PUBLIC_KEY_BYTES = 16 * 1024;
 const MAX_SIGNATURE_BYTES = 64;
@@ -298,6 +331,9 @@ function main(argv) {
     const expectedTrustStoreSha256 = ownerTrustPin.digest;
     const hasCoreReviewInputs = reviewPath && trustPath && expectedSourceCommit && expectedArtifactSha256;
     if (hasCoreReviewInputs && expectedTrustStoreSha256) {
+      const sourceCheckout = verifyReviewedSourceCommit(
+        expectedSourceCommit, verifiedDestination.expected_source_blob_sha1
+      );
       const attestation = readEvidence('--review-attestation', reviewPath);
       const trustStoreRecord = readEvidenceRecord('--review-trust-store', trustPath);
       if (!/^[a-f0-9]{64}$/i.test(expectedTrustStoreSha256) || /^0{64}$/i.test(expectedTrustStoreSha256)) {
@@ -316,7 +352,10 @@ function main(argv) {
               expectedSourceBlobSha1: verifiedDestination.expected_source_blob_sha1,
               expectedArtifactSha256
             }),
-            trustStoreSha256: trustStoreRecord.sha256
+            trustStoreSha256: trustStoreRecord.sha256,
+            sourceCheckoutVerified: sourceCheckout.verified,
+            sourceCheckoutCommit: sourceCheckout.commit,
+            sourceCheckoutBlobSha1: sourceCheckout.blob_sha1
           };
         }
       }
@@ -369,8 +408,12 @@ function main(argv) {
         reviewId: review.reviewId,
         reviewedAt: review.reviewedAt,
         expiresAt: review.expiresAt,
+        sourceCommit: review.sourceCommit,
         sourceBlobSha1: review.sourceBlobSha1,
-        trustStoreSha256: review.trustStoreSha256
+        trustStoreSha256: review.trustStoreSha256,
+        sourceCheckoutVerified: review.sourceCheckoutVerified,
+        sourceCheckoutCommit: review.sourceCheckoutCommit,
+        sourceCheckoutBlobSha1: review.sourceCheckoutBlobSha1
       } : { verified: false, reason: review.reason },
       deploymentPerformed: false,
       note: 'امضای دوطرفه اظهارنامه بازیابی و تطبیق اثرانگشت کلیدها بررسی می‌شود؛ بایت‌های آرشیو، نشانگر بازیابی، گزارش Restore و probe دیتابیس نیز با هش‌های manifest مقایسه می‌شوند. فایل منبع و مقصد پیش‌نمایش از مسیر واقعی دوباره خوانده و هش می‌شوند. این بررسی‌ها هویت واقعی اشخاص، وقوع مستقل Restore، سلامت عملیاتی دیتابیس، پاسخ HTTPS زنده یا مجوز مالک را اثبات نمی‌کنند. این ابزار هرگز مجوز انتشار صادر نمی‌کند.'
@@ -388,4 +431,4 @@ function main(argv) {
   }
 }
 if (require.main === module) process.exitCode = main(process.argv.slice(2));
-module.exports = { main, parseArgs, readEvidence, readEvidenceRecord, resolveOwnerPinnedReviewTrustStoreSha256 };
+module.exports = { main, parseArgs, readEvidence, readEvidenceRecord, resolveOwnerPinnedReviewTrustStoreSha256, verifyReviewedSourceCommit };
