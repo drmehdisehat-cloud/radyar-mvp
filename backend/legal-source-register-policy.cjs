@@ -36,6 +36,17 @@ function directOfficialDocumentUrl(value, documentId) {
     return code <= 0x20 || code === 0x7f;
   })) return false;
 
+  const rawPathMatch = value.match(/^https:\/\/[^/?#]+([^?#]*)/i);
+  const rawPath = rawPathMatch && rawPathMatch[1] ? rawPathMatch[1] : '/';
+  // Reject path aliases normalized by URL(), including dot segments,
+  // backslashes, repeated separators and percent-encoded path spellings.
+  const canonicalRawPath = rawPath === url.pathname &&
+    !rawPath.includes('\\') &&
+    !rawPath.includes('//') &&
+    !/%[0-9a-f]{2}/i.test(rawPath) &&
+    !rawPath.split('/').some(segment => segment === '.' || segment === '..');
+  if (!canonicalRawPath) return false;
+
   const pathSegments = url.pathname.split('/').filter(Boolean).map(segment => {
     try { return decodeURIComponent(segment); } catch { return '\uFFFD'; }
   });
@@ -49,8 +60,6 @@ function directOfficialDocumentUrl(value, documentId) {
     // WHATWG URL parsing normalizes dot segments and backslash aliases before
     // exposing pathname. Compare the original raw path as well, so a URL such
     // as /Law/../Law/TreeText/ cannot masquerade as the canonical law-text URL.
-    const rawPathMatch = value.match(/^https:\/\/[^/?#]+([^?#]*)/i);
-    const rawPath = rawPathMatch && rawPathMatch[1] ? rawPathMatch[1] : '/';
     const ids = queryEntries.filter(([key]) => key === 'IDS');
     if (rawPath !== '/Law/TreeText/' || url.pathname !== '/Law/TreeText/' ||
         pathMatches !== 0 || queryMatches !== 1 || queryEntries.length !== 1 ||
