@@ -120,7 +120,38 @@
           "approvalDateShown": "1403/03/30",
           "humanReviewStatus": "pending",
           "useInLegalAnswers": false,
-          "note": "فهرست تنقیحی رسمی قانون، این مصوبه را با تاریخ تصویب ۱۴۰۳/۰۳/۳۰ به‌عنوان قانون اثرگذار معرفی می‌کند؛ واکشی مستقیم متن در همین تاریخ timeout شد. برچسب اصلاحی ماده ۷ در متن تجمیعی به‌تنهایی شماره/تاریخ روزنامه رسمی یا تاریخ لازم‌الاجراشدن را اثبات نمی‌کند."
+          "note": "فهرست تنقیحی رسمی قانون، این مصوبه را با تاریخ تصویب ۱۴۰۳/۰۳/۳۰ به‌عنوان قانون اثرگذار معرفی می‌کند؛ واکشی مستقیم متن در همین تاریخ timeout شد. برچسب اصلاحی ماده ۷ در متن تجمیعی به‌تنهایی شماره/تاریخ روزنامه رسمی یا تاریخ لازم‌الاجراشدن را اثبات نمی‌کند.",
+          "latestRecheck": {
+            "observedAt": "2026-11-21",
+            "sourceClass": "primary-official-qavanin",
+            "directTextUrl": "https://qavanin.ir/Law/TreeText/?IDS=634882870797924421",
+            "directMetadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=634882870797924421",
+            "textPageRendered": true,
+            "textPageLines": [
+              7,
+              45
+            ],
+            "chequeArticle7TableLines": [
+              787,
+              793
+            ],
+            "metadataPageRendered": true,
+            "metadataPageLines": [
+              19,
+              34
+            ],
+            "officialGazetteNumberShown": "23097",
+            "officialGazettePublicationDateShown": "1403/04/23",
+            "promulgationDateShown": "1403/04/04",
+            "effectiveDateShown": "1403/05/08",
+            "decisionNumberShown": "56261/ت62298هـ",
+            "rawHttpBytesCaptured": false,
+            "rawResponseSha256": null,
+            "primarySourceVerified": false,
+            "humanReviewStatus": "pending",
+            "useInLegalAnswers": false,
+            "note": "The official portal rendered the regulation text and metadata on 2026-11-21. The Gazette issue bytes and signed appendix were not independently downloaded or hashed; the earlier timeout is retained as a historical observation."
+          }
         },
         {
           "url": "https://qavanin.ir/Law/TreeText/?IDS=16863897128756457315",
@@ -315,7 +346,21 @@
           "Retrieve the 1403 amendment's official text, Gazette issue, publication date and effective date from a readable primary endpoint.",
           "Build non-overlapping eventDateVersions only after the full amendment chain and transitional rules are proven.",
           "Obtain independent human review bound to the exact text SHA-256."
-        ]
+        ],
+        "latest1403Recheck": {
+          "file": "docs/check-law-1403-threshold-observation-20261121.json",
+          "observedAt": "2026-11-21",
+          "directTextPageRendered": true,
+          "directMetadataPageRendered": true,
+          "officialGazetteNumberShown": "23097",
+          "officialGazettePublicationDateShown": "1403/04/23",
+          "effectiveDateShown": "1403/05/08",
+          "rawHttpBytesCaptured": false,
+          "rawResponseSha256": null,
+          "primarySourceVerified": false,
+          "humanReviewStatus": "pending",
+          "legalAnswerUsePermitted": false
+        }
       },
       "latestOfficialStatusLabelShown": "اصلاحي 1403/03/30",
       "latestIndependentObservation": {
