@@ -211,6 +211,12 @@ test('requires the signed preview-reviewer role and an explicit independence cla
     ...f.payload, roles: ['observer']
   })));
   await rejectsAuthentication(authenticate, f.request(f.token({
+    ...f.payload, roles: ['preview-reviewer', 'admin']
+  })));
+  await rejectsAuthentication(authenticate, f.request(f.token({
+    ...f.payload, roles: ['preview-reviewer', 'legal-reviewer']
+  })));
+  await rejectsAuthentication(authenticate, f.request(f.token({
     ...f.payload, roles: ['preview-reviewer', 'preview-reviewer']
   })));
   await rejectsAuthentication(authenticate, f.request(f.token({
