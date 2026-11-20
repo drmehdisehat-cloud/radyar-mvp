@@ -98,10 +98,27 @@ function hasProviderBoundRestoreAttestation(evidence) {
 
 function hasBackupMetadataClaim(evidence) {
   if (!evidence || typeof evidence !== 'object' || Array.isArray(evidence)) return false;
-  const status = evidence.backup_status ?? evidence.status;
-  const completeLabel = typeof status === 'string' && status.trim().toLowerCase() === 'complete';
-  const archiveSizeReported = Number.isSafeInteger(evidence.archive_size_bytes) &&
-    evidence.archive_size_bytes > 0;
+  // Treat this only as a diagnostic hint. It never satisfies restore evidence.
+  // Check all provider/status aliases so an empty preferred field cannot mask
+  // a populated fallback field.
+  const statusValues = [evidence.backup_status, evidence.status, evidence.state];
+  const completeLabel = statusValues.some(status =>
+    typeof status === 'string' && status.trim().toLowerCase() === 'complete'
+  );
+  // Hosts may report bytes or a human-readable size. Recognize common aliases
+  // solely to explain the blocker; none of these values proves a restore.
+  const sizeValues = [
+    evidence.archive_size_bytes,
+    evidence.archive_size_mb,
+    evidence.archive_size
+  ];
+  const archiveSizeReported = sizeValues.some(value => {
+    if (typeof value === 'number') return Number.isFinite(value) && value > 0;
+    if (typeof value !== 'string') return false;
+    const normalized = value.trim();
+    return /^\\d+(?:\\.\\d+)?(?:\\s*(?:bytes?|b|kb|kib|mb|mib|gb|gib))?$/i.test(normalized) &&
+      Number.parseFloat(normalized) > 0;
+  });
   return completeLabel || archiveSizeReported;
 }
 
