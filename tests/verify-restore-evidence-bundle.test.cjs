@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
-const { assertEvidenceFilePermissions, assertManifestOutsideCheckout, verifyRestoreEvidenceBundle } = require('../scripts/verify-restore-evidence-bundle.cjs');
+const { assertEvidenceFilePermissions, assertEvidenceOutsideCheckout, assertManifestOutsideCheckout, verifyRestoreEvidenceBundle } = require('../scripts/verify-restore-evidence-bundle.cjs');
 
 const SCRIPT = path.join(__dirname, '../scripts/verify-restore-evidence-bundle.cjs');
 const digest = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
@@ -168,6 +168,19 @@ test('rejects a symlinked isolated restore directory', t => {
   assert.throws(() => verify(fixture), /restore_target_path_contains_symlink/);
 });
 
+
+test('resolves a symlinked checkout root before classifying evidence paths', t => {
+  const fixture = makeFixture(t);
+  const checkoutRoot = fs.realpathSync(path.resolve(__dirname, '..'));
+  const checkoutAlias = path.join(fixture.directory, 'checkout-alias');
+  fs.symlinkSync(checkoutRoot, checkoutAlias, 'dir');
+
+  assert.throws(
+    () => assertEvidenceOutsideCheckout(__filename, checkoutAlias, 'archive'),
+    /archive_path_inside_git_checkout/
+  );
+  assert.equal(assertEvidenceOutsideCheckout(fixture.paths.archive, checkoutAlias, 'archive'), true);
+});
 
 test('rejects evidence files inside the Git checkout', t => {
   const fixture = makeFixture(t);
