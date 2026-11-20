@@ -425,4 +425,4 @@ function main(argv) {
 }
 
 if (require.main === module) process.exitCode = main(process.argv.slice(2));
-module.exports = { LIMITS, assertEvidenceFilePermissions, assertManifestOutsideCheckout, hashExternalEvidenceFile, verifyRestoreEvidenceBundle, parseArgs, main };
+module.exports = { LIMITS, assertEvidenceFilePermissions, assertEvidenceOutsideCheckout, assertManifestOutsideCheckout, hashExternalEvidenceFile, verifyRestoreEvidenceBundle, parseArgs, main };
