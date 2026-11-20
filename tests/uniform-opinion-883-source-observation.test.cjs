@@ -24,7 +24,7 @@ test('opinion 883 current secondary leads remain explicitly non-authorizing', ()
   assert.equal(observation.rawPrimaryBytesCaptured, false);
   assert.equal(observation.primaryTextSha256, null);
   assert.equal(observation.eventVersion.applicableToEventDate, 'not-determined');
-  assert.equal(observation.eventVersioningApproved, false);
+  assert.equal(observation.eventDateVersioningApproved, false);
   assert.equal(observation.humanReviewStatus, 'pending');
   assert.equal(observation.useInLegalAnswers, false);
   assert.equal(observation.legalConclusionPermitted, false);
