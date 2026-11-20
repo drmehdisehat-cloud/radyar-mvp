@@ -10,7 +10,7 @@ const DEFAULT_COOKIE = '__Host-dadyar-review-session';
 const SAFE_LABEL = /^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,255}$/;
 const KID = /^[A-Za-z0-9._-]{1,128}$/;
 const BASE64URL = /^[A-Za-z0-9_-]+$/;
-const ROLE = /^[a-z][a-z0-9-]{0,63}$/;
+const ALLOWED_REVIEWER_ROLES = new Set(['preview-reviewer']);
 const JTI = /^[A-Za-z0-9_-]{22,128}$/;
 const IDENTITY_CONTROL = /[\u0000-\u001f\u007f-\u009f\u00ad\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff]/u;
 
@@ -158,7 +158,7 @@ function createPinnedReviewerJwtAuthenticator(options = {}) {
       if (!plainObject(claims) || claims.iss !== pinnedIssuer ||
           !safeIdentity(claims.sub) || !JTI.test(claims.jti) || claims.reviewer_independent !== true ||
           !Array.isArray(claims.roles) || claims.roles.length < 1 || claims.roles.length > 32 ||
-          claims.roles.some(role => typeof role !== 'string' || !ROLE.test(role)) ||
+          claims.roles.some(role => typeof role !== 'string' || !ALLOWED_REVIEWER_ROLES.has(role)) ||
           new Set(claims.roles).size !== claims.roles.length ||
           !claims.roles.includes('preview-reviewer')) {
         throw unauthenticated();
