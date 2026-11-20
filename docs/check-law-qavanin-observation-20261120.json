@@ -38,10 +38,35 @@
         "directTextUrl": "https://qavanin.ir/Law/TreeText/?IDS=634882870797924421",
         "directMetadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=634882870797924421",
         "directTextFetchOn2026-11-20": "timeout",
-        "directMetadataFetchOn2026-11-20": "timeout",
-        "gazetteNumber": null,
-        "gazettePublicationDate": null,
-        "effectiveDate": null
+        "directMetadataFetchOn2026-11-20": "readable",
+        "gazetteNumber": "23097",
+        "gazettePublicationDate": "1403/04/23",
+        "effectiveDate": "1403/05/08",
+        "instrumentType": "executive-regulation",
+        "authorityShown": "هيات وزيران",
+        "decisionNumberShown": "56261/ت62298هـ",
+        "notificationDateShown": "1403/04/04",
+        "metadataObservation": {
+          "sourceUrl": "https://qavanin.ir/Law/Attribute/?IDS=634882870797924421",
+          "retrievalResult": "readable",
+          "lines": [19, 34],
+          "approvalDateShown": "1403/03/30",
+          "notificationDateShown": "1403/04/04",
+          "officialGazetteNumberShown": "23097",
+          "officialGazetteDateShown": "1403/04/23",
+          "effectiveDateShown": "1403/05/08",
+          "lastStatusDateShown": "1403/08/27",
+          "officialGazetteIssueBytesRetrieved": false,
+          "rawHttpBytesCaptured": false,
+          "rawResponseSha256": null,
+          "note": "These are fields rendered by the official Qavanin metadata page. The Gazette issue itself and the signed appendix were not independently retrieved in this run; the regulation text endpoint also timed out. Keep the dates as portal-observed metadata, not as a reviewed event-date rule."
+        },
+        "dateConflict": {
+          "secondaryReportedEffectiveDate": "1403/05/07",
+          "officialQavaninEffectiveDateShown": "1403/05/08",
+          "resolution": "unresolved pending retrieval of official Gazette issue and signed instrument"
+        },
+        "effectiveDateIndependentlyVerified": false
       },
       "dateMeaning": "The 1403/03/30 date is the approval date displayed in the official status index; it is not, by itself, a Gazette publication date or commencement date.",
       "lines": [20, 30]
@@ -72,14 +97,14 @@
   "eventDateVersioningApproved": false,
   "limitations": [
     "The official portal's current consolidated text is readable, but raw response bytes and a reproducible SHA-256 were not captured.",
-    "The 1403 instrument's direct text and metadata endpoints timed out in this observation; the status index shows only its approval date.",
-    "The 1403 Gazette issue, publication date, commencement date, subsequent adjustments and transitional/temporal application remain unverified in this run.",
+    "The 1403 instrument's direct text endpoint timed out. Its official Qavanin metadata page rendered Gazette number 23097, publication date 1403/04/23 and execution date 1403/05/08, but the Gazette issue bytes and signed appendix were not independently retrieved.",
+    "The secondary reported 1403/05/07 date conflicts with the official Qavanin metadata's 1403/05/08 execution-date display; the conflict remains unresolved for event-date application.",
     "The 1400 amendment text and metadata remain research observations only because raw bytes and text-bound human review are absent.",
     "No non-overlapping event-date version has been approved, and no qualified human legal review is recorded."
   ],
   "nextActions": [
-    "Capture raw official response bytes for the consolidated law, the 1400 amendment and the 1403 instrument from a reproducible primary endpoint; record retrieval time and SHA-256.",
-    "Retrieve the signed 1403 instrument and its official Gazette issue; reconcile the reported 1403/05/07 and portal-observed 1403/05/08 dates without selecting either until verified.",
+    "Capture raw official response bytes for the consolidated law, the 1400 amendment and the 1403 regulation text from a reproducible primary endpoint; record retrieval time and SHA-256.",
+    "Retrieve the signed 1403 regulation and official Gazette issue 23097; reconcile the portal-observed 1403/05/08 execution date with the secondary 1403/05/07 lead, then verify temporal and transitional application.",
     "Complete the full amendment chain and transitional-rule analysis before creating eventDateVersions.",
     "Obtain independent legal review bound to the exact text SHA-256 and record reviewer identity, date and decision."
   ]

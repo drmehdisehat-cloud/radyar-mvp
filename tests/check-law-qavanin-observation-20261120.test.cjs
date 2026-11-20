@@ -35,10 +35,16 @@ test('the 1403 approval date is not treated as Gazette publication or commenceme
   const act = status.influencingInstrument;
   assert.equal(act.approvalDateShown, '1403/03/30');
   assert.equal(act["directTextFetchOn2026-11-20"], 'timeout');
-  assert.equal(act["directMetadataFetchOn2026-11-20"], 'timeout');
-  assert.equal(act.gazetteNumber, null);
-  assert.equal(act.gazettePublicationDate, null);
-  assert.equal(act.effectiveDate, null);
+  assert.equal(act["directMetadataFetchOn2026-11-20"], 'readable');
+  assert.equal(act.gazetteNumber, '23097');
+  assert.equal(act.gazettePublicationDate, '1403/04/23');
+  assert.equal(act.effectiveDate, '1403/05/08');
+  assert.equal(act.instrumentType, 'executive-regulation');
+  assert.equal(act.metadataObservation.officialGazetteIssueBytesRetrieved, false);
+  assert.equal(act.metadataObservation.rawHttpBytesCaptured, false);
+  assert.equal(act.effectiveDateIndependentlyVerified, false);
+  assert.equal(act.dateConflict.secondaryReportedEffectiveDate, '1403/05/07');
+  assert.equal(act.dateConflict.officialQavaninEffectiveDateShown, '1403/05/08');
   assert.match(status.dateMeaning, /not, by itself, a Gazette publication date or commencement date/);
 });
 
