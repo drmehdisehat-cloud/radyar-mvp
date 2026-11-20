@@ -321,7 +321,10 @@ function main(argv) {
         }
       }
     } else if (hasCoreReviewInputs && !expectedTrustStoreSha256) {
-      review = { verified: false, reason: 'review_trust_store_digest_required' };
+      review = {
+        verified: false,
+        reason: ownerTrustPin.reason || 'review_trust_store_digest_required'
+      };
     } else if (reviewPath || trustPath || expectedSourceCommit || expectedArtifactSha256 || expectedTrustStoreSha256) {
       review = { verified: false, reason: 'review_attestation_trust_store_and_target_required' };
     }
