@@ -1,0 +1,60 @@
+{
+  "schema": "dadyar-qavanin-check-law-observation-v1",
+  "topic": "check",
+  "observedAt": "2026-11-21",
+  "status": "research-only",
+  "legalAnswerUsePermitted": false,
+  "primarySourceVerified": false,
+  "humanReviewStatus": "pending",
+  "sourceMethod": "Independent rendered retrieval of the direct official Qavanin text and metadata pages on 2026-11-21. The pages exposed line-addressable content. Raw HTTP response bytes were not captured, no SHA-256 was computed, and no text-bound human legal review was performed.",
+  "observations": {
+    "amendment1400": {
+      "title": "قانون اصلاح قانون صدور چک",
+      "instrumentType": "parliamentary-amending-act",
+      "directTextUrl": "https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689",
+      "directMetadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=8508483613671622689",
+      "approvalDateShown": "1400/01/29",
+      "guardianCouncilConfirmationDateShown": "1400/02/18",
+      "officialGazetteNumberShown": "22188",
+      "officialGazettePublicationDateShown": "1400/03/02",
+      "promulgationDateShown": "1400/02/28",
+      "effectiveDateShown": "1400/03/18",
+      "currentConsolidatedStatusLabelShown": "اصلاحي 1403/03/30",
+      "textPageRendered": true,
+      "textPageLines": [
+        7,
+        55
+      ],
+      "metadataPageRendered": true,
+      "metadataPageLines": [
+        19,
+        34
+      ],
+      "observedProvisions": {
+        "article1": "Removes the quoted cheque-validity-period phrases and the three-year maximum period from Article 6 of the Cheque Issuance Act.",
+        "article2": "Changes the transitional rule for Article 21 bis by linking the Sayad registration regime to cheque leaves from cheque books supplied after the end of Esfand 1399, while retaining a prior-rule treatment for older cheque books.",
+        "article3": "Adds Article 24 governing guaranteed cheques, including issuance through Sayad, payment to the named beneficiary, cancellation/payment timing, lost-cheque replacement, and consequences for forgery or use of a forged guaranteed cheque."
+      },
+      "rawHttpBytesCaptured": false,
+      "rawResponseSha256": null,
+      "humanReviewStatus": "pending",
+      "legalAnswerUsePermitted": false,
+      "note": "The official portal currently renders the amendment text and its metadata. The displayed Gazette number/date and effective date are portal-observed metadata, not a retrieved Gazette issue file. The 1403/03/30 label belongs to the current consolidated status and does not by itself establish the event-date effect of every intervening amendment."
+    }
+  },
+  "eventDateVersions": [],
+  "eventDateVersioningApproved": false,
+  "limitations": [
+    "Raw HTTP response bytes and a reproducible SHA-256 were not captured.",
+    "The official Gazette issue 22188 itself was not downloaded and independently hashed.",
+    "The complete amendment chain for the Cheque Issuance Act, including the 1358, 1372, 1376, 1377, 1382, 1397, 1400 and 1403 instruments, has not been independently established for event-date application.",
+    "The current consolidated status label is not a substitute for an amendment-by-amendment temporal analysis.",
+    "No qualified human legal review bound to the exact source bytes has been recorded."
+  ],
+  "nextActions": [
+    "Capture reproducible raw official text and metadata response bytes, record retrieval timestamps and SHA-256 values.",
+    "Retrieve and hash official Gazette issue 22188 and the original signed amendment.",
+    "Complete the amendment chain and transitional-rule analysis before producing non-overlapping eventDateVersions.",
+    "Obtain independent legal review bound to the exact text SHA-256 and record the reviewer's identity, date and decision."
+  ]
+}

@@ -317,7 +317,28 @@
           "Obtain independent human review bound to the exact text SHA-256."
         ]
       },
-      "latestOfficialStatusLabelShown": "اصلاحي 1403/03/30"
+      "latestOfficialStatusLabelShown": "اصلاحي 1403/03/30",
+      "latestIndependentObservation": {
+        "file": "docs/check-law-qavanin-observation-20261121.json",
+        "observedAt": "2026-11-21",
+        "sourceClass": "primary-official-qavanin",
+        "directTextPageRendered": true,
+        "directMetadataPageRendered": true,
+        "textPageLines": [
+          7,
+          55
+        ],
+        "metadataPageLines": [
+          19,
+          34
+        ],
+        "rawHttpBytesCaptured": false,
+        "rawResponseSha256": null,
+        "primarySourceVerified": false,
+        "humanReviewStatus": "pending",
+        "useInLegalAnswers": false,
+        "note": "Fresh independent rendering of the direct official Qavanin text and metadata pages; the rendering is not a raw-byte capture or a text-bound legal review."
+      }
     },
     {
       "id": "uniform-opinion-850",
