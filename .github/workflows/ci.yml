@@ -71,6 +71,11 @@ jobs:
           node --test "${contracts[@]}"
       - name: Audit v1 release blockers (informational; never deploy)
         run: node scripts/check-v1-readiness.cjs
+      - name: Audit GitHub repository release posture (read-only; informational)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/audit-github-repository-posture.cjs
       - name: Audit cheque amendment evidence gaps (research only)
         run: node scripts/audit-check-evidence.cjs
       - name: Assert unapproved v1 stays blocked (experimental only)
