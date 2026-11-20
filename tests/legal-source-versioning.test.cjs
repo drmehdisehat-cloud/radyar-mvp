@@ -189,6 +189,29 @@ test('Qavanin source URLs must use the exact direct law-text endpoint, not metad
   assert.equal(validateSourceVersion(verified(), AS_OF).eligible, true);
 });
 
+test('rejects normalized and percent-encoded aliases on non-Qavanin official portals', () => {
+  const rejectedUrls = [
+    'https://rrk.ir/Document/../Document/1001',
+    'https://rrk.ir/Document/%2e%2e/Document/1001',
+    'https://rrk.ir/Document/%31%30%30%31',
+    'https://rrk.ir//Document/1001',
+    'https://rrk.ir\\\\Document\\\\1001',
+    'https://cbi.ir/showitem/../showitem/35817.aspx'
+  ];
+  for (const officialDocumentUrl of rejectedUrls) {
+    const documentId = officialDocumentUrl.includes('cbi.ir') ? '35817.aspx' : '1001';
+    assert.equal(
+      validateSourceVersion(verified({ documentId, officialDocumentUrl }), AS_OF).eligible,
+      false,
+      officialDocumentUrl
+    );
+  }
+  assert.equal(validateSourceVersion(verified({
+    documentId: '1001',
+    officialDocumentUrl: 'https://rrk.ir/Document/1001'
+  }), AS_OF).eligible, true);
+});
+
 test('fails closed when two verified versions overlap on the same event date', () => {
   const first = verified({ id: 'v1', effectiveFrom: '2020-01-01', effectiveTo: null });
   const second = verified({ id: 'v2', effectiveFrom: '2024-01-01', effectiveTo: null });
