@@ -27,7 +27,7 @@ function verifiedFixtures() {
     protection: {
       required_status_checks: {
         strict: true,
-        contexts: ['Dadyar stage-0 experimental CI / ' + REQUIRED_CHECK]
+        contexts: [REQUIRED_CHECK]
       },
       required_pull_request_reviews: {
         required_approving_review_count: 1,
@@ -84,6 +84,9 @@ test('requires the exact CI check, at least one stale-dismissed review and admin
   const cases = [
     ['missing CI', f => { f.protection.required_status_checks.contexts = []; }, 'required_dadyar_ci_check_not_enforced'],
     ['loose CI context', f => { f.protection.required_status_checks.contexts = ['some-other-check']; }, 'required_dadyar_ci_check_not_enforced'],
+    ['spoofed workflow with the expected job suffix', f => { f.protection.required_status_checks.contexts = ['Untrusted workflow / verify-existing-frontend']; }, 'required_dadyar_ci_check_not_enforced'],
+    ['non-strict required check', f => { f.protection.required_status_checks.strict = false; }, 'required_dadyar_ci_check_not_strict'],
+    ['missing strictness declaration', f => { delete f.protection.required_status_checks.strict; }, 'required_dadyar_ci_check_not_strict'],
     ['no required review', f => { f.protection.required_pull_request_reviews.required_approving_review_count = 0; }, 'independent_pull_request_review_policy_missing'],
     ['stale reviews retained', f => { f.protection.required_pull_request_reviews.dismiss_stale_reviews = false; }, 'independent_pull_request_review_policy_missing'],
     ['admins exempt', f => { f.protection.enforce_admins.enabled = false; }, 'branch_protection_not_enforced_for_admins']
