@@ -169,6 +169,26 @@ test('requires the identity adapter to attest reviewer independence and role', a
   assert.deepEqual(fs.readdirSync(f.ledgerDirectory), []);
 });
 
+test('rejects reviewer principals with extra or duplicate roles before reading report storage', async t => {
+  for (const roles of [
+    ['preview-reviewer', 'admin'],
+    ['preview-reviewer', 'legal-reviewer'],
+    ['preview-reviewer', 'preview-reviewer'],
+    ['admin', 'preview-reviewer']
+  ]) {
+    const f = fixture(t);
+    f.principal = { ...f.principal, roles };
+    let loads = 0;
+    const release = gate(f, {
+      loadReviewedReport: async () => { loads += 1; return f.reportBytes; }
+    });
+    await assert.rejects(() => call(release, f.attestation),
+      error => error.code === 'REVIEW_ATTESTATION_REJECTED');
+    assert.equal(loads, 0);
+    assert.deepEqual(fs.readdirSync(f.ledgerDirectory), []);
+  }
+});
+
 test('rejects a forged signature and a review bound to a different source commit', async t => {
   const f = fixture(t);
   const release = gate(f);
