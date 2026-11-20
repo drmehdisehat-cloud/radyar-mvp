@@ -61,6 +61,7 @@ CHROME_BIN=/path/to/chromium node --test tests/real-browser-smoke.cjs
 
 رویداد `pull_request` فقط برای PRهایی فعال است که مقصدشان یکی از شاخه‌های زیر باشد:
 - `main`
+- `dadyar/ai-chat-private-20261101`
 - `dadyar/mvp-sync-028`
 - `dadyar/replay-ledger-ci-base-20261117`
 - `dadyar/signed-gate-review-base-20261117`
