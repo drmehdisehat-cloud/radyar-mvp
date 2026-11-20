@@ -53,12 +53,17 @@ test('Qavanin cheque-law URLs remain non-authorizing research candidates until t
     item.url === 'https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689'
   );
   assert.ok(amendment, '2020 amendment candidate must be retained for direct retrieval');
-  assert.equal(amendment.candidateStatus, 'official-primary-text-rendered-2026-11-19-raw-bytes-not-captured');
+  assert.equal(amendment.candidateStatus, 'official-primary-text-rendered-2026-11-20-raw-bytes-not-captured');
   assert.equal(amendment.sourceClass, 'primary-official-qavanin');
-  assert.equal(amendment.lastDirectFetchResult, 'official-amendment-text-readable-via-independent-web-rendering; raw-response-bytes-and-sha256-not-captured');
+  assert.equal(amendment.lastDirectFetchResult, 'official-amendment-text-and-metadata-readable-via-independent-web-rendering; raw-response-bytes-and-sha256-not-captured');
   assert.equal(amendment.officialGazetteNumberShown, '22188');
   assert.equal(amendment.officialGazetteDateShown, '1400/03/02');
   assert.equal(amendment.effectiveFromShown, '1400/03/18');
+  assert.equal(amendment.lastDirectFetchAt, '2026-11-20');
+  assert.equal(amendment.textPageRendered, true);
+  assert.equal(amendment.metadataPageRendered, true);
+  assert.equal(amendment.rawHttpBytesCaptured, false);
+  assert.equal(amendment.rawResponseSha256, null);
   assert.equal(amendment.humanReviewStatus, 'pending');
   assert.equal(amendment.useInLegalAnswers, false);
 
@@ -102,6 +107,25 @@ test('Qavanin cheque-law URLs remain non-authorizing research candidates until t
   assert.equal(amendment1403.useInLegalAnswers, false);
 
   assert.equal(record.primaryOfficialDocumentUrl, null);
+  assert.equal(record.primarySourceVerified, false);
+  assert.equal(record.humanReviewStatus, 'pending');
+  assert.equal(record.useInLegalAnswers, false);
+});
+
+test('2026-11-20 official Qavanin recheck records the rendered 1400 cheque amendment text without authorizing legal answers', () => {
+  assert.equal(register.observedAt, '2026-11-20');
+  const record = register.records.find(item => item.id === 'check-issuance-law');
+  const page = record.officialPortalObservation.amendmentPages.find(item => item.id === 'check-amendment-1400');
+  assert.ok(page);
+  assert.equal(page.lastObservedAt, '2026-11-20');
+  assert.equal(page.metadataRetrievedAt, '2026-11-20');
+  assert.match(page.renderedTextExcerpt, /ماده 1-/);
+  assert.match(page.renderedTextExcerpt, /ماده 24-/);
+  assert.equal(page.officialGazetteNumber, '22188');
+  assert.equal(page.publicationDate, '1400/03/02');
+  assert.equal(page.effectiveFrom, '1400/03/18');
+  assert.equal(page.rawHttpBytesCaptured, false);
+  assert.equal(page.rawResponseSha256, null);
   assert.equal(record.primarySourceVerified, false);
   assert.equal(record.humanReviewStatus, 'pending');
   assert.equal(record.useInLegalAnswers, false);
