@@ -235,6 +235,29 @@ test('rejects invalid calendar dates and invalid as-of requests', () => {
   assert.equal(resolve([verified()], '2024-02-30').status, 'invalid_request');
 });
 
+test('rejects a publication date later than the recorded source retrieval date', () => {
+  const result = validateSourceVersion(verified({
+    publicationDate: '2026-11-11',
+    retrievedAt: '2026-11-10'
+  }), AS_OF);
+  assert.equal(result.eligible, false);
+  assert.ok(result.issues.includes('publication_after_retrieval'));
+});
+
+test('rejects a human review dated before the exact source retrieval', () => {
+  const result = validateSourceVersion(verified({
+    retrievedAt: '2026-11-10',
+    humanReview: {
+      reviewer: 'بازبین حقوقی آزمایشی',
+      reviewedAt: '2026-11-09',
+      decision: 'approved',
+      reviewedTextSha256: HASH_A
+    }
+  }), AS_OF);
+  assert.equal(result.eligible, false);
+  assert.ok(result.issues.includes('review_before_retrieval'));
+});
+
 test('a rejected human review cannot make a source eligible', () => {
   const result = resolve([verified({
     humanReview: {
