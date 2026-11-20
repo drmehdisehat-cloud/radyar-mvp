@@ -60,17 +60,25 @@ function safeOfficialDocumentUrl(value, documentId) {
   // cannot masquerade as the canonical official document endpoint.
   const rawPathMatch = value.match(/^https:\/\/[^/?#]+([^?#]*)/i);
   const rawPath = rawPathMatch && rawPathMatch[1] ? rawPathMatch[1] : '/';
+  // URL() normalizes dot segments and backslashes. Reject non-canonical raw
+  // paths for every allowlisted portal, including percent-encoded aliases.
+  const canonicalRawPath = rawPath === url.pathname &&
+    !rawPath.includes('\\') &&
+    !rawPath.includes('//') &&
+    !/%[0-9a-f]{2}/i.test(rawPath) &&
+    !rawPath.split('/').some(segment => segment === '.' || segment === '..');
   // Keep each portal's document selector canonical. Until a portal-specific
   // query schema is independently reviewed, extra query parameters are not
   // accepted as part of a direct legal-document URL.
   const qavaninIdMatches = host === 'qavanin.ir'
-    ? (rawPath === '/Law/TreeText/' &&
+    ? (canonicalRawPath &&
+       rawPath === '/Law/TreeText/' &&
        url.pathname === '/Law/TreeText/' &&
        url.search === '?IDS=' + documentId &&
        queryEntries.length === 1 &&
        queryEntries[0][0] === 'IDS' &&
        queryEntries[0][1] === documentId)
-    : (url.search === '' && queryEntries.length === 0 && !value.includes('?'));
+    : (canonicalRawPath && url.search === '' && queryEntries.length === 0 && !value.includes('?'));
   return url.protocol === 'https:' &&
     OFFICIAL_HOSTS.has(url.hostname.toLowerCase()) &&
     (!url.port || url.port === '443') &&
