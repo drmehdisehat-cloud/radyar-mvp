@@ -37,3 +37,32 @@ test('a Complete label without restore execution, isolated database probe and in
   assert.ok(decision.blockers.includes('backup metadata is not proof of an isolated restore'));
   assert.ok(decision.blockers.includes('two-party restore signatures and independently pinned key fingerprints missing'));
 });
+
+test('all provider status and size aliases remain diagnostic only, including the 140.38 MB claim', () => {
+  const statusAliases = ['backup_status', 'status', 'state'];
+  const sizeAliases = ['archive_size_bytes', 'archive_size_mb', 'archive_size'];
+  const sizeClaims = [140380000, 140.38, '140.38 MB'];
+
+  for (const statusKey of statusAliases) {
+    for (const sizeKey of sizeAliases) {
+      for (const sizeValue of sizeClaims) {
+        const metadataOnly = {
+          [statusKey]: 'Complete',
+          [sizeKey]: sizeValue,
+          backup_provider: 'iranhost',
+          source_site_origin: 'https://mehdisehat.ir',
+          backup_id: 'synthetic-backup-alias-regression'
+        };
+        assert.equal(
+          hasProviderBoundRestoreAttestation(metadataOnly),
+          false,
+          statusKey + ' plus ' + sizeKey + ' must never prove a restore'
+        );
+        const decision = decidePreviewRelease({ restoreEvidence: metadataOnly });
+        assert.equal(decision.status, 'NOT_READY');
+        assert.equal(decision.deploymentAuthorized, false);
+        assert.ok(decision.blockers.includes('backup metadata is not proof of an isolated restore'));
+      }
+    }
+  }
+});
