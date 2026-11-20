@@ -116,7 +116,7 @@ function hasBackupMetadataClaim(evidence) {
     if (typeof value === 'number') return Number.isFinite(value) && value > 0;
     if (typeof value !== 'string') return false;
     const normalized = value.trim();
-    return /^\\d+(?:\\.\\d+)?(?:\\s*(?:bytes?|b|kb|kib|mb|mib|gb|gib))?$/i.test(normalized) &&
+    return /^\d+(?:\.\d+)?(?:\s*(?:bytes?|b|kb|kib|mb|mib|gb|gib))?$/i.test(normalized) &&
       Number.parseFloat(normalized) > 0;
   });
   return completeLabel || archiveSizeReported;
