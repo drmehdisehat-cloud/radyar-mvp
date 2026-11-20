@@ -1,6 +1,6 @@
 {
   "schema": "dadyar-legal-source-register-v1",
-  "observedAt": "2026-11-19",
+  "observedAt": "2026-11-20",
   "policy": {
     "approvalRule": "A secondary page, search result, owner image, or plausible official-portal URL is not an authenticated primary legal source.",
     "answerUse": "Only records with an independently verified primary document, event-date version, direct document URL, and approved human review may support a legal answer.",
@@ -69,22 +69,26 @@
         },
         {
           "url": "https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689",
-          "candidateStatus": "official-primary-text-rendered-2026-11-19-raw-bytes-not-captured",
+          "candidateStatus": "official-primary-text-rendered-2026-11-20-raw-bytes-not-captured",
           "documentId": "8508483613671622689",
           "sourceClass": "primary-official-qavanin",
           "discoveryLeadUrl": "https://hoghogh.ai/laws/قانون-صدور-چک/6",
-          "lastDirectFetchAt": "2026-11-19",
-          "lastDirectFetchResult": "official-amendment-text-readable-via-independent-web-rendering; raw-response-bytes-and-sha256-not-captured",
+          "lastDirectFetchAt": "2026-11-20",
+          "lastDirectFetchResult": "official-amendment-text-and-metadata-readable-via-independent-web-rendering; raw-response-bytes-and-sha256-not-captured",
           "humanReviewStatus": "pending",
           "useInLegalAnswers": false,
-          "note": "متن و صفحه اطلاعات پایه مستقیم رسمی Qavanin قابل خواندن شدند. فراداده رسمی شماره روزنامه رسمی ۲۲۱۸۸، تاریخ انتشار ۱۴۰۰/۰۳/۰۲، ابلاغ ۱۴۰۰/۰۲/۲۸ و تاریخ اجرا ۱۴۰۰/۰۳/۱۸ را نشان می‌دهد. بایت خام متن و SHA-256 ثبت نشده و بازبینی انسانی متصل به همان متن انجام نشده است؛ بنابراین برای پاسخ حقوقی مجاز نیست.",
+          "note": "متن مستقیم اصلاحیه و صفحه اطلاعات پایه پایگاه رسمی Qavanin در ۱۴۰۵/۰۸/۲۹ دوباره قابل خواندن بود. فراداده همان صفحه شماره روزنامه رسمی ۲۲۱۸۸، تاریخ انتشار ۱۴۰۰/۰۳/۰۲، ابلاغ ۱۴۰۰/۰۲/۲۸، تاریخ تصویب ۱۴۰۰/۰۱/۲۹، تأیید شورای نگهبان ۱۴۰۰/۰۲/۱۸ و تاریخ اجرا ۱۴۰۰/۰۳/۱۸ را نشان می‌دهد. متن استخراج‌شده و فراداده در مشاهده‌نامه ثبت شده‌اند؛ بایت خام پاسخ و SHA-256 ثبت نشده و بازبینی حقوقی انسانی متصل به همین متن انجام نشده است؛ بنابراین برای پاسخ حقوقی مجاز نیست.",
           "officialAttributeUrl": "https://qavanin.ir/Law/Attribute/?IDS=8508483613671622689",
           "officialGazetteNumberShown": "22188",
           "officialGazetteDateShown": "1400/03/02",
           "promulgationDateShown": "1400/02/28",
           "effectiveFromShown": "1400/03/18",
           "guardianCouncilConfirmationDateShown": "1400/02/18",
-          "metadataRetrievedAt": "2026-11-19"
+          "metadataRetrievedAt": "2026-11-20",
+          "textPageRendered": true,
+          "metadataPageRendered": true,
+          "rawHttpBytesCaptured": false,
+          "rawResponseSha256": null
         },
         {
           "url": "https://qavanin.ir/Law/TreeText/?IDS=3613585600919945767",
@@ -139,7 +143,7 @@
       "officialPortalObservation": {
         "schema": "dadyar-qavanin-check-law-observation-v1",
         "topic": "check",
-        "observedAt": "2026-11-19",
+        "observedAt": "2026-11-20",
         "status": "research-only",
         "legalAnswerUsePermitted": false,
         "primarySourceVerified": false,
@@ -253,7 +257,10 @@
             "guardianCouncilConfirmationDateShown": "1400/02/18",
             "metadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=8508483613671622689",
             "metadataRendered": true,
-            "promulgationDateShown": "1400/02/28"
+            "promulgationDateShown": "1400/02/28",
+            "lastObservedAt": "2026-11-20",
+            "metadataRetrievedAt": "2026-11-20",
+            "renderedTextExcerpt": "ماده 1- در ماده (6) قانون صدور چك مصوب 16 /4 /1355 با اصلاحات و الحاقات بعدي عبارتهاي «و مدت اعتبار» و «حداكثر مدت اعتبار چك از زمان دريافت دسته چك سه سال است و چكهايي كه تاريخ مندرج در آنها پس از مدت اعتبار باشد، مشمول اين قانون نمي شوند» حذف مي شود.\nماده 2- در تبصره (1) ماده (21 مكرر) قانون، عبارت «در مورد چكهايي كه پس از گذشت دو سال از لازم الاجراء شدن اين قانون» به عبارت «در مورد برگه چكهايي كه از دسته چكهاي ارائه شده پس از پايان اسفندماه سال 1399» اصلاح و جمله «چكهايي كه تاريخ صدور آنها قبل از زمان مذكور باشد تابع قانون زمان صدور مي باشد» به جمله «چكهاي صادرشده از دسته چكهايي كه تاريخ ارائه آن دسته چكها قبل از زمان مذكور در اين تبصره باشد، تابع قانون زمان ارائه دسته چك است و بانكها بدون نياز به ثبت آن چكها در سامانه صياد نسبت به پرداخت وجه چك اقدام مي كنند. در كليه برگه هاي دسته چكهاي ارائه شده پس از تاريخ فوق الذكر بايد عبارت (صدور و پشت نويسي چك بدون درج در سامانه صياد فاقد اعتبار است) درج شود» اصلاح مي شود.\nماده 3- يك ماده به عنوان (24) به قانون، به شرح زير الحاق و شماره ماده (24) فعلي به (25) اصلاح مي شود:\nماده 24- چك تضمين شده تابع احكام ذيل است:\n1- صدور و تحويل چكهاي تضمين شده توسط بانكها به مشتري، صرفاً از طريق سامانه صدور يكپارچه الكترونيكي دسته چك (صياد) امكان پذير و مستلزم تكميل برگه (فرم) درخواست توسط متقاضي در شعبه بانك در حضور متصدي بانكي، درج مشخصات هويتي و شماره حساب گيرنده روي چك تضمين شده بر اساس دستورالعمل اعلامي توسط بانك مركزي جمهوري اسلامي ايران و نيز ثبت علت درخواست صدور چك مذكور در سامانه صياد مي باشد. سامانه مذكور به هر برگه چك، شناسه يكتا اختصاص مي دهد و بانك مركزي موظف است امكان استعلام اطلاعات چك تضمين شده را براي گيرنده (ذي نفع) فراهم نمايد.\n2- پرداخت مبلغ چك تضمين شده توسط بانك صرفاً در وجه و به شماره حساب گيرنده (ذي نفع) كه مشخصات وي روي چك تضمين شده درج گرديده است، امكان پذير مي باشد [و ظهرنويسي براي انتقال چك تضمين شده درج گرديده است، امكان پذير مي باشد] و ظهرنويسي براي انتقال چك تضمين شده فاقد اعتبار است.\n3- ابطال چك تضمين شده به درخواست متقاضي يا وكيل يا نماينده قانوني وي با ارائه اصل چك جهت واريز وجه چك به حساب متقاضي، بدون نياز به ظهرنويسي گيرنده (ذي نفع) تنها تا يك ماه پس از صدور آن توسط بانك صادركننده امكان پذير است. همچنين پرداخت چك تضمين شده به گيرنده (ذي نفع) با ارائه اصل چك تنها تا يك ماه پس از صدور آن توسط بانك امكان پذير است. پرداخت يا ابطال چك پس از مهلت مقرر در اين بند منوط به تكميل برگه (فرم) هاي مربوط به مبارزه با پولشويي توسط متقاضي يا گيرنده (ذي نفع) و گزارش شعبه بانك به واحد مبارزه با پولشويي بانك صادركننده مي باشد.\n4- در صورت مفقودي چك تضمين شده، هر گاه متقاضي و گيرنده (ذي نفع) هر دو به بانك صادركننده مراجعه و نسبت به تكميل و امضاي برگه (فرم) اعلام مفقودي چك تضمين شده و تعهدنامه عدم ادعا نسبت به چك مفقود شده اقدام نموده و نسخه المثني آن را از بانك درخواست كنند، بانك مكلف است علاوه بر احراز هويت متقاضي و گيرنده (ذي نفع) نسبت به استعلام صحت مشخصات هويتي متقاضي و گيرنده (ذي نفع) از سامانه نظام هويت سنجي الكترونيكي بانكي اقدام نمايد و پس از ابطال چك مفقود شده، نسبت به صدور چك المثني مطابق با اطلاعات مندرج در سامانه صياد اقدام كند.\n5- در صورت جعل چك تضمين شده يا استفاده از چك تضمين شده مجعول، مرتكب علاوه بر مجازات هاي قانوني مقرر، به حكم دادگاه به مدت دو تا شش سال از گرفتن چك تضمين شده محروم مي شود."
           },
           {
             "id": "check-amendment-1403",
@@ -299,7 +306,8 @@
           "The 1372 amendment text rendered on the official Qavanin page, but its metadata endpoint was not readable in the current independent fetch; raw bytes, SHA-256, Gazette publication and effective date remain unverified.",
           "The 1358, 1376, 1377 and 1382 influencing acts still need their own primary text and Gazette/commencement metadata.",
           "No amendment-specific event-date intervals have been approved for legal-answer use.",
-          "No qualified human legal review has been recorded."
+          "No qualified human legal review has been recorded.",
+          "در بازبینی ۱۴۰۵/۰۸/۲۹ متن سه ماده اصلاحیه ۱۴۰۰/۰۱/۲۹ و فراداده رسمی آن دوباره در Qavanin قابل مشاهده بود؛ متن استخراج‌شده در مشاهده‌نامه ثبت شد، اما بایت خام HTTP و SHA-256 ثبت نشد و بازبینی انسانی متصل به متن انجام نشده است."
         ],
         "nextActions": [
           "Capture raw official response bytes for the consolidated law and the 1372/1397/1400 amendment texts, record SHA-256 and retrieval timestamps.",
