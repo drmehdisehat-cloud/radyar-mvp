@@ -84,6 +84,6 @@ test('human-review notes and decisions are in-memory only and clearly unauthenti
   assert.match(html, /reviewRecord=\{/);
   assert.match(html, /reviewRecord=null/);
   assert.match(html, /reviewNote\.value=''/);
-  assert.match(html, /download\.disabled=!exportEligible \|\| !exportAck\.checked \|\| !approvedReview/);
+  assert.match(html, /downloadButton\.disabled=!exportEligible \|\| !exportAck\.checked \|\| !approvedReview/);
   assert.match(html, /reviewRecord=null;\s*exportAck\.checked=false;/);
 });
