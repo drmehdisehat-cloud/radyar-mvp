@@ -9,7 +9,7 @@ const path = require('node:path');
 const html = fs.readFileSync(path.join(__dirname, '..', 'dadyar-preview', 'index.html'), 'utf8');
 
 test('free legal question discourages autofill, autocorrection, capitalization and spellcheck', () => {
-  const tag = html.match(/<textarea\\b[^>]*\\bid="free-question"[^>]*>/i)?.[0];
+  const tag = html.match(/<textarea\b[^>]*\bid="free-question"[^>]*>/i)?.[0];
   assert.ok(tag, 'missing free-question textarea in the actual public preview');
   for (const attribute of [
     'autocomplete="off"',
