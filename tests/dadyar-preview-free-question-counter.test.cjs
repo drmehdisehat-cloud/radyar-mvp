@@ -15,6 +15,7 @@ test('free-question character counter is visible, associated and starts at zero'
   assert.match(script, /document\.getElementById\('free-question'\)\.addEventListener\('input',invalidateDraft\)/);
 });
 
+// Keep the display aligned with the browser's maxlength UTF-16 code-unit behavior.
 test('counter follows HTML maxlength UTF-16 code-unit semantics and uses Persian digits', () => {
   const functionSource = script.match(/function updateFreeQuestionCounter\(\)\{[^}]*\}/)?.[0];
   assert.ok(functionSource, 'counter update function must exist');
