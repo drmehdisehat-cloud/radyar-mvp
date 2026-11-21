@@ -7,7 +7,7 @@ const MAX_TOKEN_LENGTH = 8192;
 const MAX_COOKIE_AGE_SECONDS = 300;
 const BASE64URL = /^[A-Za-z0-9_-]+$/;
 
-function isCanonicalCompactJwt(value) {
+function isCanonicalCompactToken(value) {
   if (typeof value !== 'string' || value.length === 0 || value.length > MAX_TOKEN_LENGTH) {
     return false;
   }
@@ -21,8 +21,8 @@ function isCanonicalCompactJwt(value) {
 }
 
 function createReviewerSessionCookie(token, options = {}) {
-  if (!isCanonicalCompactJwt(token)) {
-    throw new TypeError('A canonical compact reviewer token is required.');
+  if (!isCanonicalCompactToken(token)) {
+    throw new TypeError('A canonical compact token is required.');
   }
   if (!options || typeof options !== 'object' || Array.isArray(options) ||
       Object.keys(options).some(key => key !== 'maxAgeSeconds')) {
@@ -47,7 +47,7 @@ function clearReviewerSessionCookie() {
 module.exports = {
   COOKIE_NAME,
   MAX_COOKIE_AGE_SECONDS,
-  isCanonicalCompactJwt,
+  isCanonicalCompactToken,
   createReviewerSessionCookie,
   clearReviewerSessionCookie
 };
