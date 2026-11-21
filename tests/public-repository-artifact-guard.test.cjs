@@ -1,26 +1,22 @@
 'use strict';
-// Stage-0 safeguard for a PUBLIC repository. This checks tracked filenames only;
-// it does not inspect file contents, git history, or certify absence of secrets.
+// Stage-0 safeguards for the PUBLIC repository. Filename/content checks are
+// high-confidence filters, not a complete secret audit or proof of privacy.
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 
 const root = path.resolve(__dirname, '..');
 function isSensitiveTrackedPath(file) {
-  const normalized = file.replace(/\\/g, '/');
+  const normalized = file.replace(/\\\\/g, '/');
   const basename = normalized.split('/').at(-1);
-  // Reject private environment configurations, but allow non-secret templates.
-  if (/^\.env(?:\..+)?$/i.test(basename) && !/\.example$|\.sample$|\.template$/i.test(basename)) return true;
-  // Common credential stores and SSH private keys often have no extension.
-  // Public .pub keys and explicitly named example templates are not credentials.
-  if (/^(?:id_(?:rsa|dsa|ecdsa|ed25519)|\.npmrc|\.pypirc|\.netrc|\.git-credentials|credentials(?:\.json)?|terraform\.tfstate(?:\.backup)?)$/i.test(basename)) return true;
-  if (/(?:^|\/)(?:\.aws\/credentials|\.kube\/config|\.docker\/config\.json)$/i.test(normalized)) return true;
-  if (/\.tfvars(?:\.json)?$/i.test(basename)) return true;
-  // Credential material, local databases, SQL exports, and backup archives
-  // must not be published as tracked artifacts.
-  return /\.(?:pem|p12|pfx|key|kdbx|sqlite3?|db|sql|bak|backup|dump|zip|tar|tgz|7z)$/i.test(basename) ||
-    /\.(?:tar\.gz|tar\.xz|tar\.bz2|sql\.gz|db\.gz)$/i.test(basename);
+  if (/^\\.env(?:\\..+)?$/i.test(basename) && !/\\.example$|\\.sample$|\\.template$/i.test(basename)) return true;
+  if (/^(?:id_(?:rsa|dsa|ecdsa|ed25519)|\\.npmrc|\\.pypirc|\\.netrc|\\.git-credentials|credentials(?:\\.json)?|terraform\\.tfstate(?:\\.backup)?)$/i.test(basename)) return true;
+  if (/(?:^|\\/)(?:\\.aws\\/credentials|\\.kube\\/config|\\.docker\\/config\\.json)$/i.test(normalized)) return true;
+  if (/\\.tfvars(?:\\.json)?$/i.test(basename)) return true;
+  return /\\.(?:pem|p12|pfx|key|kdbx|sqlite3?|db|sql|bak|backup|dump|zip|tar|tgz|7z)$/i.test(basename) ||
+    /\\.(?:tar\\.gz|tar\\.xz|tar\\.bz2|sql\\.gz|db\\.gz)$/i.test(basename);
 }
 
 test('sensitive tracked-path policy catches representative private artifacts', () => {
@@ -42,12 +38,25 @@ test('sensitive tracked-path policy catches representative private artifacts', (
 });
 
 test('public repository must not track private configuration, keys, or backups', () => {
-  // GitHub Actions checks out the actual index. Fail closed if git is missing
-  // rather than silently treating the repository as clean.
   const tracked = execFileSync('git', ['ls-files', '-z', '--cached'], {
     cwd: root, encoding: 'utf8', timeout: 5000, maxBuffer: 4 * 1024 * 1024,
-  }).split('\0').filter(Boolean);
+  }).split('\\0').filter(Boolean);
   assert.ok(tracked.length > 0, 'tracked file inventory must not be empty');
   const flagged = tracked.filter(isSensitiveTrackedPath);
   assert.deepEqual(flagged, [], 'tracked sensitive filenames must be removed before review');
+});
+
+test('public repository must not upload preview artifacts until repository is private', () => {
+  const workflow = fs.readFileSync(path.join(root, '.github/workflows/ci.yml'), 'utf8');
+  const marker = '- name: Create public-only preview payload artifact';
+  const start = workflow.indexOf(marker);
+  assert.notEqual(start, -1, 'public preview artifact step must remain explicit');
+  const end = workflow.indexOf('\\n      - name:', start + marker.length);
+  const step = workflow.slice(start, end === -1 ? workflow.length : end);
+  assert.match(step, /if:\\s*>-[\\s\\S]*github\\.event\\.repository\\.private\\s*==\\s*true/,
+    'artifact upload must require a private repository event');
+  assert.match(step, /path:\\s*\\$\\{\\{\\s*runner\\.temp\\s*\\}\\}\\/dadyar-preview-handoff\\/public\\/index\\.html/,
+    'only the single public HTML payload may be uploaded');
+  assert.doesNotMatch(step, /handoff\\/(?:\\*\\*|\\*)/,
+    'operator handoff directory must never be uploaded');
 });
