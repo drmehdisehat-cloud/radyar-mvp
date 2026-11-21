@@ -6,16 +6,16 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
-const script = html.match(/<script>([\\s\\S]*?)<\\/script>/)?.[1] || '';
+const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1] || '';
 
 test('free-question character counter is visible, associated and starts at zero', () => {
   assert.match(html, /<textarea id="free-question" aria-describedby="free-question-scope-note free-question-counter" maxlength="300"/);
-  assert.match(html, /<output id="free-question-counter" for="free-question">۰ از ۳۰۰ نویسه<\\/output>/);
-  assert.match(script, /freeQuestionField\\.addEventListener\\('input',\\(\\)=>\\{updateFreeQuestionCounter\\(\\);invalidateDraft\\(\\);\\}\\)/);
+  assert.match(html, /<output id="free-question-counter" for="free-question">۰ از ۳۰۰ نویسه<\/output>/);
+  assert.match(script, /freeQuestionField\.addEventListener\('input',\(\)=>\{updateFreeQuestionCounter\(\);invalidateDraft\(\);\}\)/);
 });
 
 test('counter follows HTML maxlength UTF-16 code-unit semantics and uses Persian digits', () => {
-  const functionSource = script.match(/function updateFreeQuestionCounter\\(\\)\\{[^}]*\\}/)?.[0];
+  const functionSource = script.match(/function updateFreeQuestionCounter\(\)\{[^}]*\}/)?.[0];
   assert.ok(functionSource, 'counter update function must exist');
   const context = {
     freeQuestionField: { value: '' },
@@ -39,6 +39,6 @@ test('counter follows HTML maxlength UTF-16 code-unit semantics and uses Persian
 });
 
 test('counter resets immediately after the question is cleared for classification and on full reset', () => {
-  assert.match(script, /freeQuestionField\\.value='';\\s*updateFreeQuestionCounter\\(\\);/);
-  assert.match(script, /function clearInterviewState\\(\\)[\\s\\S]*?document\\.getElementById\\('free-question'\\)\\.value = '';\\s*updateFreeQuestionCounter\\(\\);/);
+  assert.match(script, /freeQuestionField\.value='';\s*updateFreeQuestionCounter\(\);/);
+  assert.match(script, /function clearInterviewState\(\)[\s\S]*?document\.getElementById\('free-question'\)\.value = '';\s*updateFreeQuestionCounter\(\);/);
 });
