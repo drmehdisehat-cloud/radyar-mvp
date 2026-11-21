@@ -59,3 +59,44 @@ test('registry links the new observation but does not mark the cheque law as ver
   assert.equal(record.humanReviewStatus, 'pending');
   assert.equal(record.useInLegalAnswers, false);
 });
+
+
+test('2026-11-21 official status index and the 1358 act are recorded without legal-answer promotion', () => {
+  const index = observation.statusIndexRecheck;
+  assert.equal(index.directUrl, 'https://qavanin.ir/Law/StatusIndex/?IDS=11400475274213876131');
+  assert.equal(index.observedAt, '2026-11-21');
+  assert.deepEqual(index.renderedLines, [17, 30]);
+  assert.equal(index.influencingActs.length, 10);
+  assert.match(index.dateFieldMeaning, /not publication or effective dates/);
+
+  const act = observation.observations.amendment1358;
+  assert.equal(act.directTextUrl, 'https://qavanin.ir/Law/TreeText/?IDS=5510706429727435487');
+  assert.equal(act.directMetadataUrl, 'https://qavanin.ir/Law/Attribute/?IDS=5510706429727435487');
+  assert.deepEqual(act.textPageLines, [42, 45]);
+  assert.deepEqual(act.metadataPageLines, [19, 34]);
+  assert.equal(act.approvalDateShown, '1358/04/31');
+  assert.equal(act.officialGazetteNumberShown, '10043');
+  assert.equal(act.officialGazettePublicationDateShown, '1358/05/25');
+  assert.equal(act.effectiveDateShown, '1358/04/31');
+  assert.equal(act.rawHttpBytesCaptured, false);
+  assert.equal(act.rawResponseSha256, null);
+  assert.equal(act.primarySourceVerified, false);
+  assert.equal(act.humanReviewStatus, 'pending');
+  assert.equal(act.legalAnswerUsePermitted, false);
+  assert.equal(act.eventDateVersioningApproved, false);
+
+  const record = registry.records.find(item => item.id === 'check-issuance-law');
+  const candidate = record.officialDocumentUrlCandidates.find(item =>
+    item.documentId === '5510706429727435487');
+  assert.ok(candidate);
+  assert.equal(candidate.textPageRendered, true);
+  assert.equal(candidate.metadataPageRendered, true);
+  assert.equal(candidate.officialGazetteNumberShown, '10043');
+  assert.equal(candidate.primarySourceVerified, false);
+  assert.equal(candidate.useInLegalAnswers, false);
+  assert.equal(record.latestIndependentObservation.statusIndexRecheckedAt, '2026-11-21');
+  assert.equal(record.latestIndependentObservation.amendment1358TextAndMetadataRendered, true);
+  assert.equal(record.primarySourceVerified, false);
+  assert.equal(record.humanReviewStatus, 'pending');
+  assert.equal(record.useInLegalAnswers, false);
+});

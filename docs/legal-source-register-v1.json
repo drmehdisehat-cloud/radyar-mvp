@@ -169,6 +169,38 @@
           "humanReviewStatus": "pending",
           "useInLegalAnswers": false,
           "note": "متن اصلاحیه ۱۳۷۲ در صفحه مستقیم پایگاه رسمی Qavanin قابل مشاهده شد؛ صفحه اطلاعات پایه در واکشی مستقل فعلی قابل دریافت نبود. شماره/تاریخ روزنامه رسمی، تاریخ اجرا، بایت خام و SHA-256 احراز نشده و بازبینی انسانی متصل به متن انجام نشده است؛ این رکورد فقط سرنخ پژوهشی است."
+        },
+        {
+          "url": "https://qavanin.ir/Law/TreeText/?IDS=5510706429727435487",
+          "candidateStatus": "official-primary-text-and-metadata-rendered-2026-11-21-raw-bytes-not-captured",
+          "documentId": "5510706429727435487",
+          "sourceClass": "primary-official-qavanin",
+          "discoverySource": "https://qavanin.ir/Law/StatusIndex/?IDS=11400475274213876131",
+          "officialAttributeUrl": "https://qavanin.ir/Law/Attribute/?IDS=5510706429727435487",
+          "lastDirectFetchAt": "2026-11-21",
+          "lastDirectFetchResult": "official-text-and-metadata-rendered-via-independent-web-rendering; raw-response-bytes-and-sha256-not-captured",
+          "approvalDateShown": "1358/04/31",
+          "promulgationDateShown": "1358/05/06",
+          "officialGazetteNumberShown": "10043",
+          "officialGazetteDateShown": "1358/05/25",
+          "effectiveFromShown": "1358/04/31",
+          "currentStatusLabelShown": "1403/11/15",
+          "textPageRendered": true,
+          "textPageLines": [
+            42,
+            45
+          ],
+          "metadataPageRendered": true,
+          "metadataPageLines": [
+            19,
+            34
+          ],
+          "rawHttpBytesCaptured": false,
+          "rawResponseSha256": null,
+          "primarySourceVerified": false,
+          "humanReviewStatus": "pending",
+          "useInLegalAnswers": false,
+          "note": "The rendered text limits this act to the end of 1358 and to cheques issued through 1358/04/31. These are portal-observed fields, not a substitute for the Gazette issue bytes, complete temporal chain or human review."
         }
       ],
       "officialPortalObservation": {
@@ -194,9 +226,9 @@
         },
         "officialStatusIndex": {
           "url": "https://qavanin.ir/Law/StatusIndex/?IDS=11400475274213876131",
-          "retrievedAt": "2026-11-19",
+          "retrievedAt": "2026-11-21",
           "retrievalResult": "readable",
-          "dateFieldMeaning": "approval dates displayed by the official status index; not publication or effective dates",
+          "dateFieldMeaning": "approval dates shown by the index; not publication or effective dates",
           "influencingActs": [
             {
               "title": "لايحه قانوني اصلاح ماده 17 قانون صدور چك",
@@ -248,7 +280,25 @@
               "approvalDate": "1403/03/30",
               "kind": "law"
             }
-          ]
+          ],
+          "renderedLines": [
+            17,
+            30
+          ],
+          "latestRecheck": {
+            "observedAt": "2026-11-21",
+            "amendment1358TextUrl": "https://qavanin.ir/Law/TreeText/?IDS=5510706429727435487",
+            "amendment1358MetadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=5510706429727435487",
+            "amendment1358TextRendered": true,
+            "amendment1358MetadataRendered": true,
+            "amendment1358GazetteNumberShown": "10043",
+            "amendment1358GazetteDateShown": "1358/05/25",
+            "rawHttpBytesCaptured": false,
+            "rawResponseSha256": null,
+            "primarySourceVerified": false,
+            "humanReviewStatus": "pending",
+            "useInLegalAnswers": false
+          }
         },
         "amendmentPages": [
           {
@@ -382,7 +432,9 @@
         "primarySourceVerified": false,
         "humanReviewStatus": "pending",
         "useInLegalAnswers": false,
-        "note": "Fresh independent rendering of the direct official Qavanin text and metadata pages; the rendering is not a raw-byte capture or a text-bound legal review."
+        "note": "Fresh independent rendering of the direct official Qavanin text and metadata pages; the rendering is not a raw-byte capture or a text-bound legal review.",
+        "statusIndexRecheckedAt": "2026-11-21",
+        "amendment1358TextAndMetadataRendered": true
       }
     },
     {
