@@ -183,7 +183,7 @@ function createPinnedReviewerJwtAuthenticator(options = {}) {
           currentSeconds - iat > maxTokenAgeSeconds + clockSkewSeconds ||
           exp <= currentSeconds - clockSkewSeconds ||
           exp <= iat || exp - iat > maxTokenLifetimeSeconds ||
-          (nbf !== undefined && nbf > currentSeconds + clockSkewSeconds)) {
+          (nbf !== undefined && (nbf >= exp || nbf > currentSeconds + clockSkewSeconds))) {
         throw unauthenticated();
       }
 
