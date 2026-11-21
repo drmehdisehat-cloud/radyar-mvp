@@ -26,7 +26,21 @@
       "humanReviewedAt": null,
       "reviewTask": "Locate and compare the 1397 amending act and official gazette; determine its commencement and any delayed application per article, especially cheque issuance and electronic instruments.",
       "instrumentType": "parliamentary-amending-act",
-      "instrumentIdentificationStatus": "primary-instrument-unverified"
+      "instrumentIdentificationStatus": "primary-instrument-unverified",
+      "candidatePrimaryDocumentObservation": {
+        "url": "https://rc.majlis.ir/fa/law/show/1091223",
+        "publisher": "مرکز پژوهش‌های مجلس شورای اسلامی",
+        "discovery": "indexed search result identifying the 1397 Cheque Issuance Act amendment source",
+        "discoveredAt": "2026-11-11",
+        "directFetchAttempt": {
+          "attemptedAt": "2026-11-11",
+          "result": "timeout",
+          "retrieved": false
+        },
+        "legalTextImported": false,
+        "independentPrimaryAmendmentTextVerified": false,
+        "warning": "Candidate only. The official-host page timed out during direct retrieval; no statutory text, gazette issue, publication date, or commencement date was imported or verified."
+      }
     },
     {
       "label": "1400",
@@ -46,7 +60,21 @@
       "humanReviewedAt": null,
       "reviewTask": "Retrieve the 1400 amending act and gazette independently; verify effective dates and the post-Esfand-1399 cheque-book transition without inferring applicability from the cheque date alone.",
       "instrumentType": "parliamentary-amending-act",
-      "instrumentIdentificationStatus": "primary-instrument-unverified"
+      "instrumentIdentificationStatus": "primary-instrument-unverified",
+      "candidatePrimaryDocumentObservation": {
+        "url": "https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689",
+        "publisher": "پایگاه ملی قوانین و مقررات کشور",
+        "discovery": "indexed source links this direct Qavanin document to the 1400 Cheque Issuance Act amendment",
+        "discoveredAt": "2026-11-11",
+        "directFetchAttempt": {
+          "attemptedAt": "2026-11-11",
+          "result": "timeout",
+          "retrieved": false
+        },
+        "legalTextImported": false,
+        "independentPrimaryAmendmentTextVerified": false,
+        "warning": "Candidate only. Direct retrieval of the official portal timed out; no statutory text, gazette issue, publication date, or commencement date was imported or verified."
+      }
     },
     {
       "label": "1403",

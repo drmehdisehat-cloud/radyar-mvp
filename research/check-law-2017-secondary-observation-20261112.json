@@ -1,0 +1,44 @@
+{
+  "schema": "dadyar-legal-source-observation-v1",
+  "record_id": "check-law-amendment-1397-secondary-observation-20261112",
+  "subject": "قانون اصلاح قانون صدور چک مصوب ۱۳۹۷/۰۸/۱۳",
+  "jurisdiction": "IR",
+  "source_role": "secondary_reproduction_only",
+  "status": "research_only",
+  "approved_for_legal_answer": false,
+  "human_review_status": "not_reviewed",
+  "observed_at_utc": "2026-11-12",
+  "source": {
+    "title": "قانون جدید چک ابلاغ شد + متن قانون",
+    "publisher": "خبرگزاری تسنیم",
+    "source_type": "secondary_news_reproduction",
+    "published_local_date": "1397/09/03",
+    "url": "https://www.tasnimnews.ir/fa/news/1397/09/03/1883427/قانون-جدید-چک-ابلاغ-شد-متن-قانون",
+    "retrieved_at_utc": "2026-11-12",
+    "authenticity_verified": false
+  },
+  "source_reported_dates": {
+    "parliamentary_approval": "1397/08/13",
+    "guardian_council_approval": "1397/08/23",
+    "parliament_letter_received": "1397/08/29",
+    "presidential_communication_reported": "1397/09/03"
+  },
+  "unresolved_official_metadata": {
+    "official_gazette_document_url": null,
+    "official_gazette_issue_number": null,
+    "official_publication_date": null,
+    "legal_commencement_date": null,
+    "applicable_version_for_event_date": null
+  },
+  "limitations": [
+    "The dates above are transcribed as claims reported by a secondary news source; they are not independently confirmed against an authenticated official gazette document.",
+    "The article is not a primary legal source and must not be cited as proof of the enacted text, official publication date, commencement date, or historical version.",
+    "No legal answer may rely on this record until a document-specific official source is retrieved and an authorized human legal reviewer approves the version and chronology."
+  ],
+  "next_required_evidence": [
+    "Document-specific official gazette record and authentic publication copy",
+    "Official metadata for issue number and publication date",
+    "Verified commencement rule and any transitional provisions relevant to the event date",
+    "Independent human legal review bound to the exact source document digest"
+  ]
+}

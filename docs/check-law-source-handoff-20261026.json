@@ -94,5 +94,76 @@
     "scope": "These are metadata displayed for the original 1355 law and the portal's latest-status label, not independent evidence of publication or effective dates of the 1397, 1400, 1403 or later amendments.",
     "amendmentEffectiveDatesVerified": false,
     "releaseSourceEligible": false
-  }
+  },
+  "latestOfficialMetadataRecheck": {
+    "observedAt": "2026-11-10",
+    "sourceType": "primary-official-qavanin-attribute-page",
+    "url": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
+    "retrievalResult": "retrieved",
+    "lawTitleShown": "قانون صدور چك",
+    "approvalDateShown": "1355/04/16",
+    "notificationNumberShown": "33206",
+    "notificationAuthorityShown": "نخست وزير",
+    "originalOfficialGazetteNumberShown": "9210",
+    "originalOfficialGazetteDateShown": "1355/05/19",
+    "originalEffectiveDateShown": "1355/06/04",
+    "lastStatusShown": "اصلاحي 1403/03/30",
+    "consolidatedTextRecheck": {
+      "url": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
+      "observedAt": "2026-11-10",
+      "retrievalResult": "request-timeout"
+    },
+    "amendmentPublicationDatesVerified": false,
+    "amendmentEffectiveDatesVerified": false,
+    "currentConsolidatedTextVerified": false,
+    "humanReviewer": null,
+    "humanReviewedAt": null,
+    "releaseSourceEligible": false,
+    "scope": "Official portal metadata for the original 1355 act was rechecked. The displayed last-status label does not prove the publication or commencement dates of later amendments, their transitional rules, or a complete current consolidated text. The direct consolidated-text page timed out during this recheck."
+  },
+  "latestOfficialSourceRetry": {
+    "observedAt": "2026-11-13",
+    "scope": "recheck of primary-source URLs only; no legal text was imported",
+    "officialSourceAttempts": [
+      {
+        "authority": "پایگاه ملی قوانین و مقررات کشور",
+        "purpose": "متن تجمیعی قانون صدور چک",
+        "url": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
+        "retrievalResult": "timeout",
+        "textRetrieved": false
+      },
+      {
+        "authority": "پایگاه ملی قوانین و مقررات کشور",
+        "purpose": "فراداده قانون صدور چک",
+        "url": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
+        "retrievalResult": "timeout",
+        "textRetrieved": false
+      },
+      {
+        "authority": "مرکز پژوهش‌های مجلس شورای اسلامی",
+        "purpose": "متن اصلاح قانون صدور چک مصوب ۱۳۹۷",
+        "url": "https://rc.majlis.ir/fa/law/show/1091223",
+        "retrievalResult": "timeout",
+        "textRetrieved": false
+      },
+      {
+        "authority": "پایگاه ملی قوانین و مقررات کشور",
+        "purpose": "متن قانون اصلاح قانون صدور چک مصوب ۱۴۰۰",
+        "url": "https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689",
+        "retrievalResult": "timeout",
+        "textRetrieved": false
+      }
+    ],
+    "secondaryDiscoveryOnly": {
+      "publisher": "لالکس",
+      "url": "https://lawlex.ir/laws/chek",
+      "observedAt": "2026-11-13",
+      "role": "secondary index / discovery lead only",
+      "surfacedOfficialLead": "https://rc.majlis.ir/fa/law/show/1091223",
+      "legalTextImported": false,
+      "releaseSourceEligible": false
+    },
+    "conclusion": "No primary legal text, official-gazette publication date, amendment commencement date, or event-date version was newly verified. Keep the check-law source research-only and prohibit legal conclusions based on this recheck."
+  },
+  "legalConclusionPermitted": false
 }

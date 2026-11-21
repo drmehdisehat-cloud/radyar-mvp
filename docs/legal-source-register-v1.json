@@ -1,0 +1,707 @@
+{
+  "schema": "dadyar-legal-source-register-v1",
+  "observedAt": "2026-11-21",
+  "policy": {
+    "approvalRule": "A secondary page, search result, owner image, or plausible official-portal URL is not an authenticated primary legal source.",
+    "answerUse": "Only records with an independently verified primary document, event-date version, direct document URL, and approved human review may support a legal answer.",
+    "defaultUseInLegalAnswers": false
+  },
+  "officialPortalCandidates": [
+    "https://rrk.ir",
+    "https://qavanin.ir",
+    "https://divanali.ir",
+    "https://cbi.ir"
+  ],
+  "records": [
+    {
+      "id": "check-issuance-law",
+      "topicHints": [
+        "چک",
+        "اسناد تجاری"
+      ],
+      "instrumentType": "statute",
+      "title": "قانون صدور چک",
+      "originalAdoptionDate": "1355-04-16",
+      "latestAmendmentClaimedBySecondaryText": "1400-01-29",
+      "eventDateVersioningRequired": true,
+      "primaryOfficialDocumentUrl": null,
+      "primaryPublicationIssue": null,
+      "primarySourceVerified": false,
+      "humanReviewStatus": "pending",
+      "useInLegalAnswers": false,
+      "secondaryResearchLeads": [
+        {
+          "url": "https://law-ir.ir/law/cat/1692/",
+          "sourceClass": "secondary",
+          "note": "متن تجمیعی با اشاره به اصلاحات ۱۳۷۲، ۱۳۸۲ و ۱۳۹۷؛ روزنامه رسمی نیست."
+        },
+        {
+          "url": "https://www.ekhtebar.ir/%D9%85%D8%AA%D9%86-%D9%82%D8%A7%D9%86%D9%88%D9%86-%DA%86%DA%A9-%D8%A8%D8%A7-%D8%A2%D8%AE%D8%B1%DB%8C%D9%86-%D8%A7%D8%B5%D9%84%D8%A7%D8%AD%D8%A7%D8%AA/amp/",
+          "sourceClass": "secondary",
+          "note": "نسخه ثانویه مدعی تجمیع اصلاحات تا ۱۴۰۰/۰۱/۲۹؛ نسخه رسمی ماده‌به‌ماده و تاریخ اعتبار هنوز تطبیق نشده است."
+        }
+      ],
+      "openQuestions": [
+        "ثبت بایت خام پاسخ رسمی و SHA-256 برای متن تجمیعی و اصلاحیه‌های ۱۳۷۲، ۱۳۹۷ و ۱۴۰۰؛ خروجی متنی مرورگر جایگزین هش بایت سند نیست.",
+        "دریافت شماره و تاریخ روزنامه رسمی و تاریخ لازم‌الاجراشدن اصلاحیه ۱۴۰۳ و بازیابی متن اولیه آن.",
+        "دریافت فراداده روزنامه رسمی و تاریخ اجرا برای اصلاحیه ۱۳۷۲؛ دریافت متن و فراداده رسمی اصلاحیه‌های ۱۳۵۸، ۱۳۷۶، ۱۳۷۷ و ۱۳۸۲ برای تکمیل زنجیره تنقیح.",
+        "احراز قواعد انتقالی هر اصلاحیه و ساخت نسخه‌های زمانی بدون هم‌پوشانی برای تاریخ وقوع رویداد.",
+        "بازبینی مستقل حقوقی و ثبت امضای بازبین متصل به SHA-256 همان نسخه."
+      ],
+      "officialDocumentUrlCandidates": [
+        {
+          "url": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
+          "candidateStatus": "official-text-rendered-2026-11-19-raw-bytes-not-captured",
+          "documentId": "11400475274213876131",
+          "sourceClass": "primary-official-qavanin",
+          "discoverySource": "docs/check-law-source-handoff-20261026.json",
+          "officialAttributeUrl": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
+          "lastDirectFetchAt": "2026-11-19",
+          "lastDirectFetchResult": "official-law-text-readable-via-independent-web-rendering; raw-response-bytes-and-sha256-not-captured",
+          "originalGazetteNumberShown": "9210",
+          "originalGazetteDateShown": "1355/05/19",
+          "lastStatusShown": "اصلاحي 1403/03/30",
+          "amendmentEffectiveDatesVerified": false,
+          "currentConsolidatedTextVerified": false,
+          "humanReviewStatus": "pending",
+          "useInLegalAnswers": false,
+          "note": "پیوند مستقیم متن قانون در پایگاه رسمی قوانین در بررسی مستقل ۱۴۰۵/۰۸/۲۸ قابل خواندن شد. صفحه عنوان قانون، تاریخ تصویب ۱۳۵۵/۰۴/۱۶ و برچسب اصلاحی ۱۴۰۳/۰۳/۳۰ را نشان می‌دهد؛ صفحه اطلاعات پایه نیز شماره روزنامه رسمی ۹۲۱۰، تاریخ انتشار ۱۳۵۵/۰۵/۱۹ و تاریخ اجرای قانون اولیه ۱۳۵۵/۰۶/۰۴ را نمایش می‌دهد. این تاریخ‌های اولیه، تاریخ اثر اصلاحات بعدی نیستند. بایت خام پاسخ و SHA-256 در این اجرا ثبت نشد؛ بنابراین متن و نسخه زمانی هنوز برای پاسخ حقوقی تأیید نشده‌اند."
+        },
+        {
+          "url": "https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689",
+          "candidateStatus": "official-primary-text-rendered-2026-11-20-raw-bytes-not-captured",
+          "documentId": "8508483613671622689",
+          "sourceClass": "primary-official-qavanin",
+          "discoveryLeadUrl": "https://hoghogh.ai/laws/قانون-صدور-چک/6",
+          "lastDirectFetchAt": "2026-11-20",
+          "lastDirectFetchResult": "official-amendment-text-and-metadata-readable-via-independent-web-rendering; raw-response-bytes-and-sha256-not-captured",
+          "humanReviewStatus": "pending",
+          "useInLegalAnswers": false,
+          "note": "متن مستقیم اصلاحیه و صفحه اطلاعات پایه پایگاه رسمی Qavanin در ۱۴۰۵/۰۸/۲۹ دوباره قابل خواندن بود. فراداده همان صفحه شماره روزنامه رسمی ۲۲۱۸۸، تاریخ انتشار ۱۴۰۰/۰۳/۰۲، ابلاغ ۱۴۰۰/۰۲/۲۸، تاریخ تصویب ۱۴۰۰/۰۱/۲۹، تأیید شورای نگهبان ۱۴۰۰/۰۲/۱۸ و تاریخ اجرا ۱۴۰۰/۰۳/۱۸ را نشان می‌دهد. متن استخراج‌شده و فراداده در مشاهده‌نامه ثبت شده‌اند؛ بایت خام پاسخ و SHA-256 ثبت نشده و بازبینی حقوقی انسانی متصل به همین متن انجام نشده است؛ بنابراین برای پاسخ حقوقی مجاز نیست.",
+          "officialAttributeUrl": "https://qavanin.ir/Law/Attribute/?IDS=8508483613671622689",
+          "officialGazetteNumberShown": "22188",
+          "officialGazetteDateShown": "1400/03/02",
+          "promulgationDateShown": "1400/02/28",
+          "effectiveFromShown": "1400/03/18",
+          "guardianCouncilConfirmationDateShown": "1400/02/18",
+          "metadataRetrievedAt": "2026-11-20",
+          "textPageRendered": true,
+          "metadataPageRendered": true,
+          "rawHttpBytesCaptured": false,
+          "rawResponseSha256": null
+        },
+        {
+          "url": "https://qavanin.ir/Law/TreeText/?IDS=3613585600919945767",
+          "candidateStatus": "official-primary-text-rendered-2026-11-19-raw-bytes-not-captured",
+          "documentId": "3613585600919945767",
+          "sourceClass": "primary-official-qavanin",
+          "lastDirectFetchAt": "2026-11-19",
+          "lastDirectFetchResult": "official-amendment-text-readable-via-independent-web-rendering; raw-response-bytes-and-sha256-not-captured",
+          "approvalDateShown": "1397/08/13",
+          "guardianCouncilConfirmationDateShown": "1397/08/23",
+          "humanReviewStatus": "pending",
+          "useInLegalAnswers": false,
+          "note": "متن و صفحه اطلاعات پایه مستقیم رسمی Qavanin قابل خواندن شدند. فراداده رسمی شماره روزنامه رسمی ۲۱۴۶۷، تاریخ انتشار ۱۳۹۷/۰۹/۰۵، ابلاغ ۱۳۹۷/۰۹/۰۳ و تاریخ اجرا ۱۳۹۷/۰۹/۲۱ را نشان می‌دهد. با وجود این، بایت خام متن و SHA-256 ثبت نشده و بازبینی انسانی متصل به همان متن انجام نشده است؛ بنابراین برای پاسخ حقوقی مجاز نیست.",
+          "officialAttributeUrl": "https://qavanin.ir/Law/Attribute/?IDS=3613585600919945767",
+          "officialGazetteNumberShown": "21467",
+          "officialGazetteDateShown": "1397/09/05",
+          "promulgationDateShown": "1397/09/03",
+          "effectiveFromShown": "1397/09/21",
+          "metadataRetrievedAt": "2026-11-19"
+        },
+        {
+          "url": "https://qavanin.ir/Law/TreeText/?IDS=634882870797924421",
+          "candidateStatus": "official-status-index-lead-direct-text-timeout-2026-11-19",
+          "documentId": "634882870797924421",
+          "sourceClass": "primary-official-qavanin",
+          "discoverySource": "https://qavanin.ir/Law/StatusIndex/?IDS=11400475274213876131",
+          "lastDirectFetchAt": "2026-11-19",
+          "lastDirectFetchResult": "request-timeout",
+          "approvalDateShown": "1403/03/30",
+          "humanReviewStatus": "pending",
+          "useInLegalAnswers": false,
+          "note": "فهرست تنقیحی رسمی قانون، این مصوبه را با تاریخ تصویب ۱۴۰۳/۰۳/۳۰ به‌عنوان قانون اثرگذار معرفی می‌کند؛ واکشی مستقیم متن در همین تاریخ timeout شد. برچسب اصلاحی ماده ۷ در متن تجمیعی به‌تنهایی شماره/تاریخ روزنامه رسمی یا تاریخ لازم‌الاجراشدن را اثبات نمی‌کند.",
+          "latestRecheck": {
+            "observedAt": "2026-11-21",
+            "sourceClass": "primary-official-qavanin",
+            "directTextUrl": "https://qavanin.ir/Law/TreeText/?IDS=634882870797924421",
+            "directMetadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=634882870797924421",
+            "textPageRendered": true,
+            "textPageLines": [
+              7,
+              45
+            ],
+            "chequeArticle7TableLines": [
+              787,
+              793
+            ],
+            "metadataPageRendered": true,
+            "metadataPageLines": [
+              19,
+              34
+            ],
+            "officialGazetteNumberShown": "23097",
+            "officialGazettePublicationDateShown": "1403/04/23",
+            "promulgationDateShown": "1403/04/04",
+            "effectiveDateShown": "1403/05/08",
+            "decisionNumberShown": "56261/ت62298هـ",
+            "rawHttpBytesCaptured": false,
+            "rawResponseSha256": null,
+            "primarySourceVerified": false,
+            "humanReviewStatus": "pending",
+            "useInLegalAnswers": false,
+            "note": "The official portal rendered the regulation text and metadata on 2026-11-21. The Gazette issue bytes and signed appendix were not independently downloaded or hashed; the earlier timeout is retained as a historical observation."
+          }
+        },
+        {
+          "url": "https://qavanin.ir/Law/TreeText/?IDS=16863897128756457315",
+          "candidateStatus": "official-primary-text-rendered-2026-11-19-metadata-unavailable-raw-bytes-not-captured",
+          "documentId": "16863897128756457315",
+          "sourceClass": "primary-official-qavanin",
+          "lastDirectFetchAt": "2026-11-19",
+          "lastDirectFetchResult": "official-amendment-text-readable-via-independent-web-rendering; metadata-endpoint-not-readable; raw-response-bytes-and-sha256-not-captured",
+          "approvalDateShown": "1372/08/11",
+          "guardianCouncilConfirmationDateShown": "1372/08/19",
+          "officialAttributeUrl": "https://qavanin.ir/Law/Attribute/?IDS=16863897128756457315",
+          "officialGazetteNumberShown": null,
+          "officialGazetteDateShown": null,
+          "effectiveFromShown": null,
+          "humanReviewStatus": "pending",
+          "useInLegalAnswers": false,
+          "note": "متن اصلاحیه ۱۳۷۲ در صفحه مستقیم پایگاه رسمی Qavanin قابل مشاهده شد؛ صفحه اطلاعات پایه در واکشی مستقل فعلی قابل دریافت نبود. شماره/تاریخ روزنامه رسمی، تاریخ اجرا، بایت خام و SHA-256 احراز نشده و بازبینی انسانی متصل به متن انجام نشده است؛ این رکورد فقط سرنخ پژوهشی است."
+        },
+        {
+          "url": "https://qavanin.ir/Law/TreeText/?IDS=5510706429727435487",
+          "candidateStatus": "official-primary-text-and-metadata-rendered-2026-11-21-raw-bytes-not-captured",
+          "documentId": "5510706429727435487",
+          "sourceClass": "primary-official-qavanin",
+          "discoverySource": "https://qavanin.ir/Law/StatusIndex/?IDS=11400475274213876131",
+          "officialAttributeUrl": "https://qavanin.ir/Law/Attribute/?IDS=5510706429727435487",
+          "lastDirectFetchAt": "2026-11-21",
+          "lastDirectFetchResult": "official-text-and-metadata-rendered-via-independent-web-rendering; raw-response-bytes-and-sha256-not-captured",
+          "approvalDateShown": "1358/04/31",
+          "promulgationDateShown": "1358/05/06",
+          "officialGazetteNumberShown": "10043",
+          "officialGazetteDateShown": "1358/05/25",
+          "effectiveFromShown": "1358/04/31",
+          "currentStatusLabelShown": "1403/11/15",
+          "textPageRendered": true,
+          "textPageLines": [
+            42,
+            45
+          ],
+          "metadataPageRendered": true,
+          "metadataPageLines": [
+            19,
+            34
+          ],
+          "rawHttpBytesCaptured": false,
+          "rawResponseSha256": null,
+          "primarySourceVerified": false,
+          "humanReviewStatus": "pending",
+          "useInLegalAnswers": false,
+          "note": "The rendered text limits this act to the end of 1358 and to cheques issued through 1358/04/31. These are portal-observed fields, not a substitute for the Gazette issue bytes, complete temporal chain or human review."
+        }
+      ],
+      "officialPortalObservation": {
+        "schema": "dadyar-qavanin-check-law-observation-v1",
+        "topic": "check",
+        "observedAt": "2026-11-20",
+        "status": "research-only",
+        "legalAnswerUsePermitted": false,
+        "primarySourceVerified": false,
+        "humanReviewStatus": "pending",
+        "sourceMethod": "independent web rendering of direct Qavanin text and metadata/status pages; raw HTTP response bytes were not captured",
+        "originalLawMetadata": {
+          "directTextUrl": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
+          "directMetadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
+          "approvalDateShown": "1355/04/16",
+          "promulgationDateShown": "1355/05/09",
+          "officialGazetteNumberShown": "9210",
+          "officialGazetteDateShown": "1355/05/19",
+          "originalEffectiveDateShown": "1355/06/04",
+          "latestStatusLabelShown": "اصلاحي 1403/03/30",
+          "rawHttpBytesCaptured": false,
+          "rawResponseSha256": null
+        },
+        "officialStatusIndex": {
+          "url": "https://qavanin.ir/Law/StatusIndex/?IDS=11400475274213876131",
+          "retrievedAt": "2026-11-21",
+          "retrievalResult": "readable",
+          "dateFieldMeaning": "approval dates shown by the index; not publication or effective dates",
+          "influencingActs": [
+            {
+              "title": "لايحه قانوني اصلاح ماده 17 قانون صدور چك",
+              "approvalDate": "1358/04/31",
+              "kind": "legislative act"
+            },
+            {
+              "title": "قانون اصلاح موادي از قانون صدور چك مصوب تيرماه 1355",
+              "approvalDate": "1372/08/11",
+              "kind": "law"
+            },
+            {
+              "title": "قانون الحاق يك تبصره به ماده 2 قانون اصلاح موادي از قانون صدورچك",
+              "approvalDate": "1376/03/10",
+              "kind": "law"
+            },
+            {
+              "title": "قانون اصلاح ذيل تبصره (1) ماده (14) قانون صدور چك و الحاق يك تبصره به آن",
+              "approvalDate": "1376/10/14",
+              "kind": "law"
+            },
+            {
+              "title": "قانون استفساريه تبصرۀ الحاقي به ماده 2 قانون اصلاح موادي از قانون صدور چك",
+              "approvalDate": "1377/09/21",
+              "kind": "law"
+            },
+            {
+              "title": "قانون اصلاح موادي از قانون صدور چك",
+              "approvalDate": "1382/06/02",
+              "kind": "law"
+            },
+            {
+              "title": "قانون اصلاح قانون صدور چك",
+              "approvalDate": "1397/08/13",
+              "kind": "law"
+            },
+            {
+              "title": "جلسه چهل و پنجم ستاد ملي مديريت كرونا",
+              "approvalDate": "1399/09/01",
+              "kind": "administrative meeting"
+            },
+            {
+              "title": "قانون اصلاح قانون صدور چك",
+              "approvalDate": "1400/01/29",
+              "kind": "law"
+            },
+            {
+              "title": "اصلاح ميزان مبالغ مربوط به جرائم و تخلفات مندرج در قوانين مختلف",
+              "approvalDate": "1403/03/30",
+              "kind": "law"
+            }
+          ],
+          "renderedLines": [
+            17,
+            30
+          ],
+          "latestRecheck": {
+            "observedAt": "2026-11-21",
+            "amendment1358TextUrl": "https://qavanin.ir/Law/TreeText/?IDS=5510706429727435487",
+            "amendment1358MetadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=5510706429727435487",
+            "amendment1358TextRendered": true,
+            "amendment1358MetadataRendered": true,
+            "amendment1358GazetteNumberShown": "10043",
+            "amendment1358GazetteDateShown": "1358/05/25",
+            "rawHttpBytesCaptured": false,
+            "rawResponseSha256": null,
+            "primarySourceVerified": false,
+            "humanReviewStatus": "pending",
+            "useInLegalAnswers": false
+          }
+        },
+        "amendmentPages": [
+          {
+            "id": "check-amendment-1397",
+            "title": "قانون اصلاح قانون صدور چك",
+            "documentId": "3613585600919945767",
+            "url": "https://qavanin.ir/Law/TreeText/?IDS=3613585600919945767",
+            "approvalDateShown": "1397/08/13",
+            "GuardianCouncilConfirmationDateShown": "1397/08/23",
+            "textRendered": "yes",
+            "rawHttpBytesCaptured": false,
+            "rawResponseSha256": null,
+            "officialGazetteNumber": "21467",
+            "publicationDate": "1397/09/05",
+            "effectiveFrom": "1397/09/21",
+            "humanReviewStatus": "pending",
+            "guardianCouncilConfirmationDateShown": "1397/08/23",
+            "metadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=3613585600919945767",
+            "metadataRendered": true,
+            "promulgationDateShown": "1397/09/03",
+            "lastStatusShown": "1399/09/22"
+          },
+          {
+            "id": "check-amendment-1400",
+            "title": "قانون اصلاح قانون صدور چك",
+            "documentId": "8508483613671622689",
+            "url": "https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689",
+            "approvalDateShown": "1400/01/29",
+            "GuardianCouncilConfirmationDateShown": "1400/02/18",
+            "textRendered": "yes",
+            "rawHttpBytesCaptured": false,
+            "rawResponseSha256": null,
+            "officialGazetteNumber": "22188",
+            "publicationDate": "1400/03/02",
+            "effectiveFrom": "1400/03/18",
+            "humanReviewStatus": "pending",
+            "guardianCouncilConfirmationDateShown": "1400/02/18",
+            "metadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=8508483613671622689",
+            "metadataRendered": true,
+            "promulgationDateShown": "1400/02/28",
+            "lastObservedAt": "2026-11-20",
+            "metadataRetrievedAt": "2026-11-20",
+            "renderedTextExcerpt": "ماده 1- در ماده (6) قانون صدور چك مصوب 16 /4 /1355 با اصلاحات و الحاقات بعدي عبارتهاي «و مدت اعتبار» و «حداكثر مدت اعتبار چك از زمان دريافت دسته چك سه سال است و چكهايي كه تاريخ مندرج در آنها پس از مدت اعتبار باشد، مشمول اين قانون نمي شوند» حذف مي شود.\nماده 2- در تبصره (1) ماده (21 مكرر) قانون، عبارت «در مورد چكهايي كه پس از گذشت دو سال از لازم الاجراء شدن اين قانون» به عبارت «در مورد برگه چكهايي كه از دسته چكهاي ارائه شده پس از پايان اسفندماه سال 1399» اصلاح و جمله «چكهايي كه تاريخ صدور آنها قبل از زمان مذكور باشد تابع قانون زمان صدور مي باشد» به جمله «چكهاي صادرشده از دسته چكهايي كه تاريخ ارائه آن دسته چكها قبل از زمان مذكور در اين تبصره باشد، تابع قانون زمان ارائه دسته چك است و بانكها بدون نياز به ثبت آن چكها در سامانه صياد نسبت به پرداخت وجه چك اقدام مي كنند. در كليه برگه هاي دسته چكهاي ارائه شده پس از تاريخ فوق الذكر بايد عبارت (صدور و پشت نويسي چك بدون درج در سامانه صياد فاقد اعتبار است) درج شود» اصلاح مي شود.\nماده 3- يك ماده به عنوان (24) به قانون، به شرح زير الحاق و شماره ماده (24) فعلي به (25) اصلاح مي شود:\nماده 24- چك تضمين شده تابع احكام ذيل است:\n1- صدور و تحويل چكهاي تضمين شده توسط بانكها به مشتري، صرفاً از طريق سامانه صدور يكپارچه الكترونيكي دسته چك (صياد) امكان پذير و مستلزم تكميل برگه (فرم) درخواست توسط متقاضي در شعبه بانك در حضور متصدي بانكي، درج مشخصات هويتي و شماره حساب گيرنده روي چك تضمين شده بر اساس دستورالعمل اعلامي توسط بانك مركزي جمهوري اسلامي ايران و نيز ثبت علت درخواست صدور چك مذكور در سامانه صياد مي باشد. سامانه مذكور به هر برگه چك، شناسه يكتا اختصاص مي دهد و بانك مركزي موظف است امكان استعلام اطلاعات چك تضمين شده را براي گيرنده (ذي نفع) فراهم نمايد.\n2- پرداخت مبلغ چك تضمين شده توسط بانك صرفاً در وجه و به شماره حساب گيرنده (ذي نفع) كه مشخصات وي روي چك تضمين شده درج گرديده است، امكان پذير مي باشد [و ظهرنويسي براي انتقال چك تضمين شده درج گرديده است، امكان پذير مي باشد] و ظهرنويسي براي انتقال چك تضمين شده فاقد اعتبار است.\n3- ابطال چك تضمين شده به درخواست متقاضي يا وكيل يا نماينده قانوني وي با ارائه اصل چك جهت واريز وجه چك به حساب متقاضي، بدون نياز به ظهرنويسي گيرنده (ذي نفع) تنها تا يك ماه پس از صدور آن توسط بانك صادركننده امكان پذير است. همچنين پرداخت چك تضمين شده به گيرنده (ذي نفع) با ارائه اصل چك تنها تا يك ماه پس از صدور آن توسط بانك امكان پذير است. پرداخت يا ابطال چك پس از مهلت مقرر در اين بند منوط به تكميل برگه (فرم) هاي مربوط به مبارزه با پولشويي توسط متقاضي يا گيرنده (ذي نفع) و گزارش شعبه بانك به واحد مبارزه با پولشويي بانك صادركننده مي باشد.\n4- در صورت مفقودي چك تضمين شده، هر گاه متقاضي و گيرنده (ذي نفع) هر دو به بانك صادركننده مراجعه و نسبت به تكميل و امضاي برگه (فرم) اعلام مفقودي چك تضمين شده و تعهدنامه عدم ادعا نسبت به چك مفقود شده اقدام نموده و نسخه المثني آن را از بانك درخواست كنند، بانك مكلف است علاوه بر احراز هويت متقاضي و گيرنده (ذي نفع) نسبت به استعلام صحت مشخصات هويتي متقاضي و گيرنده (ذي نفع) از سامانه نظام هويت سنجي الكترونيكي بانكي اقدام نمايد و پس از ابطال چك مفقود شده، نسبت به صدور چك المثني مطابق با اطلاعات مندرج در سامانه صياد اقدام كند.\n5- در صورت جعل چك تضمين شده يا استفاده از چك تضمين شده مجعول، مرتكب علاوه بر مجازات هاي قانوني مقرر، به حكم دادگاه به مدت دو تا شش سال از گرفتن چك تضمين شده محروم مي شود."
+          },
+          {
+            "id": "check-amendment-1403",
+            "title": "اصلاح ميزان مبالغ مربوط به جرائم و تخلفات مندرج در قوانين مختلف",
+            "documentId": "634882870797924421",
+            "url": "https://qavanin.ir/Law/TreeText/?IDS=634882870797924421",
+            "approvalDateShown": "1403/03/30",
+            "textRendered": "no",
+            "retrievalResult": "timeout on 2026-11-19",
+            "rawHttpBytesCaptured": false,
+            "rawResponseSha256": null,
+            "officialGazetteNumber": null,
+            "publicationDate": null,
+            "effectiveFrom": null,
+            "humanReviewStatus": "pending",
+            "metadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=634882870797924421",
+            "metadataRendered": false,
+            "metadataRetrievalResult": "transfer-interstitial"
+          },
+          {
+            "id": "check-amendment-1372",
+            "title": "قانون اصلاح موادي از قانون صدور چك مصوب تيرماه 1355",
+            "documentId": "16863897128756457315",
+            "url": "https://qavanin.ir/Law/TreeText/?IDS=16863897128756457315",
+            "approvalDateShown": "1372/08/11",
+            "guardianCouncilConfirmationDateShown": "1372/08/19",
+            "textRendered": "yes",
+            "rawHttpBytesCaptured": false,
+            "rawResponseSha256": null,
+            "metadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=16863897128756457315",
+            "metadataRendered": false,
+            "metadataRetrievalResult": "not-readable-via-independent-web-fetch",
+            "officialGazetteNumber": null,
+            "publicationDate": null,
+            "effectiveFrom": null,
+            "humanReviewStatus": "pending"
+          }
+        ],
+        "limitations": [
+          "The original law's Gazette number, publication date and original effective date are metadata for the 1355 act only; they do not establish amendment dates.",
+          "Official Qavanin metadata pages show Gazette number, publication date and effective date for the 1397 and 1400 amendments, but the exact amendment text bytes were not captured or hashed.",
+          "The 1403 amendment text timed out and its metadata page returned only a transfer interstitial; its Gazette publication and effective date remain unverified.",
+          "The 1372 amendment text rendered on the official Qavanin page, but its metadata endpoint was not readable in the current independent fetch; raw bytes, SHA-256, Gazette publication and effective date remain unverified.",
+          "The 1358, 1376, 1377 and 1382 influencing acts still need their own primary text and Gazette/commencement metadata.",
+          "No amendment-specific event-date intervals have been approved for legal-answer use.",
+          "No qualified human legal review has been recorded.",
+          "در بازبینی ۱۴۰۵/۰۸/۲۹ متن سه ماده اصلاحیه ۱۴۰۰/۰۱/۲۹ و فراداده رسمی آن دوباره در Qavanin قابل مشاهده بود؛ متن استخراج‌شده در مشاهده‌نامه ثبت شد، اما بایت خام HTTP و SHA-256 ثبت نشد و بازبینی انسانی متصل به متن انجام نشده است."
+        ],
+        "nextActions": [
+          "Capture raw official response bytes for the consolidated law and the 1372/1397/1400 amendment texts, record SHA-256 and retrieval timestamps.",
+          "Retrieve the 1372 amendment metadata and Gazette publication/effective dates; retrieve primary text and metadata for the 1358, 1376, 1377 and 1382 influencing acts.",
+          "Retrieve the 1403 amendment's official text, Gazette issue, publication date and effective date from a readable primary endpoint.",
+          "Build non-overlapping eventDateVersions only after the full amendment chain and transitional rules are proven.",
+          "Obtain independent human review bound to the exact text SHA-256."
+        ],
+        "latest1403Recheck": {
+          "file": "docs/check-law-1403-threshold-observation-20261121.json",
+          "observedAt": "2026-11-21",
+          "directTextPageRendered": true,
+          "directMetadataPageRendered": true,
+          "officialGazetteNumberShown": "23097",
+          "officialGazettePublicationDateShown": "1403/04/23",
+          "effectiveDateShown": "1403/05/08",
+          "rawHttpBytesCaptured": false,
+          "rawResponseSha256": null,
+          "primarySourceVerified": false,
+          "humanReviewStatus": "pending",
+          "legalAnswerUsePermitted": false
+        }
+      },
+      "latestOfficialStatusLabelShown": "اصلاحي 1403/03/30",
+      "latestIndependentObservation": {
+        "file": "docs/check-law-qavanin-observation-20261121.json",
+        "observedAt": "2026-11-21",
+        "sourceClass": "primary-official-qavanin",
+        "directTextPageRendered": true,
+        "directMetadataPageRendered": true,
+        "textPageLines": [
+          7,
+          55
+        ],
+        "metadataPageLines": [
+          19,
+          34
+        ],
+        "rawHttpBytesCaptured": false,
+        "rawResponseSha256": null,
+        "primarySourceVerified": false,
+        "humanReviewStatus": "pending",
+        "useInLegalAnswers": false,
+        "note": "Fresh independent rendering of the direct official Qavanin text and metadata pages; the rendering is not a raw-byte capture or a text-bound legal review.",
+        "statusIndexRecheckedAt": "2026-11-21",
+        "amendment1358TextAndMetadataRendered": true
+      }
+    },
+    {
+      "id": "uniform-opinion-850",
+      "topicHints": [
+        "خسارت تأخیر تأدیه",
+        "دین وجه رایج"
+      ],
+      "instrumentType": "uniform_opinion",
+      "number": 850,
+      "decisionDate": "1403-05-16",
+      "primaryOfficialDocumentUrl": null,
+      "primaryPublicationIssue": null,
+      "primarySourceVerified": false,
+      "humanReviewStatus": "pending",
+      "useInLegalAnswers": false,
+      "secondaryResearchLeads": [
+        {
+          "url": "https://parsamadani.ir/unity-opinions/850/",
+          "sourceClass": "secondary",
+          "note": "متن بازنشرشده رأی؛ برای تطبیق با گردش کار و نسخه روزنامه رسمی استفاده نشود مگر پس از راستی‌آزمایی."
+        },
+        {
+          "url": "https://dadyar.org/library/uniform-opinions/850-1403",
+          "sourceClass": "secondary",
+          "note": "نسخه کتابخانه‌ای ثانویه؛ غلط‌های احتمالی OCR/رونویسی باید با اصل سند مقابله شوند."
+        }
+      ],
+      "openQuestions": [
+        "دریافت نسخه مستقیم روزنامه رسمی و گردش کار دیوان عالی کشور.",
+        "تطبیق تاریخ صدور، انتشار و زمان اثر الزام‌آور.",
+        "بررسی نسبت رأی با اصلاحات بعدی و رأی وحدت رویه ۸۸۳."
+      ]
+    },
+    {
+      "id": "uniform-opinion-883",
+      "topicHints": [
+        "چک",
+        "خسارت تأخیر تأدیه",
+        "مرور زمان تجاری"
+      ],
+      "instrumentType": "uniform_opinion",
+      "decisionDate": "1405-07-21",
+      "reportedSubject": "مبدأ محاسبه خسارت تأخیر تأدیه چک صادرشده از سوی غیرتاجر پس از گذشت پنج سال یا بیشتر",
+      "reportedRuleSummary": "منابع ثانویه گزارش می‌کنند که گذشت پنج سال یا بیشتر مانع مطالبه خسارت تأخیر تأدیه از تاریخ مندرج در چک نیست؛ این خلاصه تا دریافت و تطبیق اصل رأی، نتیجه حقوقی تأییدشده محسوب نمی‌شود.",
+      "primaryOfficialDocumentUrl": null,
+      "primaryPublicationIssue": null,
+      "reportedGazettePublication": "secondary-claims-only",
+      "primarySourceVerified": false,
+      "humanReviewStatus": "pending",
+      "useInLegalAnswers": false,
+      "secondaryResearchLeads": [
+        {
+          "url": "https://www.ekhtebar.ir/?p=152392",
+          "sourceClass": "secondary",
+          "note": "پیوند بازنشر اختبار که در منابع ثانویه به‌عنوان متن رأی معرفی شده؛ شماره و تاریخ روزنامه رسمی از سند اولیه در این اجرا احراز نشد."
+        },
+        {
+          "url": "https://www.vakilsoal.com/%D8%B1%D8%A7%DB%8C-%D9%88%D8%AD%D8%AF%D8%AA-%D8%B1%D9%88%DB%8C%D9%87-%D8%B4%D9%85%D8%A7%D8%B1%D9%87-%DB%B8%DB%B8%DB%B3-%D9%85%D8%A8%D8%AF%D8%A3-%D9%85%D8%AD%D8%A7%D8%B3%D8%A8%D9%87-%D8%AE/",
+          "sourceClass": "secondary",
+          "note": "بازنشر ثانویه متن و تاریخ رأی؛ منبع رسمی اولیه نیست."
+        },
+        {
+          "url": "https://1ghazi.pro/item/14553262",
+          "sourceClass": "secondary",
+          "note": "بازنشر متن رأی ۸۸۳؛ شناسه پرونده وحدت رویه را ۱۴۰۴/۲ درج می‌کند. سند رسمی اولیه نیست."
+        },
+        {
+          "url": "https://karadadman.com/unified-rulings/",
+          "sourceClass": "secondary",
+          "note": "فهرست ثانویه با عنوان ۲/۱۴۰۵؛ برای شماره رسمی رأی یا پرونده قابل استناد نیست."
+        }
+      ],
+      "openQuestions": [
+        "دریافت تصویر یا PDF رسمی رأی و شماره/تاریخ انتشار روزنامه رسمی.",
+        "تطبیق متن کامل، گردش کار و حدود شمول رأی نسبت به صادرکننده غیرتاجر.",
+        "تعیین تاریخ اثر و نسبت آن با ماده ۳۱۸ قانون تجارت و رأی ۸۵۰.",
+        "بازبینی حقوقی مستقل پیش از هرگونه استفاده در محاسبه‌گر.",
+        "تطبیق شناسه پرونده وحدت رویه: دو بازنشر ثانویه مقادیر ۱۴۰۴/۲ و ۲/۱۴۰۵ را نشان می‌دهند؛ سند رسمی پرونده و رأی باید دریافت شود."
+      ],
+      "reportedNumber": 883,
+      "numberStatus": "secondary-claims-only",
+      "identifierStatus": "secondary-claims-not-reconciled",
+      "secondaryIdentifierClaims": [
+        {
+          "value": "1404/2",
+          "label": "شماره پرونده وحدت رویه ادعاشده",
+          "sourceUrl": "https://1ghazi.pro/item/14553262",
+          "sourceClass": "secondary",
+          "note": "بازنشر ثانویه این شناسه را در متن جلسه هیأت عمومی درج می‌کند؛ سند رسمی پرونده دریافت نشده است."
+        },
+        {
+          "value": "2/1405",
+          "label": "شناسه درج‌شده در فهرست ثانویه",
+          "sourceUrl": "https://karadadman.com/unified-rulings/",
+          "sourceClass": "secondary",
+          "note": "فهرست ثانویه عنوان ۲/۱۴۰۵ را نشان می‌دهد؛ نسبت آن با شماره پرونده یا شماره رأی رسمی احراز نشده است."
+        }
+      ]
+    },
+    {
+      "id": "cbi-urban-consumer-index-1405",
+      "topicHints": [
+        "خسارت تأخیر تأدیه",
+        "شاخص بانک مرکزی"
+      ],
+      "instrumentType": "statistical_series",
+      "seriesName": "شاخص بهای کالاها و خدمات مصرفی در مناطق شهری ایران",
+      "ownerImageSeries": {
+        "baseYear": 1395,
+        "baseYearStatus": "inferred-not-authenticated",
+        "monthsAvailable": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "sourceStatus": "transcribed-not-independently-authenticated"
+      },
+      "secondaryDiscrepancyLead": {
+        "reportedMonth": "1405-07",
+        "reportedValue": 836.8,
+        "url": "https://vista.ir/t/16/%D8%B1%D9%88%D8%A7%D8%A8%D8%B7%2B%D8%B9%D9%85%D9%88%D9%85%DB%8B%2B%D8%A8%D8%A7%D9%86%DA%A9%2B%D9%85%D8%B1%DA%A9%D8%B2%DB%8C",
+        "sourceClass": "secondary-aggregator",
+        "note": "بازنشر/گردآورنده‌ای که عدد ۸۳۶٫۸ را به اعلام بانک مرکزی نسبت می‌دهد؛ سند اولیه و مبنای شاخص در این اجرا دریافت نشد."
+      },
+      "primaryOfficialDocumentUrl": null,
+      "primarySourceVerified": false,
+      "humanReviewStatus": "pending",
+      "useInLegalAnswers": false,
+      "openQuestions": [
+        "دریافت جدول یا فایل رسمی بانک مرکزی با شماره، تاریخ و پیوند مستقیم.",
+        "تطبیق سال پایه، سری آماری و واحد عدد ۸۳۶٫۸ با سری رونویسی‌شده از تصویر مالک.",
+        "حل اختلاف احتمالی سری/سال پایه پیش از تغییر مقادیر موجود.",
+        "تأیید مستقل همه ماه‌ها و تاریخ انتشار.",
+        "واکاوی مستقیم نشانی بانک مرکزی https://cbi.ir/showitem/36735.aspx و دریافت فایل/جدول اولیه مهر ۱۴۰۵؛ تطبیق سری آماری و سال پایه پیش از هر تغییر در شاخص‌های رونویسی‌شده.",
+        "دریافت مستقیم صفحه بانک مرکزی https://cbi.ir/showitem/35817.aspx برای تیر ۱۴۰۵، احراز بایت‌های اولیه و سال پایه، و تعیین قابلیت مقایسه با سری رونویسی‌شده از تصویر مالک."
+      ],
+      "officialDocumentUrlCandidates": [
+        {
+          "url": "https://cbi.ir/showitem/35817.aspx",
+          "candidateStatus": "official-url-not-readable-in-current-independent-verification-2026-11-18",
+          "reportedPublicationDate": "1405-05-06",
+          "reportedMonth": "1405-04",
+          "reportedValue": 742.8,
+          "reportedSeriesName": "شاخص بهای کالاها و خدمات مصرفی در مناطق شهری ایران",
+          "reportedSourceClass": "self-described-official-cbi-public-relations-channel",
+          "discoveryLeadUrl": "https://telegram.me/s/prcbi1?before=800",
+          "note": "کانالی که خود را روابط عمومی رسمی بانک مرکزی معرفی می‌کند، برای گزارش تیر ۱۴۰۵ به این URL مستقیم cbi.ir پیوند می‌دهد و عدد ۷۴۲٫۸ را گزارش می‌کند. واکشی مستقیم صفحه بانک مرکزی در بررسی ۱۴۰۵/۰۸/۲۵ موفق نشد؛ بایت‌های سند، سال پایه و قابلیت مقایسه با سری تصویر مالک احراز نشده‌اند. این URL فقط سرنخ پژوهشی است و نباید شاخص‌های تصویر مالک را جایگزین کند. در بررسی مستقل ۱۴۰۵/۰۸/۲۷ این نشانی از کانال واکشی فعلی قابل دریافت نبود؛ این نتیجه به‌تنهایی اثبات قطعی قطعی/خرابی وب‌سایت بانک مرکزی نیست. تا دریافت بایت‌های سند، هش، سال پایه و بازبینی انسانی، داده برای پاسخ حقوقی یا محاسبه رسمی مجاز نیست.",
+          "lastDirectFetchAt": "2026-11-18",
+          "lastDirectFetchResult": "not-accessible-via-current-independent-web-verification"
+        },
+        {
+          "url": "https://cbi.ir/showitem/36735.aspx",
+          "candidateStatus": "official-url-not-readable-in-current-independent-verification-2026-11-18",
+          "reportedPublicationDate": "1405-08-19",
+          "reportedMonth": "1405-07",
+          "reportedValue": 836.8,
+          "discoveryLeadUrl": "https://telemetr.io/ru/channels/3416137707-prcbi1/posts",
+          "note": "یک بازنشر از فید روابط عمومی بانک مرکزی به این نشانی مستقیم بانک مرکزی ارجاع می‌دهد؛ واکشی مستقیم این صفحه در اجرای 2026-11-16 موفق نشد. تا دریافت محتوای اولیه، فایل/جدول رسمی، هش سند و تطبیق سال پایه، این نشانی فقط سرنخ پژوهشی است. در بررسی مستقل ۱۴۰۵/۰۸/۲۷ این نشانی از کانال واکشی فعلی قابل دریافت نبود؛ این نتیجه به‌تنهایی اثبات قطعی قطعی/خرابی وب‌سایت بانک مرکزی نیست. تا دریافت بایت‌های سند، هش، سال پایه و بازبینی انسانی، داده برای پاسخ حقوقی یا محاسبه رسمی مجاز نیست.",
+          "lastDirectFetchAt": "2026-11-18",
+          "lastDirectFetchResult": "not-accessible-via-current-independent-web-verification"
+        }
+      ]
+    },
+    {
+      "id": "islamic-penal-code-1392",
+      "topicHints": [
+        "سرقت",
+        "کلاهبرداری",
+        "جعل",
+        "ضرب و جرح",
+        "جرائم تعزیری"
+      ],
+      "instrumentType": "statute",
+      "title": "قانون مجازات اسلامی مصوب ۱۳۹۲ (کتاب‌های اول تا چهارم)",
+      "originalAdoptionDate": "1392-02-01",
+      "eventDateVersioningRequired": true,
+      "primaryOfficialDocumentUrl": null,
+      "primaryPublicationIssue": null,
+      "primarySourceVerified": false,
+      "humanReviewStatus": "pending",
+      "useInLegalAnswers": false,
+      "secondaryResearchLeads": [
+        {
+          "url": "https://lawlex.ir/laws/mojazat",
+          "sourceClass": "secondary",
+          "note": "صفحه فهرست ثانویه، ۷۲۸ ماده و تاریخ تصویب ۱۳۹۲/۰۲/۰۱ را نشان می‌دهد و پیوند «متن رسمی» به مرکز پژوهش‌های مجلس می‌دهد؛ این صفحه خود منبع اولیه نیست."
+        }
+      ],
+      "officialDocumentUrlCandidates": [
+        {
+          "url": "https://rc.majlis.ir/fa/law/show/845048",
+          "documentId": "845048",
+          "sourceClass": "primary-official-rc-majlis-candidate",
+          "candidateStatus": "official-link-discovered-via-secondary-index; direct-fetch-timeout-2026-11-21",
+          "discoverySource": "https://lawlex.ir/laws/mojazat",
+          "directLinkLabel": "مرکز پژوهش‌های مجلس شورای اسلامی",
+          "lastDirectFetchAt": "2026-11-21",
+          "lastDirectFetchResult": "official-link-open-attempt-returned-http-400-timeout; document-body-not-retrieved",
+          "textRetrieved": false,
+          "metadataRetrieved": false,
+          "rawHttpBytesCaptured": false,
+          "rawResponseSha256": null,
+          "eventDateVersioningApproved": false,
+          "humanReviewStatus": "pending",
+          "useInLegalAnswers": false
+        }
+      ],
+      "openQuestions": [
+        "پیوند مستقیم مرکز پژوهش‌های مجلس در واکشی مستقل با timeout مواجه شد؛ متن خام سند و SHA-256 دریافت نشده است.",
+        "شماره و تاریخ روزنامه رسمی، زنجیره اصلاحات و تاریخ لازم‌الاجراشدن هر اصلاحیه باید از اسناد اولیه احراز شود.",
+        "نسخه حاکم بر تاریخ وقوع هر رویداد باید جداگانه تعیین و با هش متن دقیق به بازبینی انسانی مستقل متصل شود."
+      ]
+    },
+    {
+      "id": "family-protection-law-1391",
+      "topicHints": [
+        "طلاق",
+        "مهریه",
+        "نفقه",
+        "حضانت",
+        "دعاوی خانواده"
+      ],
+      "instrumentType": "statute",
+      "title": "قانون حمایت خانواده",
+      "originalAdoptionDate": "1391-12-01",
+      "eventDateVersioningRequired": true,
+      "primaryOfficialDocumentUrl": null,
+      "primaryPublicationIssue": null,
+      "primarySourceVerified": false,
+      "humanReviewStatus": "pending",
+      "useInLegalAnswers": false,
+      "secondaryResearchLeads": [
+        {
+          "url": "https://lawlex.ir/laws/khanevade",
+          "sourceClass": "secondary",
+          "note": "صفحه فهرست ثانویه، ۵۸ ماده و تاریخ تصویب ۱۳۹۱/۱۲/۰۱ را نشان می‌دهد و پیوند «متن رسمی» به Qavanin می‌دهد؛ متن صفحه ثانویه به‌تنهایی تأیید حقوقی نیست."
+        }
+      ],
+      "officialDocumentUrlCandidates": [
+        {
+          "url": "https://qavanin.ir/Law/TreeText/?IDS=5917848193987091276",
+          "documentId": "5917848193987091276",
+          "sourceClass": "primary-official-qavanin-candidate",
+          "candidateStatus": "official-link-discovered-via-secondary-index; direct-fetch-timeout-2026-11-21",
+          "discoverySource": "https://lawlex.ir/laws/khanevade",
+          "directLinkLabel": "سامانه ملی قوانین و مقررات",
+          "lastDirectFetchAt": "2026-11-21",
+          "lastDirectFetchResult": "official-link-open-attempt-returned-timeout; document-body-not-retrieved",
+          "textRetrieved": false,
+          "metadataRetrieved": false,
+          "rawHttpBytesCaptured": false,
+          "rawResponseSha256": null,
+          "eventDateVersioningApproved": false,
+          "humanReviewStatus": "pending",
+          "useInLegalAnswers": false
+        }
+      ],
+      "openQuestions": [
+        "پیوند مستقیم Qavanin در واکشی مستقل timeout شد؛ متن خام سند، فراداده روزنامه رسمی و SHA-256 دریافت نشده است.",
+        "اصلاحات و الحاقات، تاریخ اثر هر نسخه و قواعد انتقالی باید از اسناد اولیه استخراج شود.",
+        "نسخه معتبر در تاریخ رویداد باید با هش متن دقیق و بازبینی حقوقی انسانی مستقل ثبت شود."
+      ]
+    }
+  ]
+}

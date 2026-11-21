@@ -44,6 +44,8 @@
         headers: { 'Content-Type': 'application/json' },
         cache: 'no-store',
         credentials: 'omit',
+        // Never follow a local endpoint redirect with sensitive interview data.
+        redirect: 'error',
         body: JSON.stringify({ topic: current.topic, role: current.role,
           story: current.story, answers: [...current.answers] }),
         signal: controller.signal,
