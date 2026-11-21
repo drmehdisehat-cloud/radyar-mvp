@@ -3,7 +3,8 @@
 // Cookie serialization only. This does not authenticate a reviewer or validate a JWT.
 // The caller must verify the token before issuing it and must use HTTPS.
 const COOKIE_NAME = '__Host-dadyar-review-session';
-const MAX_TOKEN_LENGTH = 8192;
+// Leave room for the cookie name under common ~4 KiB browser cookie limits.
+const MAX_TOKEN_LENGTH = 3800;
 const MAX_COOKIE_AGE_SECONDS = 300;
 const BASE64URL = /^[A-Za-z0-9_-]+$/;
 
