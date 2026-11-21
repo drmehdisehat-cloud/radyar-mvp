@@ -3,8 +3,9 @@
 // Cookie serialization only. This does not authenticate a reviewer or validate a JWT.
 // The caller must verify the token before issuing it and must use HTTPS.
 const COOKIE_NAME = '__Host-dadyar-review-session';
-// Leave room for the cookie name under common ~4 KiB browser cookie limits.
+// Leave room for the cookie name and attributes under a conservative 4 KiB cookie budget.
 const MAX_TOKEN_LENGTH = 3800;
+const MAX_COOKIE_BYTES = 4096;
 const MAX_COOKIE_AGE_SECONDS = 300;
 const BASE64URL = /^[A-Za-z0-9_-]+$/;
 
@@ -19,6 +20,13 @@ function isCanonicalCompactToken(value) {
     const bytes = Buffer.from(segment, 'base64url');
     return bytes.length > 0 && bytes.toString('base64url') === segment;
   });
+}
+
+function enforceCookieByteBudget(cookie) {
+  if (Buffer.byteLength(cookie, 'utf8') > MAX_COOKIE_BYTES) {
+    throw new RangeError('Reviewer session cookie exceeds the 4096-byte browser budget.');
+  }
+  return cookie;
 }
 
 function createReviewerSessionCookie(token, options = {}) {
@@ -36,17 +44,19 @@ function createReviewerSessionCookie(token, options = {}) {
   }
 
   // __Host- cookies require Secure, Path=/ and no Domain attribute.
-  return COOKIE_NAME + '=' + token +
-    '; Path=/; Max-Age=' + maxAgeSeconds + '; Secure; HttpOnly; SameSite=Strict';
+  return enforceCookieByteBudget(COOKIE_NAME + '=' + token +
+    '; Path=/; Max-Age=' + maxAgeSeconds + '; Secure; HttpOnly; SameSite=Strict');
 }
 
 function clearReviewerSessionCookie() {
-  return COOKIE_NAME +
-    '=; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; HttpOnly; SameSite=Strict';
+  return enforceCookieByteBudget(COOKIE_NAME +
+    '=; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; HttpOnly; SameSite=Strict');
 }
 
 module.exports = {
   COOKIE_NAME,
+  MAX_TOKEN_LENGTH,
+  MAX_COOKIE_BYTES,
   MAX_COOKIE_AGE_SECONDS,
   isCanonicalCompactToken,
   createReviewerSessionCookie,
