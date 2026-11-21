@@ -33,9 +33,9 @@ test('workflow retains read-only repository permissions and has no deploy job', 
 });
 
 test('public repository CI uploads no operator handoff or full-package artifact', () => {
-  const uploads = workflow.match(/uses: actions\\/upload-artifact@/g) || [];
-  assert.equal(uploads.length, 1, 'only the public index.html artifact may be uploaded');
-  assert.doesNotMatch(workflow, /dadyar-offline-preview-/);
-  assert.doesNotMatch(workflow, /Create immutable offline preview artifact/);
-  assert.doesNotMatch(workflow, /path: \\$\\{\\{ runner\\.temp \\}\\}\\/dadyar-preview-handoff\\/\\s*$/m);
+  const uploadCount = workflow.split('uses: actions/upload-artifact@').length - 1;
+  assert.equal(uploadCount, 1, 'only the public index.html artifact may be uploaded');
+  assert.equal(workflow.includes('dadyar-offline-preview-'), false);
+  assert.equal(workflow.includes('Create immutable offline preview artifact'), false);
+  assert.equal(workflow.includes('path: ${{ runner.temp }}/dadyar-preview-handoff/'), false);
 });
