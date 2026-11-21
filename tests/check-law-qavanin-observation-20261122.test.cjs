@@ -21,7 +21,7 @@ test('2026-11-22 Qavanin observation preserves direct official links and visible
   assert.deepEqual(observation.sources.amendment1358.visibleLines, [7, 10, 42, 45]);
   assert.equal(observation.influencingInstruments.length, 10);
   for (const instrument of observation.influencingInstruments) {
-    assert.match(instrument.approvalDateShown, /^\\d{4}\\/\\d{2}\\/\\d{2}$/);
+    assert.match(instrument.approvalDateShown, /^\d{4}\/\d{2}\/\d{2}$/);
   }
 });
 
