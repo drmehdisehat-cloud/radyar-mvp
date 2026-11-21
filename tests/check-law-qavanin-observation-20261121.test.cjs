@@ -49,10 +49,12 @@ test('official Qavanin text and metadata observations retain exact rendered date
 test('registry links the new observation but does not mark the cheque law as verified', () => {
   const record = registry.records.find(item => item.id === 'check-issuance-law');
   assert.ok(record);
-  assert.equal(record.latestIndependentObservation.file, 'docs/check-law-qavanin-observation-20261121.json');
-  assert.equal(record.latestIndependentObservation.observedAt, '2026-11-21');
-  assert.equal(record.latestIndependentObservation.directTextPageRendered, true);
-  assert.equal(record.latestIndependentObservation.directMetadataPageRendered, true);
+  // The 2026-11-21 observation remains historical evidence; the registry now points
+  // to the newer 2026-11-22 recheck without promoting either observation.
+  assert.equal(record.latestIndependentObservation.file, 'docs/check-law-qavanin-observation-20261122.json');
+  assert.equal(record.latestIndependentObservation.observedAt, '2026-11-22');
+  assert.equal(record.latestIndependentObservation.statusIndexRendered, true);
+  assert.equal(record.latestIndependentObservation.amendment1358TextRendered, true);
   assert.equal(record.latestIndependentObservation.rawHttpBytesCaptured, false);
   assert.equal(record.latestIndependentObservation.rawResponseSha256, null);
   assert.equal(record.primarySourceVerified, false);
@@ -94,8 +96,8 @@ test('2026-11-21 official status index and the 1358 act are recorded without leg
   assert.equal(candidate.officialGazetteNumberShown, '10043');
   assert.equal(candidate.primarySourceVerified, false);
   assert.equal(candidate.useInLegalAnswers, false);
-  assert.equal(record.latestIndependentObservation.statusIndexRecheckedAt, '2026-11-21');
-  assert.equal(record.latestIndependentObservation.amendment1358TextAndMetadataRendered, true);
+  assert.equal(record.officialPortalObservation.officialStatusIndex.latestRecheck.observedAt, '2026-11-22');
+  assert.equal(record.officialPortalObservation.officialStatusIndex.latestRecheck.amendment1358TextRendered, true);
   assert.equal(record.primarySourceVerified, false);
   assert.equal(record.humanReviewStatus, 'pending');
   assert.equal(record.useInLegalAnswers, false);
