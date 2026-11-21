@@ -12,7 +12,7 @@ function listBackendSources(directory) {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
     const absolute = path.join(directory, entry.name);
     if (entry.isDirectory()) return listBackendSources(absolute);
-    return /\\.(?:cjs|js)$/.test(entry.name) && absolute !== serializerPath ? [absolute] : [];
+    return (entry.name.endsWith('.cjs') || entry.name.endsWith('.js')) && absolute !== serializerPath ? [absolute] : [];
   });
 }
 
