@@ -112,7 +112,7 @@ test('rejects a symlinked public HTML file', t => {
   const f = fixture(t);
   fs.unlinkSync(f.htmlPath);
   fs.symlinkSync(path.join(REPO_ROOT, 'dadyar-preview', 'index.html'), f.htmlPath);
-  assert.throws(() => createPublicPreviewIntegrityManifest(f.packageRoot), /symlink|regular file|path changed/i);
+  assert.throws(() => createPublicPreviewIntegrityManifest(f.packageRoot), /ELOOP|symlink|regular file|path changed/i);
 });
 
 test('rejects a package directory inside the Git checkout', () => {
