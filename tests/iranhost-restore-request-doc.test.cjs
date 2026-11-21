@@ -66,3 +66,12 @@ test('IranHost handoff documents every live preview header and keeps the public 
     assert.ok(checklist.includes(required), 'missing host handoff requirement: ' + required);
   }
 });
+
+test('owner handoff confirms the actual IranHost control panel and backup format before choosing restore tooling', () => {
+  assert.match(content, /صفحه ورود \[cp\.iranhost\.com\]/);
+  assert.match(content, /SolidCP 1\.5\.1/);
+  assert.match(content, /نوع کنترل‌پنل حساب `mehdisehat\.ir` .*اثبات نمی‌کند/);
+  assert.match(content, /کنترل‌پنل متصل به همین سرویس دقیقاً cPanel است یا SolidCP/);
+  assert.match(content, /فایل بکاپ ۱۴۰٫۳۸ مگابایتی دقیقاً چه قالب و نوعی دارد/);
+  assert.match(content, /تا دریافت پاسخ کتبی، دستورهای مخصوص cPanel را روی پنل دیگری اجرا نکنید/);
+});
