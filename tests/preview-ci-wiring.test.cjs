@@ -14,7 +14,8 @@ test('experimental preview branch must trigger push CI without deploy permission
   assert.ok(workflow.includes('DADYAR_PREVIEW_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}'));
   assert.ok(workflow.includes('DADYAR_PREVIEW_WORKFLOW_SHA: ${{ github.sha }}'));
   assert.ok(workflow.includes('DADYAR_PREVIEW_EVENT: ${{ github.event_name }}'));
-  assert.ok(workflow.includes('name: dadyar-offline-preview-${{ github.event.pull_request.head.sha || github.sha }}'));
+  assert.ok(workflow.includes('name: dadyar-public-preview-${{ github.event.pull_request.head.sha || github.sha }}'));
+  assert.ok(!workflow.includes('dadyar-offline-preview-'), 'operator handoff must not be uploaded as a public artifact');
   assert.ok(workflow.includes('permissions:\n  contents: read'));
   assert.ok(!workflow.includes('deployments: write'));
 });
