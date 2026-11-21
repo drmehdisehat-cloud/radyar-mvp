@@ -29,15 +29,32 @@ function enforceCookieByteBudget(cookie) {
   return cookie;
 }
 
+function readMaxAgeSeconds(options) {
+  if (options === undefined) return MAX_COOKIE_AGE_SECONDS;
+  if (!options || typeof options !== 'object' || Array.isArray(options)) {
+    throw new TypeError('Cookie options must be a plain object.');
+  }
+  const prototype = Object.getPrototypeOf(options);
+  if (prototype !== Object.prototype && prototype !== null) {
+    throw new TypeError('Cookie options must be a plain object.');
+  }
+  const keys = Reflect.ownKeys(options);
+  if (keys.some(key => key !== 'maxAgeSeconds')) {
+    throw new TypeError('Only maxAgeSeconds may be configured.');
+  }
+  const descriptor = Object.getOwnPropertyDescriptor(options, 'maxAgeSeconds');
+  if (!descriptor) return MAX_COOKIE_AGE_SECONDS;
+  if (!Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
+    throw new TypeError('maxAgeSeconds must be an own data property.');
+  }
+  return descriptor.value === undefined ? MAX_COOKIE_AGE_SECONDS : descriptor.value;
+}
+
 function createReviewerSessionCookie(token, options = {}) {
   if (!isCanonicalCompactToken(token)) {
     throw new TypeError('A canonical compact token is required.');
   }
-  if (!options || typeof options !== 'object' || Array.isArray(options) ||
-      Object.keys(options).some(key => key !== 'maxAgeSeconds')) {
-    throw new TypeError('Only maxAgeSeconds may be configured.');
-  }
-  const maxAgeSeconds = options.maxAgeSeconds === undefined ? MAX_COOKIE_AGE_SECONDS : options.maxAgeSeconds;
+  const maxAgeSeconds = readMaxAgeSeconds(options);
   if (!Number.isSafeInteger(maxAgeSeconds) || maxAgeSeconds < 1 ||
       maxAgeSeconds > MAX_COOKIE_AGE_SECONDS) {
     throw new TypeError('Reviewer cookie maxAgeSeconds must be an integer from 1 through 300.');

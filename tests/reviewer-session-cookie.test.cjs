@@ -47,6 +47,30 @@ test('reviewer cookie lifetime is bounded to the short-lived session policy', ()
     /Only maxAgeSeconds may be configured/);
 });
 
+test('cookie options reject inherited, accessor, symbol and hidden extra properties without invoking getters', () => {
+  const token = syntheticToken();
+  const inherited = Object.create({ maxAgeSeconds: 30 });
+  assert.throws(() => createReviewerSessionCookie(token, inherited), /plain object/);
+
+  let getterCalled = false;
+  const accessor = {};
+  Object.defineProperty(accessor, 'maxAgeSeconds', {
+    get() { getterCalled = true; return 30; }
+  });
+  assert.throws(() => createReviewerSessionCookie(token, accessor), /own data property/);
+  assert.equal(getterCalled, false, 'option getter must not execute');
+
+  const hiddenExtra = {};
+  Object.defineProperty(hiddenExtra, 'domain', { value: 'example.test' });
+  assert.throws(() => createReviewerSessionCookie(token, hiddenExtra), /Only maxAgeSeconds/);
+
+  const symbolExtra = { [Symbol('unexpected')]: true };
+  assert.throws(() => createReviewerSessionCookie(token, symbolExtra), /Only maxAgeSeconds/);
+
+  const nullPrototype = Object.assign(Object.create(null), { maxAgeSeconds: 30 });
+  assert.match(createReviewerSessionCookie(token, nullPrototype), /Max-Age=30/);
+});
+
 test('logout cookie clears the same __Host- cookie with matching security attributes', () => {
   assert.equal(clearReviewerSessionCookie(),
     COOKIE_NAME + '=; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; HttpOnly; SameSite=Strict');
