@@ -4,10 +4,10 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
-const path = require('node:path');
+const pathModule = require('node:path');
 const { execFileSync } = require('node:child_process');
 
-const root = path.resolve(__dirname, '..');
+const root = pathModule.resolve(__dirname, '..');
 function isSensitiveTrackedPath(file) {
   const normalized = file.replace(/\\/g, '/');
   const basename = normalized.split('/').at(-1);
@@ -59,4 +59,21 @@ test('public repository must not upload preview artifacts until repository is pr
     'only the single public HTML payload may be uploaded');
   assert.doesNotMatch(step, /handoff\/(?:\*\*|\*)/,
     'operator handoff directory must never be uploaded');
+});
+
+
+test('all workflow artifact uploads are covered by the private-repository release guard', () => {
+  const workflowDirectory = pathModule.join(root, '.github/workflows');
+  const workflowFiles = fs.readdirSync(workflowDirectory)
+    .filter(name => /\\.ya?ml$/i.test(name));
+  const uploads = [];
+  for (const name of workflowFiles) {
+    const source = fs.readFileSync(pathModule.join(workflowDirectory, name), 'utf8');
+    for (const match of source.matchAll(/^\\s*uses:\\s*actions\\/upload-artifact@[^\\s]+/gm)) {
+      uploads.push({ workflow: name, action: match[0].trim() });
+    }
+  }
+  assert.equal(uploads.length, 1,
+    'every new artifact workflow must receive an explicit security review before it is added');
+  assert.equal(uploads[0].workflow, 'ci.yml');
 });
