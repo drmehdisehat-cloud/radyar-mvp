@@ -30,7 +30,7 @@ function classifier() {
     sandbox,
     { timeout: 1000 }
   );
-  return { classify: sandbox.__classifyQuestion, isChequeScopeMatch: sandbox.__isChequeScopeMatch, count: sandbox.__topicHintCount };
+  return { classify: sandbox.__classifyQuestion, isChequeScopeMatch: sandbox.__isChequeScopeMatch, hasSensitiveIdentifier: sandbox.__hasSensitiveIdentifier, count: sandbox.__topicHintCount };
 }
 
 test('free-text router loads all 27 internal legal-domain hints without a topic menu', () => {
