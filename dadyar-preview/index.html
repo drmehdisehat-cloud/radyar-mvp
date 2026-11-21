@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; media-src 'none'; manifest-src 'none'; worker-src 'none'; child-src 'none'; prefetch-src 'none'; script-src 'sha256-7cW9W6iyyG8ZdKGKbfje5aQCOLo7cGGYdJCAk+s+KGk='; style-src 'sha256-mypyPpEoN54AJFdC5YcDxXcf0OtMmA9aeGl3PJ6ZuQI='; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; media-src 'none'; manifest-src 'none'; worker-src 'none'; child-src 'none'; prefetch-src 'none'; script-src 'sha256-tM6Y4PG3+KYkBaK5g+BrQttNyf0jqBltlIo+e2Hv5y8='; style-src 'sha256-mypyPpEoN54AJFdC5YcDxXcf0OtMmA9aeGl3PJ6ZuQI='; form-action 'none'; base-uri 'none'">
 <title>دادیار | پیش‌نمایش آفلاین چک فرضی</title>
 <style>body{font:1rem/1.9 system-ui,sans-serif;background:#f5f6fa;color:#17243b;margin:0}main{max-width:780px;margin:auto;padding:1.2rem}section{background:white;border-radius:16px;padding:1.2rem;margin:1rem 0;box-shadow:0 2px 12px #17243b12}button,select{font:inherit;min-height:44px;max-width:100%;padding:.5rem;border:1px solid #718096;border-radius:8px}input[type=checkbox]{min-width:22px;min-height:22px;vertical-align:middle}button{background:#dcecfb;cursor:pointer}button:focus-visible,select:focus-visible,textarea:focus-visible,input:not([type=checkbox]):focus-visible,input[type=checkbox]:focus-visible{outline:3px solid #2469a8;outline-offset:2px}fieldset{border:1px solid #b4bfd0;border-radius:12px;margin:1rem 0}label{display:block;margin:.6rem 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}small{color:#475569}#result[hidden]{display:none}#free-question,#reviewer-name,#review-note,#delay-principal{box-sizing:border-box;width:100%;min-height:44px;font:inherit;border:1px solid #718096;border-radius:8px;padding:.5rem}#review-note{min-height:4.5rem}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}} #delay-principal{min-height:44px}#delay-due-month,#delay-payment-month,#delay-currency{width:100%}#delay-calculate{width:100%}</style></head>
 <body><main><h1>کارگاه آزمایشی دادیار: چک فرضی</h1><p role="status">صرفاً داده‌های ازپیش‌ساخته؛ بدون ارسال اطلاعات، هوش مصنوعی یا ذخیره در سرور. پاسخ خودکار حقوقی: ارائه نمی‌شود. اطلاعات واقعی وارد نکنید.</p><p id="preview-release-status" role="alert"><strong>مرز این نسخه:</strong> این پیش‌نمایش آفلاین و غیرعملیاتی است؛ فقط داده ساختگی وارد کنید. ثبت بازبینی در این صفحه محلی است و هویت بازبین احراز نمی‌شود؛ این ثبت به‌تنهایی تأیید حقوقی یا مجوز انتشار ایجاد نمی‌کند.</p>
@@ -12,7 +12,7 @@
 <label><input type="checkbox" data-stance="مخالف" value="ادعای تسویه وجه در پرونده فرضی" checked> ادعای تسویه فرضی</label>
 <label><input type="checkbox" data-stance="نامعلوم" value="تاریخ سررسید در پرونده فرضی مشخص نیست"> تاریخ سررسید نامعلوم</label>
 </fieldset>
-<label for="free-question">پرسش آزاد درباره موضوع حقوقی موردنظر (اختیاری، حداکثر ۳۰۰ نویسه؛ اطلاعات واقعی وارد نکنید)</label><p id="free-question-scope-note" role="note">طبقه‌بندی موضوعی فقط به‌صورت محلی و چندموضوعی انجام می‌شود؛ این پیش‌نمایش صرفاً بخش مربوط به چک فرضی را پوشش می‌دهد و سایر موضوعات را تحلیل نمی‌کند.</p><textarea id="free-question" aria-describedby="free-question-scope-note" maxlength="300" rows="3" autocomplete="off" placeholder="در سناریوی چک تضمینی مرتبط با اجاره، چه مدارکی باید بررسی شود؟"></textarea>
+<label for="free-question">پرسش آزاد درباره موضوع حقوقی موردنظر (اختیاری، حداکثر ۳۰۰ نویسه؛ اطلاعات واقعی وارد نکنید)</label><p id="free-question-scope-note" role="note">طبقه‌بندی موضوعی فقط به‌صورت محلی و چندموضوعی انجام می‌شود؛ این پیش‌نمایش صرفاً بخش مربوط به چک فرضی را پوشش می‌دهد و سایر موضوعات را تحلیل نمی‌کند.</p><textarea id="free-question" aria-describedby="free-question-scope-note free-question-counter" maxlength="300" rows="3" autocomplete="off" placeholder="در سناریوی چک تضمینی مرتبط با اجاره، چه مدارکی باید بررسی شود؟"></textarea><p><output id="free-question-counter" for="free-question">۰ از ۳۰۰ نویسه</output></p>
 <fieldset id="interview"><legend>پرسش‌های تکمیلی سناریوی فرضی</legend>
 <label for="issue-date">تاریخ صدور و سررسید در مدارک نمونه مشخص است؟</label><select id="issue-date" data-question="تاریخ صدور و سررسید چک چیست؟"><option value="unknown">نامعلوم</option><option value="yes">در نمونه درج شده</option><option value="no">در نمونه درج نشده</option></select>
 <label for="certificate">گواهی عدم پرداخت نمونه موجود است؟</label><select id="certificate" data-question="گواهی عدم پرداخت موجود است؟"><option value="unknown">نامعلوم</option><option value="yes">در نمونه موجود است</option><option value="no">در نمونه موجود نیست</option></select>
@@ -484,6 +484,11 @@ const role=document.getElementById('role'),out=document.getElementById('report')
 let report='';
 let internalTopicMatches=[];
 const topicScopeStatus=document.getElementById('topic-scope-status');
+const freeQuestionField=document.getElementById('free-question');
+const freeQuestionCounter=document.getElementById('free-question-counter');
+function formatPersianDigits(value){return String(value).replace(/[0-9]/g,d=>'۰۱۲۳۴۵۶۷۸۹'[Number(d)]);}
+function updateFreeQuestionCounter(){freeQuestionCounter.textContent=formatPersianDigits(freeQuestionField.value.length)+' از ۳۰۰ نویسه';}
+updateFreeQuestionCounter();
 const downloadButton=document.getElementById('download');
 const exportStatus=document.getElementById('export-status');
 const exportAck=document.getElementById('export-ack');
@@ -570,6 +575,7 @@ function clearInterviewState(){
  role.selectedIndex=0;
  for(const answer of document.querySelectorAll('#interview select')) answer.selectedIndex=0;
  document.getElementById('free-question').value = '';
+ updateFreeQuestionCounter();
  for(const checkbox of document.querySelectorAll('fieldset input[type=checkbox]')) checkbox.checked=false;
  // Clear calculator inputs and output too: principal amounts can be sensitive
  // financial data, and pagehide may place this document in the back-forward cache.
@@ -591,7 +597,7 @@ document.getElementById('reset').addEventListener('click',()=>{
  role.focus();
 });
 for(const answer of document.querySelectorAll('#interview select')) answer.addEventListener('change',invalidateDraft);
-document.getElementById('free-question').addEventListener('input',invalidateDraft);
+freeQuestionField.addEventListener('input',()=>{updateFreeQuestionCounter();invalidateDraft();});
 // Only case-evidence changes invalidate the draft; review checklist changes invalidate the approval only.
 for(const checkbox of document.querySelectorAll('#evidence-list input[type="checkbox"]')) checkbox.addEventListener('change',invalidateDraft);
 document.getElementById('generate').addEventListener('click',()=>{
@@ -603,6 +609,7 @@ document.getElementById('generate').addEventListener('click',()=>{
  // Clear the raw textarea before normalization or classification. If a later
  // classifier step throws, the original question is no longer left in the DOM.
  freeQuestionField.value='';
+ updateFreeQuestionCounter();
  // Fail closed on likely real Iranian mobile numbers, national IDs or bank card numbers in free text.
  // This is a local warning, not a guarantee of anonymisation.
  let normalizedQuestionDigits=freeQuestion.normalize('NFKC').replace(/[۰-۹]/g,d=>String(d.charCodeAt(0)-0x06F0)).replace(/[٠-٩]/g,d=>String(d.charCodeAt(0)-0x0660)).replace(/[\u061c\u200b\u200c\u200d\u200e\u200f\u202a-\u202e\u2060\u2066-\u2069\ufeff]/g,'');
