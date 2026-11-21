@@ -55,13 +55,13 @@ test('legacy full handoff artifact in stage-0 CI remains private-repository gate
   const step = workflow.slice(start, end === -1 ? workflow.length : end);
   assert.match(step, /if:\s*>-[\s\S]*github\.event\.repository\.private\s*==\s*true/,
     'the CI artifact path must require a private repository event');
-  assert.match(step, /path:\s*\$\{\{\s*runner\.temp\s*\}\}\/dadyar-preview-handoff\/public\/index\.html/,
-    'only the single public HTML payload may be uploaded');
-  assert.doesNotMatch(step, /handoff\/(?:\*\*|\*)/,
+  assert.match(step, /path:\s*\|\s*\n\s*\$\{\{\s*runner\.temp\s*\}\}\/dadyar-preview-handoff\/public\/index\.html\s*\n\s*\$\{\{\s*runner\.temp\s*\}\}\/dadyar-preview-handoff\/public\/INTEGRITY\.json/m,
+    'only the two public review files may be uploaded');
+  assert.doesNotMatch(step, /handoff\//,
     'operator handoff directory must never be uploaded');
 });
 
-test('workflow artifact uploads are limited to the private-gated CI artifact and one public HTML review artifact', () => {
+test('workflow artifact uploads are limited to the private-gated CI artifact and one public review artifact', () => {
   const workflowDirectory = pathModule.join(root, '.github/workflows');
   const workflowFiles = fs.readdirSync(workflowDirectory).filter(name => /\.ya?ml$/i.test(name));
   const uploads = [];
@@ -84,8 +84,9 @@ test('workflow artifact uploads are limited to the private-gated CI artifact and
   assert.match(review, /^permissions:\s*\n  contents: read\s*$/m);
   assert.match(review, /persist-credentials: false/);
   assert.match(review, /actions\/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9/);
-  assert.match(review, /path:\s*\$\{\{\s*runner\.temp\s*\}\}\/dadyar-preview-handoff\/public\/index\.html/);
+  assert.match(review, /path:\s*\|\s*\n\s*\$\{\{\s*runner\.temp\s*\}\}\/dadyar-preview-handoff\/public\/index\.html\s*\n\s*\$\{\{\s*runner\.temp\s*\}\}\/dadyar-preview-handoff\/public\/INTEGRITY\.json/m);
   assert.match(review, /retention-days: 7/);
+  assert.doesNotMatch(review, /handoff\//);
   assert.doesNotMatch(review, /\$\{\{\s*secrets\./);
   assert.doesNotMatch(review, /^\s*(?:contents|actions|id-token|packages): write\s*$/m);
   assert.doesNotMatch(review, /(?:scp|sftp|ftp|ssh|rsync|vercel\s+--prod|netlify\s+deploy|firebase\s+deploy|wrangler\s+deploy)/i);
