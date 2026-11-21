@@ -7,6 +7,8 @@ const path = require('node:path');
 
 const observation = JSON.parse(fs.readFileSync(
   path.join(__dirname, '../docs/check-law-qavanin-observation-20261122.json'), 'utf8'));
+const registry = JSON.parse(fs.readFileSync(
+  path.join(__dirname, '../docs/legal-source-register-v1.json'), 'utf8'));
 
 test('2026-11-22 Qavanin observation preserves direct official links and visible source lines', () => {
   assert.equal(observation.schemaVersion, 1);
@@ -36,4 +38,25 @@ test('portal approval dates and rendered text are never promoted to effective-da
   assert.equal(observation.verification.legalAnswerUsePermitted, false);
   assert.equal(observation.openGaps.length, 5);
   assert.ok(observation.nextActions.some(item => /SHA-256/.test(item)));
+});
+
+test('the central legal registry links the fresh observation without promoting it', () => {
+  const record = registry.records.find(item => item.id === 'check-issuance-law');
+  assert.ok(record);
+  assert.equal(record.latestIndependentObservation.file,
+    'docs/check-law-qavanin-observation-20261122.json');
+  assert.equal(record.latestIndependentObservation.observedAt, '2026-11-22');
+  assert.equal(record.latestIndependentObservation.rawHttpBytesCaptured, false);
+  assert.equal(record.latestIndependentObservation.primarySourceVerified, false);
+  assert.equal(record.latestIndependentObservation.humanReviewStatus, 'pending');
+  assert.equal(record.latestIndependentObservation.useInLegalAnswers, false);
+  const amendment = record.officialDocumentUrlCandidates.find(item =>
+    item.documentId === '5510706429727435487');
+  assert.ok(amendment);
+  assert.equal(amendment.latestTextObservation.observedAt, '2026-11-22');
+  assert.equal(amendment.latestTextObservation.rawHttpBytesCaptured, false);
+  assert.equal(amendment.latestTextObservation.useInLegalAnswers, false);
+  assert.equal(record.primarySourceVerified, false);
+  assert.equal(record.humanReviewStatus, 'pending');
+  assert.equal(record.useInLegalAnswers, false);
 });
