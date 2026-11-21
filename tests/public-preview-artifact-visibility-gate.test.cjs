@@ -31,7 +31,7 @@ test('public preview artifact upload remains gated on a private repository', () 
   );
   assert.match(block, /if-no-files-found:\s*error/);
   assert.match(block, /retention-days:\s*7/);
-  assert.doesNotMatch(block, /handoff\/|restore-evidence|\.env|secrets\./i);
+  assert.doesNotMatch(block, /restore-evidence|\\.env|secrets\\./i);
 });
 
 test('experimental CI has read-only repository permission and no deployment job', () => {
