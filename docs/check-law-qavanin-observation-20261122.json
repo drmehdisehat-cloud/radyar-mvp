@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "topic": "check",
+  "status": "official-portal-observation-only",
+  "observedAt": "2026-11-22",
+  "retrievalMethod": "fresh web-rendered official Qavanin pages; raw HTTP response bytes were not captured",
+  "sources": {
+    "officialStatusIndex": {
+      "url": "https://qavanin.ir/Law/StatusIndex/?IDS=11400475274213876131",
+      "rendered": true,
+      "visibleLines": [
+        17,
+        20,
+        30
+      ],
+      "fieldMeaning": "The displayed dates are approval dates in the influencing-instrument index; they are not, by themselves, Gazette publication dates or effective dates."
+    },
+    "amendment1358": {
+      "title": "لایحه قانونی اصلاح ماده ۱۷ قانون صدور چک",
+      "authorityShown": "شورای انقلاب جمهوری اسلامی ایران",
+      "approvalDateShown": "1358/04/31",
+      "textUrl": "https://qavanin.ir/Law/TreeText/?IDS=5510706429727435487",
+      "rendered": true,
+      "visibleLines": [
+        7,
+        10,
+        42,
+        45
+      ],
+      "textObservation": "The rendered text states that the single-article measure had legal force only through the end of 1358 and applied only to cheques issued through 1358/04/31. This is recorded as a portal text observation, not an event-date legal conclusion."
+    }
+  },
+  "influencingInstruments": [
+    {
+      "title": "لایحه قانونی اصلاح ماده ۱۷ قانون صدور چک",
+      "approvalDateShown": "1358/04/31"
+    },
+    {
+      "title": "قانون اصلاح موادی از قانون صدور چک مصوب تیرماه ۱۳۵۵",
+      "approvalDateShown": "1372/08/11"
+    },
+    {
+      "title": "قانون الحاق یک تبصره به ماده ۲ قانون اصلاح موادی از قانون صدور چک",
+      "approvalDateShown": "1376/03/10"
+    },
+    {
+      "title": "قانون اصلاح ذیل تبصره (۱) ماده (۱۴) قانون صدور چک و الحاق یک تبصره به آن",
+      "approvalDateShown": "1376/10/14"
+    },
+    {
+      "title": "قانون استفساریه تبصره الحاقی به ماده ۲ قانون اصلاح موادی از قانون صدور چک",
+      "approvalDateShown": "1377/09/21"
+    },
+    {
+      "title": "قانون اصلاح موادی از قانون صدور چک",
+      "approvalDateShown": "1382/06/02"
+    },
+    {
+      "title": "قانون اصلاح قانون صدور چک",
+      "approvalDateShown": "1397/08/13"
+    },
+    {
+      "title": "جلسه چهل و پنجم ستاد ملی مدیریت کرونا",
+      "approvalDateShown": "1399/09/01"
+    },
+    {
+      "title": "قانون اصلاح قانون صدور چک",
+      "approvalDateShown": "1400/01/29"
+    },
+    {
+      "title": "اصلاح میزان مبالغ مربوط به جرائم و تخلفات مندرج در قوانین مختلف",
+      "approvalDateShown": "1403/03/30"
+    }
+  ],
+  "verification": {
+    "rawHttpBytesCaptured": false,
+    "rawResponseSha256": null,
+    "officialGazetteIssueBytesRetrieved": false,
+    "primarySourceVerified": false,
+    "humanReviewStatus": "pending",
+    "eventDateVersioningApproved": false,
+    "legalAnswerUsePermitted": false
+  },
+  "openGaps": [
+    "Raw response bytes and a reproducible SHA-256 for the official text and status-index pages were not captured.",
+    "The official Gazette issue bytes and original signed instrument were not downloaded and independently hashed in this run.",
+    "The approval-date column of the status index must not be treated as Gazette publication or effective dates.",
+    "The full amendment chain and transitional provisions must be resolved before event-date versions can be approved.",
+    "No independent qualified legal reviewer has signed off against the exact source bytes."
+  ],
+  "nextActions": [
+    "Capture raw official text, metadata and Gazette issue bytes with retrieval timestamps and SHA-256.",
+    "Resolve each influencing instrument's publication date, commencement date and transitional provisions from primary records.",
+    "Create non-overlapping event-date versions only after the amendment chain is complete.",
+    "Record independent human review bound to the exact source-byte SHA-256."
+  ]
+}
