@@ -18,7 +18,7 @@ test('CI publishes an artifact containing only the public HTML and integrity man
   assert.match(step, /path:\s*\|\s*\n\s*\$\{\{\s*runner\.temp\s*\}\}\/dadyar-preview-handoff\/public\/index\.html\s*\n\s*\$\{\{\s*runner\.temp\s*\}\}\/dadyar-preview-handoff\/public\/INTEGRITY\.json/m);
   assert.match(step, /if-no-files-found: error/);
   assert.match(step, /retention-days: 7/);
-  assert.doesNotMatch(step, /handoff\//, 'operator handoff subdirectory must not enter the public-only artifact');
+  assert.doesNotMatch(step, /\/handoff\//, 'operator handoff subdirectory must not enter the public-only artifact');
   assert.doesNotMatch(step, /\*\*|\/dadyar-preview-handoff\/$/, 'the upload must use two explicit files, not a directory or wildcard');
 });
 
