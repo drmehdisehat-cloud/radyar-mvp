@@ -11,7 +11,8 @@ const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1] || '';
 test('free-question character counter is visible, associated and starts at zero', () => {
   assert.match(html, /<textarea id="free-question" aria-describedby="free-question-scope-note free-question-counter" maxlength="300"/);
   assert.match(html, /<output id="free-question-counter" for="free-question">۰ از ۳۰۰ نویسه<\/output>/);
-  assert.match(script, /freeQuestionField\.addEventListener\('input',\(\)=>\{updateFreeQuestionCounter\(\);invalidateDraft\(\);\}\)/);
+  assert.match(script, /freeQuestionField\.addEventListener\('input',updateFreeQuestionCounter\)/);
+  assert.match(script, /document\.getElementById\('free-question'\)\.addEventListener\('input',invalidateDraft\)/);
 });
 
 test('counter follows HTML maxlength UTF-16 code-unit semantics and uses Persian digits', () => {
@@ -39,6 +40,6 @@ test('counter follows HTML maxlength UTF-16 code-unit semantics and uses Persian
 });
 
 test('counter resets immediately after the question is cleared for classification and on full reset', () => {
-  assert.match(script, /freeQuestionField\.value='';\s*updateFreeQuestionCounter\(\);/);
-  assert.match(script, /function clearInterviewState\(\)[\s\S]*?document\.getElementById\('free-question'\)\.value = '';\s*updateFreeQuestionCounter\(\);/);
+  assert.match(script, /freeQuestionField\.value='';\s*document\.getElementById\('free-question-counter'\)\.textContent='۰ از ۳۰۰ نویسه';/);
+  assert.match(script, /function clearInterviewState\(\)[\s\S]*?document\.getElementById\('free-question'\)\.value = '';\s*document\.getElementById\('free-question-counter'\)\.textContent='۰ از ۳۰۰ نویسه';/);
 });
