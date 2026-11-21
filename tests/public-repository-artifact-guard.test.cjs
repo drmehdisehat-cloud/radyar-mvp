@@ -57,7 +57,7 @@ test('legacy full handoff artifact in stage-0 CI remains private-repository gate
     'the CI artifact path must require a private repository event');
   assert.match(step, /path:\s*\|\s*\n\s*\$\{\{\s*runner\.temp\s*\}\}\/dadyar-preview-handoff\/public\/index\.html\s*\n\s*\$\{\{\s*runner\.temp\s*\}\}\/dadyar-preview-handoff\/public\/INTEGRITY\.json/m,
     'only the two public review files may be uploaded');
-  assert.doesNotMatch(step, /handoff\//,
+  assert.doesNotMatch(step, /\/handoff\//,
     'operator handoff directory must never be uploaded');
 });
 
@@ -86,7 +86,7 @@ test('workflow artifact uploads are limited to the private-gated CI artifact and
   assert.match(review, /actions\/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9/);
   assert.match(review, /path:\s*\|\s*\n\s*\$\{\{\s*runner\.temp\s*\}\}\/dadyar-preview-handoff\/public\/index\.html\s*\n\s*\$\{\{\s*runner\.temp\s*\}\}\/dadyar-preview-handoff\/public\/INTEGRITY\.json/m);
   assert.match(review, /retention-days: 7/);
-  assert.doesNotMatch(review, /handoff\//);
+  assert.doesNotMatch(review, /\/handoff\//);
   assert.doesNotMatch(review, /\$\{\{\s*secrets\./);
   assert.doesNotMatch(review, /^\s*(?:contents|actions|id-token|packages): write\s*$/m);
   assert.doesNotMatch(review, /(?:scp|sftp|ftp|ssh|rsync|vercel\s+--prod|netlify\s+deploy|firebase\s+deploy|wrangler\s+deploy)/i);
