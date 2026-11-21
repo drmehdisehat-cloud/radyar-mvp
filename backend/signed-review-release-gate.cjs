@@ -4,9 +4,13 @@
 // This module does not create an identity provider, trust store or report store.
 // The caller must inject those trusted server-side dependencies.
 const crypto = require('node:crypto');
+const fs = require('node:fs');
 const path = require('node:path');
 const { verifyHumanReviewAttestation } = require('../scripts/verify-human-review-attestation.cjs');
-const { consumeHumanReviewAttestation } = require('./human-review-replay-ledger.cjs');
+const {
+  assertPrivateLedgerDirectory,
+  consumeHumanReviewAttestation
+} = require('./human-review-replay-ledger.cjs');
 
 const COMMIT = /^[a-f0-9]{40}$/i;
 const BLOB = /^[a-f0-9]{40}$/i;
@@ -38,6 +42,49 @@ function snapshotTrustStore(value) {
     throw new TypeError('A JSON object review trust store is required.');
   }
   return deepFreeze(snapshot);
+}
+
+// A replay check is deliberately read-only. Any existing claim, including a
+// partial or malformed claim, fails closed before the report store is touched.
+// The directory descriptor pins the private ledger directory during inspection.
+function hasReplayClaim({ envelope, ledgerDirectory }) {
+  const payload = envelope.payload;
+  const reviewIdHash = crypto.createHash('sha256')
+    .update(payload.issuer + '\0' + payload.review_id, 'utf8').digest('hex');
+  const nonceHash = crypto.createHash('sha256')
+    .update(payload.issuer + '\0' + payload.nonce, 'utf8').digest('hex');
+  const names = [
+    'review-' + reviewIdHash + '.json',
+    'nonce-' + nonceHash + '.json'
+  ];
+
+  const directory = assertPrivateLedgerDirectory(ledgerDirectory);
+  try {
+    let found = false;
+    for (const name of names) {
+      try {
+        // Presence alone is sufficient to reject. Do not follow or read a
+        // marker: a symlink or malformed marker must also fail closed.
+        fs.lstatSync(path.join(directory.real, name), { bigint: true });
+        found = true;
+        break;
+      } catch (error) {
+        if (error && error.code === 'ENOENT') continue;
+        throw error;
+      }
+    }
+
+    const current = fs.statSync(directory.real, { bigint: true });
+    const opened = fs.fstatSync(directory.dirFd, { bigint: true });
+    if (!current.isDirectory() || !opened.isDirectory() ||
+        current.dev !== directory.dev || current.ino !== directory.ino ||
+        opened.dev !== directory.dev || opened.ino !== directory.ino) {
+      throw new Error('ledger_directory_identity_changed');
+    }
+    return found;
+  } finally {
+    try { fs.closeSync(directory.dirFd); } catch {}
+  }
 }
 
 function createSignedReviewReleaseGate(options = {}) {
@@ -82,6 +129,9 @@ function createSignedReviewReleaseGate(options = {}) {
     sourceBlobSha1: expectedSourceBlobSha1.toLowerCase(),
     artifactSha256: expectedArtifactSha256.toLowerCase()
   });
+  // Prevent duplicate in-process requests from reading the report concurrently.
+  // The durable ledger remains authoritative across process restarts.
+  const inFlightReviews = new Set();
 
   return async function releaseReviewedReport({ request, envelope } = {}) {
     // Authentication is obtained only from the trusted server-side adapter.
@@ -97,7 +147,8 @@ function createSignedReviewReleaseGate(options = {}) {
     }
     if (principal.independent !== true ||
         !Array.isArray(principal.roles) ||
-        !principal.roles.includes('preview-reviewer') ||
+        principal.roles.length !== 1 ||
+        principal.roles[0] !== 'preview-reviewer' ||
         typeof principal.issuer !== 'string' ||
         principal.issuer !== pinnedTrustStore.issuer ||
         typeof principal.subject !== 'string' ||
@@ -127,43 +178,65 @@ function createSignedReviewReleaseGate(options = {}) {
       throw failure('REVIEW_ATTESTATION_REJECTED');
     }
 
-    // Read and hash the exact reviewed bytes before consuming the one-shot
-    // attestation. A transient storage failure must not burn a valid nonce.
-    let loaded;
-    try {
-      loaded = await loadReviewedReport(target);
-    } catch {
-      throw failure('REVIEW_RELEASE_UNAVAILABLE');
-    }
-    if ((!Buffer.isBuffer(loaded) && !(loaded instanceof Uint8Array)) ||
-        loaded.byteLength < 1 || loaded.byteLength > maxReportBytes) {
-      throw failure('REVIEW_RELEASE_UNAVAILABLE');
-    }
-    const reportBytes = Buffer.from(loaded);
-    const actualDigest = crypto.createHash('sha256').update(reportBytes).digest('hex');
-    if (actualDigest !== target.artifactSha256) {
-      throw failure('REVIEW_RELEASE_UNAVAILABLE');
-    }
-
-    const consumed = consumeHumanReviewAttestation({
-      attestation: envelope,
-      trustStore: pinnedTrustStore,
-      expectedSourceCommit: target.sourceCommit,
-      expectedSourceBlobSha1: target.sourceBlobSha1,
-      expectedArtifactSha256: target.artifactSha256,
-      ledgerDirectory,
-      now: checkedAt
-    });
-    if (!consumed || consumed.consumed !== true) {
-      if (consumed?.reason === 'replay_ledger_unavailable' ||
-          consumed?.reason === 'replay_ledger_busy') {
-        throw failure('REVIEW_RELEASE_UNAVAILABLE');
-      }
+    const payload = envelope.payload;
+    const attemptKey = crypto.createHash('sha256')
+      .update(payload.issuer + '\0' + payload.review_id + '\0' + payload.nonce, 'utf8')
+      .digest('hex');
+    if (inFlightReviews.has(attemptKey)) {
       throw failure('REVIEW_ATTESTATION_REJECTED');
     }
+    inFlightReviews.add(attemptKey);
 
-    return Object.freeze({ reportBytes });
+    try {
+      // Reject a previously consumed attestation before reading report storage.
+      // A read-only precheck preserves retryability if report storage is down;
+      // the transactional consume below remains the final race-safe authority.
+      let replayed;
+      try {
+        replayed = hasReplayClaim({ envelope, ledgerDirectory });
+      } catch {
+        throw failure('REVIEW_RELEASE_UNAVAILABLE');
+      }
+      if (replayed) throw failure('REVIEW_ATTESTATION_REJECTED');
+
+      let loaded;
+      try {
+        loaded = await loadReviewedReport(target);
+      } catch {
+        throw failure('REVIEW_RELEASE_UNAVAILABLE');
+      }
+      if ((!Buffer.isBuffer(loaded) && !(loaded instanceof Uint8Array)) ||
+          loaded.byteLength < 1 || loaded.byteLength > maxReportBytes) {
+        throw failure('REVIEW_RELEASE_UNAVAILABLE');
+      }
+      const reportBytes = Buffer.from(loaded);
+      const actualDigest = crypto.createHash('sha256').update(reportBytes).digest('hex');
+      if (actualDigest !== target.artifactSha256) {
+        throw failure('REVIEW_RELEASE_UNAVAILABLE');
+      }
+
+      const consumed = consumeHumanReviewAttestation({
+        attestation: envelope,
+        trustStore: pinnedTrustStore,
+        expectedSourceCommit: target.sourceCommit,
+        expectedSourceBlobSha1: target.sourceBlobSha1,
+        expectedArtifactSha256: target.artifactSha256,
+        ledgerDirectory,
+        now: checkedAt
+      });
+      if (!consumed || consumed.consumed !== true) {
+        if (consumed?.reason === 'replay_ledger_unavailable' ||
+            consumed?.reason === 'replay_ledger_busy') {
+          throw failure('REVIEW_RELEASE_UNAVAILABLE');
+        }
+        throw failure('REVIEW_ATTESTATION_REJECTED');
+      }
+
+      return Object.freeze({ reportBytes });
+    } finally {
+      inFlightReviews.delete(attemptKey);
+    }
   };
 }
 
-module.exports = { createSignedReviewReleaseGate };
+module.exports = { createSignedReviewReleaseGate, hasReplayClaim };

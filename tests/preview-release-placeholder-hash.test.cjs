@@ -42,7 +42,8 @@ const base = {
   zeroApiRequestsVerified: true,
   localHumanReviewAcknowledged: true,
   authenticatedHumanReviewAttested: true,
-  authenticatedRestoreAttestation: true
+  authenticatedRestoreAttestation: true,
+  trustedReviewerAuthenticationAdapterVerified: true
 };
 
 test('preview gate rejects placeholder all-zero SHA-256 even when matched flag is true', () => {
@@ -55,7 +56,7 @@ test('preview gate rejects placeholder all-zero SHA-256 even when matched flag i
   assert.ok(decision.blockers.includes('preview destination is not verified outside production document root and Git checkout'));
 });
 
-test('valid-shaped synthetic hashes and manifest only permit owner approval, never auto-deploy', () => {
+test('valid-shaped synthetic hashes and manifest reach owner approval only when the trusted auth-adapter gate is explicitly satisfied', () => {
   const decision = decidePreviewRelease(base);
   assert.equal(decision.status, 'EVIDENCE_SHAPE_VALID_REQUIRES_EXTERNAL_VERIFICATION');
   assert.equal(decision.deploymentAuthorized, false);

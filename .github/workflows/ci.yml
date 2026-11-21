@@ -9,7 +9,12 @@ on:
   pull_request:
     branches:
       - main
+      - dadyar/ai-chat-private-20261101
       - dadyar/mvp-sync-028
+      - dadyar/replay-ledger-ci-base-20261117
+      - dadyar/signed-gate-review-base-20261117
+      - dadyar/restore-probe-review-base-20261117
+      - dadyar/preview-package-layout-review-base-20261117
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -20,7 +25,12 @@ jobs:
     if: >-
       (github.event_name == 'push' && (github.ref == 'refs/heads/dadyar/mvp-sync-028' || github.ref == 'refs/heads/dadyar/preview-auth-policy-20261030' || github.ref == 'refs/heads/dadyar/ai-chat-private-20261101')) ||
       (github.event_name == 'pull_request' &&
-       (github.base_ref == 'main' || github.base_ref == 'dadyar/mvp-sync-028'))
+       (github.base_ref == 'main' || github.base_ref == 'dadyar/mvp-sync-028' ||
+        github.base_ref == 'dadyar/ai-chat-private-20261101' ||
+        github.base_ref == 'dadyar/replay-ledger-ci-base-20261117' ||
+        github.base_ref == 'dadyar/signed-gate-review-base-20261117' ||
+        github.base_ref == 'dadyar/restore-probe-review-base-20261117' ||
+        github.base_ref == 'dadyar/preview-package-layout-review-base-20261117'))
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
@@ -61,6 +71,11 @@ jobs:
           node --test "${contracts[@]}"
       - name: Audit v1 release blockers (informational; never deploy)
         run: node scripts/check-v1-readiness.cjs
+      - name: Audit GitHub repository release posture (read-only; informational)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/audit-github-repository-posture.cjs
       - name: Audit cheque amendment evidence gaps (research only)
         run: node scripts/audit-check-evidence.cjs
       - name: Assert unapproved v1 stays blocked (experimental only)
@@ -92,13 +107,14 @@ jobs:
           DADYAR_PREVIEW_EVENT: ${{ github.event_name }}
           DADYAR_PREVIEW_BRANCH: dadyar/ai-chat-private-20261101
         run: node scripts/build-offline-preview-package.cjs "$RUNNER_TEMP/dadyar-preview-handoff"
-      - name: Create immutable offline preview artifact
+      - name: Create public-only preview payload artifact
         if: >-
-          (github.event_name == 'push' && github.ref == 'refs/heads/dadyar/ai-chat-private-20261101') ||
-          (github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'dadyar/ai-chat-private-20261101')
+          github.event.repository.private == true &&
+          ((github.event_name == 'push' && github.ref == 'refs/heads/dadyar/ai-chat-private-20261101') ||
+           (github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'dadyar/ai-chat-private-20261101'))
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: dadyar-offline-preview-${{ github.event.pull_request.head.sha || github.sha }}
-          path: ${{ runner.temp }}/dadyar-preview-handoff/
+          name: dadyar-public-preview-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/dadyar-preview-handoff/public/index.html
           if-no-files-found: error
           retention-days: 7

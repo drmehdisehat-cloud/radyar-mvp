@@ -5,8 +5,9 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const { spawnSync } = require('node:child_process');
+const { spawnSync, execFileSync } = require('node:child_process');
 const { canonicalizePayload } = require('../scripts/verify-human-review-attestation.cjs');
+const { verifyReviewedSourceCommit } = require('../scripts/preview-release-preflight.cjs');
 const { canonicalizeManifest } = require('../scripts/verify-restore-attestation-signatures.cjs');
 
 const CLI = path.join(__dirname, '../scripts/preview-release-preflight.cjs');
@@ -95,7 +96,9 @@ function fixture() {
   const sourcePreview = path.join(path.resolve(__dirname, '..'), 'dadyar-preview', 'index.html');
   const sourceBytes = fs.readFileSync(sourcePreview);
   const sourceHash = digest(sourceBytes);
-  const sourceCommit = 'c'.repeat(40);
+  const sourceCommit = execFileSync('git', ['rev-parse', '--verify', 'HEAD^{commit}'], {
+    cwd: path.resolve(__dirname, '..'), encoding: 'utf8'
+  }).trim();
   const sourceBlobSha = gitBlobSha1(sourceBytes);
   const stagingDirectory = path.join(directory, 'isolated-staging', 'dadyar-preview');
   fs.mkdirSync(stagingDirectory, { recursive: true, mode: 0o700 });
@@ -171,8 +174,20 @@ function fixture() {
   };
 }
 
-function run(args) {
-  return spawnSync(process.execPath, [CLI, ...args], { encoding: 'utf8', timeout: 5000 });
+function run(args, options = {}) {
+  const env = { ...process.env };
+  if (Object.prototype.hasOwnProperty.call(options, 'ownerPin')) {
+    if (options.ownerPin === null) delete env.DADYAR_REVIEW_TRUST_STORE_SHA256;
+    else env.DADYAR_REVIEW_TRUST_STORE_SHA256 = options.ownerPin;
+  } else {
+    const trustIndex = args.indexOf('--review-trust-store');
+    if (trustIndex >= 0 && args[trustIndex + 1]) {
+      env.DADYAR_REVIEW_TRUST_STORE_SHA256 = digest(fs.readFileSync(args[trustIndex + 1]));
+    } else {
+      delete env.DADYAR_REVIEW_TRUST_STORE_SHA256;
+    }
+  }
+  return spawnSync(process.execPath, [CLI, ...args], { encoding: 'utf8', timeout: 5000, env });
 }
 
 function baseArgs(f) {
@@ -212,16 +227,16 @@ function removeValuePair(args, flag) {
   return copy;
 }
 
-test('read-only CLI verifies a signed synthetic review but still requires external verification', () => {
+test('read-only CLI verifies a signed synthetic review but remains NOT_READY without the trusted auth adapter', () => {
   const f = fixture();
   try {
     const result = run(baseArgs(f));
-    assert.equal(result.status, 3, result.stderr);
+    assert.equal(result.status, 1, result.stderr);
     const report = JSON.parse(result.stdout);
-    assert.equal(report.status, 'EVIDENCE_SHAPE_VALID_REQUIRES_EXTERNAL_VERIFICATION');
+    assert.equal(report.status, 'NOT_READY');
     assert.equal(report.deploymentAuthorized, false);
     assert.equal(report.externalChecksPending.length, 5);
-    assert.deepEqual(report.blockers, []);
+    assert.ok(report.blockers.includes('trusted reviewer authentication adapter is not integrated and verified'));
     assert.equal(report.evidenceFilesRead, true);
     assert.equal(report.attestationFlagsSupplied, 4);
     assert.equal(report.restoreAttestation.verified, true);
@@ -283,11 +298,11 @@ test('a missing owner-pinned trust-store digest cannot authenticate a reviewer',
   const f = fixture();
   try {
     const args = removeValuePair(baseArgs(f), '--expected-review-trust-store-sha256');
-    const result = run(args);
+    const result = run(args, { ownerPin: null });
     assert.equal(result.status, 1, result.stderr);
     const report = JSON.parse(result.stdout);
     assert.equal(report.reviewAttestation.verified, false);
-    assert.equal(report.reviewAttestation.reason, 'review_trust_store_digest_required');
+    assert.equal(report.reviewAttestation.reason, 'owner_managed_review_trust_store_pin_missing_or_invalid');
     assert.equal(report.deploymentPerformed, false);
   } finally {
     fs.rmSync(f.directory, { recursive: true, force: true });
@@ -298,10 +313,11 @@ test('a substituted trust store is rejected when its bytes differ from the owner
   const f = fixture();
   try {
     const args = baseArgs(f);
+    const ownerPin = digest(fs.readFileSync(f.trustStoreFile));
     const trustStore = JSON.parse(fs.readFileSync(f.trustStoreFile, 'utf8'));
     trustStore.issuer = 'substituted-trust-store';
     fs.writeFileSync(f.trustStoreFile, JSON.stringify(trustStore));
-    const result = run(args);
+    const result = run(args, { ownerPin });
     assert.equal(result.status, 1, result.stderr);
     const report = JSON.parse(result.stdout);
     assert.equal(report.reviewAttestation.verified, false);
@@ -322,7 +338,7 @@ test('malformed and all-zero trust-store digests are rejected', () => {
       const result = run(args);
       assert.equal(result.status, 1, result.stderr);
       const report = JSON.parse(result.stdout);
-      assert.equal(report.reviewAttestation.reason, 'invalid_expected_review_trust_store_sha256');
+      assert.equal(report.reviewAttestation.reason, 'review_trust_store_cli_pin_mismatch');
       assert.equal(report.deploymentPerformed, false);
     }
   } finally {
@@ -374,9 +390,10 @@ test('review signature must be bound to the exact artifact and source commit', (
     const commitIndex = args.indexOf('--expected-source-commit') + 1;
     args[commitIndex] = 'd'.repeat(40);
     const result = run(args);
-    assert.equal(result.status, 1, result.stderr);
+    assert.equal(result.status, 2, result.stderr);
     const report = JSON.parse(result.stdout);
-    assert.equal(report.reviewAttestation.reason, 'review_target_mismatch');
+    assert.equal(report.status, 'NOT_READY');
+    assert.ok(report.blockers.includes('reviewed_source_commit_must_match_checkout_HEAD'));
     assert.equal(report.deploymentPerformed, false);
   } finally {
     fs.rmSync(f.directory, { recursive: true, force: true });
@@ -641,3 +658,197 @@ test('ambiguous human-review-verified flag is rejected instead of being treated 
     fs.rmSync(f.directory, { recursive: true, force: true });
   }
 });
+
+test('caller-supplied reviewer-authentication booleans are rejected and cannot clear the trusted adapter gate', () => {
+  const f = fixture();
+  try {
+    for (const flag of [
+      '--trusted-reviewer-authentication-adapter-verified',
+      '--trusted-reviewer-authentication-adapter'
+    ]) {
+      const result = run([...baseArgs(f), flag]);
+      assert.equal(result.status, 2, flag + ': ' + result.stderr);
+      const report = JSON.parse(result.stdout);
+      assert.equal(report.status, 'NOT_READY');
+      assert.match(report.blockers.join(' '), /unknown_argument/);
+      assert.equal(report.deploymentPerformed, false);
+    }
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
+
+test('preflight rejects owner-readable JSON evidence instead of accepting a broadly readable manifest', () => {
+  if (process.platform === 'win32') return;
+  const f = fixture();
+  try {
+    fs.chmodSync(f.restoreFile, 0o644);
+    const result = run(baseArgs(f));
+    assert.equal(result.status, 2, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.ok(report.blockers.includes('--restore-evidence_must_be_owner_only'));
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
+test('preflight rejects a group/world-writable reviewer trust store before parsing it', () => {
+  if (process.platform === 'win32') return;
+  const f = fixture();
+  try {
+    fs.chmodSync(f.trustStoreFile, 0o666);
+    const result = run(baseArgs(f));
+    assert.equal(result.status, 2, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.ok(report.blockers.includes('--review-trust-store_must_not_be_group_or_world_writable'));
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
+
+test('preflight rejects a group/world-readable human-review attestation before signature verification', () => {
+  if (process.platform === 'win32') return;
+  const f = fixture();
+  try {
+    fs.chmodSync(f.attestationFile, 0o644);
+    const result = run(baseArgs(f));
+    assert.equal(result.status, 2, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.ok(report.blockers.includes('--review-attestation_must_be_owner_only'));
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
+
+test('CLI-provided trust-store digest cannot establish its own trust anchor', () => {
+  const f = fixture();
+  try {
+    const result = run(baseArgs(f), { ownerPin: null });
+    assert.equal(result.status, 1, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.reviewAttestation.verified, false);
+    assert.equal(report.reviewAttestation.reason, 'owner_managed_review_trust_store_pin_missing_or_invalid');
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
+test('owner-pinned trust-store digest mismatch blocks a signed review', () => {
+  const f = fixture();
+  try {
+    const result = run(baseArgs(f), { ownerPin: 'f'.repeat(64) });
+    assert.equal(result.status, 1, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.reviewAttestation.verified, false);
+    assert.equal(report.reviewAttestation.reason, 'review_trust_store_cli_pin_mismatch');
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
+test('owner-pinned environment digest can verify the trust store without a caller-supplied digest', () => {
+  const f = fixture();
+  try {
+    const args = removeValuePair(baseArgs(f), '--expected-review-trust-store-sha256');
+    const result = run(args);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.reviewAttestation.verified, true, result.stderr);
+    assert.equal(report.reviewAttestation.trustStoreSha256, digest(fs.readFileSync(f.trustStoreFile)));
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
+
+test('a correct CLI trust-store digest cannot replace the owner-managed environment pin', () => {
+  const f = fixture();
+  try {
+    const args = baseArgs(f);
+    // baseArgs includes the correct digest, but no owner-managed environment pin is supplied.
+    const result = run(args, { ownerPin: null });
+    assert.equal(result.status, 1, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.reviewAttestation.verified, false);
+    assert.equal(report.reviewAttestation.reason, 'owner_managed_review_trust_store_pin_missing_or_invalid');
+    assert.equal(report.deploymentAuthorized, false);
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
+test('a valid but substituted CLI trust-store digest cannot override the owner-managed pin', () => {
+  const f = fixture();
+  try {
+    const args = baseArgs(f);
+    const ownerPin = digest(fs.readFileSync(f.trustStoreFile));
+    const index = args.indexOf('--expected-review-trust-store-sha256') + 1;
+    assert.ok(index > 0);
+    args[index] = ownerPin === 'f'.repeat(64) ? 'e'.repeat(64) : 'f'.repeat(64);
+    const result = run(args, { ownerPin });
+    assert.equal(result.status, 1, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.reviewAttestation.verified, false);
+    assert.equal(report.reviewAttestation.reason, 'review_trust_store_cli_pin_mismatch');
+    assert.equal(report.deploymentAuthorized, false);
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
+test('review approval is bound to the exact checkout HEAD and committed preview blob', () => {
+  const f = fixture();
+  try {
+    const verified = verifyReviewedSourceCommit(f.sourceCommit, f.sourceBlobSha);
+    assert.deepEqual(verified, {
+      verified: true,
+      commit: f.sourceCommit.toLowerCase(),
+      blob_sha1: f.sourceBlobSha.toLowerCase()
+    });
+    const wrongBlob = (f.sourceBlobSha[0] === '0' ? '1' : '0') + f.sourceBlobSha.slice(1);
+    assert.throws(
+      () => verifyReviewedSourceCommit(f.sourceCommit, wrongBlob),
+      /reviewed_source_commit_blob_mismatch/
+    );
+    const parentCommit = execFileSync('git', ['rev-parse', '--verify', 'HEAD^'], {
+      cwd: path.resolve(__dirname, '..'), encoding: 'utf8'
+    }).trim();
+    assert.throws(
+      () => verifyReviewedSourceCommit(parentCommit, f.sourceBlobSha),
+      /reviewed_source_commit_must_match_checkout_HEAD/
+    );
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+
+test('CLI rejects a validly shaped signed review for a stale source commit', () => {
+  const f = fixture();
+  try {
+    const args = baseArgs(f);
+    const index = args.indexOf('--expected-source-commit') + 1;
+    assert.ok(index > 0);
+    args[index] = execFileSync('git', ['rev-parse', '--verify', 'HEAD^'], {
+      cwd: path.resolve(__dirname, '..'), encoding: 'utf8'
+    }).trim();
+    const result = run(args);
+    assert.equal(result.status, 2, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.status, 'NOT_READY');
+    assert.ok(report.blockers.includes('reviewed_source_commit_must_match_checkout_HEAD'));
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
+

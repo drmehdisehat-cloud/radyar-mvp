@@ -74,6 +74,21 @@ function isInside(parent, target) {
   return relative === '' || (!relative.startsWith('..' + path.sep) && relative !== '..' && !path.isAbsolute(relative));
 }
 
+function assertExternalEvidencePermissions(stat, label) {
+  if (process.platform === 'win32') return;
+  const serviceUid = typeof process.geteuid === 'function' ? BigInt(process.geteuid()) : null;
+  if (serviceUid === null || (stat.uid !== 0n && stat.uid !== serviceUid)) {
+    throw new Error(label + '_must_be_owned_by_root_or_service_user');
+  }
+  const mode = stat.mode & 0o7777n;
+  if ((mode & 0o7000n) !== 0n) throw new Error(label + '_special_permission_bits_forbidden');
+  if ((mode & 0o022n) !== 0n) throw new Error(label + '_must_not_be_group_or_world_writable');
+  if ((mode & 0o400n) === 0n) throw new Error(label + '_must_be_owner_readable');
+  if (label === 'manifest' && (mode & 0o077n) !== 0n) {
+    throw new Error(label + '_must_be_owner_only');
+  }
+}
+
 function readExternalFile(file, label, maxBytes) {
   if (typeof file !== 'string' || !path.isAbsolute(file)) throw new Error(label + '_must_be_absolute');
   let current = path.resolve(file);
@@ -93,6 +108,7 @@ function readExternalFile(file, label, maxBytes) {
     const before = fs.fstatSync(fd, { bigint: true });
     if (!before.isFile()) throw new Error(label + '_must_be_regular_file');
     if (before.nlink !== 1n) throw new Error(label + '_must_not_have_hard_link_aliases');
+    assertExternalEvidencePermissions(before, label);
     if (before.size === 0n || before.size > BigInt(maxBytes)) throw new Error(label + '_size_invalid');
     const pathStat = fs.statSync(real, { bigint: true });
     if (pathStat.dev !== before.dev || pathStat.ino !== before.ino) {
@@ -150,6 +166,7 @@ function main(argv) {
       'Usage:',
       '  node scripts/verify-restore-attestation-signatures.cjs --canonicalize --manifest /secure/restore.json > /secure/restore.canonical.json',
       '  node scripts/verify-restore-attestation-signatures.cjs --manifest /secure/restore.json --operator-public-key /secure/operator.pub.pem --operator-signature /secure/operator.sig --reviewer-public-key /secure/reviewer.pub.pem --reviewer-signature /secure/reviewer.sig',
+      'The manifest must be owner-only on POSIX; public keys and signatures must be root/service-owned and not group/world-writable.',
       'All evidence, public keys and signatures must be regular non-symlink files outside the Git checkout.',
       'A successful result verifies signatures only; it does not prove a restore or authorize deployment.'
     ].join('\n') + '\n');

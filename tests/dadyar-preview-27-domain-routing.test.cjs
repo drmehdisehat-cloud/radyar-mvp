@@ -26,11 +26,11 @@ function classifier() {
   };
   const sandbox = { document, URL: {}, Blob: class {}, setTimeout() {} };
   vm.runInNewContext(
-    script + '\nglobalThis.__classifyQuestion = classifyQuestion; globalThis.__topicHintCount = topicHints.length;',
+    script + '\nglobalThis.__classifyQuestion = classifyQuestion; globalThis.__isChequeScopeMatch = isChequeScopeMatch; globalThis.__topicHintCount = topicHints.length; globalThis.__hasSensitiveIdentifier = hasSensitiveIdentifier;',
     sandbox,
     { timeout: 1000 }
   );
-  return { classify: sandbox.__classifyQuestion, count: sandbox.__topicHintCount };
+  return { classify: sandbox.__classifyQuestion, isChequeScopeMatch: sandbox.__isChequeScopeMatch, hasSensitiveIdentifier: sandbox.__hasSensitiveIdentifier, count: sandbox.__topicHintCount };
 }
 
 test('free-text router loads all 27 internal legal-domain hints without a topic menu', () => {
@@ -101,19 +101,61 @@ test('single-word hints do not match as substrings inside unrelated words', () =
   assert.ok(!ids.includes('finance'));
 });
 test('cheque preview allows mixed free text when cheque is detected, but blocks non-cheque or unclassified questions', () => {
-  const { classify } = classifier();
+  const { classify, isChequeScopeMatch } = classifier();
   const expression = html.match(/const questionOutsideChequeScope=([^;]+);/)?.[1];
   assert.ok(expression, 'cheque-only scope gate missing');
   const outside = question => {
     const internalTopicMatches = classify(question);
-    return vm.runInNewContext(expression, { freeQuestion: question, internalTopicMatches });
+    return vm.runInNewContext(expression, { freeQuestion: question, internalTopicMatches, isChequeScopeMatch });
   };
   assert.equal(outside(''), false, 'empty optional question keeps the synthetic cheque flow available');
   assert.equal(outside('چک صیادی و گواهی عدم پرداخت'), false, 'cheque-only question is in scope');
   assert.equal(outside('چک تضمینی و اجاره'), false, 'mixed cheque/property question keeps the cheque workshop available');
   assert.equal(outside('چک و طلاق'), false, 'mixed cheque/family question keeps the cheque workshop available');
+  assert.equal(outside('چک و سفته'), false, 'mixed cheque/promissory-note question keeps the cheque workshop available for its cheque part');
+  assert.equal(outside('سفته'), true, 'promissory-note-only question must be blocked');
+  assert.equal(outside('برات'), true, 'bill-of-exchange-only question must be blocked');
+  assert.equal(outside('ظهرنویسی'), true, 'generic endorsement-only question must be blocked');
   assert.equal(outside('اجاره'), true, 'non-cheque question must be blocked');
   assert.equal(outside('موضوع نامرتبط و بی‌کلیدواژه'), true, 'unclassified question must be blocked');
   assert.match(html, /پرسش آزاد چندموضوعی تشخیص داده شد؛ این پیش‌نمایش فقط سناریوی چک فرضی را پوشش می‌دهد و موضوع دیگر را تحلیل نمی‌کند/);
   assert.match(html, /if\(questionOutsideChequeScope\) conflicts\.push\(/);
+});
+
+test('free question accepts a general legal topic while the cheque-only preview scope remains explicit', () => {
+  assert.match(html, /<label for="free-question">پرسش آزاد درباره موضوع حقوقی موردنظر/);
+  assert.match(html, /id="free-question-scope-note" role="note"/);
+  assert.match(html, /طبقه‌بندی موضوعی فقط به‌صورت محلی و چندموضوعی انجام می‌شود/);
+  assert.match(html, /این پیش‌نمایش صرفاً بخش مربوط به چک فرضی را پوشش می‌دهد و سایر موضوعات را تحلیل نمی‌کند/);
+  assert.match(html, /placeholder="در سناریوی چک تضمینی مرتبط با اجاره، چه مدارکی باید بررسی شود؟"/);
+});
+
+test('preview keeps keyboard focus visible on text, textarea and checkbox controls with a matching CSP style hash', () => {
+  const crypto = require('node:crypto');
+  const style = html.match(/<style>([\s\S]*?)<\/style>/)?.[1];
+  assert.ok(style, 'inline preview style missing');
+  assert.match(style, /textarea:focus-visible/);
+  assert.match(style, /input:not\(\[type=checkbox\]\):focus-visible/);
+  assert.match(style, /input\[type=checkbox\]:focus-visible/);
+  const digest = crypto.createHash('sha256').update(style, 'utf8').digest('base64');
+  const csp = html.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/)?.[1];
+  assert.ok(csp, 'preview Content Security Policy missing');
+  const styleSource = csp.match(/(?:^|;)\s*style-src\s+'sha256-([^']+)'/);
+  assert.ok(styleSource, 'CSP must pin the inline style with a SHA-256 source');
+  assert.equal(styleSource[1], digest, 'CSP style hash must match the exact inline CSS bytes');
+});
+
+test('privacy scanner removes Unicode default-ignorable code points before matching identifiers', () => {
+  const { hasSensitiveIdentifier } = classifier();
+  const invisible = codePoint => String.fromCodePoint(codePoint);
+  const probes = [
+    'شماره همراه: ۰۹۱۲' + invisible(0x2062) + '۳۴۵۶۷۸۹',
+    'کد ملی: ۱۲۳۴۵' + invisible(0x2063) + '۶۷۸۹۰',
+    'شماره کارت: ۶۰۳۷' + invisible(0x2064) + '۹۹۱۷' + invisible(0x2061) + '۴۵۶۲۱۶۸',
+    'شبا: IR' + invisible(0x2062) + '۱۲۳۴۵۶۷۸۹۰۱۲۳۴۵۶۷۸۹۰۱۲۳۴'
+  ];
+  for (const probe of probes) {
+    assert.equal(hasSensitiveIdentifier(probe), true, 'obfuscated sensitive identifier was not detected: '+probe);
+  }
+  assert.equal(hasSensitiveIdentifier('پرسش ساختگی درباره چک تضمینی و اجاره'), false);
 });

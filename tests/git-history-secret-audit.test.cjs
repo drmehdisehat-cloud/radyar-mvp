@@ -54,3 +54,14 @@ test('shallow history fails closed', t => {
   assert.equal(result.code, 1);
   assert.equal(result.output.reason, 'history_audit_incomplete');
 });
+
+test('batch scanner audits every reachable synthetic blob across multiple batches', t => {
+  const root = setup(); t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  for (let index = 0; index < 19; index += 1) {
+    commit(root, 'batch-' + index + '.txt', 'synthetic batch fixture ' + index);
+  }
+  const result = run(root);
+  assert.equal(result.code, 0);
+  assert.equal(result.output.status, 'PASS');
+  assert.ok(result.output.scannedBlobs >= 19, 'one or more reachable blobs were skipped by batching');
+});
