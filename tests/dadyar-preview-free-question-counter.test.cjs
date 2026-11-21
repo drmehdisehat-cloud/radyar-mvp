@@ -11,6 +11,7 @@ const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1] || '';
 test('free-question character counter is visible, associated and starts at zero', () => {
   assert.match(html, /<textarea id="free-question" aria-describedby="free-question-scope-note free-question-counter" maxlength="300"/);
   assert.match(html, /<output id="free-question-counter" for="free-question">۰ از ۳۰۰ نویسه<\/output>/);
+  assert.match(html, /<p aria-live="polite" aria-atomic="true"><output id="free-question-counter"/);
   assert.match(script, /freeQuestionField\.addEventListener\('input',updateFreeQuestionCounter\)/);
   assert.match(script, /document\.getElementById\('free-question'\)\.addEventListener\('input',invalidateDraft\)/);
 });
