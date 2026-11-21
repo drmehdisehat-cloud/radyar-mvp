@@ -20,6 +20,16 @@ test('offline preview artifact pins PR source SHA separately from workflow merge
   assert.match(builder, /source_branch: branch/);
 });
 
+
+test('handoff metadata cannot claim authenticated review, restored backup or an approved destination', () => {
+  assert.match(builder, /reviewer_authentication: 'not-implemented'/);
+  assert.match(builder, /reviewer_record_type: 'local-self-attestation-only'/);
+  assert.match(builder, /backup_restore_verified: false/);
+  assert.match(builder, /destination_verified: false/);
+  assert.match(builder, /deployment_authorized: false/);
+  assert.match(builder, /public_ai_enabled: false/);
+});
+
 test('preview artifact remains a non-deploying, read-only handoff', () => {
   assert.match(workflow, /permissions:\n  contents: read/);
   assert.doesNotMatch(workflow, /deployments:\s*write|contents:\s*write/);
