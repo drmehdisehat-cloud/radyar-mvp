@@ -12,7 +12,7 @@ const workflow = fs.readFileSync(
   'utf8'
 );
 
-test('public review artifact is push-only, read-only and uploads exactly one public HTML file', () => {
+test('public review artifact is push-only, read-only and uploads exactly two public review files', () => {
   assert.match(workflow, /^on:\s*\n  push:\s*\n    branches:\s*\n      - dadyar\/ai-chat-private-20261101\s*$/m);
   assert.doesNotMatch(workflow, /^\s*(?:pull_request|pull_request_target|workflow_dispatch|schedule):/m);
   assert.match(workflow, /^permissions:\s*\n  contents: read\s*$/m);
@@ -21,24 +21,25 @@ test('public review artifact is push-only, read-only and uploads exactly one pub
   assert.match(workflow, /actions\/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1/);
   assert.match(workflow, /actions\/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9/);
   assert.match(workflow, /node scripts\/build-offline-preview-package\.cjs/);
+  assert.match(workflow, /node scripts\/create-public-preview-integrity-manifest\.cjs/);
   assert.match(workflow, /DADYAR_PREVIEW_EVENT: push/);
   assert.match(workflow, /DADYAR_PREVIEW_BRANCH: dadyar\/ai-chat-private-20261101/);
 
-  const upload = workflow.split('      - name: Upload only public HTML for review (not deployment)')[1];
+  const upload = workflow.split('      - name: Upload only public HTML and integrity manifest for review (not deployment)')[1];
   assert.ok(upload, 'public artifact upload step missing');
   assert.match(upload, /name: dadyar-public-preview-review-\$\{\{ github\.sha \}\}/);
-  assert.match(upload, /path: \$\{\{ runner\.temp \}\}\/dadyar-preview-handoff\/public\/index\.html/);
+  assert.match(upload, /path:\s*\|\s*\n\s*\$\{\{\s*runner\.temp\s*\}\}\/dadyar-preview-handoff\/public\/index\.html\s*\n\s*\$\{\{\s*runner\.temp\s*\}\}\/dadyar-preview-handoff\/public\/INTEGRITY\.json/m);
   assert.match(upload, /if-no-files-found: error/);
   assert.match(upload, /retention-days: 7/);
-  assert.doesNotMatch(upload, /path:.*(?:^|\/)handoff\//m);
-  assert.doesNotMatch(upload, /dadyar-preview-handoff\/(?!public\/index\.html)/);
+  assert.doesNotMatch(upload, /handoff\//);
+  assert.doesNotMatch(upload, /\*\*/);
   assert.doesNotMatch(workflow, /\$\{\{\s*secrets\./);
   assert.doesNotMatch(workflow, /^\s*(?:id-token|contents|actions|packages): write\s*$/m);
   assert.doesNotMatch(workflow, /^\s*(?:environment|workflow_run):/m);
   assert.doesNotMatch(workflow, /(?:scp|sftp|ftp|ssh|rsync|vercel\s+--prod|netlify\s+deploy|firebase\s+deploy|wrangler\s+deploy)/i);
 });
 
-test('package builder keeps operator handoff outside the single-file public payload', () => {
+test('package builder keeps operator handoff outside the public payload', () => {
   const parent = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-public-preview-review-'));
   const destination = path.join(parent, 'package');
   try {
