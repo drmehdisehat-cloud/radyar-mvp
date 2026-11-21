@@ -23,9 +23,9 @@ test('delay-damages calculator controls remain usable on narrow touch screens', 
 });
 
 test('free-text question exposes its cheque-only scope limitation to assistive technology', () => {
-  const control = html.match(/<textarea\\b(?=[^>]*\\bid="free-question")[^>]*>/i)?.[0];
+  const control = html.match(/<textarea\b(?=[^>]*\bid="free-question")[^>]*>/i)?.[0];
   assert.ok(control, 'free-question textarea must exist');
-  assert.match(control, /\\baria-describedby="free-question-scope-note"/);
+  assert.match(control, /\baria-describedby="free-question-scope-note"/);
   assert.match(html, /id="free-question-scope-note"[^>]*role="note"/);
   assert.match(html, /این پیش‌نمایش صرفاً بخش مربوط به چک فرضی را پوشش می‌دهد و سایر موضوعات را تحلیل نمی‌کند/);
 });
