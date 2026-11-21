@@ -1,6 +1,6 @@
 {
   "schema": "dadyar-legal-source-register-v1",
-  "observedAt": "2026-11-20",
+  "observedAt": "2026-11-21",
   "policy": {
     "approvalRule": "A secondary page, search result, owner image, or plausible official-portal URL is not an authenticated primary legal source.",
     "answerUse": "Only records with an independently verified primary document, event-date version, direct document URL, and approved human review may support a legal answer.",
@@ -549,6 +549,106 @@
           "lastDirectFetchAt": "2026-11-18",
           "lastDirectFetchResult": "not-accessible-via-current-independent-web-verification"
         }
+      ]
+    },
+    {
+      "id": "islamic-penal-code-1392",
+      "topicHints": [
+        "سرقت",
+        "کلاهبرداری",
+        "جعل",
+        "ضرب و جرح",
+        "جرائم تعزیری"
+      ],
+      "instrumentType": "statute",
+      "title": "قانون مجازات اسلامی مصوب ۱۳۹۲ (کتاب‌های اول تا چهارم)",
+      "originalAdoptionDate": "1392-02-01",
+      "eventDateVersioningRequired": true,
+      "primaryOfficialDocumentUrl": null,
+      "primaryPublicationIssue": null,
+      "primarySourceVerified": false,
+      "humanReviewStatus": "pending",
+      "useInLegalAnswers": false,
+      "secondaryResearchLeads": [
+        {
+          "url": "https://lawlex.ir/laws/mojazat",
+          "sourceClass": "secondary",
+          "note": "صفحه فهرست ثانویه، ۷۲۸ ماده و تاریخ تصویب ۱۳۹۲/۰۲/۰۱ را نشان می‌دهد و پیوند «متن رسمی» به مرکز پژوهش‌های مجلس می‌دهد؛ این صفحه خود منبع اولیه نیست."
+        }
+      ],
+      "officialDocumentUrlCandidates": [
+        {
+          "url": "https://rc.majlis.ir/fa/law/show/845048",
+          "documentId": "845048",
+          "sourceClass": "primary-official-rc-majlis-candidate",
+          "candidateStatus": "official-link-discovered-via-secondary-index; direct-fetch-timeout-2026-11-21",
+          "discoverySource": "https://lawlex.ir/laws/mojazat",
+          "directLinkLabel": "مرکز پژوهش‌های مجلس شورای اسلامی",
+          "lastDirectFetchAt": "2026-11-21",
+          "lastDirectFetchResult": "official-link-open-attempt-returned-http-400-timeout; document-body-not-retrieved",
+          "textRetrieved": false,
+          "metadataRetrieved": false,
+          "rawHttpBytesCaptured": false,
+          "rawResponseSha256": null,
+          "eventDateVersioningApproved": false,
+          "humanReviewStatus": "pending",
+          "useInLegalAnswers": false
+        }
+      ],
+      "openQuestions": [
+        "پیوند مستقیم مرکز پژوهش‌های مجلس در واکشی مستقل با timeout مواجه شد؛ متن خام سند و SHA-256 دریافت نشده است.",
+        "شماره و تاریخ روزنامه رسمی، زنجیره اصلاحات و تاریخ لازم‌الاجراشدن هر اصلاحیه باید از اسناد اولیه احراز شود.",
+        "نسخه حاکم بر تاریخ وقوع هر رویداد باید جداگانه تعیین و با هش متن دقیق به بازبینی انسانی مستقل متصل شود."
+      ]
+    },
+    {
+      "id": "family-protection-law-1391",
+      "topicHints": [
+        "طلاق",
+        "مهریه",
+        "نفقه",
+        "حضانت",
+        "دعاوی خانواده"
+      ],
+      "instrumentType": "statute",
+      "title": "قانون حمایت خانواده",
+      "originalAdoptionDate": "1391-12-01",
+      "eventDateVersioningRequired": true,
+      "primaryOfficialDocumentUrl": null,
+      "primaryPublicationIssue": null,
+      "primarySourceVerified": false,
+      "humanReviewStatus": "pending",
+      "useInLegalAnswers": false,
+      "secondaryResearchLeads": [
+        {
+          "url": "https://lawlex.ir/laws/khanevade",
+          "sourceClass": "secondary",
+          "note": "صفحه فهرست ثانویه، ۵۸ ماده و تاریخ تصویب ۱۳۹۱/۱۲/۰۱ را نشان می‌دهد و پیوند «متن رسمی» به Qavanin می‌دهد؛ متن صفحه ثانویه به‌تنهایی تأیید حقوقی نیست."
+        }
+      ],
+      "officialDocumentUrlCandidates": [
+        {
+          "url": "https://qavanin.ir/Law/TreeText/?IDS=5917848193987091276",
+          "documentId": "5917848193987091276",
+          "sourceClass": "primary-official-qavanin-candidate",
+          "candidateStatus": "official-link-discovered-via-secondary-index; direct-fetch-timeout-2026-11-21",
+          "discoverySource": "https://lawlex.ir/laws/khanevade",
+          "directLinkLabel": "سامانه ملی قوانین و مقررات",
+          "lastDirectFetchAt": "2026-11-21",
+          "lastDirectFetchResult": "official-link-open-attempt-returned-timeout; document-body-not-retrieved",
+          "textRetrieved": false,
+          "metadataRetrieved": false,
+          "rawHttpBytesCaptured": false,
+          "rawResponseSha256": null,
+          "eventDateVersioningApproved": false,
+          "humanReviewStatus": "pending",
+          "useInLegalAnswers": false
+        }
+      ],
+      "openQuestions": [
+        "پیوند مستقیم Qavanin در واکشی مستقل timeout شد؛ متن خام سند، فراداده روزنامه رسمی و SHA-256 دریافت نشده است.",
+        "اصلاحات و الحاقات، تاریخ اثر هر نسخه و قواعد انتقالی باید از اسناد اولیه استخراج شود.",
+        "نسخه معتبر در تاریخ رویداد باید با هش متن دقیق و بازبینی حقوقی انسانی مستقل ثبت شود."
       ]
     }
   ]
