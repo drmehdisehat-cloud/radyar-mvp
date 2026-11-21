@@ -42,5 +42,5 @@ test('counter follows HTML maxlength UTF-16 code-unit semantics and uses Persian
 
 test('counter resets immediately after the question is cleared for classification and on full reset', () => {
   assert.match(script, /freeQuestionField\.value='';\s*if\(typeof freeQuestionCounter!=='undefined'\) freeQuestionCounter\.textContent='۰ از ۳۰۰ نویسه';/);
-  assert.match(script, /function clearInterviewState\(\)[\s\S]*?document\.getElementById\('free-question'\)\.value = '';[\\s\\S]*?if\(typeof freeQuestionCounter!=='undefined'\) freeQuestionCounter\.textContent='۰ از ۳۰۰ نویسه';/);
+  assert.match(script, /function clearInterviewState\(\)[\s\S]*?document\.getElementById\('free-question'\)\.value = '';[\s\S]*?if\(typeof freeQuestionCounter!=='undefined'\) freeQuestionCounter\.textContent='۰ از ۳۰۰ نویسه';/);
 });
