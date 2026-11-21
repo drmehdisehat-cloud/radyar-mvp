@@ -31,3 +31,11 @@ test('workflow retains read-only repository permissions and has no deploy job', 
   assert.match(workflow, /permissions:\n  contents: read/);
   assert.doesNotMatch(workflow, /^\s{2}[A-Za-z0-9_-]*deploy[A-Za-z0-9_-]*:/m);
 });
+
+test('public repository CI uploads no operator handoff or full-package artifact', () => {
+  const uploads = workflow.match(/uses: actions\\/upload-artifact@/g) || [];
+  assert.equal(uploads.length, 1, 'only the public index.html artifact may be uploaded');
+  assert.doesNotMatch(workflow, /dadyar-offline-preview-/);
+  assert.doesNotMatch(workflow, /Create immutable offline preview artifact/);
+  assert.doesNotMatch(workflow, /path: \\$\\{\\{ runner\\.temp \\}\\}\\/dadyar-preview-handoff\\/\\s*$/m);
+});
