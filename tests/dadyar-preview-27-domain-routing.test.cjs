@@ -26,7 +26,7 @@ function classifier() {
   };
   const sandbox = { document, URL: {}, Blob: class {}, setTimeout() {} };
   vm.runInNewContext(
-    script + '\nglobalThis.__classifyQuestion = classifyQuestion; globalThis.__isChequeScopeMatch = isChequeScopeMatch; globalThis.__topicHintCount = topicHints.length;',
+    script + '\nglobalThis.__classifyQuestion = classifyQuestion; globalThis.__isChequeScopeMatch = isChequeScopeMatch; globalThis.__topicHintCount = topicHints.length; globalThis.__hasSensitiveIdentifier = hasSensitiveIdentifier;',
     sandbox,
     { timeout: 1000 }
   );
@@ -143,4 +143,18 @@ test('preview keeps keyboard focus visible on text, textarea and checkbox contro
   const styleSource = csp.match(/(?:^|;)\s*style-src\s+'sha256-([^']+)'/);
   assert.ok(styleSource, 'CSP must pin the inline style with a SHA-256 source');
   assert.equal(styleSource[1], digest, 'CSP style hash must match the exact inline CSS bytes');
+});
+
+test('privacy scanner removes Unicode default-ignorable code points before matching identifiers', () => {
+  const { hasSensitiveIdentifier } = classifier();
+  const probes = [
+    'شماره همراه: ۰۹۱۲\\u2062۳۴۵۶۷۸۹',
+    'کد ملی: ۱۲۳۴۵\\u2063۶۷۸۹۰',
+    'شماره کارت: ۶۰۳۷\\u2064۹۹۱۷\\u2061۴۵۶۲۱۶۸',
+    'شبا: IR\\u2062۱۲۳۴۵۶۷۸۹۰۱۲۳۴۵۶۷۸۹۰۱۲۳۴'
+  ];
+  for (const probe of probes) {
+    assert.equal(hasSensitiveIdentifier(probe), true, 'obfuscated sensitive identifier was not detected: '+probe);
+  }
+  assert.equal(hasSensitiveIdentifier('پرسش ساختگی درباره چک تضمینی و اجاره'), false);
 });
