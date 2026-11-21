@@ -25,7 +25,7 @@ test('reviewer cookie uses the exact __Host- security attributes and no Domain',
   assert.equal(cookie,
     COOKIE_NAME + '=' + token +
     '; Path=/; Max-Age=300; Secure; HttpOnly; SameSite=Strict');
-  assert.match(cookie, /^__Host-[^=]+=.+; Path=\/$/);
+  assert.match(cookie, /^__Host-[^=]+=.+; Path=\/; Max-Age=300;/);
   assert.match(cookie, /; Secure(?:;|$)/);
   assert.match(cookie, /; HttpOnly(?:;|$)/);
   assert.match(cookie, /; SameSite=Strict(?:;|$)/);
