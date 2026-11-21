@@ -31,7 +31,7 @@ test('public review artifact is push-only, read-only and uploads exactly two pub
   assert.match(upload, /path:\s*\|\s*\n\s*\$\{\{\s*runner\.temp\s*\}\}\/dadyar-preview-handoff\/public\/index\.html\s*\n\s*\$\{\{\s*runner\.temp\s*\}\}\/dadyar-preview-handoff\/public\/INTEGRITY\.json/m);
   assert.match(upload, /if-no-files-found: error/);
   assert.match(upload, /retention-days: 7/);
-  assert.doesNotMatch(upload, /handoff\//);
+  assert.doesNotMatch(upload, /\/handoff\//);
   assert.doesNotMatch(upload, /\*\*/);
   assert.doesNotMatch(workflow, /\$\{\{\s*secrets\./);
   assert.doesNotMatch(workflow, /^\s*(?:id-token|contents|actions|packages): write\s*$/m);
