@@ -36,6 +36,35 @@ function isInside(parent, target) {
   return relative === '' || (!relative.startsWith('..' + path.sep) && relative !== '..' && !path.isAbsolute(relative));
 }
 
+// Restore manifests can contain backup IDs, database names and private host paths.
+// Keep them outside the Git checkout, just like the raw evidence files.
+function assertManifestOutsideCheckout(manifestPath, checkoutRoot = fs.realpathSync(REPO_ROOT)) {
+  if (typeof manifestPath !== 'string' || !path.isAbsolute(manifestPath) ||
+      path.resolve(manifestPath) !== manifestPath) {
+    throw new Error('manifest_path_must_be_absolute_canonical');
+  }
+  if (typeof checkoutRoot !== 'string' || !path.isAbsolute(checkoutRoot) ||
+      path.resolve(checkoutRoot) !== checkoutRoot) {
+    throw new Error('checkout_root_must_be_absolute_canonical');
+  }
+
+  // Do not trust lexical separation alone: an absolute path outside the checkout
+  // may be a symlink alias to a manifest inside it. Resolve the existing file
+  // before applying the boundary check so every caller gets the same protection.
+  const realCheckoutRoot = fs.realpathSync(checkoutRoot);
+  if (realCheckoutRoot !== checkoutRoot) {
+    throw new Error('checkout_root_must_be_canonical');
+  }
+  const realManifestPath = fs.realpathSync(manifestPath);
+  if (isInside(realCheckoutRoot, realManifestPath)) {
+    throw new Error('manifest_inside_git_checkout');
+  }
+  if (realManifestPath !== manifestPath) {
+    throw new Error('manifest_path_must_be_canonical');
+  }
+  return true;
+}
+
 function assertCanonicalDirectory(directory, label) {
   if (typeof directory !== 'string' || !path.isAbsolute(directory) || path.resolve(directory) !== directory) {
     throw new Error(label + '_path_must_be_absolute_canonical');
@@ -107,6 +136,27 @@ function assertEvidenceFilePermissions(stat, label, ownerOnly = false) {
   if (ownerOnly && (stat.mode & 0o077n) !== 0n) throw new Error(label + '_must_be_owner_only');
 }
 
+function assertEvidenceOutsideCheckout(filePath, checkoutRoot = REPO_ROOT, label = 'evidence') {
+  if (typeof filePath !== 'string' || !path.isAbsolute(filePath) || path.resolve(filePath) !== filePath) {
+    throw new Error(label + '_path_must_be_absolute_canonical');
+  }
+  if (typeof checkoutRoot !== 'string' || !path.isAbsolute(checkoutRoot) || path.resolve(checkoutRoot) !== checkoutRoot) {
+    throw new Error('checkout_root_must_be_absolute_canonical');
+  }
+
+  // Resolve the checkout root before comparing it with the already-canonical
+  // evidence path. A checkout reached through a symlink must not make files
+  // inside the real Git tree appear external.
+  const realCheckoutRoot = fs.realpathSync(checkoutRoot);
+  if (!fs.statSync(realCheckoutRoot).isDirectory()) throw new Error('checkout_root_must_be_directory');
+  const realFilePath = fs.realpathSync(filePath);
+  if (realFilePath !== filePath) throw new Error(label + '_path_is_not_canonical');
+  if (isInside(realCheckoutRoot, realFilePath)) {
+    throw new Error(label + '_path_inside_git_checkout');
+  }
+  return true;
+}
+
 function hashExternalEvidenceFile(file, label, maxBytes) {
   if (typeof file !== 'string' || !path.isAbsolute(file) || path.resolve(file) !== file) {
     throw new Error(label + '_path_must_be_absolute_canonical');
@@ -119,7 +169,7 @@ function hashExternalEvidenceFile(file, label, maxBytes) {
   if (!filePathStat.isFile()) throw new Error(label + '_must_be_regular_file');
   const real = fs.realpathSync(file);
   if (real !== file || path.dirname(real) !== canonicalParent) throw new Error(label + '_path_is_not_canonical');
-  if (isInside(REPO_ROOT, real)) throw new Error(label + '_path_inside_git_checkout');
+  assertEvidenceOutsideCheckout(real, REPO_ROOT, label);
   if (!Number.isInteger(fs.constants.O_NOFOLLOW)) throw new Error(label + '_nofollow_open_unavailable');
 
   const flags = fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | (fs.constants.O_NONBLOCK || 0);
@@ -135,6 +185,7 @@ function hashExternalEvidenceFile(file, label, maxBytes) {
     if (!sameFileVersion(before, pathBefore)) throw new Error(label + '_changed_during_open');
 
     const hash = crypto.createHash('sha256');
+    const chunks = label === 'database_probe' ? [] : null;
     const buffer = Buffer.allocUnsafe(1024 * 1024);
     let total = 0n;
     while (true) {
@@ -142,7 +193,9 @@ function hashExternalEvidenceFile(file, label, maxBytes) {
       if (count === 0) break;
       total += BigInt(count);
       if (total > BigInt(maxBytes) || total > before.size) throw new Error(label + '_size_changed_during_read');
-      hash.update(buffer.subarray(0, count));
+      const part = buffer.subarray(0, count);
+      hash.update(part);
+      if (chunks) chunks.push(Buffer.from(part));
     }
 
     const after = fs.fstatSync(fd, { bigint: true });
@@ -158,11 +211,76 @@ function hashExternalEvidenceFile(file, label, maxBytes) {
       realpath: real,
       sha256: hash.digest('hex'),
       bytes: Number(total),
-      identity: String(before.dev) + ':' + String(before.ino)
+      identity: String(before.dev) + ':' + String(before.ino),
+      content: chunks ? Buffer.concat(chunks) : undefined
     });
   } finally {
     fs.closeSync(fd);
   }
+}
+
+
+const DATABASE_PROBE_QUERY = "SELECT DATABASE(), SUBSTRING_INDEX(CURRENT_USER(), '@', 1), 1, VERSION()";
+const DATABASE_IDENTIFIER = /^[A-Za-z0-9_][A-Za-z0-9_$-]{0,63}$/;
+
+function validProbeUtc(value) {
+  if (typeof value !== 'string' ||
+      !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value)) return false;
+  const parsed = new Date(value);
+  return Number.isFinite(parsed.getTime()) && parsed.toISOString() === value;
+}
+
+function validateDatabaseProbe(bytes, manifest) {
+  const probe = parseJsonRejectDuplicateKeys(decodeUtf8(bytes));
+  if (!probe || typeof probe !== 'object' || Array.isArray(probe)) {
+    throw new Error('database_probe_must_be_json_object');
+  }
+  const expectedKeys = [
+    'schema', 'probe_ok', 'query', 'database_name', 'database_user',
+    'connection_test_value', 'server_version', 'restore_target_id',
+    'database_name_separation_verified', 'database_user_separation_verified',
+    'observed_at_utc'
+  ].sort();
+  if (Object.keys(probe).sort().join('|') !== expectedKeys.join('|')) {
+    throw new Error('database_probe_schema_keys_invalid');
+  }
+  if (probe.schema !== 'dadyar-isolated-db-probe-v1' ||
+      probe.probe_ok !== true ||
+      probe.query !== DATABASE_PROBE_QUERY ||
+      probe.connection_test_value !== 1 ||
+      probe.database_name_separation_verified !== true ||
+      probe.database_user_separation_verified !== true) {
+    throw new Error('database_probe_result_invalid');
+  }
+  if (!DATABASE_IDENTIFIER.test(probe.database_name || '') ||
+      !DATABASE_IDENTIFIER.test(probe.database_user || '') ||
+      probe.database_name !== manifest.restore_database_name ||
+      probe.database_user !== manifest.restore_database_user ||
+      probe.database_name === manifest.production_database_name ||
+      probe.database_user === manifest.production_database_user ||
+      probe.restore_target_id !== manifest.restore_target_id) {
+    throw new Error('database_probe_identity_mismatch');
+  }
+  if (typeof probe.server_version !== 'string' ||
+      probe.server_version.length < 1 || probe.server_version.length > 128 ||
+      /[^\x20-\x7e]/.test(probe.server_version)) {
+    throw new Error('database_probe_server_version_invalid');
+  }
+  if (!validProbeUtc(probe.observed_at_utc)) {
+    throw new Error('database_probe_timestamp_invalid');
+  }
+  const observed = Date.parse(probe.observed_at_utc);
+  if (observed < Date.parse(manifest.restore_completed_at) ||
+      observed > Date.parse(manifest.reviewed_at)) {
+    throw new Error('database_probe_timestamp_outside_restore_review_window');
+  }
+  return Object.freeze({
+    database_name: probe.database_name,
+    database_user: probe.database_user,
+    restore_target_id: probe.restore_target_id,
+    observed_at_utc: probe.observed_at_utc,
+    server_version: probe.server_version
+  });
 }
 
 function verifyRestoreEvidenceBundle({ manifest, archivePath, restoredMarkerPath, restoreLogPath, databaseProbePath } = {}) {
@@ -186,6 +304,7 @@ function verifyRestoreEvidenceBundle({ manifest, archivePath, restoredMarkerPath
   const seenPaths = new Set();
   const seenIdentities = new Set();
   const files = Object.create(null);
+  let databaseProbeSchemaVerified = false;
 
   for (const [label, file] of Object.entries(supplied)) {
     const result = hashExternalEvidenceFile(file, label, LIMITS[label]);
@@ -208,6 +327,10 @@ function verifyRestoreEvidenceBundle({ manifest, archivePath, restoredMarkerPath
     if (label === 'archive' && result.bytes !== manifest.archive_size_bytes) {
       throw new Error('archive_size_bytes_mismatch');
     }
+    if (label === 'database_probe') {
+      validateDatabaseProbe(result.content, manifest);
+      databaseProbeSchemaVerified = true;
+    }
     files[label] = Object.freeze({ sha256: result.sha256, bytes: result.bytes });
   }
 
@@ -215,6 +338,7 @@ function verifyRestoreEvidenceBundle({ manifest, archivePath, restoredMarkerPath
     status: 'EVIDENCE_BYTES_MATCH_MANIFEST_NOT_RESTORE_PROOF',
     matched: true,
     files: Object.freeze(files),
+    database_probe_schema_verified: databaseProbeSchemaVerified,
     restore_operation_independently_verified: false,
     signer_identity_verified: false,
     deployment_authorized: false
@@ -263,6 +387,7 @@ function main(argv) {
     if (path.resolve(manifestPath) !== manifestPath || fs.realpathSync(manifestPath) !== manifestPath) {
       throw new Error('manifest_path_must_be_canonical');
     }
+    assertManifestOutsideCheckout(manifestPath, fs.realpathSync(REPO_ROOT));
     const manifestParent = assertCanonicalDirectory(path.dirname(manifestPath), 'manifest_parent');
     const manifestParentBefore = fs.statSync(manifestParent, { bigint: true });
     const manifestStat = fs.lstatSync(manifestPath, { bigint: true });
@@ -300,4 +425,4 @@ function main(argv) {
 }
 
 if (require.main === module) process.exitCode = main(process.argv.slice(2));
-module.exports = { LIMITS, assertEvidenceFilePermissions, hashExternalEvidenceFile, verifyRestoreEvidenceBundle, parseArgs, main };
+module.exports = { LIMITS, assertEvidenceFilePermissions, assertEvidenceOutsideCheckout, assertManifestOutsideCheckout, hashExternalEvidenceFile, verifyRestoreEvidenceBundle, parseArgs, main };

@@ -47,6 +47,7 @@ function fixture({
     'content-type': 'text/html; charset=utf-8',
     'x-content-type-options': 'nosniff',
     'cache-control': 'no-store',
+    'strict-transport-security': 'max-age=31536000',
     'x-frame-options': 'DENY',
     'cross-origin-resource-policy': 'same-origin',
     'permissions-policy': 'camera=(), microphone=(), geolocation=()',

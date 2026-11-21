@@ -11,7 +11,7 @@ function fixture(t, prefix = 'dadyar-preflight-evidence-') {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   const file = path.join(directory, 'evidence.json');
-  fs.writeFileSync(file, JSON.stringify({ status: 'NOT_READY', synthetic: true }));
+  fs.writeFileSync(file, JSON.stringify({ status: 'NOT_READY', synthetic: true }), { mode: 0o600 });
   return { directory, file };
 }
 

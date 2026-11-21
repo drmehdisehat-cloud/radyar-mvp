@@ -55,15 +55,30 @@ function safeOfficialDocumentUrl(value, documentId) {
   // and query or in multiple query values.
   const documentIdMatches = identifierOccurrences === 1;
   const host = url.hostname.toLowerCase();
+  // WHATWG URL parsing normalizes dot segments before exposing pathname.
+  // Preserve the raw path as well, so an alias such as /Law/../Law/TreeText/
+  // cannot masquerade as the canonical official document endpoint.
+  const rawPathMatch = value.match(/^https:\/\/[^/?#]+([^?#]*)/i);
+  const rawPath = rawPathMatch && rawPathMatch[1] ? rawPathMatch[1] : '/';
+  // URL() normalizes dot segments and backslashes. Reject non-canonical raw
+  // paths for every allowlisted portal, including percent-encoded aliases.
+  const canonicalRawPath = rawPath === url.pathname &&
+    !rawPath.includes('\\') &&
+    !rawPath.includes('//') &&
+    !/%[0-9a-f]{2}/i.test(rawPath) &&
+    !rawPath.split('/').some(segment => segment === '.' || segment === '..');
   // Keep each portal's document selector canonical. Until a portal-specific
   // query schema is independently reviewed, extra query parameters are not
   // accepted as part of a direct legal-document URL.
   const qavaninIdMatches = host === 'qavanin.ir'
-    ? (url.search === '?IDS=' + documentId &&
+    ? (canonicalRawPath &&
+       rawPath === '/Law/TreeText/' &&
+       url.pathname === '/Law/TreeText/' &&
+       url.search === '?IDS=' + documentId &&
        queryEntries.length === 1 &&
        queryEntries[0][0] === 'IDS' &&
        queryEntries[0][1] === documentId)
-    : (url.search === '' && queryEntries.length === 0 && !value.includes('?'));
+    : (canonicalRawPath && url.search === '' && queryEntries.length === 0 && !value.includes('?'));
   return url.protocol === 'https:' &&
     OFFICIAL_HOSTS.has(url.hostname.toLowerCase()) &&
     (!url.port || url.port === '443') &&
@@ -106,6 +121,13 @@ function validateSourceVersion(record, asOfDate) {
     if (!validDate(record[key])) issues.push('invalid_' + key);
     else if (validDate(asOfDate) && record[key] > asOfDate) issues.push('future_' + key);
   }
+  // A document cannot be retrieved before its stated official publication date.
+  // Keep this chronology check separate from effectiveFrom: some instruments
+  // may expressly have retroactive effect, but retrieval cannot predate publication.
+  if (validDate(record.publicationDate) && validDate(record.retrievedAt) &&
+      record.publicationDate > record.retrievedAt) {
+    issues.push('publication_after_retrieval');
+  }
   if (record.effectiveTo !== null &&
       (!validDate(record.effectiveTo) || (validDate(record.effectiveFrom) && record.effectiveTo <= record.effectiveFrom))) {
     issues.push('invalid_effective_to');
@@ -127,6 +149,10 @@ function validateSourceVersion(record, asOfDate) {
     if (review.decision !== 'approved') issues.push('human_review_not_approved');
     if (!validDate(review.reviewedAt)) issues.push('invalid_reviewed_at');
     else if (validDate(asOfDate) && review.reviewedAt > asOfDate) issues.push('future_reviewed_at');
+    if (validDate(review.reviewedAt) && validDate(record.retrievedAt) &&
+        review.reviewedAt < record.retrievedAt) {
+      issues.push('review_before_retrieval');
+    }
     if (!SHA256.test(String(review.reviewedTextSha256 || '')) ||
         !SHA256.test(String(record.textSha256 || '')) ||
         String(review.reviewedTextSha256).toLowerCase() !== String(record.textSha256).toLowerCase()) {
@@ -147,6 +173,15 @@ function resolveLegalVersion(records, options = {}) {
       !['law', 'ruling'].includes(instrumentType) ||
       !validDate(eventDate) || !validDate(asOfDate)) {
     return { status: 'invalid_request', legalConclusionPermitted: false };
+  }
+  // Do not project today's known law onto a future event. A later amendment or
+  // commencement may change the applicable version before that event occurs.
+  if (eventDate > asOfDate) {
+    return {
+      status: 'invalid_request',
+      reason: 'event_date_after_as_of_date',
+      legalConclusionPermitted: false
+    };
   }
   const candidates = records.filter(record =>
     record && record.topic === topic &&

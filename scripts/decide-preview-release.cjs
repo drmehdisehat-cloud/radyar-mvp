@@ -96,6 +96,32 @@ function hasProviderBoundRestoreAttestation(evidence) {
   return true;
 }
 
+function hasBackupMetadataClaim(evidence) {
+  if (!evidence || typeof evidence !== 'object' || Array.isArray(evidence)) return false;
+  // Treat this only as a diagnostic hint. It never satisfies restore evidence.
+  // Check all provider/status aliases so an empty preferred field cannot mask
+  // a populated fallback field.
+  const statusValues = [evidence.backup_status, evidence.status, evidence.state];
+  const completeLabel = statusValues.some(status =>
+    typeof status === 'string' && status.trim().toLowerCase() === 'complete'
+  );
+  // Hosts may report bytes or a human-readable size. Recognize common aliases
+  // solely to explain the blocker; none of these values proves a restore.
+  const sizeValues = [
+    evidence.archive_size_bytes,
+    evidence.archive_size_mb,
+    evidence.archive_size
+  ];
+  const archiveSizeReported = sizeValues.some(value => {
+    if (typeof value === 'number') return Number.isFinite(value) && value > 0;
+    if (typeof value !== 'string') return false;
+    const normalized = value.trim();
+    return /^\d+(?:\.\d+)?(?:\s*(?:bytes?|b|kb|kib|mb|mib|gb|gib))?$/i.test(normalized) &&
+      Number.parseFloat(normalized) > 0;
+  });
+  return completeLabel || archiveSizeReported;
+}
+
 function hasVerifiedStagingDestination(evidence) {
   if (!evidence || evidence.matched !== true || evidence.destination_outside_document_root !== true ||
       evidence.destination_outside_git_checkout !== true) return false;
@@ -114,10 +140,25 @@ function hasVerifiedStagingDestination(evidence) {
     pathsDisjoint(evidence.destination_realpath, evidence.git_checkout_realpath);
 }
 
-function decidePreviewRelease({ restoreEvidence, destinationEvidence, isolatedRestoreVerified = false, mobileBrowserVerified = false, zeroApiRequestsVerified = false, localHumanReviewAcknowledged = false, authenticatedHumanReviewAttested = false, authenticatedRestoreAttestation = false } = {}) {
+function decidePreviewRelease({
+  restoreEvidence,
+  destinationEvidence,
+  isolatedRestoreVerified = false,
+  mobileBrowserVerified = false,
+  zeroApiRequestsVerified = false,
+  localHumanReviewAcknowledged = false,
+  authenticatedHumanReviewAttested = false,
+  authenticatedRestoreAttestation = false,
+  trustedReviewerAuthenticationAdapterVerified = false
+} = {}) {
   const blockers = [];
-  if (!hasProviderBoundRestoreAttestation(restoreEvidence) || isolatedRestoreVerified !== true)
+  const providerBoundRestoreVerified = hasProviderBoundRestoreAttestation(restoreEvidence);
+  if (!providerBoundRestoreVerified || isolatedRestoreVerified !== true) {
     blockers.push('independent restore attestation incomplete or unverified');
+    if (!providerBoundRestoreVerified && hasBackupMetadataClaim(restoreEvidence)) {
+      blockers.push('backup metadata is not proof of an isolated restore');
+    }
+  }
   if (authenticatedRestoreAttestation !== true)
     blockers.push('two-party restore signatures and independently pinned key fingerprints missing');
   if (!hasVerifiedStagingDestination(destinationEvidence))
@@ -126,6 +167,11 @@ function decidePreviewRelease({ restoreEvidence, destinationEvidence, isolatedRe
   if (zeroApiRequestsVerified !== true) blockers.push('zero API requests not observed');
   if (localHumanReviewAcknowledged !== true) blockers.push('local human review acknowledgement missing');
   if (authenticatedHumanReviewAttested !== true) blockers.push('authenticated human reviewer attestation missing');
+  // A signed attestation alone proves possession of a trusted key, not that the
+  // server authenticated the same reviewer and bound the session to that signer.
+  // This gate is set only by a separately tested trusted server-side auth adapter.
+  if (trustedReviewerAuthenticationAdapterVerified !== true)
+    blockers.push('trusted reviewer authentication adapter is not integrated and verified');
   return Object.freeze({
     status: blockers.length ? 'NOT_READY' : 'EVIDENCE_SHAPE_VALID_REQUIRES_EXTERNAL_VERIFICATION',
     blockers,

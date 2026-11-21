@@ -15,6 +15,14 @@ function harness() {
   const elements = new Map();
   const downloads = [];
   const blobs = [];
+  const reviewChecklistItems = ['review-check-facts','review-check-conflicts','review-check-sources','review-check-privacy'].map(id => ({
+    id, checked: false,
+    addEventListener(type, callback) {
+      const key = id + ':' + type;
+      handlers.set(key, [...(handlers.get(key) || []), callback]);
+    },
+    closest() { return { textContent: id }; }
+  }));
   const document = {
     activeElement: null,
     getElementById(id) {
@@ -53,9 +61,12 @@ function harness() {
     },
     querySelectorAll(selector) {
       if (selector === '#interview select') return selects;
-      if (selector === 'fieldset input[type=checkbox]') return evidenceInputs;
+      if (selector === '#review-checklist input[type="checkbox"]') return reviewChecklistItems;
+      if (selector === '#evidence-list input[type="checkbox"]') return evidenceInputs;
+      if (selector === '#evidence-list input[type="checkbox"]:checked') return evidenceInputs.filter(input => input.checked);
+      if (selector === 'fieldset input[type=checkbox]') return [...evidenceInputs, ...reviewChecklistItems];
       if (selector === 'fieldset input[type=checkbox]:checked') {
-        return evidenceInputs.filter(input => input.checked);
+        return [...evidenceInputs, ...reviewChecklistItems].filter(input => input.checked);
       }
       throw new Error('Unsupported selector in preview test: ' + selector);
     },
@@ -129,6 +140,7 @@ function harness() {
     handlers,
     elements,
     evidenceInputs,
+    reviewChecklistItems,
     selects,
     downloads,
     blobs,
@@ -164,6 +176,13 @@ function generateEligibleDraft(h) {
   assert.match(h.get('report').textContent, /منابع قانونی: تأییدنشده/);
 }
 
+function completeReviewChecklist(h) {
+  for (const item of h.reviewChecklistItems) {
+    item.checked = true;
+    h.fire(item.id, 'change');
+  }
+}
+
 function approveLocalReview(h) {
   h.get('reviewer-name').value = 'بازبین آزمایشی';
   h.fire('reviewer-name', 'input');
@@ -171,6 +190,7 @@ function approveLocalReview(h) {
   h.fire('review-decision', 'change');
   h.get('review-note').value = 'بررسی تعارض مدارک و محدودیت منبع';
   h.fire('review-note', 'input');
+  completeReviewChecklist(h);
   assert.equal(h.get('record-review').disabled, true, 'review cannot be recorded before explicit acknowledgement');
   h.get('export-ack').checked = true;
   h.fire('export-ack', 'change');
@@ -205,6 +225,7 @@ test('actual preview permits one report only after an approved local human-revie
 test('review note enforces the exact twelve-character minimum before approval', () => {
   const h = harness();
   generateEligibleDraft(h);
+  completeReviewChecklist(h);
   h.get('reviewer-name').value = 'بازبین آزمایشی';
   h.fire('reviewer-name', 'input');
   h.get('review-decision').value = 'approved';
@@ -234,6 +255,7 @@ test('review note enforces the exact twelve-character minimum before approval', 
 test('rejected local review never enables report download', () => {
   const h = harness();
   generateEligibleDraft(h);
+  completeReviewChecklist(h);
   h.get('reviewer-name').value = 'بازبین آزمایشی';
   h.fire('reviewer-name', 'input');
   h.get('review-decision').value = 'rejected';
@@ -270,6 +292,29 @@ test('changing case evidence invalidates the draft and any earlier review state'
   assert.equal(h.get('report').textContent, '');
   assert.equal(h.get('download').disabled, true);
   assert.equal(h.get('reviewer-name').value, 'بازبین آزمون');
+});
+
+test('promissory-note and bill-of-exchange questions are outside the cheque-only preview', () => {
+  for (const question of ['سفته', 'برات', 'ظهرنویسی']) {
+    const h = harness();
+    h.get('free-question').value = 'در سناریوی ساختگی ' + question + ' چه مدارکی باید بررسی شود؟';
+    h.fire('free-question', 'input');
+    completeSyntheticInterview(h);
+    h.fire('generate', 'click');
+    assert.match(h.get('topic-scope-status').textContent, /خارج از دامنه/,
+      question + ' must not be treated as a cheque question');
+    assert.equal(h.get('free-question').value, '');
+  }
+});
+
+test('cheque mixed with a promissory note is marked as multi-topic', () => {
+  const h = harness();
+  h.get('free-question').value = 'در سناریوی ساختگی چک و سفته چه مدارکی باید بررسی شود؟';
+  h.fire('free-question', 'input');
+  completeSyntheticInterview(h);
+  h.fire('generate', 'click');
+  assert.match(h.get('topic-scope-status').textContent, /چندموضوعی/);
+  assert.equal(h.get('free-question').value, '');
 });
 
 test('mixed cheque and civil free-text is classified locally without exporting raw question text', () => {

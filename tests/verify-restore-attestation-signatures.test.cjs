@@ -190,7 +190,7 @@ test('CLI canonicalizes and verifies two detached signatures using only external
     operatorSignature: path.join(directory, 'operator.sig'),
     reviewerSignature: path.join(directory, 'reviewer.sig')
   };
-  fs.writeFileSync(files.manifest, JSON.stringify(manifest));
+  fs.writeFileSync(files.manifest, JSON.stringify(manifest), { mode: 0o600 });
   fs.writeFileSync(files.operatorPublic, proof.operator.publicKey);
   fs.writeFileSync(files.reviewerPublic, proof.reviewer.publicKey);
   fs.writeFileSync(files.operatorSignature, proof.operatorSignature);
@@ -227,8 +227,39 @@ test('CLI rejects invalid UTF-8 manifest bytes instead of replacement decoding',
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-attestation-invalid-utf8-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   const manifest = path.join(directory, 'restore.json');
-  fs.writeFileSync(manifest, Buffer.from([0x7b, 0x22, 0x78, 0x22, 0x3a, 0x22, 0xc3, 0x28, 0x22, 0x7d]));
+  fs.writeFileSync(manifest, Buffer.from([0x7b, 0x22, 0x78, 0x22, 0x3a, 0x22, 0xc3, 0x28, 0x22, 0x7d]), { mode: 0o600 });
   const result = spawnSync(process.execPath, [SCRIPT, '--canonicalize', '--manifest', manifest], { encoding: 'utf8' });
   assert.equal(result.status, 1);
   assert.equal(JSON.parse(result.stdout).error, 'manifest_is_not_valid_utf8');
+});
+
+
+test('external signature evidence enforces owner-only manifests and non-writable public key files', t => {
+  if (process.platform === 'win32') return;
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-attestation-permissions-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const manifest = path.join(directory, 'restore.json');
+  fs.writeFileSync(manifest, Buffer.from('{}'), { mode: 0o600 });
+  fs.chmodSync(manifest, 0o644);
+  assert.throws(() => readExternalFile(manifest, 'manifest', 1024), /manifest_must_be_owner_only/);
+
+  const publicKey = path.join(directory, 'operator.pub.pem');
+  fs.writeFileSync(publicKey, Buffer.from('synthetic public key'), { mode: 0o600 });
+  fs.chmodSync(publicKey, 0o666);
+  assert.throws(
+    () => readExternalFile(publicKey, 'operator_public_key', 1024),
+    /operator_public_key_must_not_be_group_or_world_writable/
+  );
+});
+
+test('signature CLI rejects a group/world-readable manifest on POSIX', t => {
+  if (process.platform === 'win32') return;
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-attestation-cli-permissions-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const manifest = path.join(directory, 'restore.json');
+  fs.writeFileSync(manifest, JSON.stringify(makeManifest()), { mode: 0o600 });
+  fs.chmodSync(manifest, 0o644);
+  const result = spawnSync(process.execPath, [SCRIPT, '--canonicalize', '--manifest', manifest], { encoding: 'utf8' });
+  assert.equal(result.status, 1);
+  assert.equal(JSON.parse(result.stdout).error, 'manifest_must_be_owner_only');
 });

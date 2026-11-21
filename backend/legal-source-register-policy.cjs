@@ -36,6 +36,17 @@ function directOfficialDocumentUrl(value, documentId) {
     return code <= 0x20 || code === 0x7f;
   })) return false;
 
+  const rawPathMatch = value.match(/^https:\/\/[^/?#]+([^?#]*)/i);
+  const rawPath = rawPathMatch && rawPathMatch[1] ? rawPathMatch[1] : '/';
+  // Reject path aliases normalized by URL(), including dot segments,
+  // backslashes, repeated separators and percent-encoded path spellings.
+  const canonicalRawPath = rawPath === url.pathname &&
+    !rawPath.includes('\\') &&
+    !rawPath.includes('//') &&
+    !/%[0-9a-f]{2}/i.test(rawPath) &&
+    !rawPath.split('/').some(segment => segment === '.' || segment === '..');
+  if (!canonicalRawPath) return false;
+
   const pathSegments = url.pathname.split('/').filter(Boolean).map(segment => {
     try { return decodeURIComponent(segment); } catch { return '\uFFFD'; }
   });
@@ -46,8 +57,12 @@ function directOfficialDocumentUrl(value, documentId) {
   const pathMatches = pathSegments.filter(part => part === documentId).length;
   const queryMatches = queryEntries.filter(([, part]) => part === documentId).length;
   if (host === 'qavanin.ir') {
+    // WHATWG URL parsing normalizes dot segments and backslash aliases before
+    // exposing pathname. Compare the original raw path as well, so a URL such
+    // as /Law/../Law/TreeText/ cannot masquerade as the canonical law-text URL.
     const ids = queryEntries.filter(([key]) => key === 'IDS');
-    if (pathMatches !== 0 || queryMatches !== 1 || queryEntries.length !== 1 ||
+    if (rawPath !== '/Law/TreeText/' || url.pathname !== '/Law/TreeText/' ||
+        pathMatches !== 0 || queryMatches !== 1 || queryEntries.length !== 1 ||
         url.search !== '?IDS=' + documentId || ids.length !== 1 || ids[0][1] !== documentId) return false;
   } else if (pathMatches !== 1 || queryEntries.length !== 0 || queryMatches !== 0 || url.search !== '' || value.includes('?')) {
     // Other official portals must identify the document in the path itself.
@@ -105,9 +120,9 @@ function validateVersion(version, observedAt, requireHumanReview) {
 
 function auditLegalSourceRegister(register) {
   const issues = [];
-  const eligible = [];
+  const structurallyComplete = [];
   if (!register || typeof register !== 'object' || Array.isArray(register)) {
-    return { valid: false, issues: ['register_not_object'], answerEligibleRecordIds: [], structuralOnly: true };
+    return { valid: false, issues: ['register_not_object'], structurallyCompleteRecordIds: [], answerEligibleRecordIds: [], structuralOnly: true };
   }
   if (register.schema !== 'dadyar-legal-source-register-v1') issues.push('unsupported_register_schema');
   if (register.policy?.defaultUseInLegalAnswers !== false) issues.push('default_answer_use_must_be_false');
@@ -166,7 +181,7 @@ function auditLegalSourceRegister(register) {
       }
     }
     const recordHasIssues = issues.some(issue => issue.startsWith(prefix));
-    if (claimedUse && !recordHasIssues && validated.length === record.eventDateVersions.length) eligible.push(id);
+    if (claimedUse && !recordHasIssues && validated.length === record.eventDateVersions.length) structurallyComplete.push(id);
     if (claimedUse && recordHasIssues) issues.push(prefix + 'incomplete_evidence_cannot_be_used_in_answers');
   }
 
@@ -174,9 +189,12 @@ function auditLegalSourceRegister(register) {
   return {
     valid,
     issues,
-    // Never expose a promotable record when any register-level or record-level
-    // validation issue exists. Consumers must still require valid === true.
-    answerEligibleRecordIds: valid ? eligible : [],
+    // This module validates metadata shape only. It cannot authenticate the
+    // primary-source bytes, reviewer identity, or a signed legal-review event.
+    // Keep the legacy answerEligibleRecordIds field permanently empty so a
+    // structurally complete record cannot be mistaken for an authorized citation.
+    structurallyCompleteRecordIds: valid ? structurallyComplete : [],
+    answerEligibleRecordIds: [],
     structuralOnly: true
   };
 }

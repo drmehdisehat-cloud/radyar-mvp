@@ -48,10 +48,12 @@ test('current research register remains valid but promotes no unverified record 
   assert.equal(result.structuralOnly, true);
 });
 
-test('a future source can be promoted only with a direct official document, event-date version and hash-bound human review', () => {
+test('structurally complete metadata never authorizes a legal answer without authenticated source and reviewer evidence', () => {
   const result = auditLegalSourceRegister(registry([approvedRecord()]));
   assert.equal(result.valid, true, result.issues.join('\n'));
-  assert.deepEqual(result.answerEligibleRecordIds, ['synthetic-check-law']);
+  assert.deepEqual(result.structurallyCompleteRecordIds, ['synthetic-check-law']);
+  assert.deepEqual(result.answerEligibleRecordIds, []);
+  assert.equal(result.structuralOnly, true);
 });
 
 test('secondary hosts, portal homepages and mismatched document IDs are not direct primary documents', () => {
@@ -90,6 +92,7 @@ test('global register errors clear all answer-eligible IDs', () => {
   const record = approvedRecord();
   const badDate = auditLegalSourceRegister({ ...registry([record]), observedAt: '2026-02-30' });
   assert.equal(badDate.valid, false);
+  assert.deepEqual(badDate.structurallyCompleteRecordIds, []);
   assert.deepEqual(badDate.answerEligibleRecordIds, []);
 
   const badDefault = auditLegalSourceRegister({
@@ -97,6 +100,7 @@ test('global register errors clear all answer-eligible IDs', () => {
     policy: { defaultUseInLegalAnswers: true }
   });
   assert.equal(badDefault.valid, false);
+  assert.deepEqual(badDefault.structurallyCompleteRecordIds, []);
   assert.deepEqual(badDefault.answerEligibleRecordIds, []);
 });
 
@@ -123,10 +127,29 @@ test('non-Qavanin official document IDs must be in a path segment, not a search 
   assert.equal(directOfficialDocumentUrl('https://cbi.ir/showitem/35817.aspx?redirect=https%3A%2F%2Fevil.example', '35817.aspx'), false);
   assert.equal(directOfficialDocumentUrl('https://rrk.ir/Document/12345?download=1', '12345'), false);
   assert.equal(directOfficialDocumentUrl('https://qavanin.ir/Law/TreeText/?IDS=12345', '12345'), true);
+  assert.equal(directOfficialDocumentUrl('https://qavanin.ir/Law/Attribute/?IDS=12345', '12345'), false);
+  assert.equal(directOfficialDocumentUrl('https://qavanin.ir/redirect/?IDS=12345', '12345'), false);
+  assert.equal(directOfficialDocumentUrl('https://qavanin.ir/Law/TreeText/extra?IDS=12345', '12345'), false);
+  assert.equal(directOfficialDocumentUrl('https://qavanin.ir/Law/%54reeText/?IDS=12345', '12345'), false);
   assert.equal(directOfficialDocumentUrl('https://qavanin.ir/Law/TreeText/?IDS=12345&lang=fa', '12345'), false);
   assert.equal(directOfficialDocumentUrl('https://qavanin.ir/Law/TreeText/?IDS=12345&redirect=https%3A%2F%2Fevil.example', '12345'), false);
   assert.equal(directOfficialDocumentUrl('https://qavanin.ir/Law/TreeText/?IDS=12345&', '12345'), false);
   assert.equal(directOfficialDocumentUrl('https://qavanin.ir/Law/TreeText/?IDS=12345#', '12345'), false);
   assert.equal(directOfficialDocumentUrl('https://rrk.ir/Document/12345?', '12345'), false);
   assert.equal(directOfficialDocumentUrl('https://rrk.ir/Document/12345#', '12345'), false);
+});
+
+test('non-Qavanin source register URLs reject normalized and encoded path aliases', () => {
+  for (const url of [
+    'https://rrk.ir/Document/../Document/12345',
+    'https://rrk.ir/Document/%2e%2e/Document/12345',
+    'https://rrk.ir/Document/%31%32%33%34%35',
+    'https://rrk.ir//Document/12345',
+    'https://rrk.ir\\\\Document\\\\12345',
+    'https://cbi.ir/showitem/../showitem/35817.aspx'
+  ]) {
+    const id = url.includes('cbi.ir') ? '35817.aspx' : '12345';
+    assert.equal(directOfficialDocumentUrl(url, id), false, url);
+  }
+  assert.equal(directOfficialDocumentUrl('https://rrk.ir/Document/12345', '12345'), true);
 });

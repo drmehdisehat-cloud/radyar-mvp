@@ -59,7 +59,16 @@ CHROME_BIN=/path/to/chromium node --test tests/real-browser-smoke.cjs
 - `dadyar/preview-auth-policy-20261030`
 - `dadyar/ai-chat-private-20261101`
 
-رویداد `pull_request` فقط برای PRهایی فعال است که مقصدشان `main` یا `dadyar/mvp-sync-028` باشد. workflow مجوز نوشتن محتوا یا مرحله استقرار ندارد. اجرای سبز CI به‌تنهایی تأیید حقوقی، امنیت محیط انتشار یا آمادگی نسخه ۱ نیست.
+رویداد `pull_request` فقط برای PRهایی فعال است که مقصدشان یکی از شاخه‌های زیر باشد:
+- `main`
+- `dadyar/ai-chat-private-20261101`
+- `dadyar/mvp-sync-028`
+- `dadyar/replay-ledger-ci-base-20261117`
+- `dadyar/signed-gate-review-base-20261117`
+- `dadyar/restore-probe-review-base-20261117`
+- `dadyar/preview-package-layout-review-base-20261117`
+
+چهار شاخه آخر فقط snapshotهای بازبینی متمرکز هستند؛ CI روی آن‌ها مجوز انتشار ایجاد نمی‌کند. workflow مجوز نوشتن محتوا یا مرحله استقرار ندارد. اجرای سبز CI به‌تنهایی تأیید حقوقی، امنیت محیط انتشار یا آمادگی نسخه ۱ نیست.
 
 ## دروازه‌های لازم پیش از انتشار
 

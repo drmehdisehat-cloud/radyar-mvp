@@ -91,6 +91,7 @@ test('editing review metadata clears prior approval and requires fresh explicit 
     recordReviewButton: { disabled: false },
     downloadButton: { disabled: false },
     reviewStatus: { textContent: '' },
+    reviewChecklistComplete: () => true,
     safeReviewText: (value, max) => String(value || '').slice(0, max)
   };
   vm.runInNewContext(privacyDetector + '\n' + reviewerSafety + '\n' + permission + '\n' + invalidator + '\ninvalidateHumanReview();', state);

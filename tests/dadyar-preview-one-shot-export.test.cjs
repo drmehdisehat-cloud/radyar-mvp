@@ -30,7 +30,8 @@ function makeState(overrides = {}) {
       decision: 'approved',
       note: 'بازبینی داده ساختگی',
       reviewedAt: '2026-11-11T08:00:00.000Z',
-      reportSnapshot: 'گزارش کاملاً ساختگی دادیار'
+      reportSnapshot: 'گزارش کاملاً ساختگی دادیار',
+      checklist: ['review-check-facts','review-check-conflicts','review-check-sources','review-check-privacy'].map(id => ({ id, checked: true, label: id }))
     },
     exportAck: { checked: true },
     downloadButton: { disabled: false },
@@ -40,6 +41,8 @@ function makeState(overrides = {}) {
     reviewNote: { value: 'بازبینی داده ساختگی' },
     reviewStatus: { textContent: '' },
     exportStatus: { textContent: '' },
+    reviewChecklistComplete: () => true,
+    reviewChecklistItems: ['review-check-facts','review-check-conflicts','review-check-sources','review-check-privacy'].map(id => ({ id, checked: true, label: id })),
     safeReviewText: (value, max) => String(value || '').slice(0, max),
     URL: {
       createObjectURL(blob) { blobs.push(blob); return 'blob:synthetic-report'; },

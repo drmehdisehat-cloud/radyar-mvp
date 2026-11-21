@@ -1,6 +1,7 @@
 'use strict';
 // Local, read-only release preflight. This script never deploys or writes evidence.
 const fs = require('node:fs');
+const { execFileSync } = require('node:child_process');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { TextDecoder } = require('node:util');
@@ -14,6 +15,38 @@ const { verifyRestoreEvidenceBundle } = require('./verify-restore-evidence-bundl
 const { verifyPreview } = require('./verify-preview-destination.cjs');
 
 const REPO_ROOT = path.resolve(__dirname, '..');
+
+// Bind a signed review to the exact checkout being preflighted, not merely to
+// a caller-supplied 40-hex label and a separately matching local file.
+function verifyReviewedSourceCommit(expectedCommit, expectedBlobSha1) {
+  const commit = typeof expectedCommit === 'string' ? expectedCommit.toLowerCase() : '';
+  const blob = typeof expectedBlobSha1 === 'string' ? expectedBlobSha1.toLowerCase() : '';
+  if (!/^[a-f0-9]{40}$/.test(commit) || /^0{40}$/.test(commit)) {
+    throw new Error('invalid_reviewed_source_commit');
+  }
+  if (!/^[a-f0-9]{40}$/.test(blob) || /^0{40}$/.test(blob)) {
+    throw new Error('invalid_reviewed_source_blob_sha1');
+  }
+  const git = (...args) => {
+    try {
+      return execFileSync('git', args, {
+        cwd: REPO_ROOT,
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe']
+      }).trim().toLowerCase();
+    } catch {
+      throw new Error('reviewed_source_git_verification_failed');
+    }
+  };
+  const head = git('rev-parse', '--verify', 'HEAD^{commit}');
+  if (head !== commit) throw new Error('reviewed_source_commit_must_match_checkout_HEAD');
+  const committedBlob = git('rev-parse', '--verify', commit + ':dadyar-preview/index.html');
+  if (!/^[a-f0-9]{40}$/.test(committedBlob)) {
+    throw new Error('reviewed_source_commit_preview_blob_invalid');
+  }
+  if (committedBlob !== blob) throw new Error('reviewed_source_commit_blob_mismatch');
+  return Object.freeze({ verified: true, commit: head, blob_sha1: committedBlob });
+}
 const MAX_EVIDENCE_BYTES = 64 * 1024;
 const MAX_PUBLIC_KEY_BYTES = 16 * 1024;
 const MAX_SIGNATURE_BYTES = 64;
@@ -32,15 +65,18 @@ const USAGE = [
   '    --expected-source-blob-sha1 40_HEX',
   '    --review-attestation ABSOLUTE_JSON_PATH --review-trust-store ABSOLUTE_JSON_PATH',
   '    --expected-source-commit 40_HEX --expected-artifact-sha256 64_HEX',
-  '    --expected-review-trust-store-sha256 64_HEX',
+  '    --expected-review-trust-store-sha256 64_HEX (optional consistency check)',
+  '  Owner-controlled environment pin: DADYAR_REVIEW_TRUST_STORE_SHA256=64_HEX',
   '    --isolated-restore-verified --mobile-browser-verified',
   '    --zero-api-requests-verified --local-human-review-acknowledged',
   '',
   'read-only preflight; it never deploys or writes evidence.',
   'Restore archive/log/database-probe and attestation files must be outside the Git checkout.',
+  'On POSIX, JSON evidence, attestations and trust stores must be root/service-owned and owner-only (0600/0400), without special bits.',
   'The restored marker must be inside the isolated restore target; the preview destination must be outside production and checkout.',
   'The detached Ed25519 signature is checked against the supplied trust store.',
-  'This script never deploys and does not independently establish the trust-store origin or human identity.'
+  'The trust-store digest is anchored by the owner-controlled DADYAR_REVIEW_TRUST_STORE_SHA256 environment setting; the CLI digest is only an optional consistency check.',
+  'This script never deploys and does not independently establish human identity or the organizational independence of a key holder.'
 ].join('\n');
 
 const FLAG_NAMES = new Set([
@@ -89,6 +125,19 @@ function assertNoSymlinkComponents(target) {
   }
 }
 
+function assertPrivateEvidencePermissions(stat, label) {
+  if (process.platform === 'win32') return;
+  const serviceUid = typeof process.geteuid === 'function' ? BigInt(process.geteuid()) : null;
+  if (serviceUid === null || (stat.uid !== 0n && stat.uid !== serviceUid)) {
+    throw new Error(label + '_must_be_owned_by_root_or_service_user');
+  }
+  const mode = stat.mode & 0o7777n;
+  if ((mode & 0o7000n) !== 0n) throw new Error(label + '_special_permission_bits_forbidden');
+  if ((mode & 0o022n) !== 0n) throw new Error(label + '_must_not_be_group_or_world_writable');
+  if ((mode & 0o400n) === 0n) throw new Error(label + '_must_be_owner_readable');
+  if ((mode & 0o077n) !== 0n) throw new Error(label + '_must_be_owner_only');
+}
+
 function readEvidenceRecord(flag, file) {
   if (!path.isAbsolute(file)) throw new Error(flag + '_must_be_absolute');
   assertNoSymlinkComponents(file);
@@ -101,6 +150,7 @@ function readEvidenceRecord(flag, file) {
     includeBytes: true,
     maxBytes: MAX_EVIDENCE_BYTES
   });
+  assertPrivateEvidencePermissions(stable.stat, flag);
   let decoded;
   try {
     decoded = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(stable.bytes);
@@ -124,6 +174,21 @@ function readEvidenceRecord(flag, file) {
 
 function readEvidence(flag, file) {
   return readEvidenceRecord(flag, file).value;
+}
+
+function resolveOwnerPinnedReviewTrustStoreSha256(cliValue, env = process.env) {
+  const configured = env && env.DADYAR_REVIEW_TRUST_STORE_SHA256;
+  if (typeof configured !== 'string' || !/^[a-f0-9]{64}$/i.test(configured) ||
+      /^0{64}$/i.test(configured)) {
+    return { digest: null, reason: 'owner_managed_review_trust_store_pin_missing_or_invalid' };
+  }
+  const digest = configured.toLowerCase();
+  if (cliValue !== undefined &&
+      (typeof cliValue !== 'string' || !/^[a-f0-9]{64}$/i.test(cliValue) ||
+       cliValue.toLowerCase() !== digest)) {
+    return { digest: null, reason: 'review_trust_store_cli_pin_mismatch' };
+  }
+  return { digest, reason: null };
 }
 
 function parseArgs(argv) {
@@ -252,14 +317,23 @@ function main(argv) {
       restoreAttestation = { verified: false, reason: 'restore_attestation_inputs_incomplete' };
     }
 
-    let review = { verified: false, reason: 'review_attestation_and_trust_store_required' };
+    const ownerTrustPin = resolveOwnerPinnedReviewTrustStoreSha256(
+      args.values['--expected-review-trust-store-sha256']
+    );
+    let review = {
+      verified: false,
+      reason: ownerTrustPin.reason || 'review_attestation_and_trust_store_required'
+    };
     const reviewPath = args.paths['--review-attestation'];
     const trustPath = args.paths['--review-trust-store'];
     const expectedSourceCommit = args.values['--expected-source-commit'];
     const expectedArtifactSha256 = args.values['--expected-artifact-sha256'];
-    const expectedTrustStoreSha256 = args.values['--expected-review-trust-store-sha256'];
+    const expectedTrustStoreSha256 = ownerTrustPin.digest;
     const hasCoreReviewInputs = reviewPath && trustPath && expectedSourceCommit && expectedArtifactSha256;
     if (hasCoreReviewInputs && expectedTrustStoreSha256) {
+      const sourceCheckout = verifyReviewedSourceCommit(
+        expectedSourceCommit, verifiedDestination.expected_source_blob_sha1
+      );
       const attestation = readEvidence('--review-attestation', reviewPath);
       const trustStoreRecord = readEvidenceRecord('--review-trust-store', trustPath);
       if (!/^[a-f0-9]{64}$/i.test(expectedTrustStoreSha256) || /^0{64}$/i.test(expectedTrustStoreSha256)) {
@@ -278,12 +352,18 @@ function main(argv) {
               expectedSourceBlobSha1: verifiedDestination.expected_source_blob_sha1,
               expectedArtifactSha256
             }),
-            trustStoreSha256: trustStoreRecord.sha256
+            trustStoreSha256: trustStoreRecord.sha256,
+            sourceCheckoutVerified: sourceCheckout.verified,
+            sourceCheckoutCommit: sourceCheckout.commit,
+            sourceCheckoutBlobSha1: sourceCheckout.blob_sha1
           };
         }
       }
     } else if (hasCoreReviewInputs && !expectedTrustStoreSha256) {
-      review = { verified: false, reason: 'review_trust_store_digest_required' };
+      review = {
+        verified: false,
+        reason: ownerTrustPin.reason || 'review_trust_store_digest_required'
+      };
     } else if (reviewPath || trustPath || expectedSourceCommit || expectedArtifactSha256 || expectedTrustStoreSha256) {
       review = { verified: false, reason: 'review_attestation_trust_store_and_target_required' };
     }
@@ -306,6 +386,7 @@ function main(argv) {
         status: restoreEvidenceBundle.status,
         matched: restoreEvidenceBundle.matched,
         files: restoreEvidenceBundle.files,
+        databaseProbeSchemaVerified: restoreEvidenceBundle.database_probe_schema_verified,
         restoreOperationIndependentlyVerified: false,
         signerIdentityVerified: false
       },
@@ -327,8 +408,12 @@ function main(argv) {
         reviewId: review.reviewId,
         reviewedAt: review.reviewedAt,
         expiresAt: review.expiresAt,
+        sourceCommit: review.sourceCommit,
         sourceBlobSha1: review.sourceBlobSha1,
-        trustStoreSha256: review.trustStoreSha256
+        trustStoreSha256: review.trustStoreSha256,
+        sourceCheckoutVerified: review.sourceCheckoutVerified,
+        sourceCheckoutCommit: review.sourceCheckoutCommit,
+        sourceCheckoutBlobSha1: review.sourceCheckoutBlobSha1
       } : { verified: false, reason: review.reason },
       deploymentPerformed: false,
       note: 'امضای دوطرفه اظهارنامه بازیابی و تطبیق اثرانگشت کلیدها بررسی می‌شود؛ بایت‌های آرشیو، نشانگر بازیابی، گزارش Restore و probe دیتابیس نیز با هش‌های manifest مقایسه می‌شوند. فایل منبع و مقصد پیش‌نمایش از مسیر واقعی دوباره خوانده و هش می‌شوند. این بررسی‌ها هویت واقعی اشخاص، وقوع مستقل Restore، سلامت عملیاتی دیتابیس، پاسخ HTTPS زنده یا مجوز مالک را اثبات نمی‌کنند. این ابزار هرگز مجوز انتشار صادر نمی‌کند.'
@@ -346,4 +431,4 @@ function main(argv) {
   }
 }
 if (require.main === module) process.exitCode = main(process.argv.slice(2));
-module.exports = { main, parseArgs, readEvidence, readEvidenceRecord };
+module.exports = { main, parseArgs, readEvidence, readEvidenceRecord, resolveOwnerPinnedReviewTrustStoreSha256, verifyReviewedSourceCommit };
