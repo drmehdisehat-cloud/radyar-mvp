@@ -60,3 +60,9 @@ server.listen(8787, '127.0.0.1');
 7. تا وقتی این اتصال واقعی در محیط مستقل آزموده نشده، \`trustedReviewerAuthenticationAdapterVerified\` باید false بماند و انتشار/API فعال نشود.
 
 آزمون‌ها فقط کلید RSA، نشست، هویت و گزارش ساختگی را به‌کار می‌برند. این تغییر هیچ مسیر عمومی به \`backend/server.js\` اضافه نمی‌کند و هیچ API یا سرویس بیرونی را فعال نمی‌کند.
+
+## کوکی نشست بازبین: مرز serializer
+
+backend/reviewer-session-cookie.cjs صرفاً رشتهٔ Set-Cookie را پس از احراز مستقل JWT می‌سازد؛ خودش توکن را اعتبارسنجی امضایی نمی‌کند، هویت بازبین را احراز نمی‌کند و به سرور پیش‌نمایش متصل نیست. برای جلوگیری از اثر ورودی‌های option غیرمنتظره، فقط شیء ساده یا null-prototype پذیرفته می‌شود؛ کلیدهای موروثی، getter/setter، کلیدهای Symbol و ویژگی‌های اضافه حتی اگر non-enumerable باشند رد می‌شوند. مقدار maxAgeSeconds باید یک data property متعلق به خود شیء باشد و getter اجرا نمی‌شود. این کنترل‌ها صرفاً سخت‌سازی serializer هستند و جایگزین IdP، TLS، ابطال نشست یا بازبینی مستقل نیستند.
+
+آزمون رگرسیون این مرز در tests/reviewer-session-cookie.test.cjs قرار دارد؛ سناریوهای inherited option، accessor بدون اجرای getter، Symbol و ویژگی پنهان را با داده ساختگی می‌آزماید.
