@@ -47,7 +47,7 @@ test('public repository must not track private configuration, keys, or backups',
 });
 
 test('public repository must not upload preview artifacts until repository is private', () => {
-  const workflow = fs.readFileSync(path.join(root, '.github/workflows/ci.yml'), 'utf8');
+  const workflow = fs.readFileSync(pathModule.join(root, '.github/workflows/ci.yml'), 'utf8');
   const marker = '- name: Create public-only preview payload artifact';
   const start = workflow.indexOf(marker);
   assert.notEqual(start, -1, 'public preview artifact step must remain explicit');
