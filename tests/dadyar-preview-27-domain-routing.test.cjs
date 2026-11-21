@@ -147,11 +147,12 @@ test('preview keeps keyboard focus visible on text, textarea and checkbox contro
 
 test('privacy scanner removes Unicode default-ignorable code points before matching identifiers', () => {
   const { hasSensitiveIdentifier } = classifier();
+  const invisible = codePoint => String.fromCodePoint(codePoint);
   const probes = [
-    'شماره همراه: ۰۹۱۲\\u2062۳۴۵۶۷۸۹',
-    'کد ملی: ۱۲۳۴۵\\u2063۶۷۸۹۰',
-    'شماره کارت: ۶۰۳۷\\u2064۹۹۱۷\\u2061۴۵۶۲۱۶۸',
-    'شبا: IR\\u2062۱۲۳۴۵۶۷۸۹۰۱۲۳۴۵۶۷۸۹۰۱۲۳۴'
+    'شماره همراه: ۰۹۱۲' + invisible(0x2062) + '۳۴۵۶۷۸۹',
+    'کد ملی: ۱۲۳۴۵' + invisible(0x2063) + '۶۷۸۹۰',
+    'شماره کارت: ۶۰۳۷' + invisible(0x2064) + '۹۹۱۷' + invisible(0x2061) + '۴۵۶۲۱۶۸',
+    'شبا: IR' + invisible(0x2062) + '۱۲۳۴۵۶۷۸۹۰۱۲۳۴۵۶۷۸۹۰۱۲۳۴'
   ];
   for (const probe of probes) {
     assert.equal(hasSensitiveIdentifier(probe), true, 'obfuscated sensitive identifier was not detected: '+probe);
