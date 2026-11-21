@@ -112,8 +112,8 @@ test('Qavanin cheque-law URLs remain non-authorizing research candidates until t
   assert.equal(record.useInLegalAnswers, false);
 });
 
-test('2026-11-20 official Qavanin recheck records the rendered 1400 cheque amendment text without authorizing legal answers', () => {
-  assert.equal(register.observedAt, '2026-11-20');
+test('registry date advances while retaining the 2026-11-20 official Qavanin observation without authorizing legal answers', () => {
+  assert.equal(register.observedAt, '2026-11-21');
   const record = register.records.find(item => item.id === 'check-issuance-law');
   const page = record.officialPortalObservation.amendmentPages.find(item => item.id === 'check-amendment-1400');
   assert.ok(page);
