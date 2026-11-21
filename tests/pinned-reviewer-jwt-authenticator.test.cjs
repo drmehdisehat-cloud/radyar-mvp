@@ -204,6 +204,17 @@ test('rejects expired, future-dated and stale session assertions', async () => {
   })));
 });
 
+test('rejects a token whose not-before time is at or after expiry even within clock skew', async () => {
+  const f = fixture();
+  const current = Math.floor(f.now / 1000);
+  const authenticate = f.authenticate();
+  // Both timestamps are within the configured 60-second clock-skew window,
+  // but the token has no valid interval because nbf is later than exp.
+  await rejectsAuthentication(authenticate, f.request(f.token({
+    ...f.payload, iat: current, exp: current + 20, nbf: current + 40
+  })));
+});
+
 test('requires the signed preview-reviewer role and an explicit independence claim', async () => {
   const f = fixture();
   const authenticate = f.authenticate();
