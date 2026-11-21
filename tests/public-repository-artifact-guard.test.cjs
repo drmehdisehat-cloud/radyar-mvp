@@ -65,11 +65,11 @@ test('public repository must not upload preview artifacts until repository is pr
 test('all workflow artifact uploads are covered by the private-repository release guard', () => {
   const workflowDirectory = pathModule.join(root, '.github/workflows');
   const workflowFiles = fs.readdirSync(workflowDirectory)
-    .filter(name => /\\.ya?ml$/i.test(name));
+    .filter(name => /\.ya?ml$/i.test(name));
   const uploads = [];
   for (const name of workflowFiles) {
     const source = fs.readFileSync(pathModule.join(workflowDirectory, name), 'utf8');
-    for (const match of source.matchAll(/^\\s*uses:\\s*actions\\/upload-artifact@[^\\s]+/gm)) {
+    for (const match of source.matchAll(/^\s*uses:\s*actions\/upload-artifact@[^\s]+/gm)) {
       uploads.push({ workflow: name, action: match[0].trim() });
     }
   }
