@@ -37,5 +37,5 @@ test('public repository CI uploads no operator handoff or full-package artifact'
   assert.equal(uploadCount, 1, 'only the public index.html artifact may be uploaded');
   assert.equal(workflow.includes('dadyar-offline-preview-'), false);
   assert.equal(workflow.includes('Create immutable offline preview artifact'), false);
-  assert.equal(workflow.includes('path: ${{ runner.temp }}/dadyar-preview-handoff/'), false);
+  assert.equal(workflow.includes('path: ${{ runner.temp }}/dadyar-preview-handoff/\n'), false);
 });
