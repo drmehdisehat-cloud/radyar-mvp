@@ -9,10 +9,10 @@ const root = path.resolve(__dirname, '..');
 const workflow = fs.readFileSync(path.join(root, '.github/workflows/ci.yml'), 'utf8');
 const builder = fs.readFileSync(path.join(root, 'scripts/build-offline-preview-package.cjs'), 'utf8');
 
-test('offline preview artifact pins PR source SHA separately from workflow merge SHA', () => {
+test('public preview artifact pins PR source SHA separately from workflow merge SHA', () => {
   assert.match(workflow, /DADYAR_PREVIEW_SOURCE_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}/);
   assert.match(workflow, /DADYAR_PREVIEW_WORKFLOW_SHA: \$\{\{ github\.sha \}\}/);
-  assert.match(workflow, /name: dadyar-offline-preview-\$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}/);
+  assert.match(workflow, /name: dadyar-public-preview-\$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}/);
   assert.match(builder, /const commit = options\.commit \|\| process\.env\.DADYAR_PREVIEW_SOURCE_SHA \|\| process\.env\.GITHUB_SHA/);
   assert.match(builder, /const workflowCommit = options\.workflowCommit \|\| process\.env\.DADYAR_PREVIEW_WORKFLOW_SHA \|\| process\.env\.GITHUB_SHA \|\| commit/);
   assert.match(builder, /source_commit: commit/);
