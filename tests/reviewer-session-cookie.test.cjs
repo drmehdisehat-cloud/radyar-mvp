@@ -60,7 +60,9 @@ test('cookie serializer accepts only bounded canonical three-segment base64url t
   assert.equal(isCanonicalCompactToken('one=.two.three'), false);
   assert.equal(isCanonicalCompactToken('one.two.three='), false);
   assert.equal(isCanonicalCompactToken('one.two.three!'), false);
-  assert.equal(isCanonicalCompactToken('x'.repeat(8193)), false);
+  const oversized = [valid.split('.')[0], Buffer.alloc(3000, 0x61).toString('base64url'), valid.split('.')[2]].join('.');
+  assert.ok(oversized.length > 3800);
+  assert.equal(isCanonicalCompactToken(oversized), false);
   for (const value of [null, undefined, 42, {}, []]) {
     assert.equal(isCanonicalCompactToken(value), false);
     assert.throws(() => createReviewerSessionCookie(value), /canonical compact token/);
