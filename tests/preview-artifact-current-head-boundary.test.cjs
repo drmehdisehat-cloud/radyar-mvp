@@ -8,8 +8,7 @@ const { execFileSync } = require('node:child_process');
 
 const recordPath = path.join(__dirname, '../docs/public-preview-artifact-review-08a46a17-20261123.json');
 const record = JSON.parse(fs.readFileSync(recordPath, 'utf8'));
-const checkoutHead = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-const currentHead = process.env.GITHUB_SHA || checkoutHead;
+const currentHead = process.env.GITHUB_SHA || execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
 
 test('review artifact is explicitly stale whenever its source commit differs from the checked-out head', () => {
   assert.match(currentHead, /^[a-f0-9]{40}$/);
