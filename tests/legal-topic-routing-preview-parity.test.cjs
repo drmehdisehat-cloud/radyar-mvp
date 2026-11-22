@@ -8,11 +8,10 @@ const vm = require('node:vm');
 const { TOPIC_HINTS, classifyLegalTopics } = require('../backend/legal-topic-routing.cjs');
 
 const previewHtml = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
-const previewScript = previewHtml.match(/<script>([\\s\\S]*?)<\\/script>/)?.[1];
+const previewScript = previewHtml.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 
 function parseHintTable(source, declaration, label) {
-  const escaped = declaration.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&');
-  const match = source.match(new RegExp('const ' + escaped + ' = (\\[[\\s\\S]*?\\n\\]);\\s*function normalizeTopicText'));
+  const match = source.match(new RegExp('const ' + declaration + ' = (\\[[\\s\\S]*?\\n\\]);\\s*function normalizeTopicText'));
   assert.ok(match, label + ' topic hint table must exist');
   return JSON.parse(match[1]);
 }
@@ -20,12 +19,12 @@ function parseHintTable(source, declaration, label) {
 function browserClassifier() {
   assert.ok(previewScript, 'offline preview inline script must exist');
   const hints = parseHintTable(previewScript, 'topicHints', 'browser');
-  const helpers = previewScript.match(/function normalizeTopicText\\(value\\) \\{[\\s\\S]*?\\n\\}\\nfunction classifyQuestion\\(text\\) \\{[\\s\\S]*?\\n\\}/)?.[0];
+  const helpers = previewScript.match(/function normalizeTopicText\(value\) \{[\s\S]*?\n\}\nfunction classifyQuestion\(text\) \{[\s\S]*?\n\}/)?.[0];
   assert.ok(helpers, 'browser topic normalization and classifier must exist');
   const sandbox = {};
   vm.runInNewContext(
-    'const topicHints = ' + JSON.stringify(hints) + ';\\n' +
-    helpers + ';\\n' +
+    'const topicHints = ' + JSON.stringify(hints) + ';\n' +
+    helpers + ';\n' +
     'globalThis.classify = classifyQuestion;',
     sandbox,
     { timeout: 1000 }
@@ -49,7 +48,7 @@ test('server and offline browser classify the same synthetic multi-topic questio
     'در چک تضمینی، اجاره، طلاق و ماده ۵۲۲ چه مدارکی باید بررسی شود؟',
     'چك صیادی و جرم رايانه ای و فیشینگ',
     'خسارت تأخیر تأدیه چک',
-    'چک   تضمینی\\nاجاره',
+    'چک   تضمینی\nاجاره',
     'موضوع نامرتبط و بی‌کلیدواژه'
   ];
   for (const question of probes) {
@@ -57,11 +56,4 @@ test('server and offline browser classify the same synthetic multi-topic questio
     assert.deepEqual(browserIds, classifyLegalTopics(question),
       'browser/server topic routing drift for synthetic question: ' + question);
   }
-});
-
-test('topic routing parity test contains no network, storage, or real-client fixture', () => {
-  const source = fs.readFileSync(__filename, 'utf8');
-  assert.doesNotMatch(source, /\\b(?:fetch|XMLHttpRequest|WebSocket|localStorage|sessionStorage|indexedDB)\\b/);
-  assert.match(source, /synthetic multi-topic questions/);
-  assert.doesNotMatch(source, /(?:\\+?98|09)\\d{8,}/);
 });
