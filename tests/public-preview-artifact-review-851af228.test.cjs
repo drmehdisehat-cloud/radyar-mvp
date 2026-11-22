@@ -12,7 +12,7 @@ const source = fs.readFileSync(path.resolve(__dirname, '../dadyar-preview/index.
 const sha256 = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 function gitBlobSha1(bytes) {
   const hash = crypto.createHash('sha1');
-  hash.update(Buffer.from('blob ' + bytes.length + '\\0', 'ascii'));
+  hash.update(Buffer.from('blob ' + bytes.length + '\0', 'ascii'));
   hash.update(bytes);
   return hash.digest('hex');
 }
