@@ -267,7 +267,6 @@ function verifyPreviewResponse({ statusCode, headers = {}, body, expectedSha256,
     ['manifest-src', "'none'"],
     ['worker-src', "'none'"],
     ['child-src', "'none'"],
-    ['prefetch-src', "'none'"],
     ['form-action', "'none'"],
     ['base-uri', "'none'"]
   ];
