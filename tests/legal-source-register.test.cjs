@@ -53,13 +53,15 @@ test('Qavanin cheque-law URLs remain non-authorizing research candidates until t
     item.url === 'https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689'
   );
   assert.ok(amendment, '2020 amendment candidate must be retained for direct retrieval');
-  assert.equal(amendment.candidateStatus, 'official-primary-text-rendered-2026-11-20-raw-bytes-not-captured');
+  assert.equal(amendment.candidateStatus, 'official-primary-text-and-metadata-rendered-2026-11-22-raw-bytes-not-captured');
   assert.equal(amendment.sourceClass, 'primary-official-qavanin');
   assert.equal(amendment.lastDirectFetchResult, 'official-amendment-text-and-metadata-readable-via-independent-web-rendering; raw-response-bytes-and-sha256-not-captured');
   assert.equal(amendment.officialGazetteNumberShown, '22188');
   assert.equal(amendment.officialGazetteDateShown, '1400/03/02');
   assert.equal(amendment.effectiveFromShown, '1400/03/18');
-  assert.equal(amendment.lastDirectFetchAt, '2026-11-20');
+  assert.equal(amendment.lastDirectFetchAt, '2026-11-22');
+  assert.equal(amendment.metadataRetrievedAt, '2026-11-22');
+  assert.deepEqual(amendment.metadataPageLines, [19, 21, 22, 24, 26, 30, 32, 33, 34]);
   assert.equal(amendment.textPageRendered, true);
   assert.equal(amendment.metadataPageRendered, true);
   assert.equal(amendment.rawHttpBytesCaptured, false);
@@ -72,6 +74,9 @@ test('Qavanin cheque-law URLs remain non-authorizing research candidates until t
   );
   assert.ok(amendment1397);
   assert.equal(amendment1397.officialGazetteNumberShown, '21467');
+  assert.equal(amendment1397.lastDirectFetchAt, '2026-11-22');
+  assert.equal(amendment1397.metadataRetrievedAt, '2026-11-22');
+  assert.equal(amendment1397.rawHttpBytesCaptured, false);
   assert.equal(amendment1397.officialGazetteDateShown, '1397/09/05');
   assert.equal(amendment1397.effectiveFromShown, '1397/09/21');
   assert.equal(amendment1397.useInLegalAnswers, false);
@@ -112,13 +117,14 @@ test('Qavanin cheque-law URLs remain non-authorizing research candidates until t
   assert.equal(record.useInLegalAnswers, false);
 });
 
-test('registry date advances while retaining the 2026-11-20 official Qavanin observation without authorizing legal answers', () => {
-  assert.equal(register.observedAt, '2026-11-21');
+test('registry records the 2026-11-22 official Qavanin recheck without authorizing legal answers', () => {
+  assert.equal(register.observedAt, '2026-11-22');
   const record = register.records.find(item => item.id === 'check-issuance-law');
   const page = record.officialPortalObservation.amendmentPages.find(item => item.id === 'check-amendment-1400');
   assert.ok(page);
-  assert.equal(page.lastObservedAt, '2026-11-20');
-  assert.equal(page.metadataRetrievedAt, '2026-11-20');
+  assert.equal(page.lastObservedAt, '2026-11-22');
+  assert.equal(page.metadataRetrievedAt, '2026-11-22');
+  assert.deepEqual(page.metadataPageLines, [19, 21, 22, 24, 26, 30, 32, 33, 34]);
   assert.match(page.renderedTextExcerpt, /ماده 1-/);
   assert.match(page.renderedTextExcerpt, /ماده 24-/);
   assert.equal(page.officialGazetteNumber, '22188');
