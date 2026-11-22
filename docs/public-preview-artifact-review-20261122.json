@@ -3,14 +3,14 @@
   "verified_date": "2026-11-22",
   "repository": "drmehdisehat-cloud/radyar-mvp",
   "source_branch": "dadyar/ai-chat-private-20261101",
-  "source_commit": "f9b44bfe00e2cadbd9598dcead96e71e403b716a",
+  "source_commit": "cfdee75509b2c5cd54ead82bb2f57ec9bcac6a4e",
   "workflow_name": "Dadyar public-only preview review artifact",
-  "workflow_run_id": 44990737257,
-  "artifact_id": 14741931459,
+  "workflow_run_id": 44990833479,
+  "artifact_id": 14742310087,
   "archive": {
-    "file_name": "dadyar-preview-f9b44bfe.zip",
-    "size_bytes": 17981,
-    "sha256": "3336c3821c4b2a130c8b8ee21030c9884b1626e91bb0b4c42cc98fd383953bde",
+    "file_name": "dadyar-preview-cfdee755.zip",
+    "size_bytes": 17979,
+    "sha256": "320d293ffc57ec12d26a032d80449f3d946002a926af1ee46d0a46c749219276",
     "entries": [
       {
         "path": "index.html",
@@ -21,7 +21,7 @@
       {
         "path": "INTEGRITY.json",
         "size_bytes": 862,
-        "sha256": "5a0e23ac8beb56220a0a24770e9980428259a6c8870e4e8cc4b328359dfbf9b4"
+        "sha256": "356db4c0ebd3e76af7ea9bcca01ea6a89553b28a9841c61521dcbad1640e86ab"
       }
     ]
   },
@@ -42,7 +42,7 @@
     "destination_verified": false,
     "deployment_authorized": false
   },
-  "verification_scope": "The GitHub Actions artifact for commit f9b44bfe00e2cadbd9598dcead96e71e403b716a was downloaded as ZIP bytes into the verification runtime and independently inspected. The archive SHA-256, exact two-entry listing, ZIP CRC/decompression integrity, manifest JSON, HTML SHA-256 and Git blob SHA-1 were checked. The manifest source commit, workflow commit, branch and target subpath were compared with the observed GitHub workflow run and branch.",
+  "verification_scope": "The GitHub Actions artifact for commit cfdee75509b2c5cd54ead82bb2f57ec9bcac6a4e was downloaded as ZIP bytes into the verification runtime and independently inspected. The archive SHA-256, exact two-entry listing, ZIP CRC/decompression integrity, manifest JSON, HTML SHA-256 and Git blob SHA-1 were checked. The manifest source commit, workflow commit, branch and target subpath were compared with the observed GitHub workflow run and branch.",
   "limitations": [
     "This record attests only to the downloaded review artifact and its byte integrity.",
     "It does not prove a real backup restore, a valid hosting destination, authenticated reviewer identity, legal-source correctness, or deployment authorization.",
