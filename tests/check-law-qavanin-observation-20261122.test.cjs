@@ -21,6 +21,16 @@ test('2026-11-22 Qavanin observation preserves direct official links and visible
   assert.equal(observation.sources.amendment1358.textUrl,
     'https://qavanin.ir/Law/TreeText/?IDS=5510706429727435487');
   assert.deepEqual(observation.sources.amendment1358.visibleLines, [7, 10, 42, 45]);
+  assert.equal(observation.sources.amendment1397.url,
+    'https://qavanin.ir/Law/TreeText/?IDS=3613585600919945767');
+  assert.equal(observation.sources.amendment1397.approvalDateShown, '1397/08/13');
+  assert.equal(observation.sources.amendment1397.guardianCouncilConfirmationDateShown, '1397/08/23');
+  assert.deepEqual(observation.sources.amendment1397.visibleLines, [7, 9, 42, 43, 45, 46, 47, 48, 49, 50, 51, 82, 83, 84, 85, 86, 87, 88, 90, 91]);
+  assert.equal(observation.sources.amendment1400.url,
+    'https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689');
+  assert.equal(observation.sources.amendment1400.approvalDateShown, '1400/01/29');
+  assert.equal(observation.sources.amendment1400.guardianCouncilConfirmationDateShown, '1400/02/18');
+  assert.deepEqual(observation.sources.amendment1400.visibleLines, [7, 9, 42, 43, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55]);
   assert.equal(observation.influencingInstruments.length, 10);
   for (const instrument of observation.influencingInstruments) {
     assert.match(instrument.approvalDateShown, /^\d{4}\/\d{2}\/\d{2}$/);
@@ -36,7 +46,10 @@ test('portal approval dates and rendered text are never promoted to effective-da
   assert.equal(observation.verification.humanReviewStatus, 'pending');
   assert.equal(observation.verification.eventDateVersioningApproved, false);
   assert.equal(observation.verification.legalAnswerUsePermitted, false);
-  assert.equal(observation.openGaps.length, 5);
+  assert.equal(observation.sources.amendment1397.rendered, true);
+  assert.equal(observation.sources.amendment1400.rendered, true);
+  assert.ok(observation.openGaps.length >= 6);
+  assert.ok(observation.openGaps.some(item => /1397 and 1400/.test(item)));
   assert.ok(observation.nextActions.some(item => /SHA-256/.test(item)));
 });
 
