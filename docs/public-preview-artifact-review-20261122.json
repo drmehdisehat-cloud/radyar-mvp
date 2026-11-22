@@ -3,14 +3,15 @@
   "verified_date": "2026-11-22",
   "repository": "drmehdisehat-cloud/radyar-mvp",
   "source_branch": "dadyar/ai-chat-private-20261101",
-  "source_commit": "8223da77586903722b9b6bad4d69501324640502",
+  "source_commit": "09d30c8629cce50a7d6272440d1712d3c6de4e22",
   "workflow_name": "Dadyar public-only preview review artifact",
-  "workflow_run_id": 44990934177,
-  "artifact_id": 14741742920,
+  "workflow_run_id": 44994500093,
+  "artifact_id": 14743491060,
+  "artifact_name": "dadyar-public-preview-review-09d30c8629cce50a7d6272440d1712d3c6de4e22",
   "archive": {
-    "file_name": "dadyar-public-preview-review-8223da.zip",
-    "size_bytes": 17982,
-    "sha256": "396e368f1ee2ce3f0b456e9694c36df2d5e77bffd0a4610b68623d2431fd658e",
+    "file_name": "dadyar-preview-09d30c8.zip",
+    "size_bytes": 17980,
+    "sha256": "52739f2c81fab77f7d9cfd77413410e8ff84caa1ef19d1d7f50ca25d32fc026e",
     "entries": [
       {
         "path": "index.html",
@@ -21,16 +22,19 @@
       {
         "path": "INTEGRITY.json",
         "size_bytes": 862,
-        "sha256": "b68966d6725bbb3ba1c98e6280f201f9855b2fbc0bd334c09737ae30707319b2"
+        "sha256": "5508940d04781146c6e5fac170d9bfbfe444b9d0fc06eec0a8516660514763f1"
       }
     ]
   },
   "checks": {
+    "artifact_metadata_matches_run": true,
+    "archive_sha256_matches_workflow_log": true,
     "zip_listing_exact": true,
     "zip_integrity_test": true,
     "manifest_json_parsed": true,
     "html_sha256_matches_manifest": true,
     "html_git_blob_sha1_matches_manifest": true,
+    "html_git_blob_sha1_matches_branch_source": true,
     "source_commit_matches_manifest": true,
     "workflow_commit_matches_manifest": true,
     "source_branch_matches_manifest": true,
@@ -42,10 +46,11 @@
     "destination_verified": false,
     "deployment_authorized": false
   },
-  "verification_scope": "The GitHub Actions artifact ID 14741742920 from workflow run 44990934177 was downloaded as ZIP bytes. The downloaded archive SHA-256, exact two-entry listing, ZIP CRC/decompression integrity, manifest JSON, HTML SHA-256 and Git blob SHA-1 were independently checked. GitHub artifact metadata binds the run to head commit 8223da77586903722b9b6bad4d69501324640502 on the requested source branch; the manifest source commit, workflow commit, branch and target subpath were compared with those observations.",
+  "verification_scope": "GitHub Actions run 44994500093 completed successfully on exact head commit 09d30c8629cce50a7d6272440d1712d3c6de4e22. GitHub artifact metadata identified artifact 14743491060 with the exact commit-derived artifact name. The ZIP was downloaded as bytes, its 17,980-byte size and SHA-256 were independently computed, its exact two-entry listing and CRC/decompression integrity were checked, and the INTEGRITY.json bytes were parsed and hashed. The HTML SHA-256 and Git blob SHA-1 were recomputed; the Git blob SHA-1 matched the dadyar-preview/index.html blob returned by GitHub for the exact source branch. The workflow log independently reported the same uploaded ZIP digest and artifact ID. The manifest binds source commit, workflow commit, source branch, target subpath and disabled API/public AI flags to the exact run.",
   "limitations": [
     "This record attests only to the downloaded review artifact and its byte integrity.",
     "It does not prove a real backup restore, a valid hosting destination, authenticated reviewer identity, legal-source correctness, or deployment authorization.",
+    "The artifact is public while the GitHub repository is public; it contains only the two explicitly listed public preview files.",
     "Do not upload this artifact to the live site."
   ]
 }
