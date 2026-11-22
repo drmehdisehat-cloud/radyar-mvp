@@ -9,7 +9,7 @@ const record = JSON.parse(fs.readFileSync(
   'utf8'
 ));
 
-test('downloaded preview artifact review record is pinned to the exact current branch head and workflow run', () => {
+test('downloaded preview artifact review record is pinned to the exact artifact source commit and workflow run', () => {
   assert.equal(record.schema, 'dadyar-public-preview-artifact-review-record-v1');
   assert.equal(record.repository, 'drmehdisehat-cloud/radyar-mvp');
   assert.equal(record.source_branch, 'dadyar/ai-chat-private-20261101');
