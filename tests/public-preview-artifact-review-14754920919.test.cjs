@@ -56,7 +56,7 @@ test('preview is a mobile-capable offline 27-domain review page, not public AI',
   assert.match(source, /connect-src 'none'/);
   assert.match(source, /form-action 'none'/);
   assert.match(source, /id="download" disabled/);
-  assert.doesNotMatch(source, /\\b(?:fetch\\s*\\(|XMLHttpRequest|WebSocket|EventSource|sendBeacon)\\b/);
+  assert.doesNotMatch(source, /\b(?:fetch\s*\(|XMLHttpRequest|WebSocket|EventSource|sendBeacon)\b/);
 });
 
 test('artifact evidence cannot promote restore, destination or deployment gates', () => {
