@@ -3,14 +3,14 @@
   "verified_date": "2026-11-22",
   "repository": "drmehdisehat-cloud/radyar-mvp",
   "source_branch": "dadyar/ai-chat-private-20261101",
-  "source_commit": "b4dbe52629c8a2e696dc8609591a514c1fa03e03",
+  "source_commit": "5f66952a45b1507ba9f81f6b2536c4cdae9911af",
   "workflow_name": "Dadyar public-only preview review artifact",
-  "workflow_run_id": 44977810461,
-  "artifact_id": 14737035002,
+  "workflow_run_id": 44982108277,
+  "artifact_id": 14738172550,
   "archive": {
-    "file_name": "dadyar-preview-b4dbe526.zip",
-    "size_bytes": 17980,
-    "sha256": "9c3274731e0ee59d2ba60f9577fd7f79e463a200e3c4a6934060af52df75b9b1",
+    "file_name": "dadyar-preview-5f66952a.zip",
+    "size_bytes": 17981,
+    "sha256": "5d7a1c6670a072b9cca7bac85f5934f35f8af619e796a3159a417ef251bbada5",
     "entries": [
       {
         "path": "index.html",
@@ -21,7 +21,7 @@
       {
         "path": "INTEGRITY.json",
         "size_bytes": 862,
-        "sha256": "618e1a738438f3c5f15b72b39acf6194468cc4c71385553db092afd396295823"
+        "sha256": "9c2d28f5f1399c5714fb3cb931567911951df48c09857fe45064e356b1a899a5"
       }
     ]
   },
@@ -32,6 +32,8 @@
     "html_sha256_matches_manifest": true,
     "html_git_blob_sha1_matches_manifest": true,
     "source_commit_matches_manifest": true,
+    "workflow_commit_matches_manifest": true,
+    "source_branch_matches_manifest": true,
     "target_subpath_matches": "/dadyar-preview/",
     "api_enabled": false,
     "public_ai_enabled": false,
@@ -40,7 +42,7 @@
     "destination_verified": false,
     "deployment_authorized": false
   },
-  "verification_scope": "Downloaded artifact bytes were inspected independently for byte integrity: archive SHA-256, ZIP entry listing, extraction, manifest JSON, HTML SHA-256 and Git blob SHA-1.",
+  "verification_scope": "The GitHub Actions artifact was downloaded as ZIP bytes and independently inspected in the runtime. The archive SHA-256, exact two-entry listing, ZIP CRC/decompression integrity, manifest JSON, HTML SHA-256 and Git blob SHA-1 were checked. The manifest source commit, workflow commit, branch and target subpath were compared with the observed workflow run and branch.",
   "limitations": [
     "This record attests only to the downloaded review artifact and its byte integrity.",
     "It does not prove a real backup restore, a valid hosting destination, authenticated reviewer identity, legal-source correctness, or deployment authorization.",
