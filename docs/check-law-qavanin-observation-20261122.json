@@ -28,6 +28,61 @@
         45
       ],
       "textObservation": "The rendered text states that the single-article measure had legal force only through the end of 1358 and applied only to cheques issued through 1358/04/31. This is recorded as a portal text observation, not an event-date legal conclusion."
+    },
+    "amendment1397": {
+      "title": "قانون اصلاح قانون صدور چک",
+      "url": "https://qavanin.ir/Law/TreeText/?IDS=3613585600919945767",
+      "approvalDateShown": "1397/08/13",
+      "guardianCouncilConfirmationDateShown": "1397/08/23",
+      "rendered": true,
+      "visibleLines": [
+        7,
+        9,
+        42,
+        43,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        90,
+        91
+      ],
+      "textObservation": "The rendered official portal text describes electronic cheques, the tracking-code and seal requirements for non-payment certificates, post-notice banking restrictions, and the conditions for judicial execution under Article 23. This is a rendered text observation only, not a conclusion about the version applicable to any event date."
+    },
+    "amendment1400": {
+      "title": "قانون اصلاح قانون صدور چک",
+      "url": "https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689",
+      "approvalDateShown": "1400/01/29",
+      "guardianCouncilConfirmationDateShown": "1400/02/18",
+      "rendered": true,
+      "visibleLines": [
+        7,
+        9,
+        42,
+        43,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55
+      ],
+      "textObservation": "The rendered official portal text removes the former three-year cheque-validity language from Article 6, revises the transition rule by cheque-book delivery date around the end of Esfand 1399, and adds Article 24 on guaranteed cheques. The historical event-date interval still requires the full amendment chain and independent Gazette verification."
     }
   },
   "influencingInstruments": [
@@ -86,12 +141,14 @@
     "The official Gazette issue bytes and original signed instrument were not downloaded and independently hashed in this run.",
     "The approval-date column of the status index must not be treated as Gazette publication or effective dates.",
     "The full amendment chain and transitional provisions must be resolved before event-date versions can be approved.",
-    "No independent qualified legal reviewer has signed off against the exact source bytes."
+    "No independent qualified legal reviewer has signed off against the exact source bytes.",
+    "The 1397 and 1400 official TreeText pages were re-rendered on 2026-11-22, but their raw HTTP bytes, SHA-256 digests and metadata pages were not re-captured in this observation."
   ],
   "nextActions": [
     "Capture raw official text, metadata and Gazette issue bytes with retrieval timestamps and SHA-256.",
     "Resolve each influencing instrument's publication date, commencement date and transitional provisions from primary records.",
     "Create non-overlapping event-date versions only after the amendment chain is complete.",
-    "Record independent human review bound to the exact source-byte SHA-256."
+    "Record independent human review bound to the exact source-byte SHA-256.",
+    "Capture raw HTTP response bytes and SHA-256 for the 1397 and 1400 amendment texts, then independently re-fetch their metadata and Gazette issue bytes before approving event-date versions."
   ]
 }
