@@ -18,7 +18,7 @@ const STRICT_META_CSP = "default-src 'none'; script-src " + SCRIPT_HASH + "; sty
 const NO_NETWORK_CSP_DIRECTIVES = [
   ['img-src', "'none'"], ['font-src', "'none'"], ['object-src', "'none'"],
   ['frame-src', "'none'"], ['media-src', "'none'"], ['manifest-src', "'none'"],
-  ['worker-src', "'none'"], ['child-src', "'none'"], ['prefetch-src', "'none'"],
+  ['worker-src', "'none'"], ['child-src', "'none'"],
   ['base-uri', "'none'"]
 ];
 function completeCsp(policy) {
