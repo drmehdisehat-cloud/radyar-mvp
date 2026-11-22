@@ -12,7 +12,7 @@ const record = JSON.parse(fs.readFileSync(
 
 function gitBlobSha1(bytes) {
   return crypto.createHash('sha1')
-    .update(Buffer.from('blob ' + bytes.length + '\\0'))
+    .update(Buffer.from('blob ' + bytes.length + '\0'))
     .update(bytes)
     .digest('hex');
 }
