@@ -45,7 +45,9 @@ test('free-text router loads all 27 internal legal-domain hints without a topic 
 test('all 27 taxonomy domains are discoverable from representative synthetic keywords', () => {
   const { classify } = classifier();
   const probes = [
-    ['civil','قرارداد'], ['property','اجاره'], ['registry','سند رسمی'],
+    ['civil','قرارداد'], ['civil','خسارت تأخیر تأدیه'], ['civil','خسارت تاخیر تادیه'],
+    ['civil-procedure','ماده ۵۲۲'], ['civil-procedure','ماده 522'], ['civil-procedure','آیین دادرسی مدنی'],
+    ['property','اجاره'], ['registry','سند رسمی'],
     ['family','ازدواج'], ['succession','ارث'], ['liability','مسئولیت مدنی'],
     ['civil-procedure','دادخواست'], ['enforcement','اجراییه'], ['criminal','سرقت'],
     ['criminal-procedure','شکواییه'], ['special-crimes','مواد مخدر'],
@@ -59,6 +61,17 @@ test('all 27 taxonomy domains are discoverable from representative synthetic key
   for (const [expected, phrase] of probes) {
     const ids = Array.from(classify(phrase), item => item.id);
     assert.ok(ids.includes(expected), 'domain not detected: ' + expected + ' from ' + phrase);
+  }
+});
+
+test('delay-damages free text routes to civil law and Article 522 to civil procedure', () => {
+  const { classify } = classifier();
+  const delay = Array.from(classify('خسارت تأخیر تأدیه چک'), item => item.id);
+  assert.ok(delay.includes('civil'), 'delay-damages phrase must map to civil domain');
+  assert.ok(delay.includes('instruments'), 'cheque part must remain independently discoverable');
+  for (const phrase of ['ماده ۵۲۲', 'ماده 522', 'آیین دادرسی مدنی']) {
+    assert.ok(Array.from(classify(phrase), item => item.id).includes('civil-procedure'),
+      'procedure hint missing for ' + phrase);
   }
 });
 
