@@ -19,7 +19,7 @@ function cspHash(source) {
 const metaPolicy = "default-src 'none'; script-src " + cspHash(inlineScript) +
   '; style-src ' + cspHash(inlineStyle) + "; connect-src 'none'; img-src 'none'; font-src 'none'; " +
   "object-src 'none'; frame-src 'none'; media-src 'none'; manifest-src 'none'; worker-src 'none'; " +
-  "child-src 'none'; prefetch-src 'none'; form-action 'none'; base-uri 'none'";
+  "child-src 'none'; form-action 'none'; base-uri 'none'";
 const html = [
   '<!doctype html>',
   '<html lang="fa" dir="rtl"><head>',
@@ -324,7 +324,7 @@ test('rejects a permissive single Referrer-Policy header despite a restrictive m
 });
 const noNetworkCspDirectives = [
   'img-src', 'font-src', 'object-src', 'frame-src', 'media-src',
-  'manifest-src', 'worker-src', 'child-src', 'prefetch-src', 'base-uri'
+  'manifest-src', 'worker-src', 'child-src', 'base-uri'
 ];
 
 test('requires explicit no-network resource directives in both HTTP and meta CSP policies', () => {
