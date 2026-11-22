@@ -63,6 +63,18 @@ test('the central legal registry links the fresh observation without promoting i
   assert.equal(record.latestIndependentObservation.primarySourceVerified, false);
   assert.equal(record.latestIndependentObservation.humanReviewStatus, 'pending');
   assert.equal(record.latestIndependentObservation.useInLegalAnswers, false);
+  assert.equal(record.latestIndependentObservation.amendment1397TextRendered, true);
+  assert.equal(record.latestIndependentObservation.amendment1400TextRendered, true);
+  for (const documentId of ['3613585600919945767', '8508483613671622689']) {
+    const candidate = record.officialDocumentUrlCandidates.find(item => item.documentId === documentId);
+    assert.ok(candidate, 'official amendment candidate missing: ' + documentId);
+    assert.equal(candidate.lastDirectFetchAt, '2026-11-22');
+    assert.equal(candidate.rawHttpBytesCaptured, false);
+    assert.equal(candidate.latestTextObservation.observedAt, '2026-11-22');
+    assert.equal(candidate.latestTextObservation.primarySourceVerified, false);
+    assert.equal(candidate.latestTextObservation.humanReviewStatus, 'pending');
+    assert.equal(candidate.latestTextObservation.useInLegalAnswers, false);
+  }
   const amendment = record.officialDocumentUrlCandidates.find(item =>
     item.documentId === '5510706429727435487');
   assert.ok(amendment);
