@@ -40,6 +40,7 @@ jobs:
           node --check scripts/verify-restore-attestation-signatures.cjs
           node --check scripts/verify-restore-attestation-pinned.cjs
           node --check scripts/create-public-preview-integrity-manifest.cjs
+          node --check scripts/verify-public-preview-artifact.cjs
           node --check tests/real-browser-smoke.cjs
       - name: Audit full Git history for known secret signatures
         run: node scripts/audit-git-history.cjs
@@ -91,6 +92,17 @@ jobs:
           node scripts/build-offline-preview-package.cjs "$RUNNER_TEMP/dadyar-preview-handoff"
       - name: Create public integrity manifest (not deployment)
         run: node scripts/create-public-preview-integrity-manifest.cjs "$RUNNER_TEMP/dadyar-preview-handoff"
+      - name: Verify exact public ZIP before upload (not deployment)
+        run: |
+          set -euo pipefail
+          command -v zip >/dev/null
+          archive="$RUNNER_TEMP/dadyar-public-preview-review.zip"
+          rm -f "$archive"
+          (
+            cd "$RUNNER_TEMP/dadyar-preview-handoff/public"
+            zip -q -X "$archive" index.html INTEGRITY.json
+          )
+          node scripts/verify-public-preview-artifact.cjs "$archive" "$GITHUB_SHA"
       - name: Upload only public HTML and integrity manifest for review (not deployment)
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

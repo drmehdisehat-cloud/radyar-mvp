@@ -34,8 +34,9 @@ test('full contract and browser gates run before the public artifact is built or
   const browsers = step('Run real Chromium and mobile browser gates before artifact creation');
   const build = step('Build isolated preview handoff (not deployment)');
   const manifest = step('Create public integrity manifest (not deployment)');
+  const verify = step('Verify exact public ZIP before upload (not deployment)');
   const upload = step('Upload only public HTML and integrity manifest for review (not deployment)');
-  assert.ok(history < contracts && contracts < releaseAudit && releaseAudit < browsers && browsers < build && build < manifest && manifest < upload,
+  assert.ok(history < contracts && contracts < releaseAudit && releaseAudit < browsers && browsers < build && build < manifest && manifest < verify && verify < upload,
     'artifact upload must be downstream of every required verification step');
   assert.match(workflow, /tests=\(tests\/\*\.test\.cjs\)/);
   assert.match(workflow, /node --test \"\$\{contracts\[@\]\}\"/);
@@ -50,6 +51,14 @@ test('full contract and browser gates run before the public artifact is built or
 });
 
 test('artifact remains a two-file review handoff and never deploys or enables AI', () => {
+  const verification = workflow.slice(
+    step('Verify exact public ZIP before upload (not deployment)'),
+    step('Upload only public HTML and integrity manifest for review (not deployment)')
+  );
+  assert.match(verification, /command -v zip/);
+  assert.match(verification, /zip -q -X/);
+  assert.match(verification, /node scripts\\/verify-public-preview-artifact\\.cjs/);
+  assert.match(verification, /"\\$GITHUB_SHA"/);
   const upload = workflow.slice(step('Upload only public HTML and integrity manifest for review (not deployment)'));
   assert.match(upload, /actions\/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9/);
   assert.match(upload, /public\/index\.html/);
