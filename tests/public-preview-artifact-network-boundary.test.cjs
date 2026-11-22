@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { verifyHtml } = require('../scripts/verify-public-preview-artifact.cjs');
 
-const source = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'));
+const source = fs.readFileSync(path.join(__dirname, '..', 'dadyar-preview', 'index.html'));
 
 function withHead(fragment) {
   const html = source.toString('utf8');
