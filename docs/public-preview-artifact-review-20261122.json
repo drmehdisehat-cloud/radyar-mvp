@@ -3,14 +3,14 @@
   "verified_date": "2026-11-22",
   "repository": "drmehdisehat-cloud/radyar-mvp",
   "source_branch": "dadyar/ai-chat-private-20261101",
-  "source_commit": "cfdee75509b2c5cd54ead82bb2f57ec9bcac6a4e",
+  "source_commit": "8223da77586903722b9b6bad4d69501324640502",
   "workflow_name": "Dadyar public-only preview review artifact",
-  "workflow_run_id": 44990833479,
-  "artifact_id": 14742310087,
+  "workflow_run_id": 44990934177,
+  "artifact_id": 14741742920,
   "archive": {
-    "file_name": "dadyar-preview-cfdee755.zip",
-    "size_bytes": 17979,
-    "sha256": "320d293ffc57ec12d26a032d80449f3d946002a926af1ee46d0a46c749219276",
+    "file_name": "dadyar-public-preview-review-8223da.zip",
+    "size_bytes": 17982,
+    "sha256": "396e368f1ee2ce3f0b456e9694c36df2d5e77bffd0a4610b68623d2431fd658e",
     "entries": [
       {
         "path": "index.html",
@@ -21,7 +21,7 @@
       {
         "path": "INTEGRITY.json",
         "size_bytes": 862,
-        "sha256": "356db4c0ebd3e76af7ea9bcca01ea6a89553b28a9841c61521dcbad1640e86ab"
+        "sha256": "b68966d6725bbb3ba1c98e6280f201f9855b2fbc0bd334c09737ae30707319b2"
       }
     ]
   },
@@ -42,7 +42,7 @@
     "destination_verified": false,
     "deployment_authorized": false
   },
-  "verification_scope": "The GitHub Actions artifact for commit cfdee75509b2c5cd54ead82bb2f57ec9bcac6a4e was downloaded as ZIP bytes into the verification runtime and independently inspected. The archive SHA-256, exact two-entry listing, ZIP CRC/decompression integrity, manifest JSON, HTML SHA-256 and Git blob SHA-1 were checked. The manifest source commit, workflow commit, branch and target subpath were compared with the observed GitHub workflow run and branch.",
+  "verification_scope": "The GitHub Actions artifact ID 14741742920 from workflow run 44990934177 was downloaded as ZIP bytes. The downloaded archive SHA-256, exact two-entry listing, ZIP CRC/decompression integrity, manifest JSON, HTML SHA-256 and Git blob SHA-1 were independently checked. GitHub artifact metadata binds the run to head commit 8223da77586903722b9b6bad4d69501324640502 on the requested source branch; the manifest source commit, workflow commit, branch and target subpath were compared with those observations.",
   "limitations": [
     "This record attests only to the downloaded review artifact and its byte integrity.",
     "It does not prove a real backup restore, a valid hosting destination, authenticated reviewer identity, legal-source correctness, or deployment authorization.",
