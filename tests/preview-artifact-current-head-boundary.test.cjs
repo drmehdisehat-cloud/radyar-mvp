@@ -8,7 +8,11 @@ const { execFileSync } = require('node:child_process');
 
 const recordPath = path.join(__dirname, '../docs/public-preview-artifact-review-08a46a17-20261123.json');
 const record = JSON.parse(fs.readFileSync(recordPath, 'utf8'));
-const currentHead = process.env.GITHUB_SHA || execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+// On pull_request events GITHUB_SHA is a synthetic merge commit. Prefer the
+// explicit reviewed source SHA supplied by the preview workflow.
+const currentHead = process.env.DADYAR_PREVIEW_SOURCE_SHA ||
+  process.env.GITHUB_SHA ||
+  execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
 
 test('review artifact is explicitly stale whenever its source commit differs from the checked-out head', () => {
   assert.match(currentHead, /^[a-f0-9]{40}$/);
