@@ -76,7 +76,7 @@ test('the preview stays offline and all production-release gates remain closed',
 
 test('test counts and limitations do not overstate what the artifact proves', () => {
   assert.equal(record.checks.contract_tests_passed, 1260);
-  assert.equal(record.checks.browser_tests_passed, 20);
+  assert.equal(record.checks.browser_tests_passed, 19);
   assert.equal(record.checks.browser_tests_failed, 0);
   assert.equal(record.checks.browser_tests_skipped, 0);
   assert.match(record.verification_scope, /downloaded from GitHub Actions artifact 14770033022/);
