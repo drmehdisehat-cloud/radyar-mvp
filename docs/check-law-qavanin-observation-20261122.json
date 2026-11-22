@@ -127,6 +127,75 @@
         "rawResponseSha256": null,
         "officialGazetteIssueBytesRetrieved": false
       }
+    },
+    "amendment1372": {
+      "title": "قانون اصلاح موادي از قانون صدور چك مصوب تيرماه 1355",
+      "documentId": "16863897128756457315",
+      "approvalDateShown": "1372/08/11",
+      "guardianCouncilConfirmationDateShown": "1372/08/19",
+      "textUrl": "https://qavanin.ir/Law/TreeText/?IDS=16863897128756457315",
+      "metadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=16863897128756457315",
+      "textRendered": true,
+      "textVisibleLines": [
+        7,
+        9,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68
+      ],
+      "metadataRendered": true,
+      "metadataVisibleLines": [
+        19,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34
+      ],
+      "metadata": {
+        "officialGazetteNumberShown": "14189",
+        "officialGazettePublicationDateShown": "1372/09/01",
+        "promulgationDateShown": "1372/08/25",
+        "effectiveDateShown": "1372/09/17"
+      },
+      "textObservation": "The official rendered text identifies the 1372/08/11 amendment and displays its eight-article enactment. This records the portal text only; it does not determine which provision applies to a particular cheque event.",
+      "metadataObservation": "The official Qavanin attribute page displays Gazette issue 14189, publication 1372/09/01, promulgation 1372/08/25 and effective date 1372/09/17.",
+      "rawHttpBytesCaptured": false,
+      "rawResponseSha256": null,
+      "officialGazetteIssueBytesRetrieved": false,
+      "primarySourceVerified": false,
+      "humanReviewStatus": "pending",
+      "eventDateVersioningApproved": false,
+      "legalAnswerUsePermitted": false,
+      "note": "The page-rendered official text and metadata are research observations only. The exact response bytes, SHA-256, original Gazette issue file and independent human review bound to those bytes remain outstanding."
     }
   },
   "influencingInstruments": [
@@ -136,7 +205,17 @@
     },
     {
       "title": "قانون اصلاح موادی از قانون صدور چک مصوب تیرماه ۱۳۵۵",
-      "approvalDateShown": "1372/08/11"
+      "approvalDateShown": "1372/08/11",
+      "documentId": "16863897128756457315",
+      "textUrl": "https://qavanin.ir/Law/TreeText/?IDS=16863897128756457315",
+      "metadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=16863897128756457315",
+      "officialGazetteNumberShown": "14189",
+      "officialGazettePublicationDateShown": "1372/09/01",
+      "promulgationDateShown": "1372/08/25",
+      "effectiveDateShown": "1372/09/17",
+      "textAndMetadataRenderedAt": "2026-11-22",
+      "rawBytesCaptured": false,
+      "humanReviewStatus": "pending"
     },
     {
       "title": "قانون الحاق یک تبصره به ماده ۲ قانون اصلاح موادی از قانون صدور چک",
@@ -180,7 +259,9 @@
     "eventDateVersioningApproved": false,
     "legalAnswerUsePermitted": false,
     "amendment1397MetadataRendered": true,
-    "amendment1400MetadataRendered": true
+    "amendment1400MetadataRendered": true,
+    "amendment1372TextRendered": true,
+    "amendment1372MetadataRendered": true
   },
   "openGaps": [
     "Raw response bytes and a reproducible SHA-256 for the official text and status-index pages were not captured.",
@@ -189,7 +270,8 @@
     "The full amendment chain and transitional provisions must be resolved before event-date versions can be approved.",
     "No independent qualified legal reviewer has signed off against the exact source bytes.",
     "The 1397 and 1400 official TreeText pages were re-rendered on 2026-11-22, but their raw HTTP bytes, SHA-256 digests and metadata pages were not re-captured in this observation.",
-    "The 1397 and 1400 Qavanin metadata pages rendered on 2026-11-22 and display Gazette number, publication, promulgation and effective dates; the underlying Gazette issue bytes and raw HTTP page bytes were not downloaded or hashed."
+    "The 1397 and 1400 Qavanin metadata pages rendered on 2026-11-22 and display Gazette number, publication, promulgation and effective dates; the underlying Gazette issue bytes and raw HTTP page bytes were not downloaded or hashed.",
+    "The 1372 amendment metadata page rendered and displayed Gazette issue 14189 and effective date 1372/09/17, but the raw Qavanin response bytes, SHA-256 and Gazette issue 14189 file were not captured or independently verified."
   ],
   "nextActions": [
     "Capture raw official text, metadata and Gazette issue bytes with retrieval timestamps and SHA-256.",

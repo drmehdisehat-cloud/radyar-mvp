@@ -87,11 +87,18 @@ test('Qavanin cheque-law URLs remain non-authorizing research candidates until t
   );
   assert.ok(amendment1372, '1372 official Qavanin text lead must be retained');
   assert.equal(amendment1372.candidateStatus,
-    'official-primary-text-rendered-2026-11-19-metadata-unavailable-raw-bytes-not-captured');
+    'official-primary-text-and-metadata-rendered-2026-11-22-raw-bytes-and-gazette-issue-not-captured');
   assert.equal(amendment1372.approvalDateShown, '1372/08/11');
   assert.equal(amendment1372.guardianCouncilConfirmationDateShown, '1372/08/19');
-  assert.equal(amendment1372.officialGazetteNumberShown, null);
-  assert.equal(amendment1372.effectiveFromShown, null);
+  assert.equal(amendment1372.officialGazetteNumberShown, '14189');
+  assert.equal(amendment1372.officialGazetteDateShown, '1372/09/01');
+  assert.equal(amendment1372.promulgationDateShown, '1372/08/25');
+  assert.equal(amendment1372.effectiveFromShown, '1372/09/17');
+  assert.equal(amendment1372.metadataLastDirectFetchAt, '2026-11-22');
+  assert.deepEqual(amendment1372.metadataVisibleLines, [19, 21, 22, 23, 24, 25, 26, 27, 29, 30, 31, 32, 33, 34]);
+  assert.equal(amendment1372.rawHttpBytesCaptured, false);
+  assert.equal(amendment1372.rawResponseSha256, null);
+  assert.equal(amendment1372.officialGazetteIssueBytesRetrieved, false);
   assert.equal(amendment1372.humanReviewStatus, 'pending');
   assert.equal(amendment1372.useInLegalAnswers, false);
 
@@ -101,8 +108,14 @@ test('Qavanin cheque-law URLs remain non-authorizing research candidates until t
   assert.ok(observed1372);
   assert.equal(observed1372.rawHttpBytesCaptured, false);
   assert.equal(observed1372.rawResponseSha256, null);
-  assert.equal(observed1372.metadataRendered, false);
+  assert.equal(observed1372.metadataRendered, true);
+  assert.equal(observed1372.officialGazetteNumber, '14189');
+  assert.equal(observed1372.publicationDate, '1372/09/01');
+  assert.equal(observed1372.promulgationDateShown, '1372/08/25');
+  assert.equal(observed1372.effectiveFrom, '1372/09/17');
+  assert.deepEqual(observed1372.metadataPageLines, [19, 21, 22, 23, 24, 25, 26, 27, 29, 30, 31, 32, 33, 34]);
   assert.equal(observed1372.humanReviewStatus, 'pending');
+  assert.equal(observed1372.useInLegalAnswers, false);
 
   const amendment1403 = record.officialDocumentUrlCandidates.find(item =>
     item.documentId === '634882870797924421'
