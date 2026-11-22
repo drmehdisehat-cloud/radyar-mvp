@@ -83,9 +83,9 @@ test('free-text question is transient, locally classified, omitted from report a
 test('local export acknowledgement does not claim an authenticated reviewer identity', () => {
   const match = html.match(/<label><input type="checkbox" id="export-ack">([\\s\\S]*?)<\\/label>/);
   assert.ok(match, 'local export acknowledgement checkbox must be present');
-  assert.match(match[1], /استفاده‌کننده از این پیش‌نمایش آفلاین/);
+  assert.match(match[1], /بازبین انسانیِ محلی/);
   assert.match(match[1], /صرفاً برای آزمون محلی/);
-  assert.doesNotMatch(match[1], /بازبین انسانی/);
+  assert.match(match[1], /هویت، سمت یا استقلال مرا احراز نمی‌کند/);
   assert.match(html, /id="local-review-warning"/);
   assert.match(html, /هویت، استقلال یا سمت بازبین احراز نمی‌شود/);
 });
