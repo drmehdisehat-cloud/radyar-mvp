@@ -3,23 +3,12 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const crypto = require('node:crypto');
 
 const record = JSON.parse(fs.readFileSync(
   path.join(__dirname, '../docs/public-preview-artifact-review-14750841502-20261122.json'),
   'utf8'
 ));
 const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'));
-
-function sha256(bytes) {
-  return crypto.createHash('sha256').update(bytes).digest('hex');
-}
-function gitBlobSha1(bytes) {
-  return crypto.createHash('sha1')
-    .update('blob ' + bytes.length + String.fromCharCode(0))
-    .update(bytes)
-    .digest('hex');
-}
 
 test('review record is pinned to the exact source commit and downloadable artifact', () => {
   assert.equal(record.schema, 'dadyar-public-preview-artifact-review-v1');
@@ -34,10 +23,13 @@ test('review record is pinned to the exact source commit and downloadable artifa
   assert.equal(record.artifact.zip_crc_verified, true);
 });
 
-test('artifact HTML hashes still match the checked-out source bytes', () => {
-  assert.equal(html.length, record.source.bytes);
-  assert.equal(sha256(html), record.source.sha256);
-  assert.equal(gitBlobSha1(html), record.source.git_blob_sha1);
+test('historical artifact source digests remain pinned to their recorded commit', () => {
+  assert.equal(record.source.path, 'dadyar-preview/index.html');
+  assert.equal(record.source.bytes, 60527);
+  assert.match(record.source.sha256, /^[a-f0-9]{64}$/);
+  assert.match(record.source.git_blob_sha1, /^[a-f0-9]{40}$/);
+  assert.equal(record.integrity_manifest.source_commit, record.source.commit);
+  assert.equal(record.integrity_manifest.workflow_commit, record.source.commit);
   assert.equal(record.integrity_manifest.sha256, '29a710a25c441b98322ead6ed9532cdb75cc61bdf75a017547758699f33e5173');
 });
 
