@@ -42,7 +42,7 @@
     "destination_verified": false,
     "deployment_authorized": false
   },
-  "verification_scope": "The GitHub Actions artifact was downloaded as ZIP bytes and independently inspected in the runtime. The archive SHA-256, exact two-entry listing, ZIP CRC/decompression integrity, manifest JSON, HTML SHA-256 and Git blob SHA-1 were checked. The manifest source commit, workflow commit, branch and target subpath were compared with the observed workflow run and branch.",
+  "verification_scope": "The GitHub Actions artifact was downloaded as ZIP bytes and independently inspected for byte integrity in the runtime. The archive SHA-256, exact two-entry listing, ZIP CRC/decompression integrity, manifest JSON, HTML SHA-256 and Git blob SHA-1 were checked. The manifest source commit, workflow commit, branch and target subpath were compared with the observed workflow run and branch.",
   "limitations": [
     "This record attests only to the downloaded review artifact and its byte integrity.",
     "It does not prove a real backup restore, a valid hosting destination, authenticated reviewer identity, legal-source correctness, or deployment authorization.",
