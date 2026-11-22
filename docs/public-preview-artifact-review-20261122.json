@@ -3,14 +3,14 @@
   "verified_date": "2026-11-22",
   "repository": "drmehdisehat-cloud/radyar-mvp",
   "source_branch": "dadyar/ai-chat-private-20261101",
-  "source_commit": "5f66952a45b1507ba9f81f6b2536c4cdae9911af",
+  "source_commit": "351b6cef03699e15592fa54f90b294df7890f0cf",
   "workflow_name": "Dadyar public-only preview review artifact",
-  "workflow_run_id": 44982108277,
-  "artifact_id": 14738172550,
+  "workflow_run_id": 44986371286,
+  "artifact_id": 14740371196,
   "archive": {
-    "file_name": "dadyar-preview-5f66952a.zip",
-    "size_bytes": 17981,
-    "sha256": "5d7a1c6670a072b9cca7bac85f5934f35f8af619e796a3159a417ef251bbada5",
+    "file_name": "dadyar-preview-351b6cef.zip",
+    "size_bytes": 17983,
+    "sha256": "3b7c69828c1c0eb9d5195e931e4467a9a4755a6a251aa70284959eab14b4aaa2",
     "entries": [
       {
         "path": "index.html",
@@ -21,7 +21,7 @@
       {
         "path": "INTEGRITY.json",
         "size_bytes": 862,
-        "sha256": "9c2d28f5f1399c5714fb3cb931567911951df48c09857fe45064e356b1a899a5"
+        "sha256": "27b1828ecdc0a3700ab816fe5151d88c9264421610244e27631821b8fea423ef"
       }
     ]
   },
