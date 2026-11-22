@@ -6,7 +6,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 
 const record = JSON.parse(fs.readFileSync(
-  path.join(__dirname, '../docs/public-preview-artifact-review-59ac8e52-20261122.json'),
+  path.join(__dirname, '../docs/public-preview-artifact-review-0313f0c5-20261122.json'),
   'utf8'
 ));
 
@@ -18,9 +18,9 @@ test('review evidence is pinned to the exact successful push artifact and source
   assert.equal(record.workflow.status, 'completed');
   assert.equal(record.workflow.conclusion, 'success');
   assert.equal(record.workflow.head_sha, record.source.commit);
-  assert.equal(record.artifact.id, 14767851731);
+  assert.equal(record.artifact.id, 14770221362);
   assert.equal(record.artifact.size_bytes, 18027);
-  assert.equal(record.artifact.sha256, '59ac8e52449c924350778bfb49f2777714b8fe97265266613913531ed1a77590');
+  assert.equal(record.artifact.sha256, '0313f0c54e87eae899766613b2269b851dca5eb6b5959cf37137b207fd1eabb3');
 });
 
 test('reviewed HTML bytes still match the exact branch source', () => {
@@ -44,7 +44,7 @@ test('downloaded ZIP contains exactly the two reviewed public files with matchin
   assert.equal(html.sha256, record.source.sha256);
   assert.equal(html.git_blob_sha1, record.source.git_blob_sha1);
   assert.equal(manifest.size_bytes, 862);
-  assert.equal(manifest.sha256, 'b33fb51038dddb62d5ea48afc96bdfbce5d30b77378e127e8f41a0bc82bf989b');
+  assert.equal(manifest.sha256, '683923599b41375edc7b7d1deffba452c26937a21505a487f38ea561d6d2789e');
   assert.equal(record.artifact.zip_crc_verified, true);
   assert.equal(record.checks.zip_listing_exact, true);
   assert.equal(record.checks.zip_crc_and_extraction, true);
