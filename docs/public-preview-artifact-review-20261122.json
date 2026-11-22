@@ -1,0 +1,49 @@
+{
+  "schema": "dadyar-public-preview-artifact-review-record-v1",
+  "verified_date": "2026-11-22",
+  "repository": "drmehdisehat-cloud/radyar-mvp",
+  "source_branch": "dadyar/ai-chat-private-20261101",
+  "source_commit": "b4dbe52629c8a2e696dc8609591a514c1fa03e03",
+  "workflow_name": "Dadyar public-only preview review artifact",
+  "workflow_run_id": 44977810461,
+  "artifact_id": 14737035002,
+  "archive": {
+    "file_name": "dadyar-preview-b4dbe526.zip",
+    "size_bytes": 17980,
+    "sha256": "9c3274731e0ee59d2ba60f9577fd7f79e463a200e3c4a6934060af52df75b9b1",
+    "entries": [
+      {
+        "path": "index.html",
+        "size_bytes": 60548,
+        "sha256": "b0d328daecaacbea98d92d3c928909411da906d817ba0a58471af26ea52833bb",
+        "git_blob_sha1": "b32d86ce81cc9374db2c7e46d7122ce47c2b1065"
+      },
+      {
+        "path": "INTEGRITY.json",
+        "size_bytes": 862,
+        "sha256": "618e1a738438f3c5f15b72b39acf6194468cc4c71385553db092afd396295823"
+      }
+    ]
+  },
+  "checks": {
+    "zip_listing_exact": true,
+    "zip_integrity_test": true,
+    "manifest_json_parsed": true,
+    "html_sha256_matches_manifest": true,
+    "html_git_blob_sha1_matches_manifest": true,
+    "source_commit_matches_manifest": true,
+    "target_subpath_matches": "/dadyar-preview/",
+    "api_enabled": false,
+    "public_ai_enabled": false,
+    "reviewer_authentication": "not-implemented",
+    "backup_restore_verified": false,
+    "destination_verified": false,
+    "deployment_authorized": false
+  },
+  "verification_scope": "Downloaded artifact bytes were inspected independently: archive SHA-256, ZIP entry listing, extraction, manifest JSON, HTML SHA-256 and Git blob SHA-1.",
+  "limitations": [
+    "This record attests only to the downloaded review artifact and its byte integrity.",
+    "It does not prove a real backup restore, a valid hosting destination, authenticated reviewer identity, legal-source correctness, or deployment authorization.",
+    "Do not upload this artifact to the live site."
+  ]
+}
