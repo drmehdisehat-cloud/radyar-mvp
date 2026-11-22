@@ -14,10 +14,10 @@ test('downloaded preview artifact review record is bound to the observed GitHub 
   assert.equal(record.repository, 'drmehdisehat-cloud/radyar-mvp');
   assert.equal(record.source_branch, 'dadyar/ai-chat-private-20261101');
   assert.match(record.source_commit, /^[a-f0-9]{40}$/);
-  assert.equal(record.workflow_run_id, 44977810461);
-  assert.equal(record.artifact_id, 14737035002);
-  assert.equal(record.archive.size_bytes, 17980);
-  assert.equal(record.archive.sha256, '9c3274731e0ee59d2ba60f9577fd7f79e463a200e3c4a6934060af52df75b9b1');
+  assert.equal(record.workflow_run_id, 44982108277);
+  assert.equal(record.artifact_id, 14738172550);
+  assert.equal(record.archive.size_bytes, 17981);
+  assert.equal(record.archive.sha256, '5d7a1c6670a072b9cca7bac85f5934f35f8af619e796a3159a417ef251bbada5');
 });
 
 test('artifact record describes exactly the two reviewed public files and matching digests', () => {
@@ -28,12 +28,14 @@ test('artifact record describes exactly the two reviewed public files and matchi
   assert.equal(html.sha256, 'b0d328daecaacbea98d92d3c928909411da906d817ba0a58471af26ea52833bb');
   assert.equal(html.git_blob_sha1, 'b32d86ce81cc9374db2c7e46d7122ce47c2b1065');
   assert.equal(manifest.size_bytes, 862);
-  assert.equal(manifest.sha256, '618e1a738438f3c5f15b72b39acf6194468cc4c71385553db092afd396295823');
+  assert.equal(manifest.sha256, '9c2d28f5f1399c5714fb3cb931567911951df48c09857fe45064e356b1a899a5');
   assert.equal(record.checks.zip_listing_exact, true);
   assert.equal(record.checks.zip_integrity_test, true);
   assert.equal(record.checks.html_sha256_matches_manifest, true);
   assert.equal(record.checks.html_git_blob_sha1_matches_manifest, true);
   assert.equal(record.checks.source_commit_matches_manifest, true);
+  assert.equal(record.checks.workflow_commit_matches_manifest, true);
+  assert.equal(record.checks.source_branch_matches_manifest, true);
   assert.equal(record.checks.target_subpath_matches, '/dadyar-preview/');
 });
 
