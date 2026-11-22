@@ -73,7 +73,7 @@
     "csp_connect_src_none": true,
     "topic_hint_count_matches_27": true,
     "contract_tests_passed": 1260,
-    "browser_tests_passed": 20,
+    "browser_tests_passed": 19,
     "browser_tests_failed": 0,
     "browser_tests_skipped": 0,
     "synthetic_cheque_browser_passed": true,
@@ -82,7 +82,7 @@
     "local_review_before_report_download_passed": true,
     "zero_api_calls_browser_test_passed": true
   },
-  "verification_scope": "The ZIP was downloaded from GitHub Actions artifact 14770033022 for successful push run 45062734752. The downloaded file was 18,026 bytes; its locally computed SHA-256 matched the SHA-256 digest printed by the upload job log. ZIP integrity testing passed; the archive contained exactly index.html and INTEGRITY.json. Both extracted files were hashed and the manifest parsed. The HTML SHA-256 and Git blob SHA-1 matched the embedded manifest and the source blob returned by GitHub for the exact branch. Static inspection found no fetch, XMLHttpRequest, WebSocket, EventSource, sendBeacon, localStorage, sessionStorage, indexedDB, form element, or external script/style/image resource; CSP includes connect-src 'none'. The same source commit's CI log records 1,260 contract tests and 20 browser/mobile tests passed, including synthetic cheque, mobile emulation, exact HTTP subpath, report-after-local-review, and no-API-call checks.",
+  "verification_scope": "The ZIP was downloaded from GitHub Actions artifact 14770033022 for successful push run 45062734752. The downloaded file was 18,026 bytes; its locally computed SHA-256 matched the SHA-256 digest printed by the upload job log. ZIP integrity testing passed; the archive contained exactly index.html and INTEGRITY.json. Both extracted files were hashed and the manifest parsed. The HTML SHA-256 and Git blob SHA-1 matched the embedded manifest and the source blob returned by GitHub for the exact branch. Static inspection found no fetch, XMLHttpRequest, WebSocket, EventSource, sendBeacon, localStorage, sessionStorage, indexedDB, form element, or external script/style/image resource; CSP includes connect-src 'none'. The same source commit's CI log records 1,260 contract tests and 19 browser/mobile tests passed, including synthetic cheque, mobile emulation, exact HTTP subpath, report-after-local-review, and no-API-call checks.",
   "limitations": [
     "This verifies the downloadable review artifact and its byte integrity only.",
     "It does not prove a real backup restore, valid hosting destination, authenticated reviewer identity, legal-source correctness, or deployment authorization.",
