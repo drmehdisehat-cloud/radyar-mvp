@@ -1,0 +1,68 @@
+{
+  "schema": "dadyar-public-preview-artifact-review-v1",
+  "observed_at": "2026-11-22T13:34:00Z",
+  "source": {
+    "branch": "dadyar/ai-chat-private-20261101",
+    "commit": "66facd392cdbbe3547407d7c04da482825aaa319",
+    "path": "dadyar-preview/index.html",
+    "git_blob_sha1": "b32f7f804f36d39c3773450351bbbb47eab3921f",
+    "sha256": "9b45ffd6f37ddc80b567f10ed683a22771153417b398499d1ee989da245cd1c3",
+    "bytes": 60527
+  },
+  "workflow": {
+    "id": 45023353128,
+    "run_number": 86,
+    "event": "push",
+    "conclusion": "success",
+    "url": "https://github.com/drmehdisehat-cloud/radyar-mvp/actions/runs/45023353128"
+  },
+  "artifact": {
+    "id": 14754920919,
+    "name": "dadyar-public-preview-review-66facd392cdbbe3547407d7c04da482825aaa319",
+    "size_bytes": 17977,
+    "sha256": "a2ac8f25f8663fc8c74eabc9c0c6ae8bf414bc945fa5bf3eed9393fdb76bcab9",
+    "created_at": "2026-11-22T12:39:55Z",
+    "url": "https://github.com/drmehdisehat-cloud/radyar-mvp/actions/runs/45023353128/artifacts/14754920919",
+    "archive_entries": ["index.html", "INTEGRITY.json"],
+    "zip_crc_verified": true
+  },
+  "integrity_manifest": {
+    "path": "INTEGRITY.json",
+    "bytes": 862,
+    "sha256": "0ea2c9d9562608964d55cacc3ff07afab2c6a3579a9c3e7f3bc5fc9fb352fdbf",
+    "schema": "dadyar-public-preview-integrity-v1",
+    "source_commit": "66facd392cdbbe3547407d7c04da482825aaa319",
+    "workflow_commit": "66facd392cdbbe3547407d7c04da482825aaa319",
+    "source_branch": "dadyar/ai-chat-private-20261101",
+    "source_file": "public/index.html",
+    "target_subpath": "/dadyar-preview/",
+    "topic_hint_count": 27,
+    "api_enabled": false,
+    "public_ai_enabled": false,
+    "reviewer_authentication": "not-implemented",
+    "backup_restore_verified": false,
+    "destination_verified": false,
+    "deployment_authorized": false
+  },
+  "independent_checks": {
+    "artifact_downloaded": true,
+    "exact_archive_entries": true,
+    "zip_crc_verified": true,
+    "html_sha256_matches_manifest": true,
+    "html_git_blob_sha1_matches_manifest": true,
+    "integrity_manifest_sha256_recorded": true,
+    "csp_default_src_none": true,
+    "csp_connect_src_none": true,
+    "csp_form_action_none": true,
+    "no_fetch_or_xhr_or_websocket_or_eventsource_or_beacon": true,
+    "download_initially_disabled": true,
+    "viewport_meta_present": true
+  },
+  "limitations": [
+    "Artifact integrity does not prove backup restoration.",
+    "Artifact integrity does not verify the hosting destination or live HTTPS headers.",
+    "The local browser review flow does not authenticate reviewer identity.",
+    "No legal-source or legal-accuracy approval is implied.",
+    "No deployment authorization is implied."
+  ]
+}
