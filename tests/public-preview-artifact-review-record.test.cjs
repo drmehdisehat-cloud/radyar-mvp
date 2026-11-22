@@ -13,13 +13,13 @@ test('downloaded preview artifact review record is pinned to its exact source co
   assert.equal(record.schema, 'dadyar-public-preview-artifact-review-record-v1');
   assert.equal(record.repository, 'drmehdisehat-cloud/radyar-mvp');
   assert.equal(record.source_branch, 'dadyar/ai-chat-private-20261101');
-  assert.equal(record.source_commit, '75c404a4318fb204955d687f06d39d8355f02d0f');
+  assert.equal(record.source_commit, 'f9b44bfe00e2cadbd9598dcead96e71e403b716a');
   assert.equal(record.workflow_name, 'Dadyar public-only preview review artifact');
-  assert.equal(record.workflow_run_id, 44990665104);
-  assert.equal(record.artifact_id, 14742155379);
-  assert.equal(record.archive.file_name, 'dadyar-preview-75c404a4.zip');
-  assert.equal(record.archive.size_bytes, 17983);
-  assert.equal(record.archive.sha256, '42a9e1f4e90c0db5dada4785ebdcaa6aaba50c1afa2d4f270794cfba6263390a');
+  assert.equal(record.workflow_run_id, 44990737257);
+  assert.equal(record.artifact_id, 14741931459);
+  assert.equal(record.archive.file_name, 'dadyar-preview-f9b44bfe.zip');
+  assert.equal(record.archive.size_bytes, 17981);
+  assert.equal(record.archive.sha256, '3336c3821c4b2a130c8b8ee21030c9884b1626e91bb0b4c42cc98fd383953bde');
 });
 
 test('artifact record describes exactly the two downloaded public files and matching digests', () => {
@@ -30,7 +30,7 @@ test('artifact record describes exactly the two downloaded public files and matc
   assert.equal(html.sha256, 'b0d328daecaacbea98d92d3c928909411da906d817ba0a58471af26ea52833bb');
   assert.equal(html.git_blob_sha1, 'b32d86ce81cc9374db2c7e46d7122ce47c2b1065');
   assert.equal(manifest.size_bytes, 862);
-  assert.equal(manifest.sha256, '1f2b7d542a000753e5dbb8431b7e0946b2c3e8e2e09e189f1589e549932f27b0');
+  assert.equal(manifest.sha256, '5a0e23ac8beb56220a0a24770e9980428259a6c8870e4e8cc4b328359dfbf9b4');
   assert.equal(record.checks.zip_listing_exact, true);
   assert.equal(record.checks.zip_integrity_test, true);
   assert.equal(record.checks.manifest_json_parsed, true);
