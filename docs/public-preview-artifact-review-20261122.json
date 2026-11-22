@@ -40,7 +40,7 @@
     "destination_verified": false,
     "deployment_authorized": false
   },
-  "verification_scope": "Downloaded artifact bytes were inspected independently: archive SHA-256, ZIP entry listing, extraction, manifest JSON, HTML SHA-256 and Git blob SHA-1.",
+  "verification_scope": "Downloaded artifact bytes were inspected independently for byte integrity: archive SHA-256, ZIP entry listing, extraction, manifest JSON, HTML SHA-256 and Git blob SHA-1.",
   "limitations": [
     "This record attests only to the downloaded review artifact and its byte integrity.",
     "It does not prove a real backup restore, a valid hosting destination, authenticated reviewer identity, legal-source correctness, or deployment authorization.",
