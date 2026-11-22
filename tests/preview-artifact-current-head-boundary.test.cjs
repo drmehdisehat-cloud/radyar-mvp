@@ -18,12 +18,10 @@ test('review artifact is explicitly stale whenever its source commit differs fro
 
   if (record.source.commit !== currentHead) {
     assert.ok(
-      record.limitations.some(item => /not a package for any later source commit/i.test(item)),
-      'an artifact from an older commit must carry an explicit stale-artifact limitation'
-    );
-    assert.ok(
-      /pinned to source commit/i.test(record.verification_scope),
-      'the verification scope must identify the exact source commit'
+      record.limitations.some(item =>
+        item.includes(record.source.commit) && /not a package for any later source commit/i.test(item)
+      ),
+      'an artifact from an older commit must name its exact source commit and carry an explicit stale-artifact limitation'
     );
   }
 });
