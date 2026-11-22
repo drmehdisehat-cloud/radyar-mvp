@@ -38,10 +38,11 @@ test('offline preview denies network, forms, frames, plugins and external assets
   for (const name of [
     'default-src', 'connect-src', 'img-src', 'font-src', 'object-src',
     'frame-src', 'media-src', 'manifest-src', 'worker-src', 'child-src',
-    'prefetch-src', 'form-action', 'base-uri'
+    'form-action', 'base-uri'
   ]) {
     assert.equal(directives.get(name), "'none'", 'CSP directive must deny ' + name);
   }
+  assert.equal(directives.has('prefetch-src'), false, 'unsupported prefetch-src directive must be omitted; default-src none remains the fallback');
   assert.doesNotMatch(
     html,
     /<(?:script|link|iframe|img|audio|video|source|object|embed|track)\b[^>]*\b(?:src|href)\s*=\s*["']?\s*(?:https?:|\/\/|\/)/i,
