@@ -81,15 +81,17 @@ test('free-text question is transient, locally classified, omitted from report a
 
 
 test('local export acknowledgement does not claim an authenticated reviewer identity', () => {
-  const match = html.match(/<label><input type="checkbox" id="export-ack">([\\s\\S]*?)<\\/label>/);
-  assert.ok(match, 'local export acknowledgement checkbox must be present');
-  assert.match(match[1], /بازبین انسانیِ محلی/);
-  assert.match(match[1], /صرفاً برای آزمون محلی/);
-  assert.match(match[1], /هویت، سمت یا استقلال مرا احراز نمی‌کند/);
+  const marker = '<label><input type="checkbox" id="export-ack">';
+  const start = html.indexOf(marker);
+  const end = html.indexOf('</label>', start);
+  assert.ok(start >= 0 && end > start, 'local export acknowledgement checkbox must be present');
+  const label = html.slice(start + marker.length, end);
+  assert.match(label, /بازبین انسانیِ محلی/);
+  assert.match(label, /صرفاً برای آزمون محلی/);
+  assert.match(label, /هویت، سمت یا استقلال مرا احراز نمی‌کند/);
   assert.match(html, /id="local-review-warning"/);
   assert.match(html, /هویت، استقلال یا سمت بازبین احراز نمی‌شود/);
 });
-
 test('human-review notes and decisions are in-memory only and clearly unauthenticated', () => {
   assert.match(html, /بازبینی محلی توسط انسان \(بدون احراز هویت\)/);
   assert.match(html, /هویت یا سمت بازبین احراز نمی‌شود/);
