@@ -9,17 +9,21 @@ const record = JSON.parse(fs.readFileSync(
   'utf8'
 ));
 
-test('downloaded preview artifact review record is pinned to its exact source commit and workflow run', () => {
+test('downloaded preview artifact review record is pinned to the exact current branch head and workflow run', () => {
   assert.equal(record.schema, 'dadyar-public-preview-artifact-review-record-v1');
   assert.equal(record.repository, 'drmehdisehat-cloud/radyar-mvp');
   assert.equal(record.source_branch, 'dadyar/ai-chat-private-20261101');
-  assert.equal(record.source_commit, '8223da77586903722b9b6bad4d69501324640502');
+  assert.equal(record.source_commit, '09d30c8629cce50a7d6272440d1712d3c6de4e22');
   assert.equal(record.workflow_name, 'Dadyar public-only preview review artifact');
-  assert.equal(record.workflow_run_id, 44990934177);
-  assert.equal(record.artifact_id, 14741742920);
-  assert.equal(record.archive.file_name, 'dadyar-public-preview-review-8223da.zip');
-  assert.equal(record.archive.size_bytes, 17982);
-  assert.equal(record.archive.sha256, '396e368f1ee2ce3f0b456e9694c36df2d5e77bffd0a4610b68623d2431fd658e');
+  assert.equal(record.workflow_run_id, 44994500093);
+  assert.equal(record.artifact_id, 14743491060);
+  assert.equal(record.artifact_name, 'dadyar-public-preview-review-09d30c8629cce50a7d6272440d1712d3c6de4e22');
+  assert.equal(record.archive.file_name, 'dadyar-preview-09d30c8.zip');
+  assert.equal(record.archive.size_bytes, 17980);
+  assert.equal(record.archive.sha256, '52739f2c81fab77f7d9cfd77413410e8ff84caa1ef19d1d7f50ca25d32fc026e');
+  assert.equal(record.checks.artifact_metadata_matches_run, true);
+  assert.equal(record.checks.archive_sha256_matches_workflow_log, true);
+  assert.equal(record.checks.html_git_blob_sha1_matches_branch_source, true);
 });
 
 test('artifact record describes exactly the two downloaded public files and matching digests', () => {
@@ -30,7 +34,7 @@ test('artifact record describes exactly the two downloaded public files and matc
   assert.equal(html.sha256, 'b0d328daecaacbea98d92d3c928909411da906d817ba0a58471af26ea52833bb');
   assert.equal(html.git_blob_sha1, 'b32d86ce81cc9374db2c7e46d7122ce47c2b1065');
   assert.equal(manifest.size_bytes, 862);
-  assert.equal(manifest.sha256, 'b68966d6725bbb3ba1c98e6280f201f9855b2fbc0bd334c09737ae30707319b2');
+  assert.equal(manifest.sha256, '5508940d04781146c6e5fac170d9bfbfe444b9d0fc06eec0a8516660514763f1');
   assert.equal(record.checks.zip_listing_exact, true);
   assert.equal(record.checks.zip_integrity_test, true);
   assert.equal(record.checks.manifest_json_parsed, true);
@@ -49,7 +53,7 @@ test('artifact byte verification never promotes review bytes to restore, authent
   assert.equal(record.checks.backup_restore_verified, false);
   assert.equal(record.checks.destination_verified, false);
   assert.equal(record.checks.deployment_authorized, false);
-  assert.match(record.verification_scope, /downloaded as ZIP bytes/);
+  assert.match(record.verification_scope, /downloaded as bytes/);
   assert.ok(record.limitations.some(value => /does not prove a real backup restore/.test(value)));
   assert.ok(record.limitations.some(value => /Do not upload/.test(value)));
 });
