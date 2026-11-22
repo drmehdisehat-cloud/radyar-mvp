@@ -48,3 +48,16 @@ test('artifact integrity record never promotes review bytes to restore, authenti
   assert.ok(record.limitations.some(value => /does not prove a real backup restore/.test(value)));
   assert.ok(record.limitations.some(value => /Do not upload/.test(value)));
 });
+
+test('artifact review record contains digest-only evidence and no credentials or client payload', () => {
+  assert.match(record.archive.sha256, /^[a-f0-9]{64}$/);
+  assert.match(record.source_commit, /^[a-f0-9]{40}$/);
+  for (const entry of record.archive.entries) {
+    assert.match(entry.sha256, /^[a-f0-9]{64}$/);
+    assert.ok(Number.isSafeInteger(entry.size_bytes) && entry.size_bytes > 0);
+  }
+  const serialized = JSON.stringify(record).toLowerCase();
+  for (const forbidden of ['private_key', 'api_key', 'password', 'client_record', 'backup_archive_content']) {
+    assert.equal(serialized.includes(forbidden), false, 'review record must not contain ' + forbidden);
+  }
+});
