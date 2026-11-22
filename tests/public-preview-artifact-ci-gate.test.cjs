@@ -57,8 +57,8 @@ test('artifact remains a two-file review handoff and never deploys or enables AI
   );
   assert.match(verification, /command -v zip/);
   assert.match(verification, /zip -q -X/);
-  assert.match(verification, /node scripts\\/verify-public-preview-artifact\\.cjs/);
-  assert.match(verification, /"\\$GITHUB_SHA"/);
+  assert.match(verification, /node scripts\/verify-public-preview-artifact\.cjs/);
+  assert.match(verification, /"\$GITHUB_SHA"/);
   const upload = workflow.slice(step('Upload only public HTML and integrity manifest for review (not deployment)'));
   assert.match(upload, /actions\/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9/);
   assert.match(upload, /public\/index\.html/);
