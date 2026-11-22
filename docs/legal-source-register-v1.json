@@ -1,6 +1,6 @@
 {
   "schema": "dadyar-legal-source-register-v1",
-  "observedAt": "2026-11-21",
+  "observedAt": "2026-11-22",
   "policy": {
     "approvalRule": "A secondary page, search result, owner image, or plausible official-portal URL is not an authenticated primary legal source.",
     "answerUse": "Only records with an independently verified primary document, event-date version, direct document URL, and approved human review may support a legal answer.",
@@ -70,12 +70,12 @@
         },
         {
           "url": "https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689",
-          "candidateStatus": "official-primary-text-rendered-2026-11-20-raw-bytes-not-captured",
+          "candidateStatus": "official-primary-text-and-metadata-rendered-2026-11-22-raw-bytes-not-captured",
           "documentId": "8508483613671622689",
           "sourceClass": "primary-official-qavanin",
           "discoveryLeadUrl": "https://hoghogh.ai/laws/قانون-صدور-چک/6",
           "lastDirectFetchAt": "2026-11-22",
-          "lastDirectFetchResult": "official Qavanin text page freshly rendered; raw HTTP response bytes and SHA-256 not captured",
+          "lastDirectFetchResult": "official-amendment-text-and-metadata-readable-via-independent-web-rendering; raw-response-bytes-and-sha256-not-captured",
           "humanReviewStatus": "pending",
           "useInLegalAnswers": false,
           "note": "متن مستقیم اصلاحیه و صفحه اطلاعات پایه پایگاه رسمی Qavanin در ۱۴۰۵/۰۸/۲۹ دوباره قابل خواندن بود. فراداده همان صفحه شماره روزنامه رسمی ۲۲۱۸۸، تاریخ انتشار ۱۴۰۰/۰۳/۰۲، ابلاغ ۱۴۰۰/۰۲/۲۸، تاریخ تصویب ۱۴۰۰/۰۱/۲۹، تأیید شورای نگهبان ۱۴۰۰/۰۲/۱۸ و تاریخ اجرا ۱۴۰۰/۰۳/۱۸ را نشان می‌دهد. متن استخراج‌شده و فراداده در مشاهده‌نامه ثبت شده‌اند؛ بایت خام پاسخ و SHA-256 ثبت نشده و بازبینی حقوقی انسانی متصل به همین متن انجام نشده است؛ بنابراین برای پاسخ حقوقی مجاز نیست.",
@@ -85,7 +85,7 @@
           "promulgationDateShown": "1400/02/28",
           "effectiveFromShown": "1400/03/18",
           "guardianCouncilConfirmationDateShown": "1400/02/18",
-          "metadataRetrievedAt": "2026-11-20",
+          "metadataRetrievedAt": "2026-11-22",
           "textPageRendered": true,
           "metadataPageRendered": true,
           "rawHttpBytesCaptured": false,
@@ -115,15 +115,50 @@
             "primarySourceVerified": false,
             "humanReviewStatus": "pending",
             "useInLegalAnswers": false
+          },
+          "metadataPageLines": [
+            19,
+            21,
+            22,
+            24,
+            26,
+            30,
+            32,
+            33,
+            34
+          ],
+          "latestMetadataObservation": {
+            "observedAt": "2026-11-22",
+            "metadataPageRendered": true,
+            "visibleLines": [
+              19,
+              21,
+              22,
+              24,
+              26,
+              30,
+              32,
+              33,
+              34
+            ],
+            "officialGazetteNumberShown": "22188",
+            "officialGazettePublicationDateShown": "1400/03/02",
+            "promulgationDateShown": "1400/02/28",
+            "effectiveDateShown": "1400/03/18",
+            "rawHttpBytesCaptured": false,
+            "rawResponseSha256": null,
+            "officialGazetteIssueBytesRetrieved": false,
+            "humanReviewStatus": "pending",
+            "useInLegalAnswers": false
           }
         },
         {
           "url": "https://qavanin.ir/Law/TreeText/?IDS=3613585600919945767",
-          "candidateStatus": "official-primary-text-rendered-2026-11-19-raw-bytes-not-captured",
+          "candidateStatus": "official-primary-text-and-metadata-rendered-2026-11-22-raw-bytes-not-captured",
           "documentId": "3613585600919945767",
           "sourceClass": "primary-official-qavanin",
           "lastDirectFetchAt": "2026-11-22",
-          "lastDirectFetchResult": "official Qavanin text page freshly rendered; raw HTTP response bytes and SHA-256 not captured",
+          "lastDirectFetchResult": "official-amendment-text-and-metadata-readable-via-independent-web-rendering; raw-response-bytes-and-sha256-not-captured",
           "approvalDateShown": "1397/08/13",
           "guardianCouncilConfirmationDateShown": "1397/08/23",
           "humanReviewStatus": "pending",
@@ -134,7 +169,7 @@
           "officialGazetteDateShown": "1397/09/05",
           "promulgationDateShown": "1397/09/03",
           "effectiveFromShown": "1397/09/21",
-          "metadataRetrievedAt": "2026-11-19",
+          "metadataRetrievedAt": "2026-11-22",
           "rawHttpBytesCaptured": false,
           "rawResponseSha256": null,
           "latestTextObservation": {
@@ -165,6 +200,42 @@
             "rawHttpBytesCaptured": false,
             "rawResponseSha256": null,
             "primarySourceVerified": false,
+            "humanReviewStatus": "pending",
+            "useInLegalAnswers": false
+          },
+          "metadataPageRendered": true,
+          "metadataPageLines": [
+            19,
+            21,
+            22,
+            24,
+            26,
+            30,
+            32,
+            33,
+            34
+          ],
+          "latestMetadataObservation": {
+            "observedAt": "2026-11-22",
+            "metadataPageRendered": true,
+            "visibleLines": [
+              19,
+              21,
+              22,
+              24,
+              26,
+              30,
+              32,
+              33,
+              34
+            ],
+            "officialGazetteNumberShown": "21467",
+            "officialGazettePublicationDateShown": "1397/09/05",
+            "promulgationDateShown": "1397/09/03",
+            "effectiveDateShown": "1397/09/21",
+            "rawHttpBytesCaptured": false,
+            "rawResponseSha256": null,
+            "officialGazetteIssueBytesRetrieved": false,
             "humanReviewStatus": "pending",
             "useInLegalAnswers": false
           }
@@ -287,7 +358,7 @@
         "legalAnswerUsePermitted": false,
         "primarySourceVerified": false,
         "humanReviewStatus": "pending",
-        "sourceMethod": "independent web rendering of direct Qavanin text and metadata/status pages; raw HTTP response bytes were not captured",
+        "sourceMethod": "independent web rendering of direct Qavanin text, metadata and status-index pages; raw HTTP response bytes and Gazette issue bytes were not captured",
         "originalLawMetadata": {
           "directTextUrl": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
           "directMetadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
@@ -407,7 +478,43 @@
             "metadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=3613585600919945767",
             "metadataRendered": true,
             "promulgationDateShown": "1397/09/03",
-            "lastStatusShown": "1399/09/22"
+            "lastStatusShown": "1399/09/22",
+            "lastObservedAt": "2026-11-22",
+            "metadataRetrievedAt": "2026-11-22",
+            "textPageLines": [
+              7,
+              9,
+              42,
+              43,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              82,
+              83,
+              84,
+              85,
+              86,
+              87,
+              88,
+              90,
+              91
+            ],
+            "metadataPageLines": [
+              19,
+              21,
+              22,
+              24,
+              26,
+              30,
+              32,
+              33,
+              34
+            ],
+            "useInLegalAnswers": false
           },
           {
             "id": "check-amendment-1400",
@@ -427,9 +534,38 @@
             "metadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=8508483613671622689",
             "metadataRendered": true,
             "promulgationDateShown": "1400/02/28",
-            "lastObservedAt": "2026-11-20",
-            "metadataRetrievedAt": "2026-11-20",
-            "renderedTextExcerpt": "ماده 1- در ماده (6) قانون صدور چك مصوب 16 /4 /1355 با اصلاحات و الحاقات بعدي عبارتهاي «و مدت اعتبار» و «حداكثر مدت اعتبار چك از زمان دريافت دسته چك سه سال است و چكهايي كه تاريخ مندرج در آنها پس از مدت اعتبار باشد، مشمول اين قانون نمي شوند» حذف مي شود.\nماده 2- در تبصره (1) ماده (21 مكرر) قانون، عبارت «در مورد چكهايي كه پس از گذشت دو سال از لازم الاجراء شدن اين قانون» به عبارت «در مورد برگه چكهايي كه از دسته چكهاي ارائه شده پس از پايان اسفندماه سال 1399» اصلاح و جمله «چكهايي كه تاريخ صدور آنها قبل از زمان مذكور باشد تابع قانون زمان صدور مي باشد» به جمله «چكهاي صادرشده از دسته چكهايي كه تاريخ ارائه آن دسته چكها قبل از زمان مذكور در اين تبصره باشد، تابع قانون زمان ارائه دسته چك است و بانكها بدون نياز به ثبت آن چكها در سامانه صياد نسبت به پرداخت وجه چك اقدام مي كنند. در كليه برگه هاي دسته چكهاي ارائه شده پس از تاريخ فوق الذكر بايد عبارت (صدور و پشت نويسي چك بدون درج در سامانه صياد فاقد اعتبار است) درج شود» اصلاح مي شود.\nماده 3- يك ماده به عنوان (24) به قانون، به شرح زير الحاق و شماره ماده (24) فعلي به (25) اصلاح مي شود:\nماده 24- چك تضمين شده تابع احكام ذيل است:\n1- صدور و تحويل چكهاي تضمين شده توسط بانكها به مشتري، صرفاً از طريق سامانه صدور يكپارچه الكترونيكي دسته چك (صياد) امكان پذير و مستلزم تكميل برگه (فرم) درخواست توسط متقاضي در شعبه بانك در حضور متصدي بانكي، درج مشخصات هويتي و شماره حساب گيرنده روي چك تضمين شده بر اساس دستورالعمل اعلامي توسط بانك مركزي جمهوري اسلامي ايران و نيز ثبت علت درخواست صدور چك مذكور در سامانه صياد مي باشد. سامانه مذكور به هر برگه چك، شناسه يكتا اختصاص مي دهد و بانك مركزي موظف است امكان استعلام اطلاعات چك تضمين شده را براي گيرنده (ذي نفع) فراهم نمايد.\n2- پرداخت مبلغ چك تضمين شده توسط بانك صرفاً در وجه و به شماره حساب گيرنده (ذي نفع) كه مشخصات وي روي چك تضمين شده درج گرديده است، امكان پذير مي باشد [و ظهرنويسي براي انتقال چك تضمين شده درج گرديده است، امكان پذير مي باشد] و ظهرنويسي براي انتقال چك تضمين شده فاقد اعتبار است.\n3- ابطال چك تضمين شده به درخواست متقاضي يا وكيل يا نماينده قانوني وي با ارائه اصل چك جهت واريز وجه چك به حساب متقاضي، بدون نياز به ظهرنويسي گيرنده (ذي نفع) تنها تا يك ماه پس از صدور آن توسط بانك صادركننده امكان پذير است. همچنين پرداخت چك تضمين شده به گيرنده (ذي نفع) با ارائه اصل چك تنها تا يك ماه پس از صدور آن توسط بانك امكان پذير است. پرداخت يا ابطال چك پس از مهلت مقرر در اين بند منوط به تكميل برگه (فرم) هاي مربوط به مبارزه با پولشويي توسط متقاضي يا گيرنده (ذي نفع) و گزارش شعبه بانك به واحد مبارزه با پولشويي بانك صادركننده مي باشد.\n4- در صورت مفقودي چك تضمين شده، هر گاه متقاضي و گيرنده (ذي نفع) هر دو به بانك صادركننده مراجعه و نسبت به تكميل و امضاي برگه (فرم) اعلام مفقودي چك تضمين شده و تعهدنامه عدم ادعا نسبت به چك مفقود شده اقدام نموده و نسخه المثني آن را از بانك درخواست كنند، بانك مكلف است علاوه بر احراز هويت متقاضي و گيرنده (ذي نفع) نسبت به استعلام صحت مشخصات هويتي متقاضي و گيرنده (ذي نفع) از سامانه نظام هويت سنجي الكترونيكي بانكي اقدام نمايد و پس از ابطال چك مفقود شده، نسبت به صدور چك المثني مطابق با اطلاعات مندرج در سامانه صياد اقدام كند.\n5- در صورت جعل چك تضمين شده يا استفاده از چك تضمين شده مجعول، مرتكب علاوه بر مجازات هاي قانوني مقرر، به حكم دادگاه به مدت دو تا شش سال از گرفتن چك تضمين شده محروم مي شود."
+            "lastObservedAt": "2026-11-22",
+            "metadataRetrievedAt": "2026-11-22",
+            "renderedTextExcerpt": "ماده 1- در ماده (6) قانون صدور چك مصوب 16 /4 /1355 با اصلاحات و الحاقات بعدي عبارتهاي «و مدت اعتبار» و «حداكثر مدت اعتبار چك از زمان دريافت دسته چك سه سال است و چكهايي كه تاريخ مندرج در آنها پس از مدت اعتبار باشد، مشمول اين قانون نمي شوند» حذف مي شود.\nماده 2- در تبصره (1) ماده (21 مكرر) قانون، عبارت «در مورد چكهايي كه پس از گذشت دو سال از لازم الاجراء شدن اين قانون» به عبارت «در مورد برگه چكهايي كه از دسته چكهاي ارائه شده پس از پايان اسفندماه سال 1399» اصلاح و جمله «چكهايي كه تاريخ صدور آنها قبل از زمان مذكور باشد تابع قانون زمان صدور مي باشد» به جمله «چكهاي صادرشده از دسته چكهايي كه تاريخ ارائه آن دسته چكها قبل از زمان مذكور در اين تبصره باشد، تابع قانون زمان ارائه دسته چك است و بانكها بدون نياز به ثبت آن چكها در سامانه صياد نسبت به پرداخت وجه چك اقدام مي كنند. در كليه برگه هاي دسته چكهاي ارائه شده پس از تاريخ فوق الذكر بايد عبارت (صدور و پشت نويسي چك بدون درج در سامانه صياد فاقد اعتبار است) درج شود» اصلاح مي شود.\nماده 3- يك ماده به عنوان (24) به قانون، به شرح زير الحاق و شماره ماده (24) فعلي به (25) اصلاح مي شود:\nماده 24- چك تضمين شده تابع احكام ذيل است:\n1- صدور و تحويل چكهاي تضمين شده توسط بانكها به مشتري، صرفاً از طريق سامانه صدور يكپارچه الكترونيكي دسته چك (صياد) امكان پذير و مستلزم تكميل برگه (فرم) درخواست توسط متقاضي در شعبه بانك در حضور متصدي بانكي، درج مشخصات هويتي و شماره حساب گيرنده روي چك تضمين شده بر اساس دستورالعمل اعلامي توسط بانك مركزي جمهوري اسلامي ايران و نيز ثبت علت درخواست صدور چك مذكور در سامانه صياد مي باشد. سامانه مذكور به هر برگه چك، شناسه يكتا اختصاص مي دهد و بانك مركزي موظف است امكان استعلام اطلاعات چك تضمين شده را براي گيرنده (ذي نفع) فراهم نمايد.\n2- پرداخت مبلغ چك تضمين شده توسط بانك صرفاً در وجه و به شماره حساب گيرنده (ذي نفع) كه مشخصات وي روي چك تضمين شده درج گرديده است، امكان پذير مي باشد [و ظهرنويسي براي انتقال چك تضمين شده درج گرديده است، امكان پذير مي باشد] و ظهرنويسي براي انتقال چك تضمين شده فاقد اعتبار است.\n3- ابطال چك تضمين شده به درخواست متقاضي يا وكيل يا نماينده قانوني وي با ارائه اصل چك جهت واريز وجه چك به حساب متقاضي، بدون نياز به ظهرنويسي گيرنده (ذي نفع) تنها تا يك ماه پس از صدور آن توسط بانك صادركننده امكان پذير است. همچنين پرداخت چك تضمين شده به گيرنده (ذي نفع) با ارائه اصل چك تنها تا يك ماه پس از صدور آن توسط بانك امكان پذير است. پرداخت يا ابطال چك پس از مهلت مقرر در اين بند منوط به تكميل برگه (فرم) هاي مربوط به مبارزه با پولشويي توسط متقاضي يا گيرنده (ذي نفع) و گزارش شعبه بانك به واحد مبارزه با پولشويي بانك صادركننده مي باشد.\n4- در صورت مفقودي چك تضمين شده، هر گاه متقاضي و گيرنده (ذي نفع) هر دو به بانك صادركننده مراجعه و نسبت به تكميل و امضاي برگه (فرم) اعلام مفقودي چك تضمين شده و تعهدنامه عدم ادعا نسبت به چك مفقود شده اقدام نموده و نسخه المثني آن را از بانك درخواست كنند، بانك مكلف است علاوه بر احراز هويت متقاضي و گيرنده (ذي نفع) نسبت به استعلام صحت مشخصات هويتي متقاضي و گيرنده (ذي نفع) از سامانه نظام هويت سنجي الكترونيكي بانكي اقدام نمايد و پس از ابطال چك مفقود شده، نسبت به صدور چك المثني مطابق با اطلاعات مندرج در سامانه صياد اقدام كند.\n5- در صورت جعل چك تضمين شده يا استفاده از چك تضمين شده مجعول، مرتكب علاوه بر مجازات هاي قانوني مقرر، به حكم دادگاه به مدت دو تا شش سال از گرفتن چك تضمين شده محروم مي شود.",
+            "textPageLines": [
+              7,
+              9,
+              42,
+              43,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55
+            ],
+            "metadataPageLines": [
+              19,
+              21,
+              22,
+              24,
+              26,
+              30,
+              32,
+              33,
+              34
+            ],
+            "useInLegalAnswers": false
           },
           {
             "id": "check-amendment-1403",
@@ -498,6 +634,94 @@
           "primarySourceVerified": false,
           "humanReviewStatus": "pending",
           "legalAnswerUsePermitted": false
+        },
+        "latestRecheck": {
+          "observedAt": "2026-11-22",
+          "statusIndexUrl": "https://qavanin.ir/Law/StatusIndex/?IDS=11400475274213876131",
+          "statusIndexRendered": true,
+          "statusIndexLines": [
+            17,
+            20,
+            30
+          ],
+          "amendment1358TextRendered": true,
+          "amendment1358TextLines": [
+            7,
+            10,
+            42,
+            45
+          ],
+          "amendment1397TextRendered": true,
+          "amendment1397TextLines": [
+            7,
+            9,
+            42,
+            43,
+            45,
+            46,
+            47,
+            48,
+            49,
+            50,
+            51,
+            82,
+            83,
+            84,
+            85,
+            86,
+            87,
+            88,
+            90,
+            91
+          ],
+          "amendment1397MetadataRendered": true,
+          "amendment1397MetadataLines": [
+            19,
+            21,
+            22,
+            24,
+            26,
+            30,
+            32,
+            33,
+            34
+          ],
+          "amendment1400TextRendered": true,
+          "amendment1400TextLines": [
+            7,
+            9,
+            42,
+            43,
+            45,
+            46,
+            47,
+            48,
+            49,
+            50,
+            51,
+            52,
+            53,
+            54,
+            55
+          ],
+          "amendment1400MetadataRendered": true,
+          "amendment1400MetadataLines": [
+            19,
+            21,
+            22,
+            24,
+            26,
+            30,
+            32,
+            33,
+            34
+          ],
+          "rawHttpBytesCaptured": false,
+          "rawResponseSha256": null,
+          "officialGazetteIssueBytesRetrieved": false,
+          "primarySourceVerified": false,
+          "humanReviewStatus": "pending",
+          "useInLegalAnswers": false
         }
       },
       "latestOfficialStatusLabelShown": "اصلاحي 1403/03/30",
@@ -518,13 +742,13 @@
           42,
           45
         ],
-        "metadataPageRechecked": false,
+        "metadataPageRechecked": true,
         "rawHttpBytesCaptured": false,
         "rawResponseSha256": null,
         "primarySourceVerified": false,
         "humanReviewStatus": "pending",
         "useInLegalAnswers": false,
-        "note": "The status index, 1358 text, 1397 amendment text and 1400 amendment text rendered on 2026-11-22. These are rendered observations only; raw source bytes and SHA-256 are unavailable, metadata pages were not re-fetched in this observation, and no human review is complete.",
+        "note": "The status index, 1358 text, 1397 amendment text and metadata, and 1400 amendment text and metadata rendered on 2026-11-22. Raw source bytes, SHA-256 and original Gazette issue bytes were not captured; no human review is complete.",
         "amendment1397TextRendered": true,
         "amendment1397TextLines": [
           7,
@@ -565,7 +789,32 @@
           53,
           54,
           55
-        ]
+        ],
+        "amendment1397MetadataRendered": true,
+        "amendment1397MetadataLines": [
+          19,
+          21,
+          22,
+          24,
+          26,
+          30,
+          32,
+          33,
+          34
+        ],
+        "amendment1400MetadataRendered": true,
+        "amendment1400MetadataLines": [
+          19,
+          21,
+          22,
+          24,
+          26,
+          30,
+          32,
+          33,
+          34
+        ],
+        "officialGazetteIssueBytesRetrieved": false
       }
     },
     {
