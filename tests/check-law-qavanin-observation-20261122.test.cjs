@@ -26,11 +26,23 @@ test('2026-11-22 Qavanin observation preserves direct official links and visible
   assert.equal(observation.sources.amendment1397.approvalDateShown, '1397/08/13');
   assert.equal(observation.sources.amendment1397.guardianCouncilConfirmationDateShown, '1397/08/23');
   assert.deepEqual(observation.sources.amendment1397.visibleLines, [7, 9, 42, 43, 45, 46, 47, 48, 49, 50, 51, 82, 83, 84, 85, 86, 87, 88, 90, 91]);
+  assert.equal(observation.sources.amendment1397.metadataUrl,
+    'https://qavanin.ir/Law/Attribute/?IDS=3613585600919945767');
+  assert.equal(observation.sources.amendment1397.metadataRendered, true);
+  assert.deepEqual(observation.sources.amendment1397.metadataVisibleLines, [19, 21, 22, 24, 26, 30, 32, 33, 34]);
+  assert.equal(observation.sources.amendment1397.metadataObservation.officialGazetteNumberShown, '21467');
+  assert.equal(observation.sources.amendment1397.metadataObservation.effectiveDateShown, '1397/09/21');
   assert.equal(observation.sources.amendment1400.url,
     'https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689');
   assert.equal(observation.sources.amendment1400.approvalDateShown, '1400/01/29');
   assert.equal(observation.sources.amendment1400.guardianCouncilConfirmationDateShown, '1400/02/18');
   assert.deepEqual(observation.sources.amendment1400.visibleLines, [7, 9, 42, 43, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55]);
+  assert.equal(observation.sources.amendment1400.metadataUrl,
+    'https://qavanin.ir/Law/Attribute/?IDS=8508483613671622689');
+  assert.equal(observation.sources.amendment1400.metadataRendered, true);
+  assert.deepEqual(observation.sources.amendment1400.metadataVisibleLines, [19, 21, 22, 24, 26, 30, 32, 33, 34]);
+  assert.equal(observation.sources.amendment1400.metadataObservation.officialGazetteNumberShown, '22188');
+  assert.equal(observation.sources.amendment1400.metadataObservation.effectiveDateShown, '1400/03/18');
   assert.equal(observation.influencingInstruments.length, 10);
   for (const instrument of observation.influencingInstruments) {
     assert.match(instrument.approvalDateShown, /^\d{4}\/\d{2}\/\d{2}$/);
@@ -42,6 +54,8 @@ test('portal approval dates and rendered text are never promoted to effective-da
   assert.equal(observation.verification.rawHttpBytesCaptured, false);
   assert.equal(observation.verification.rawResponseSha256, null);
   assert.equal(observation.verification.officialGazetteIssueBytesRetrieved, false);
+  assert.equal(observation.verification.amendment1397MetadataRendered, true);
+  assert.equal(observation.verification.amendment1400MetadataRendered, true);
   assert.equal(observation.verification.primarySourceVerified, false);
   assert.equal(observation.verification.humanReviewStatus, 'pending');
   assert.equal(observation.verification.eventDateVersioningApproved, false);
@@ -65,6 +79,8 @@ test('the central legal registry links the fresh observation without promoting i
   assert.equal(record.latestIndependentObservation.useInLegalAnswers, false);
   assert.equal(record.latestIndependentObservation.amendment1397TextRendered, true);
   assert.equal(record.latestIndependentObservation.amendment1400TextRendered, true);
+  assert.equal(record.latestIndependentObservation.amendment1397MetadataRendered, true);
+  assert.equal(record.latestIndependentObservation.amendment1400MetadataRendered, true);
   for (const documentId of ['3613585600919945767', '8508483613671622689']) {
     const candidate = record.officialDocumentUrlCandidates.find(item => item.documentId === documentId);
     assert.ok(candidate, 'official amendment candidate missing: ' + documentId);
