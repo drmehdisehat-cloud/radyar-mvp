@@ -190,8 +190,17 @@ function verifyHtml(htmlBytes) {
   fail(/نقش‌های وکیل، قاضی، دادستان، ضابط و سردفتر[\s\S]{0,180}شبیه‌سازی/.test(html), 'role_simulation_disclosure_missing');
   fail(!/\b(?:fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon)\b/i.test(html), 'network_api_code_detected');
   fail(!/<form\b/i.test(html), 'network_form_detected');
-  fail(!/<(?:script|link|iframe|img|audio|video|source)\b[^>]*\b(?:src|href)\s*=\s*['"]?\s*(?:https?:|\/\/)/i.test(html),
-    'external_html_resource_detected');
+  // Verify the downloaded ZIP independently of the source-package builder.
+  // Even a same-origin URL can make the supposedly offline preview issue a request.
+  fail(!/<meta\b[^>]*\bhttp-equiv\s*=\s*['"]?refresh\b/i.test(html), 'preview_meta_refresh_rejected');
+  fail(!/<base\b/i.test(html), 'preview_base_element_rejected');
+  fail(!/<(?:script|link|iframe|img|audio|video|source|track|object|embed)\b[^>]*\b(?:src|href|poster|data|srcset)\s*=/i.test(html),
+    'preview_resource_reference_detected');
+  fail(!/<(?:image|use)\b[^>]*\b(?:href|xlink:href)\s*=\s*['"](?!#)[^'"]+['"]/i.test(html),
+    'preview_external_svg_reference_detected');
+  fail(!/<style\b[^>]*>[\s\S]*?(?:\burl\s*\(|@import\b)/i.test(html) &&
+    !/\bstyle\s*=\s*(?:"[^"]*(?:\burl\s*\(|@import\b)[^"]*"|'[^']*(?:\burl\s*\(|@import\b)[^']*')/i.test(html),
+    'preview_css_resource_reference_detected');
   fail(!/@import\s+url\s*\(/i.test(html) && !/url\(\s*['"]?https?:/i.test(html), 'external_css_resource_detected');
   const topicHints = html.match(/const topicHints = \[([\s\S]*?)\n\];/);
   fail(Boolean(topicHints), 'topic_hints_missing');
@@ -284,4 +293,4 @@ if (require.main === module) {
     process.exitCode = 1;
   }
 }
-module.exports = { crc32, gitBlobSha1, parseZip, sha256, verifyArtifactBuffer, verifyArtifactFile };
+module.exports = { crc32, gitBlobSha1, parseZip, sha256, verifyHtml, verifyArtifactBuffer, verifyArtifactFile };
