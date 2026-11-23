@@ -111,6 +111,17 @@ test('rejects a reviewer who is absent, inactive, or lacks the preview-reviewer 
   assert.equal(verify(f).reason, 'reviewer_not_trusted');
 });
 
+test('rejects the same Ed25519 public key registered under two reviewer identities', () => {
+  const f = fixture();
+  f.trustStore.reviewers.push({
+    subject: 'synthetic-reviewer-02',
+    roles: ['observer'],
+    active: false,
+    public_key_pem: f.trustStore.reviewers[0].public_key_pem
+  });
+  assert.equal(verify(f).reason, 'duplicate_trust_store_public_key');
+});
+
 test('rejects an issuer mismatch and non-approved decision', () => {
   const f = fixture();
   f.attestation = resign(f, { issuer: 'different-issuer' });
