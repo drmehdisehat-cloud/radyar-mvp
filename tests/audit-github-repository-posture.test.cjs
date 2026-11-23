@@ -33,7 +33,10 @@ function verifiedFixtures() {
         required_approving_review_count: 1,
         dismiss_stale_reviews: true
       },
-      enforce_admins: { enabled: true }
+      enforce_admins: { enabled: true },
+      allow_force_pushes: { enabled: false },
+      allow_deletions: { enabled: false },
+      required_conversation_resolution: { enabled: true }
     }
   };
 }
@@ -117,6 +120,25 @@ test('requires the exact CI check, at least one stale-dismissed review and admin
     const result = await auditRepositoryPosture({ fetchImpl: fakeFetch(fixtures) });
     assert.equal(result.status, 'NOT_READY', label);
     assert.ok(result.blockers.includes(blocker), label);
+  }
+});
+
+test('requires force-push and deletion to be disabled and review conversations to be resolved', async () => {
+  const cases = [
+    ['force pushes allowed', f => { f.protection.allow_force_pushes.enabled = true; }, 'force_pushes_must_be_disabled'],
+    ['force-push policy missing', f => { delete f.protection.allow_force_pushes; }, 'force_pushes_must_be_disabled'],
+    ['branch deletion allowed', f => { f.protection.allow_deletions.enabled = true; }, 'branch_deletion_must_be_disabled'],
+    ['deletion policy missing', f => { delete f.protection.allow_deletions; }, 'branch_deletion_must_be_disabled'],
+    ['review conversation resolution disabled', f => { f.protection.required_conversation_resolution.enabled = false; }, 'required_review_conversation_resolution_missing'],
+    ['review conversation policy missing', f => { delete f.protection.required_conversation_resolution; }, 'required_review_conversation_resolution_missing']
+  ];
+  for (const [label, mutate, blocker] of cases) {
+    const fixtures = verifiedFixtures();
+    mutate(fixtures);
+    const result = await auditRepositoryPosture({ fetchImpl: fakeFetch(fixtures) });
+    assert.equal(result.status, 'NOT_READY', label);
+    assert.ok(result.blockers.includes(blocker), label);
+    assert.equal(result.deploymentAuthorized, false);
   }
 });
 
