@@ -5,7 +5,7 @@ const { execFileSync } = require('node:child_process');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { TextDecoder } = require('node:util');
-const { decidePreviewRelease } = require('./decide-preview-release.cjs');
+const { decidePreviewRelease, hasVerifiedRepositoryPosture } = require('./decide-preview-release.cjs');
 const { readStableRegularFile } = require('./stable-file-integrity.cjs');
 const { parseJsonRejectDuplicateKeys } = require('./strict-json.cjs');
 const { verifyHumanReviewAttestation } = require('./verify-human-review-attestation.cjs');
@@ -92,6 +92,7 @@ const VALUE_NAMES = new Set([
   '--restore-log',
   '--restore-database-probe',
   '--destination-evidence',
+  '--repository-posture-observation',
   '--preview-source',
   '--preview-destination',
   '--production-document-root',
@@ -210,7 +211,8 @@ function parseArgs(argv) {
         '--restore-database-probe', '--destination-evidence', '--preview-source',
         '--preview-destination', '--production-document-root', '--review-attestation', '--review-trust-store',
         '--restore-operator-public-key', '--restore-operator-signature',
-        '--restore-reviewer-public-key', '--restore-reviewer-signature'].includes(arg)) {
+        '--restore-reviewer-public-key', '--restore-reviewer-signature',
+        '--repository-posture-observation'].includes(arg)) {
         parsed.paths[arg] = value;
       } else {
         parsed.values[arg] = value;
@@ -327,6 +329,10 @@ function main(argv) {
     const reviewPath = args.paths['--review-attestation'];
     const trustPath = args.paths['--review-trust-store'];
     const expectedSourceCommit = args.values['--expected-source-commit'];
+    const repositoryPosturePath = args.paths['--repository-posture-observation'];
+    const repositoryPostureObservation = repositoryPosturePath
+      ? readEvidence('--repository-posture-observation', repositoryPosturePath)
+      : null;
     const expectedArtifactSha256 = args.values['--expected-artifact-sha256'];
     const expectedTrustStoreSha256 = ownerTrustPin.digest;
     const hasCoreReviewInputs = reviewPath && trustPath && expectedSourceCommit && expectedArtifactSha256;
@@ -376,7 +382,9 @@ function main(argv) {
       zeroApiRequestsVerified: args.attestations.has('--zero-api-requests-verified'),
       localHumanReviewAcknowledged: args.attestations.has('--local-human-review-acknowledged'),
       authenticatedHumanReviewAttested: review.verified === true,
-      authenticatedRestoreAttestation: restoreAttestation.verified === true
+      authenticatedRestoreAttestation: restoreAttestation.verified === true,
+      repositoryPostureObservation,
+      expectedSourceCommit
     });
     const output = {
       ...decision,
@@ -391,6 +399,17 @@ function main(argv) {
         signerIdentityVerified: false
       },
       destinationVerification: verifiedDestination,
+      repositoryPosture: repositoryPostureObservation ? {
+        verified: hasVerifiedRepositoryPosture(repositoryPostureObservation, expectedSourceCommit),
+        status: typeof repositoryPostureObservation.status === 'string' ? repositoryPostureObservation.status : 'unknown',
+        visibility: typeof repositoryPostureObservation.visibility === 'string' ? repositoryPostureObservation.visibility : 'unknown',
+        branchProtected: repositoryPostureObservation.branchProtected === true,
+        headSha: typeof repositoryPostureObservation.headSha === 'string' ? repositoryPostureObservation.headSha : null,
+        observedAt: typeof repositoryPostureObservation.observedAt === 'string' ? repositoryPostureObservation.observedAt : null,
+        blockers: Array.isArray(repositoryPostureObservation.blockers)
+          ? repositoryPostureObservation.blockers.filter(item => typeof item === 'string').slice(0, 20)
+          : ['invalid_posture_blockers']
+      } : { verified: false, reason: 'repository_posture_observation_missing' },
       restoreAttestation: restoreAttestation.verified ? {
         verified: true,
         status: restoreAttestation.status,
@@ -416,7 +435,7 @@ function main(argv) {
         sourceCheckoutBlobSha1: review.sourceCheckoutBlobSha1
       } : { verified: false, reason: review.reason },
       deploymentPerformed: false,
-      note: 'امضای دوطرفه اظهارنامه بازیابی و تطبیق اثرانگشت کلیدها بررسی می‌شود؛ بایت‌های آرشیو، نشانگر بازیابی، گزارش Restore و probe دیتابیس نیز با هش‌های manifest مقایسه می‌شوند. فایل منبع و مقصد پیش‌نمایش از مسیر واقعی دوباره خوانده و هش می‌شوند. این بررسی‌ها هویت واقعی اشخاص، وقوع مستقل Restore، سلامت عملیاتی دیتابیس، پاسخ HTTPS زنده یا مجوز مالک را اثبات نمی‌کنند. این ابزار هرگز مجوز انتشار صادر نمی‌کند.'
+      note: 'مشاهده وضعیت خصوصی‌بودن مخزن و حفاظت شاخه باید تازه، read-only و به SHA دقیق منبع متصل باشد. امضای دوطرفه اظهارنامه بازیابی و تطبیق اثرانگشت کلیدها بررسی می‌شود؛ بایت‌های آرشیو، نشانگر بازیابی، گزارش Restore و probe دیتابیس نیز با هش‌های manifest مقایسه می‌شوند. فایل منبع و مقصد پیش‌نمایش از مسیر واقعی دوباره خوانده و هش می‌شوند. این بررسی‌ها هویت واقعی اشخاص، وقوع مستقل Restore، سلامت عملیاتی دیتابیس، پاسخ HTTPS زنده یا مجوز مالک را اثبات نمی‌کنند. این ابزار هرگز مجوز انتشار صادر نمی‌کند.'
     };
     process.stdout.write(JSON.stringify(output, null, 2) + '\n');
     return decision.blockers.length ? 1 : 3;
