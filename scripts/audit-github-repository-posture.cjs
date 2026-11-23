@@ -91,9 +91,9 @@ function inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo
     blockers.push('release_branch_head_sha_unavailable');
   } else if (!workflowRunsInfo || !Array.isArray(workflowRunsInfo.workflow_runs)) {
     blockers.push('required_workflow_run_observation_unavailable');
-  } else if (Number.isSafeInteger(workflowRunsInfo.total_count) &&
-      workflowRunsInfo.total_count > workflowRunsInfo.workflow_runs.length) {
-    blockers.push('required_workflow_run_observation_truncated');
+  } else if (!Number.isSafeInteger(workflowRunsInfo.total_count) ||
+      workflowRunsInfo.total_count !== workflowRunsInfo.workflow_runs.length) {
+    blockers.push('required_workflow_run_observation_incomplete_or_truncated');
   } else {
     // Bind the green job to the exact trusted workflow file and workflow ID.
     // A different workflow can create a GitHub Actions check with the same job name.
@@ -124,9 +124,9 @@ function inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo
   let requiredCheckRun = null;
   if (headSha && (!checkRunsInfo || !Array.isArray(checkRunsInfo.check_runs))) {
     blockers.push('required_ci_check_observation_unavailable');
-  } else if (headSha && Number.isSafeInteger(checkRunsInfo.total_count) &&
-      checkRunsInfo.total_count > checkRunsInfo.check_runs.length) {
-    blockers.push('required_ci_check_observation_truncated');
+  } else if (headSha && (!Number.isSafeInteger(checkRunsInfo.total_count) ||
+      checkRunsInfo.total_count !== checkRunsInfo.check_runs.length)) {
+    blockers.push('required_ci_check_observation_incomplete_or_truncated');
   } else if (headSha && requiredWorkflowRun &&
       requiredWorkflowRun.status === 'completed' && requiredWorkflowRun.conclusion === 'success') {
     const expectedSuiteId = requiredWorkflowRun.check_suite_id;
