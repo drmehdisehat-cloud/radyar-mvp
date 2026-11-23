@@ -22,6 +22,24 @@ function validUtc(value) {
   return Number.isFinite(parsed.getTime()) && parsed.toISOString() === value &&
     parsed.getTime() <= Date.now();
 }
+function hasVerifiedRepositoryPosture(observation, expectedHeadSha) {
+  if (!observation || typeof observation !== 'object' || Array.isArray(observation) ||
+      observation.schema !== 'dadyar-github-release-posture-observation-v1' ||
+      observation.status !== 'POSTURE_VERIFIED' ||
+      observation.repository !== 'drmehdisehat-cloud/radyar-mvp' ||
+      observation.visibility !== 'private' ||
+      observation.branch !== 'dadyar/ai-chat-private-20261101' ||
+      observation.branchProtected !== true ||
+      !/^[a-f0-9]{40}$/i.test(observation.headSha || '') ||
+      !/^[a-f0-9]{40}$/i.test(expectedHeadSha || '') ||
+      observation.headSha.toLowerCase() !== expectedHeadSha.toLowerCase() ||
+      !Array.isArray(observation.blockers) || observation.blockers.length !== 0 ||
+      observation.deploymentAuthorized !== false ||
+      !validUtc(observation.observedAt)) return false;
+  const age = Date.now() - Date.parse(observation.observedAt);
+  return age >= 0 && age <= 15 * 60 * 1000;
+}
+
 function pathsDisjoint(first, second) {
   if (typeof first !== 'string' || typeof second !== 'string' ||
       !path.isAbsolute(first) || !path.isAbsolute(second)) return false;
@@ -149,9 +167,14 @@ function decidePreviewRelease({
   localHumanReviewAcknowledged = false,
   authenticatedHumanReviewAttested = false,
   authenticatedRestoreAttestation = false,
-  trustedReviewerAuthenticationAdapterVerified = false
+  trustedReviewerAuthenticationAdapterVerified = false,
+  repositoryPostureObservation,
+  expectedSourceCommit
 } = {}) {
   const blockers = [];
+  if (!hasVerifiedRepositoryPosture(repositoryPostureObservation, expectedSourceCommit)) {
+    blockers.push('repository privacy and release-branch protection observation is missing, stale, or mismatched');
+  }
   const providerBoundRestoreVerified = hasProviderBoundRestoreAttestation(restoreEvidence);
   if (!providerBoundRestoreVerified || isolatedRestoreVerified !== true) {
     blockers.push('independent restore attestation incomplete or unverified');
@@ -180,9 +203,10 @@ function decidePreviewRelease({
       'operator-supplied restore and destination attestations have not been independently authenticated',
       'reviewer identity and approval have not been independently authenticated against a trusted identity source',
       'live HTTPS response, hosting headers, and live mobile behavior have not been verified by this tool',
+      'repository privacy and release-branch protection must be verified against the exact reviewed source commit',
       'independent legal/security review and explicit owner approval remain separate requirements'
     ]),
     deploymentAuthorized: false
   });
 }
-module.exports = { decidePreviewRelease, hasIndependentRestoreAttestation, hasProviderBoundRestoreAttestation, hasVerifiedStagingDestination, validGitBlobSha, pathsDisjoint };
+module.exports = { decidePreviewRelease, hasIndependentRestoreAttestation, hasProviderBoundRestoreAttestation, hasVerifiedStagingDestination, hasVerifiedRepositoryPosture, validGitBlobSha, pathsDisjoint };
