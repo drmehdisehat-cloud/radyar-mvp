@@ -187,7 +187,7 @@ function validateSourceVersion(record, asOfDate) {
       const review = reviewSnapshot.value;
       if (typeof review.reviewer !== 'string' || review.reviewer.trim().length < 3 ||
           review.reviewer.length > 120 || PLACEHOLDER.test(review.reviewer.trim().normalize('NFKC')) ||
-          /[\\u0000-\\u001f\\u007f-\\u009f\\u061c\\u200b\\u200e-\\u202e\\u2060-\\u206f\\ufeff]/u.test(review.reviewer)) {
+          UNSAFE_METADATA_CONTROL.test(review.reviewer)) {
         issues.push('human_reviewer_invalid');
       }
       if (review.decision !== 'approved') issues.push('human_review_not_approved');
