@@ -38,7 +38,7 @@ function classifyGitHubReadFailure(error) {
   return 'github_api_http_error_' + status;
 }
 
-function inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo, checkRunsInfo, workflowRunsInfo) {
+function inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo, checkRunsInfo, workflowRunsInfo, currentRunId = null) {
   const blockers = [];
   if (repoInfo.full_name !== repository) blockers.push('repository_identity_mismatch');
   if (typeof repoInfo.private !== 'boolean') blockers.push('repository_visibility_unavailable');
@@ -129,11 +129,21 @@ function inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo
         ? normalizedWorkflowCandidates[normalizedWorkflowCandidates.length - 1].run
         : null;
     }
+    const requiredWorkflowRunIsCurrentExecution = Boolean(
+      requiredWorkflowRun && Number.isSafeInteger(currentRunId) && currentRunId > 0 &&
+      requiredWorkflowRun.id === currentRunId
+    );
+    const requiredWorkflowRunIsPendingSelfObservation = Boolean(
+      requiredWorkflowRunIsCurrentExecution &&
+      ['queued', 'in_progress', 'waiting', 'requested', 'pending'].includes(requiredWorkflowRun.status)
+    );
     if (!requiredWorkflowRun ||
         !Number.isSafeInteger(requiredWorkflowRun.id) || requiredWorkflowRun.id < 1 ||
         requiredWorkflowRun.status !== 'completed' ||
         requiredWorkflowRun.conclusion !== 'success') {
-      blockers.push('required_workflow_run_not_successful_on_exact_head');
+      blockers.push(requiredWorkflowRunIsPendingSelfObservation
+        ? 'required_workflow_run_self_observation_pending'
+        : 'required_workflow_run_not_successful_on_exact_head');
     }
   }
 
@@ -203,6 +213,11 @@ function inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo
       ? requiredWorkflowRun.head_sha.toLowerCase() : null,
     requiredWorkflowRunConclusion: requiredWorkflowRun && typeof requiredWorkflowRun.conclusion === 'string'
       ? requiredWorkflowRun.conclusion : null,
+    requiredWorkflowRunIsCurrentExecution: Boolean(requiredWorkflowRun && Number.isSafeInteger(currentRunId) &&
+      currentRunId > 0 && requiredWorkflowRun.id === currentRunId),
+    requiredWorkflowRunIsPendingSelfObservation: Boolean(requiredWorkflowRun &&
+      Number.isSafeInteger(currentRunId) && currentRunId > 0 && requiredWorkflowRun.id === currentRunId &&
+      ['queued', 'in_progress', 'waiting', 'requested', 'pending'].includes(requiredWorkflowRun.status)),
     requiredWorkflowCheckSuiteId: requiredWorkflowRun && Number.isSafeInteger(requiredWorkflowRun.check_suite_id)
       ? requiredWorkflowRun.check_suite_id : null,
     requiredCheckRunId: requiredCheckRun && Number.isSafeInteger(requiredCheckRun.id) ? requiredCheckRun.id : null,
@@ -219,7 +234,8 @@ async function auditRepositoryPosture({
   repository = EXPECTED_REPOSITORY,
   branch = EXPECTED_BRANCH,
   token,
-  fetchImpl = globalThis.fetch
+  fetchImpl = globalThis.fetch,
+  currentRunId = null
 } = {}) {
   if (repository !== EXPECTED_REPOSITORY || branch !== EXPECTED_BRANCH) {
     return Object.freeze({
@@ -262,7 +278,7 @@ async function auditRepositoryPosture({
         ? getJson(API + '/repos/' + repository + '/actions/runs?head_sha=' + encodeURIComponent(headSha) + '&per_page=100', fetchImpl, token)
         : Promise.resolve(null)
     ]);
-    return inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo, checkRunsInfo, workflowRunsInfo);
+    return inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo, checkRunsInfo, workflowRunsInfo, currentRunId);
   } catch (error) {
     return Object.freeze({
       schema: 'dadyar-github-release-posture-observation-v1',
@@ -280,7 +296,8 @@ async function main() {
   const result = await auditRepositoryPosture({
     repository: process.env.GITHUB_REPOSITORY || EXPECTED_REPOSITORY,
     branch: EXPECTED_BRANCH,
-    token: process.env.GITHUB_TOKEN
+    token: process.env.GITHUB_TOKEN,
+    currentRunId: /^\\d+$/.test(process.env.GITHUB_RUN_ID || '') ? Number(process.env.GITHUB_RUN_ID) : null
   });
   process.stdout.write(JSON.stringify(result, null, 2) + '\n');
   if (process.argv.includes('--enforce') && result.status !== 'POSTURE_VERIFIED') {
