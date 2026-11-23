@@ -45,7 +45,7 @@ test('the public artifact workflow has read-only repository permissions and no s
 });
 
 test('only the pinned checkout, setup-node and upload-artifact actions are permitted', () => {
-  const actions = [...workflow.matchAll(/^\s+uses:\s*(\S+)/gm)].map(match => match[1]);
+  const actions = [...workflow.matchAll(/^\s*(?:-\s*)?uses:\s*(\S+)/gm)].map(match => match[1]);
   assert.deepEqual(actions, [
     'actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a',
     'actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1',
