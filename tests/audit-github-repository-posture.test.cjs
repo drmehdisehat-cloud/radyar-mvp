@@ -7,6 +7,8 @@ const {
   EXPECTED_BRANCH,
   REQUIRED_CHECK,
   REQUIRED_CHECK_RUN,
+  REQUIRED_WORKFLOW_ID,
+  REQUIRED_WORKFLOW_PATH,
   auditRepositoryPosture
 } = require('../scripts/audit-github-repository-posture.cjs');
 
@@ -49,7 +51,24 @@ function verifiedFixtures() {
         conclusion: 'success',
         started_at: '2026-11-23T10:00:00Z',
         completed_at: '2026-11-23T10:00:30Z',
-        app: { slug: 'github-actions' }
+        app: { slug: 'github-actions' },
+        check_suite: { id: 123 }
+      }]
+    },
+    workflowRuns: {
+      total_count: 1,
+      workflow_runs: [{
+        id: 789,
+        workflow_id: REQUIRED_WORKFLOW_ID,
+        path: REQUIRED_WORKFLOW_PATH,
+        event: 'push',
+        head_branch: EXPECTED_BRANCH,
+        head_sha: 'a'.repeat(40),
+        status: 'completed',
+        conclusion: 'success',
+        check_suite_id: 123,
+        run_started_at: '2026-11-23T10:00:00Z',
+        created_at: '2026-11-23T10:00:00Z'
       }]
     }
   };
@@ -61,6 +80,7 @@ function fakeFetch(fixtures, seen = []) {
     if (url.endsWith('/repos/' + EXPECTED_REPOSITORY)) return response(fixtures.repository);
     const branchUrl = '/branches/' + encodeURIComponent(EXPECTED_BRANCH);
     if (url.includes('/check-runs?per_page=100')) return response(fixtures.checkRuns);
+    if (url.includes('/actions/runs?head_sha=')) return response(fixtures.workflowRuns);
     if (url.endsWith(branchUrl + '/protection')) return response(fixtures.protection);
     if (url.endsWith(branchUrl)) return response(fixtures.branch);
     throw new Error('unexpected_url');
@@ -77,6 +97,10 @@ test('verifies only a private repository with protected release branch, required
   assert.equal(result.visibility, 'private');
   assert.equal(result.branchProtected, true);
   assert.equal(result.headSha, 'a'.repeat(40));
+  assert.equal(result.requiredWorkflowRunId, 789);
+  assert.equal(result.requiredWorkflowRunHeadSha, 'a'.repeat(40));
+  assert.equal(result.requiredWorkflowRunConclusion, 'success');
+  assert.equal(result.requiredWorkflowCheckSuiteId, 123);
   assert.deepEqual(result.blockers, []);
   assert.equal(result.deploymentAuthorized, false);
 });
@@ -183,12 +207,63 @@ test('blocks an in-progress exact-head check even when an older successful run e
     conclusion: null,
     started_at: '2026-11-23T10:01:00Z',
     completed_at: null,
-    app: { slug: 'github-actions' }
+    app: { slug: 'github-actions' },
+    check_suite: { id: 123 }
   });
   const result = await auditRepositoryPosture({ fetchImpl: fakeFetch(fixtures) });
   assert.equal(result.status, 'NOT_READY');
   assert.ok(result.blockers.includes('required_ci_check_not_successful_on_exact_head'));
   assert.equal(result.requiredCheckRunId, 457);
+  assert.equal(result.deploymentAuthorized, false);
+});
+
+
+test('rejects a same-named check run from a different workflow check suite', async () => {
+  const fixtures = verifiedFixtures();
+  fixtures.checkRuns.check_runs[0].check_suite.id = 999;
+  const result = await auditRepositoryPosture({ fetchImpl: fakeFetch(fixtures) });
+  assert.equal(result.status, 'NOT_READY');
+  assert.ok(result.blockers.includes('required_ci_check_not_successful_on_exact_head'));
+  assert.equal(result.deploymentAuthorized, false);
+});
+
+test('requires the exact workflow ID, path, push event and branch for the release CI run', async () => {
+  const cases = [
+    ['different workflow ID', run => { run.workflow_id = REQUIRED_WORKFLOW_ID + 1; }],
+    ['different workflow file', run => { run.path = '.github/workflows/other.yml'; }],
+    ['pull-request event only', run => { run.event = 'pull_request'; }],
+    ['different branch', run => { run.head_branch = 'dadyar/untrusted'; }]
+  ];
+  for (const [label, mutate] of cases) {
+    const fixtures = verifiedFixtures();
+    mutate(fixtures.workflowRuns.workflow_runs[0]);
+    const result = await auditRepositoryPosture({ fetchImpl: fakeFetch(fixtures) });
+    assert.equal(result.status, 'NOT_READY', label);
+    assert.ok(result.blockers.includes('required_workflow_run_not_successful_on_exact_head'), label);
+    assert.equal(result.deploymentAuthorized, false);
+  }
+});
+
+test('blocks a newer in-progress trusted workflow run even when an older push run succeeded', async () => {
+  const fixtures = verifiedFixtures();
+  fixtures.workflowRuns.total_count = 2;
+  fixtures.workflowRuns.workflow_runs.push({
+    id: 790,
+    workflow_id: REQUIRED_WORKFLOW_ID,
+    path: REQUIRED_WORKFLOW_PATH,
+    event: 'push',
+    head_branch: EXPECTED_BRANCH,
+    head_sha: 'a'.repeat(40),
+    status: 'in_progress',
+    conclusion: null,
+    check_suite_id: 124,
+    run_started_at: '2026-11-23T10:01:00Z',
+    created_at: '2026-11-23T10:01:00Z'
+  });
+  const result = await auditRepositoryPosture({ fetchImpl: fakeFetch(fixtures) });
+  assert.equal(result.status, 'NOT_READY');
+  assert.ok(result.blockers.includes('required_workflow_run_not_successful_on_exact_head'));
+  assert.equal(result.requiredWorkflowRunId, 790);
   assert.equal(result.deploymentAuthorized, false);
 });
 
@@ -210,8 +285,9 @@ test('uses read-only GET requests and never emits the token in the result', asyn
     token: 'synthetic-github-token-never-logged',
     fetchImpl: fakeFetch(fixtures, seen)
   });
-  assert.equal(seen.length, 4);
+  assert.equal(seen.length, 5);
   assert.ok(seen.some(item => item.url.endsWith('/commits/' + 'a'.repeat(40) + '/check-runs?per_page=100')));
+  assert.ok(seen.some(item => item.url.endsWith('/actions/runs?head_sha=' + 'a'.repeat(40) + '&per_page=100')));
   assert.ok(seen.every(item => item.options.method === 'GET'));
   assert.ok(seen.every(item => item.options.headers.authorization === 'Bearer synthetic-github-token-never-logged'));
   assert.equal(JSON.stringify(result).includes('synthetic-github-token-never-logged'), false);
