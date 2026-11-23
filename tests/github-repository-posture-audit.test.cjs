@@ -6,7 +6,8 @@ const {
   EXPECTED_BRANCH,
   REQUIRED_CHECK,
   inspectPosture,
-  auditRepositoryPosture
+  auditRepositoryPosture,
+  classifyGitHubReadFailure
 } = require('../scripts/audit-github-repository-posture.cjs');
 
 const repoInfo = () => ({ full_name: EXPECTED_REPOSITORY, private: true });
@@ -125,13 +126,39 @@ test('live posture audit performs read-only GET requests against the exact repos
   assert.ok(calls.some(call => call.url.endsWith('/branches/' + encodeURIComponent(EXPECTED_BRANCH) + '/protection')));
 });
 
-test('insufficient GitHub permissions fail closed without authorizing deployment', async () => {
+test('forbidden GitHub access fails closed with a specific blocker', async () => {
   const result = await auditRepositoryPosture({
-    fetchImpl: async () => ({ ok: false, status: 403, json: async () => ({}) })
+    fetchImpl: async () => ({ ok: false, status: 403, json: async () => ({ message: 'SENSITIVE_RESPONSE_BODY' }) })
   });
   assert.equal(result.status, 'NOT_VERIFIED');
-  assert.deepEqual(result.blockers, ['github_api_read_failed_or_permission_insufficient']);
+  assert.deepEqual(result.blockers, ['github_api_forbidden_or_permission_insufficient']);
   assert.equal(result.deploymentAuthorized, false);
+  assert.equal(JSON.stringify(result).includes('SENSITIVE_RESPONSE_BODY'), false);
+});
+
+test('HTTP authentication, hidden-resource, rate-limit and server failures remain distinguishable', () => {
+  const cases = [
+    [401, 'github_api_authentication_failed'],
+    [403, 'github_api_forbidden_or_permission_insufficient'],
+    [404, 'github_api_resource_not_found_or_hidden'],
+    [429, 'github_api_rate_limited'],
+    [500, 'github_api_server_error'],
+    [503, 'github_api_server_error'],
+    [422, 'github_api_http_error_422']
+  ];
+  for (const [status, expected] of cases) {
+    assert.equal(classifyGitHubReadFailure(new Error('github_api_read_failed_' + status)), expected);
+  }
+});
+
+test('transport failures are redacted and never authorize deployment', async () => {
+  const result = await auditRepositoryPosture({
+    fetchImpl: async () => { throw new Error('token=do-not-echo'); }
+  });
+  assert.equal(result.status, 'NOT_VERIFIED');
+  assert.deepEqual(result.blockers, ['github_api_network_or_transport_failure']);
+  assert.equal(result.deploymentAuthorized, false);
+  assert.equal(JSON.stringify(result).includes('do-not-echo'), false);
 });
 
 test('unexpected repository or branch is rejected before any request', async () => {
