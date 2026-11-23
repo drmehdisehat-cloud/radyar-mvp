@@ -41,7 +41,12 @@ function audit(overrides = {}) {
       'Sync reviewed local source', 'Add read-only GitHub Actions CI',
       'Run real browser tests', 'Verify server-side validation',
       'Review authentication', 'Cite authoritative Iranian legal texts',
-      'Obtain explicit owner approval'
+      'Obtain explicit owner approval',
+      'Verify repository privacy and release-branch protection',
+      'Prove an isolated IranHost backup restore',
+      'Verify the preview destination outside the production document root and Git checkout',
+      'Integrate and verify a trusted reviewer IdP/session adapter',
+      'Verify the live HTTPS preview subpath and security headers'
     ];
     fs.writeFileSync(path.join(root, 'docs/V1-RELEASE-GATES.md'),
       labels.map(label => '- [x] ' + label + ' (synthetic only)').join('\n'));
