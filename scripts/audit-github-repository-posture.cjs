@@ -24,7 +24,7 @@ async function getJson(url, fetchImpl, token) {
 
 function classifyGitHubReadFailure(error) {
   const message = error && typeof error.message === 'string' ? error.message : '';
-  const match = /^github_api_read_failed_(\\d{3})$/.exec(message);
+  const match = /^github_api_read_failed_(\d{3})$/.exec(message);
   if (!match) return 'github_api_network_or_transport_failure';
   const status = Number(match[1]);
   if (status === 401) return 'github_api_authentication_failed';
@@ -153,7 +153,7 @@ async function main() {
     branch: EXPECTED_BRANCH,
     token: process.env.GITHUB_TOKEN
   });
-  process.stdout.write(JSON.stringify(result, null, 2) + '\\n');
+  process.stdout.write(JSON.stringify(result, null, 2) + '\n');
   if (process.argv.includes('--enforce') && result.status !== 'POSTURE_VERIFIED') {
     process.exitCode = 1;
   }
@@ -167,7 +167,7 @@ if (require.main === module) {
       status: 'NOT_VERIFIED',
       blockers: ['audit_execution_failed'],
       deploymentAuthorized: false
-    }, null, 2) + '\\n');
+    }, null, 2) + '\n');
     process.exitCode = 1;
   });
 }
