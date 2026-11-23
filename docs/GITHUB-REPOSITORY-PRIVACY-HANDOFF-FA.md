@@ -50,3 +50,5 @@ Sandbox مستقل خارج از Document Root تولید، دیتابیس و ک
 این معیارها در scripts/audit-github-repository-posture.cjs به‌صورت fail-closed بررسی می‌شوند. آزمون‌های tests/github-repository-posture-audit.test.cjs حالت امن کامل، مخزن عمومی، Force-push، حذف شاخه، نبود الزام حل گفت‌وگو، CI غیر strict، نبود تأیید مستقل، bypass مدیر و خطای HTTP 403 را پوشش می‌دهند.
 
 وضعیت مشاهده‌شده این نوبت: کد و آزمون‌ها روی شاخه آزمایشی ثبت شده‌اند؛ این تغییرات به معنی اعمال تنظیمات GitHub نیستند. مالک باید تنظیمات را در GitHub اعمال کند و اجرای بعدی ممیزی زنده باید POSTURE_VERIFIED برگرداند. تا آن زمان انتشار مسدود می‌ماند.
+
+بازبینی متمرکز تغییرات ممیزی حفاظت شاخه: [PR #29](https://github.com/drmehdisehat-cloud/radyar-mvp/pull/29)؛ این PR به شاخه آزمایشی هدف می‌گیرد، Draft است و تا دریافت CI و بازبینی مستقل نباید ادغام شود.
