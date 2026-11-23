@@ -77,5 +77,21 @@
     "Retrieve and hash the original Official Gazette issue 14189 and reconcile it with the Qavanin metadata.",
     "Resolve transitional provisions and the full amendment chain before creating event-date intervals.",
     "Obtain independent qualified legal review bound to the exact source-byte SHA-256."
-  ]
+  ],
+  "renderedTextCapture": {
+    "path": "research/qavanin-1372-check-amendment-rendered-20261123.txt",
+    "sourceUrl": "https://qavanin.ir/Law/TreeText/?IDS=16863897128756457315",
+    "observedAt": "2026-11-23",
+    "sourceVisibleLineRange": [
+      42,
+      68
+    ],
+    "lineCount": 27,
+    "utf8Bytes": 9429,
+    "sha256": "df5895e1a250bae9406c7b14c577f641cdbf2e80bd5fcd685b301fdd34c2f544",
+    "captureType": "web-rendered official portal text copied from visible lines",
+    "rawHttpResponseBytesCaptured": false,
+    "rawResponseSha256": null,
+    "limitation": "This digest identifies the repository's UTF-8 transcription of rendered page text. It is not a digest of the raw HTTP response or the Official Gazette issue and does not independently authenticate the transcription."
+  }
 }
