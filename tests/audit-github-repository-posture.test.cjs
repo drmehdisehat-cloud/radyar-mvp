@@ -292,3 +292,21 @@ test('uses read-only GET requests and never emits the token in the result', asyn
   assert.ok(seen.every(item => item.options.headers.authorization === 'Bearer synthetic-github-token-never-logged'));
   assert.equal(JSON.stringify(result).includes('synthetic-github-token-never-logged'), false);
 });
+
+for (const [label, mutate, blocker] of [
+  ['workflow total_count omitted', fixtures => { delete fixtures.workflowRuns.total_count; }, 'required_workflow_run_observation_incomplete_or_truncated'],
+  ['workflow total_count under-reports returned entries', fixtures => { fixtures.workflowRuns.total_count = 0; }, 'required_workflow_run_observation_incomplete_or_truncated'],
+  ['check-run total_count omitted', fixtures => { delete fixtures.checkRuns.total_count; }, 'required_ci_check_observation_incomplete_or_truncated'],
+  ['check-run total_count under-reports returned entries', fixtures => { fixtures.checkRuns.total_count = 0; }, 'required_ci_check_observation_incomplete_or_truncated'],
+  ['workflow total_count over-reports returned entries', fixtures => { fixtures.workflowRuns.total_count = 2; }, 'required_workflow_run_observation_incomplete_or_truncated'],
+  ['check-run total_count over-reports returned entries', fixtures => { fixtures.checkRuns.total_count = 2; }, 'required_ci_check_observation_incomplete_or_truncated']
+]) {
+  test('fails closed when GitHub ' + label, async () => {
+    const fixtures = verifiedFixtures();
+    mutate(fixtures);
+    const result = await auditRepositoryPosture({ fetchImpl: fakeFetch(fixtures) });
+    assert.equal(result.status, 'NOT_READY', label);
+    assert.ok(result.blockers.includes(blocker), label);
+    assert.equal(result.deploymentAuthorized, false);
+  });
+}
