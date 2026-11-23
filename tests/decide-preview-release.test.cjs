@@ -36,6 +36,18 @@ const restoreEvidence = {
   restore_completed_at: '2026-11-09T12:00:00.000Z',
   reviewed_at: '2026-11-09T13:00:00.000Z'
 };
+const postureObservation = {
+  schema: 'dadyar-github-release-posture-observation-v1',
+  status: 'POSTURE_VERIFIED',
+  repository: 'drmehdisehat-cloud/radyar-mvp',
+  visibility: 'private',
+  branch: 'dadyar/ai-chat-private-20261101',
+  branchProtected: true,
+  headSha: 'f'.repeat(40),
+  blockers: [],
+  deploymentAuthorized: false,
+  observedAt: new Date().toISOString()
+};
 test('synthetic backup and destination success cannot authorize deployment', () => {
   const decision = decidePreviewRelease({restoreEvidence:{restore_proven:false},destinationEvidence});
   assert.equal(decision.status,'NOT_READY');
@@ -78,7 +90,9 @@ test('complete synthetic evidence shape reaches external verification only when 
     restoreEvidence, destinationEvidence, isolatedRestoreVerified:true,
     mobileBrowserVerified:true, zeroApiRequestsVerified:true, localHumanReviewAcknowledged:true,
     authenticatedHumanReviewAttested:true, authenticatedRestoreAttestation:true,
-    trustedReviewerAuthenticationAdapterVerified:true
+    trustedReviewerAuthenticationAdapterVerified:true,
+    repositoryPostureObservation: postureObservation,
+    expectedSourceCommit: postureObservation.headSha
   });
   assert.equal(decision.status,'EVIDENCE_SHAPE_VALID_REQUIRES_EXTERNAL_VERIFICATION');
   assert.deepEqual(decision.blockers,[]);
@@ -185,4 +199,33 @@ test('rejects a staging destination that is an ancestor of the Git checkout', ()
   });
   assert.equal(decision.status, 'NOT_READY');
   assert.ok(decision.blockers.includes('preview destination is not verified outside production document root and Git checkout'));
+});
+
+test('repository privacy and strict branch protection must be freshly verified for the exact reviewed commit', () => {
+  const invalidObservations = [
+    undefined,
+    { ...postureObservation, status: 'NOT_READY' },
+    { ...postureObservation, visibility: 'public' },
+    { ...postureObservation, branchProtected: false },
+    { ...postureObservation, branch: 'main' },
+    { ...postureObservation, headSha: 'e'.repeat(40) },
+    { ...postureObservation, blockers: ['repository_must_be_private'] },
+    { ...postureObservation, deploymentAuthorized: true },
+    { ...postureObservation, observedAt: new Date(Date.now() - 16 * 60 * 1000).toISOString() }
+  ];
+  for (const observation of invalidObservations) {
+    const decision = decidePreviewRelease({
+      restoreEvidence, destinationEvidence, isolatedRestoreVerified: true,
+      mobileBrowserVerified: true, zeroApiRequestsVerified: true,
+      localHumanReviewAcknowledged: true, authenticatedHumanReviewAttested: true,
+      authenticatedRestoreAttestation: true, trustedReviewerAuthenticationAdapterVerified: true,
+      repositoryPostureObservation: observation,
+      expectedSourceCommit: postureObservation.headSha
+    });
+    assert.equal(decision.status, 'NOT_READY');
+    assert.ok(decision.blockers.includes(
+      'repository privacy and release-branch protection observation is missing, stale, or mismatched'
+    ));
+    assert.equal(decision.deploymentAuthorized, false);
+  }
 });
