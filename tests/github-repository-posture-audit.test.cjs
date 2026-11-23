@@ -284,3 +284,70 @@ test('unexpected repository or branch is rejected before any request', async () 
   assert.equal(result.status, 'NOT_VERIFIED');
   assert.equal(result.deploymentAuthorized, false);
 });
+
+
+test('latest matching workflow run uses timestamp then run-id ordering; a tied newer failure wins', () => {
+  const runs = workflowRunsInfo();
+  runs.total_count = 2;
+  runs.workflow_runs.push({
+    ...runs.workflow_runs[0],
+    id: 457,
+    status: 'completed',
+    conclusion: 'failure',
+    run_started_at: '2026-11-23T10:00:00Z',
+    created_at: '2026-11-23T10:00:00Z'
+  });
+  const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protectionInfo(), checkRunsInfo(), runs);
+  assert.equal(result.requiredWorkflowRunId, 457);
+  assert.ok(result.blockers.includes('required_workflow_run_not_successful_on_exact_head'));
+  assert.equal(result.deploymentAuthorized, false);
+});
+
+test('a matching workflow run with an invalid timestamp or check-suite id cannot be ignored', () => {
+  for (const mutate of [
+    run => { run.run_started_at = 'not-a-timestamp'; run.created_at = 'also-invalid'; },
+    run => { run.check_suite_id = 0; }
+  ]) {
+    const runs = workflowRunsInfo();
+    runs.total_count = 2;
+    const invalid = { ...runs.workflow_runs[0], id: 457, run_started_at: '2026-11-23T10:01:00Z', created_at: '2026-11-23T10:01:00Z' };
+    mutate(invalid);
+    runs.workflow_runs.push(invalid);
+    const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protectionInfo(), checkRunsInfo(), runs);
+    assert.ok(result.blockers.includes('required_workflow_run_observation_invalid'));
+    assert.equal(result.deploymentAuthorized, false);
+  }
+});
+
+test('latest matching check run uses timestamp then check-run id ordering', () => {
+  const runs = checkRunsInfo();
+  runs.total_count = 2;
+  runs.check_runs.push({
+    ...runs.check_runs[0],
+    id: 124,
+    status: 'completed',
+    conclusion: 'failure',
+    started_at: '2026-11-23T10:00:00Z',
+    completed_at: '2026-11-23T10:00:20Z'
+  });
+  const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protectionInfo(), runs, workflowRunsInfo());
+  assert.equal(result.requiredCheckRunId, 124);
+  assert.ok(result.blockers.includes('required_ci_check_not_successful_on_exact_head'));
+  assert.equal(result.deploymentAuthorized, false);
+});
+
+test('a malformed matching completed check run blocks release instead of falling back to an older green run', () => {
+  const runs = checkRunsInfo();
+  runs.total_count = 2;
+  runs.check_runs.push({
+    ...runs.check_runs[0],
+    id: 124,
+    status: 'completed',
+    conclusion: 'success',
+    started_at: 'not-a-timestamp',
+    completed_at: 'also-invalid'
+  });
+  const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protectionInfo(), runs, workflowRunsInfo());
+  assert.ok(result.blockers.includes('required_ci_check_observation_invalid'));
+  assert.equal(result.deploymentAuthorized, false);
+});
