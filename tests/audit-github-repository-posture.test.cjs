@@ -199,6 +199,7 @@ test('fails closed when GitHub API access or branch-protection permission is una
 
 test('blocks an in-progress exact-head check even when an older successful run exists', async () => {
   const fixtures = verifiedFixtures();
+  fixtures.checkRuns.total_count = 2;
   fixtures.checkRuns.check_runs.push({
     id: 457,
     name: REQUIRED_CHECK_RUN,
