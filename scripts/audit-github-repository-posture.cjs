@@ -103,15 +103,31 @@ function inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo
       run.event === 'push' &&
       run.head_branch === branch &&
       typeof run.head_sha === 'string' &&
-      run.head_sha.toLowerCase() === headSha &&
-      Number.isSafeInteger(run.check_suite_id) && run.check_suite_id > 0
+      run.head_sha.toLowerCase() === headSha
     );
+    const normalizedWorkflowCandidates = [];
+    let invalidWorkflowCandidate = false;
     for (const candidate of workflowCandidates) {
       const candidateStartedAt = Date.parse(candidate.run_started_at || candidate.created_at || '');
-      const currentStartedAt = requiredWorkflowRun
-        ? Date.parse(requiredWorkflowRun.run_started_at || requiredWorkflowRun.created_at || '')
-        : NaN;
-      if (!requiredWorkflowRun || candidateStartedAt > currentStartedAt) requiredWorkflowRun = candidate;
+      if (!Number.isSafeInteger(candidate.id) || candidate.id < 1 ||
+          !Number.isSafeInteger(candidate.check_suite_id) || candidate.check_suite_id < 1 ||
+          !Number.isFinite(candidateStartedAt)) {
+        invalidWorkflowCandidate = true;
+        continue;
+      }
+      normalizedWorkflowCandidates.push({ run: candidate, startedAt: candidateStartedAt });
+    }
+    if (invalidWorkflowCandidate) {
+      // A malformed matching run cannot be silently ignored in favour of an older
+      // green run: its ordering and corresponding check suite would be unprovable.
+      blockers.push('required_workflow_run_observation_invalid');
+    } else {
+      normalizedWorkflowCandidates.sort((a, b) =>
+        a.startedAt - b.startedAt || a.run.id - b.run.id
+      );
+      requiredWorkflowRun = normalizedWorkflowCandidates.length
+        ? normalizedWorkflowCandidates[normalizedWorkflowCandidates.length - 1].run
+        : null;
     }
     if (!requiredWorkflowRun ||
         !Number.isSafeInteger(requiredWorkflowRun.id) || requiredWorkflowRun.id < 1 ||
@@ -137,11 +153,30 @@ function inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo
       run.app && run.app.slug === 'github-actions' &&
       run.check_suite && run.check_suite.id === expectedSuiteId
     );
+    const normalizedCheckCandidates = [];
+    let invalidCheckCandidate = false;
     for (const candidate of candidates) {
-      const candidateStartedAt = typeof candidate.started_at === 'string' ? candidate.started_at : '';
-      const currentStartedAt = requiredCheckRun && typeof requiredCheckRun.started_at === 'string'
-        ? requiredCheckRun.started_at : '';
-      if (!requiredCheckRun || candidateStartedAt > currentStartedAt) requiredCheckRun = candidate;
+      const candidateStartedAt = Date.parse(candidate.started_at || '');
+      const candidateCompletedAt = candidate.status === 'completed'
+        ? Date.parse(candidate.completed_at || '') : null;
+      if (!Number.isSafeInteger(candidate.id) || candidate.id < 1 ||
+          !Number.isFinite(candidateStartedAt) ||
+          (candidate.status === 'completed' &&
+            (!Number.isFinite(candidateCompletedAt) || candidateCompletedAt < candidateStartedAt))) {
+        invalidCheckCandidate = true;
+        continue;
+      }
+      normalizedCheckCandidates.push({ run: candidate, startedAt: candidateStartedAt });
+    }
+    if (invalidCheckCandidate) {
+      blockers.push('required_ci_check_observation_invalid');
+    } else {
+      normalizedCheckCandidates.sort((a, b) =>
+        a.startedAt - b.startedAt || a.run.id - b.run.id
+      );
+      requiredCheckRun = normalizedCheckCandidates.length
+        ? normalizedCheckCandidates[normalizedCheckCandidates.length - 1].run
+        : null;
     }
     const startedAt = requiredCheckRun && Date.parse(requiredCheckRun.started_at);
     const completedAt = requiredCheckRun && Date.parse(requiredCheckRun.completed_at);
