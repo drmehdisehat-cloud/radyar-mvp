@@ -46,3 +46,7 @@ Do not copy real client facts, raw legal documents, private hosting evidence, cr
 
 برای هر نسخه‌ای که قرار است به‌عنوان منبع بررسی‌شده انتخاب شود، تاریخ انتشار رسمی نباید بعد از تاریخ دریافت متن باشد (`publicationDate <= retrievedAt`). تاریخ بازبینی نیز نباید پیش از دریافت همان نسخه باشد (`reviewedAt >= retrievedAt`). تاریخ اثر (`effectiveFrom`) جداگانه نگهداری می‌شود و ممکن است طبق حکم صریح سند با تاریخ انتشار یکسان نباشد؛ این کنترل صرفاً ترتیب زمانی مشاهده و بازبینی را می‌سنجد و درباره اثر عطف‌به‌ماسبق نتیجه‌گیری نمی‌کند.
 
+
+## Strict registry input boundary
+
+Registry entries are accepted only as plain data objects (ordinary or null prototype). Symbol keys, non-enumerable fields, accessor properties, prototype-backed records, and objects that cannot be inspected safely are rejected. The validator snapshots own data-property values before reading them; it does not invoke getters. Nested human-review metadata uses the same rule. This is a structural input-safety boundary, not proof that the source or reviewer is authentic.

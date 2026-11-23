@@ -20,6 +20,43 @@ const DOCUMENT_ID = /^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$/;
 const PLACEHOLDER = /^(?:tbd|todo|pending|unknown|n\/a|test|demo|نامشخص|در انتظار بررسی|بازبین فرضی)$/iu;
 const UNSAFE_METADATA_CONTROL = /[\u0000-\u001f\u007f-\u009f\u061c\u200b\u200e-\u200f\u202a-\u202e\u2060-\u206f\ufeff]/u;
 
+
+function snapshotPlainObject(value, label) {
+  try {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      return { ok: false, issues: [label + '_not_object'] };
+    }
+    const prototype = Object.getPrototypeOf(value);
+    if (prototype !== Object.prototype && prototype !== null) {
+      return { ok: false, issues: [label + '_not_plain_object'] };
+    }
+    const keys = Reflect.ownKeys(value);
+    if (keys.some(key => typeof key !== 'string')) {
+      return { ok: false, issues: [label + '_symbol_key'] };
+    }
+    const snapshot = Object.create(null);
+    for (const key of keys) {
+      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      if (!descriptor || !Object.prototype.hasOwnProperty.call(descriptor, 'value') ||
+          typeof descriptor.get === 'function' || typeof descriptor.set === 'function') {
+        return { ok: false, issues: [label + '_accessor_property'] };
+      }
+      if (!descriptor.enumerable) {
+        return { ok: false, issues: [label + '_non_enumerable_property'] };
+      }
+      Object.defineProperty(snapshot, key, {
+        value: descriptor.value,
+        enumerable: true,
+        writable: false,
+        configurable: false
+      });
+    }
+    return { ok: true, value: snapshot };
+  } catch {
+    return { ok: false, issues: [label + '_uninspectable_object'] };
+  }
+}
+
 function validDate(value) {
   if (typeof value !== 'string' || !ISO_DATE.test(value)) return false;
   const [year, month, day] = value.split('-').map(Number);
@@ -94,10 +131,12 @@ function safeOfficialDocumentUrl(value, documentId) {
 }
 
 function validateSourceVersion(record, asOfDate) {
-  const issues = [];
-  if (!record || typeof record !== 'object' || Array.isArray(record)) {
-    return { ok: false, eligible: false, issues: ['record_not_object'] };
+  const snapshot = snapshotPlainObject(record, 'record');
+  if (!snapshot.ok) {
+    return { ok: false, eligible: false, issues: snapshot.issues };
   }
+  record = snapshot.value;
+  const issues = [];
   for (const key of ['id', 'topic', 'instrumentId', 'title', 'documentId', 'officialDocumentUrl']) {
     if (typeof record[key] !== 'string' || !record[key].trim() || record[key].length > 2048) {
       issues.push('invalid_' + key);
@@ -137,26 +176,33 @@ function validateSourceVersion(record, asOfDate) {
   }
   if (record.releaseSourceEligible !== true) issues.push('release_source_not_eligible');
 
-  const review = record.humanReview;
-  if (!review || typeof review !== 'object' || Array.isArray(review)) {
+  if (!record.humanReview || typeof record.humanReview !== 'object' ||
+      Array.isArray(record.humanReview)) {
     issues.push('human_review_missing');
   } else {
-    if (typeof review.reviewer !== 'string' || review.reviewer.trim().length < 3 ||
-        review.reviewer.length > 120 || PLACEHOLDER.test(review.reviewer.trim().normalize('NFKC')) ||
-        /[\u0000-\u001f\u007f-\u009f\u061c\u200b\u200e-\u202e\u2060-\u206f\ufeff]/u.test(review.reviewer)) {
-      issues.push('human_reviewer_invalid');
-    }
-    if (review.decision !== 'approved') issues.push('human_review_not_approved');
-    if (!validDate(review.reviewedAt)) issues.push('invalid_reviewed_at');
-    else if (validDate(asOfDate) && review.reviewedAt > asOfDate) issues.push('future_reviewed_at');
-    if (validDate(review.reviewedAt) && validDate(record.retrievedAt) &&
-        review.reviewedAt < record.retrievedAt) {
-      issues.push('review_before_retrieval');
-    }
-    if (!SHA256.test(String(review.reviewedTextSha256 || '')) ||
-        !SHA256.test(String(record.textSha256 || '')) ||
-        String(review.reviewedTextSha256).toLowerCase() !== String(record.textSha256).toLowerCase()) {
-      issues.push('reviewed_text_hash_mismatch');
+    const reviewSnapshot = snapshotPlainObject(record.humanReview, 'human_review');
+    if (!reviewSnapshot.ok) {
+      issues.push(...reviewSnapshot.issues);
+    } else {
+      const review = reviewSnapshot.value;
+      if (typeof review.reviewer !== 'string' || review.reviewer.trim().length < 3 ||
+          review.reviewer.length > 120 || PLACEHOLDER.test(review.reviewer.trim().normalize('NFKC')) ||
+          /[\\u0000-\\u001f\\u007f-\\u009f\\u061c\\u200b\\u200e-\\u202e\\u2060-\\u206f\\ufeff]/u.test(review.reviewer)) {
+        issues.push('human_reviewer_invalid');
+      }
+      if (review.decision !== 'approved') issues.push('human_review_not_approved');
+      if (!validDate(review.reviewedAt)) issues.push('invalid_reviewed_at');
+      else if (validDate(asOfDate) && review.reviewedAt > asOfDate) issues.push('future_reviewed_at');
+      if (validDate(review.reviewedAt) && validDate(record.retrievedAt) &&
+          review.reviewedAt < record.retrievedAt) {
+        issues.push('review_before_retrieval');
+      }
+      if (typeof review.reviewedTextSha256 !== 'string' ||
+          !SHA256.test(review.reviewedTextSha256) ||
+          !SHA256.test(record.textSha256) ||
+          review.reviewedTextSha256.toLowerCase() !== record.textSha256.toLowerCase()) {
+        issues.push('reviewed_text_hash_mismatch');
+      }
     }
   }
   return { ok: issues.length === 0, eligible: issues.length === 0, issues };
@@ -183,17 +229,27 @@ function resolveLegalVersion(records, options = {}) {
       legalConclusionPermitted: false
     };
   }
-  const candidates = records.filter(record =>
-    record && record.topic === topic &&
-    record.instrumentId === instrumentId &&
-    record.instrumentType === instrumentType
-  );
+  const candidates = [];
+  const rejected = [];
+  for (const rawRecord of records) {
+    const snapshot = snapshotPlainObject(rawRecord, 'record');
+    if (!snapshot.ok) {
+      rejected.push({ id: '', reasons: snapshot.issues });
+      continue;
+    }
+    const record = snapshot.value;
+    if (record.topic === topic && record.instrumentId === instrumentId &&
+        record.instrumentType === instrumentType) {
+      candidates.push(record);
+    }
+  }
   if (!candidates.length) {
-    return { status: 'source_unavailable', reason: 'no_registry_record', legalConclusionPermitted: false };
+    return rejected.length
+      ? { status: 'source_unavailable', reason: 'no_verified_version_for_event_date', rejected, legalConclusionPermitted: false }
+      : { status: 'source_unavailable', reason: 'no_registry_record', legalConclusionPermitted: false };
   }
 
   const eligible = [];
-  const rejected = [];
   for (const record of candidates) {
     const validation = validateSourceVersion(record, asOfDate);
     if (!validation.eligible) {
@@ -252,14 +308,17 @@ function auditVersionRegistry(records, asOfDate) {
   if (!validDate(asOfDate)) return { valid: false, issues: ['invalid_as_of_date'] };
   const ids = new Set();
   const verified = [];
-  for (const record of records) {
-    const validation = validateSourceVersion(record, asOfDate);
+  for (const rawRecord of records) {
+    const snapshot = snapshotPlainObject(rawRecord, 'record');
+    const record = snapshot.ok ? snapshot.value : null;
+    const validation = validateSourceVersion(rawRecord, asOfDate);
+    const recordId = record && typeof record.id === 'string' ? record.id : 'unknown';
     if (record && typeof record.id === 'string') {
       if (ids.has(record.id)) issues.push('duplicate_id:' + record.id);
       ids.add(record.id);
     }
-    if (!validation.ok) issues.push(...validation.issues.map(issue => String(record?.id || 'unknown') + ':' + issue));
-    if (validation.eligible) verified.push(record);
+    if (!validation.ok) issues.push(...validation.issues.map(issue => recordId + ':' + issue));
+    if (validation.eligible && record) verified.push(record);
   }
   for (let i = 0; i < verified.length; i++) {
     for (let j = i + 1; j < verified.length; j++) {

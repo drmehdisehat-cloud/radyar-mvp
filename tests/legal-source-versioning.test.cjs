@@ -283,3 +283,64 @@ test('returns source_unavailable instead of inventing a version when no record e
   assert.equal(result.status, 'source_unavailable');
   assert.equal(result.reason, 'no_registry_record');
 });
+
+test('rejects prototype-backed registry records without inheriting metadata', () => {
+  const inherited = verified();
+  const record = Object.create(inherited);
+  const result = validateSourceVersion(record, AS_OF);
+  assert.equal(result.eligible, false);
+  assert.ok(result.issues.includes('record_not_plain_object'));
+  assert.equal(resolve([record], '2025-05-10').status, 'source_unavailable');
+  assert.equal(auditVersionRegistry([record], AS_OF).valid, false);
+});
+
+test('rejects accessor-backed record fields without invoking getters', () => {
+  const record = verified();
+  let reads = 0;
+  Object.defineProperty(record, 'topic', {
+    enumerable: true,
+    configurable: true,
+    get() { reads++; return 'instruments'; }
+  });
+  const result = validateSourceVersion(record, AS_OF);
+  assert.equal(reads, 0);
+  assert.equal(result.eligible, false);
+  assert.ok(result.issues.includes('record_accessor_property'));
+});
+
+test('rejects accessor-backed human review metadata without invoking getters', () => {
+  const record = verified();
+  let reads = 0;
+  Object.defineProperty(record.humanReview, 'reviewer', {
+    enumerable: true,
+    configurable: true,
+    get() { reads++; return 'بازبین حقوقی آزمایشی'; }
+  });
+  const result = validateSourceVersion(record, AS_OF);
+  assert.equal(reads, 0);
+  assert.equal(result.eligible, false);
+  assert.ok(result.issues.includes('human_review_accessor_property'));
+});
+
+test('fails closed on uninspectable proxy records in selection and registry audit', () => {
+  const hostile = new Proxy({}, {
+    getPrototypeOf() { throw new Error('synthetic proxy trap'); },
+    ownKeys() { throw new Error('synthetic proxy trap'); }
+  });
+  assert.doesNotThrow(() => resolve([hostile], '2025-05-10'));
+  const selection = resolve([hostile], '2025-05-10');
+  assert.equal(selection.status, 'source_unavailable');
+  assert.ok(selection.rejected[0].reasons.includes('record_uninspectable_object'));
+  const audit = auditVersionRegistry([hostile], AS_OF);
+  assert.equal(audit.valid, false);
+  assert.ok(audit.issues.includes('unknown:record_uninspectable_object'));
+});
+
+test('rejects symbol and non-enumerable metadata keys in registry records', () => {
+  const symbolRecord = verified();
+  symbolRecord[Symbol('hidden')] = 'synthetic';
+  const hiddenRecord = verified();
+  Object.defineProperty(hiddenRecord, 'hidden', { value: 'synthetic', enumerable: false });
+  assert.ok(validateSourceVersion(symbolRecord, AS_OF).issues.includes('record_symbol_key'));
+  assert.ok(validateSourceVersion(hiddenRecord, AS_OF).issues.includes('record_non_enumerable_property'));
+});
