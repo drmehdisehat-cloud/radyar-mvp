@@ -3,7 +3,21 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { decidePreviewRelease } = require('../scripts/decide-preview-release.cjs');
 
+const postureObservation = {
+  schema: 'dadyar-github-release-posture-observation-v1',
+  status: 'POSTURE_VERIFIED',
+  repository: 'drmehdisehat-cloud/radyar-mvp',
+  visibility: 'private',
+  branch: 'dadyar/ai-chat-private-20261101',
+  branchProtected: true,
+  headSha: 'f'.repeat(40),
+  blockers: [],
+  deploymentAuthorized: false,
+  observedAt: new Date().toISOString()
+};
 const base = {
+  repositoryPostureObservation: postureObservation,
+  expectedSourceCommit: postureObservation.headSha,
   restoreEvidence: {
     restore_proven: true,
     evidence: 'independent-restore-manifest-v1',
