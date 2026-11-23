@@ -82,6 +82,7 @@ function inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo
 
   return Object.freeze({
     schema: 'dadyar-github-release-posture-observation-v1',
+    observedAt: new Date().toISOString(),
     status: blockers.length ? 'NOT_READY' : 'POSTURE_VERIFIED',
     repository,
     visibility: repoInfo.private === true ? 'private' : repoInfo.private === false ? 'public' : 'unknown',
@@ -103,6 +104,7 @@ async function auditRepositoryPosture({
   if (repository !== EXPECTED_REPOSITORY || branch !== EXPECTED_BRANCH) {
     return Object.freeze({
       schema: 'dadyar-github-release-posture-observation-v1',
+      observedAt: new Date().toISOString(),
       status: 'NOT_VERIFIED',
       repository: EXPECTED_REPOSITORY,
       branch: EXPECTED_BRANCH,
