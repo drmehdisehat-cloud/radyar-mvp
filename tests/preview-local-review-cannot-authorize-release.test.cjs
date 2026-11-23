@@ -44,6 +44,19 @@ const restoreEvidence = {
   reviewed_at: '2026-11-09T13:00:00.000Z'
 };
 
+const repositoryPostureObservation = {
+  schema: 'dadyar-github-release-posture-observation-v1',
+  status: 'POSTURE_VERIFIED',
+  repository: 'drmehdisehat-cloud/radyar-mvp',
+  visibility: 'private',
+  branch: 'dadyar/ai-chat-private-20261101',
+  branchProtected: true,
+  headSha: 'f'.repeat(40),
+  blockers: [],
+  deploymentAuthorized: false,
+  observedAt: new Date().toISOString()
+};
+
 const destinationEvidence = {
   matched: true,
   source_blob_sha1: '1'.repeat(40),
@@ -67,6 +80,8 @@ test('offline local review never substitutes for authenticated reviewer identity
   const decision = decidePreviewRelease({
     restoreEvidence,
     destinationEvidence,
+    repositoryPostureObservation,
+    expectedSourceCommit: repositoryPostureObservation.headSha,
     isolatedRestoreVerified: true,
     mobileBrowserVerified: true,
     zeroApiRequestsVerified: true,
