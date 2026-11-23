@@ -6,6 +6,7 @@ const {
   EXPECTED_REPOSITORY,
   EXPECTED_BRANCH,
   REQUIRED_CHECK,
+  REQUIRED_CHECK_RUN,
   auditRepositoryPosture
 } = require('../scripts/audit-github-repository-posture.cjs');
 
@@ -37,6 +38,19 @@ function verifiedFixtures() {
       allow_force_pushes: { enabled: false },
       allow_deletions: { enabled: false },
       required_conversation_resolution: { enabled: true }
+    },
+    checkRuns: {
+      total_count: 1,
+      check_runs: [{
+        id: 456,
+        name: REQUIRED_CHECK_RUN,
+        head_sha: 'a'.repeat(40),
+        status: 'completed',
+        conclusion: 'success',
+        started_at: '2026-11-23T10:00:00Z',
+        completed_at: '2026-11-23T10:00:30Z',
+        app: { slug: 'github-actions' }
+      }]
     }
   };
 }
@@ -46,6 +60,7 @@ function fakeFetch(fixtures, seen = []) {
     seen.push({ url, options });
     if (url.endsWith('/repos/' + EXPECTED_REPOSITORY)) return response(fixtures.repository);
     const branchUrl = '/branches/' + encodeURIComponent(EXPECTED_BRANCH);
+    if (url.includes('/check-runs?per_page=100')) return response(fixtures.checkRuns);
     if (url.endsWith(branchUrl + '/protection')) return response(fixtures.protection);
     if (url.endsWith(branchUrl)) return response(fixtures.branch);
     throw new Error('unexpected_url');
@@ -158,6 +173,25 @@ test('fails closed when GitHub API access or branch-protection permission is una
   assert.equal(result.deploymentAuthorized, false);
 });
 
+test('blocks an in-progress exact-head check even when an older successful run exists', async () => {
+  const fixtures = verifiedFixtures();
+  fixtures.checkRuns.check_runs.push({
+    id: 457,
+    name: REQUIRED_CHECK_RUN,
+    head_sha: 'a'.repeat(40),
+    status: 'in_progress',
+    conclusion: null,
+    started_at: '2026-11-23T10:01:00Z',
+    completed_at: null,
+    app: { slug: 'github-actions' }
+  });
+  const result = await auditRepositoryPosture({ fetchImpl: fakeFetch(fixtures) });
+  assert.equal(result.status, 'NOT_READY');
+  assert.ok(result.blockers.includes('required_ci_check_not_successful_on_exact_head'));
+  assert.equal(result.requiredCheckRunId, 457);
+  assert.equal(result.deploymentAuthorized, false);
+});
+
 test('does not inspect an unexpected repository or branch', async () => {
   let calls = 0;
   const result = await auditRepositoryPosture({
@@ -176,7 +210,8 @@ test('uses read-only GET requests and never emits the token in the result', asyn
     token: 'synthetic-github-token-never-logged',
     fetchImpl: fakeFetch(fixtures, seen)
   });
-  assert.equal(seen.length, 3);
+  assert.equal(seen.length, 4);
+  assert.ok(seen.some(item => item.url.endsWith('/commits/' + 'a'.repeat(40) + '/check-runs?per_page=100')));
   assert.ok(seen.every(item => item.options.method === 'GET'));
   assert.ok(seen.every(item => item.options.headers.authorization === 'Bearer synthetic-github-token-never-logged'));
   assert.equal(JSON.stringify(result).includes('synthetic-github-token-never-logged'), false);

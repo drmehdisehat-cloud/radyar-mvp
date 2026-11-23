@@ -38,7 +38,7 @@ chmod 600 /secure/path/repository-posture.json
 
 خروجی باید `status=POSTURE_VERIFIED`، `visibility=private`، `branchProtected=true` و `blockers=[]` داشته باشد. ممیزی همچنین آخرین Check Run با نام `verify-existing-frontend` را از GitHub می‌خواند و فقط نتیجه `completed/success` از اپ `github-actions` روی SHA دقیق HEAD را می‌پذیرد؛ نتیجه قدیمی، در حال اجرا، متعلق به SHA دیگر، اپ دیگر یا فهرست ناقص Check Runها مانع است. گزارش خطا، 403 یا `NOT_VERIFIED` قابل استفاده نیست.
 
-در Preflight، فایل باید خارج از Git checkout و با مجوز مالک‌خواندنی باشد و با گزینه `--repository-posture-observation` معرفی شود. گزارش حداکثر ۱۵ دقیقه اعتبار دارد و `headSha` آن باید دقیقاً با `--expected-source-commit` برابر باشد؛ پس از هر commit تازه باید دوباره تولید شود.
+در Preflight، فایل باید خارج از Git checkout و با مجوز مالک‌خواندنی باشد و با گزینه `--repository-posture-observation` معرفی شود. گزارش حداکثر ۱۵ دقیقه اعتبار دارد و `headSha` آن باید دقیقاً با `--expected-source-commit` برابر باشد؛ پس از هر commit تازه باید دوباره تولید شود. چون همین ممیزی درون job اصلی CI نیز اجرا می‌شود، Check Run همان job هنگام ممیزی هنوز `in_progress` است و عمداً پذیرفته نمی‌شود؛ برای مشاهده `POSTURE_VERIFIED` باید پس از اتمام CI، گزارش read-only را از یک اجرای مستقل دوباره تولید کرد.
 
 این مشاهده فقط وضعیت تنظیمات GitHub را ثبت می‌کند؛ جایگزین Restore مستقل، اعتبارسنجی مقصد، احراز هویت بازبین، بررسی حقوقی یا تأیید نهایی مالک نیست. Preflight همچنان هیچ استقراری انجام نمی‌دهد.
 
