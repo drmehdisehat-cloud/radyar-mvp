@@ -9,6 +9,11 @@ Status: NOT RELEASE READY. This document is a checklist, not proof of passing te
 - [ ] Review authentication, data retention, privacy notice, and handling of sensitive case data.
 - [ ] Cite authoritative Iranian legal texts with effective/review dates and human legal review.
 - [ ] Obtain explicit owner approval and backup before touching `main` or live deployment.
+- [ ] Verify repository privacy and release-branch protection: private visibility, strict required CI, independent approval, stale-review dismissal, admin enforcement, force-push/deletion disabled, and resolved review conversations.
+- [ ] Prove an isolated IranHost backup restore with a separate database/user, canonical realpaths, archive and restored-file hashes, successful database probe, and two independent signatures with owner-pinned key fingerprints.
+- [ ] Verify the preview destination outside the production document root and Git checkout using canonical realpath, reviewed source Git blob SHA-1, and exact destination SHA-256.
+- [ ] Integrate and verify a trusted reviewer IdP/session adapter, revocation, role binding, signed review attestation, and one-shot report release.
+- [ ] Verify the live HTTPS preview subpath and security headers in isolated staging, including TLS, CSP, mobile behavior, and zero API/network requests.
 
 No client information, tokens, or keys may be committed.
 
