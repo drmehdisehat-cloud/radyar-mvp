@@ -54,10 +54,11 @@ const valid = {
   zeroApiRequestsVerified: true,
   localHumanReviewAcknowledged: true,
   authenticatedHumanReviewAttested: true,
-  authenticatedRestoreAttestation: true
+  authenticatedRestoreAttestation: true,
+  trustedReviewerAuthenticationAdapterVerified: true
 };
 test('every release evidence flag must be literal boolean true', () => {
-  for (const key of ['isolatedRestoreVerified', 'mobileBrowserVerified', 'zeroApiRequestsVerified', 'localHumanReviewAcknowledged', 'authenticatedHumanReviewAttested', 'authenticatedRestoreAttestation']) {
+  for (const key of ['isolatedRestoreVerified', 'mobileBrowserVerified', 'zeroApiRequestsVerified', 'localHumanReviewAcknowledged', 'authenticatedHumanReviewAttested', 'authenticatedRestoreAttestation', 'trustedReviewerAuthenticationAdapterVerified']) {
     for (const invalid of ['true', 1, {}, null, undefined]) {
       const result = decidePreviewRelease({ ...valid, [key]: invalid });
       assert.equal(result.status, 'NOT_READY', key + ': ' + String(invalid));
