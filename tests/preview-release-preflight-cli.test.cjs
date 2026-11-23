@@ -100,6 +100,19 @@ function fixture() {
     cwd: path.resolve(__dirname, '..'), encoding: 'utf8'
   }).trim();
   const sourceBlobSha = gitBlobSha1(sourceBytes);
+  const repositoryPostureFile = path.join(directory, 'repository-posture.json');
+  fs.writeFileSync(repositoryPostureFile, JSON.stringify({
+    schema: 'dadyar-github-release-posture-observation-v1',
+    status: 'POSTURE_VERIFIED',
+    repository: 'drmehdisehat-cloud/radyar-mvp',
+    visibility: 'private',
+    branch: 'dadyar/ai-chat-private-20261101',
+    branchProtected: true,
+    headSha: sourceCommit,
+    blockers: [],
+    deploymentAuthorized: false,
+    observedAt: new Date().toISOString()
+  }), { mode: 0o600 });
   const stagingDirectory = path.join(directory, 'isolated-staging', 'dadyar-preview');
   fs.mkdirSync(stagingDirectory, { recursive: true, mode: 0o700 });
   const previewDestination = path.join(stagingDirectory, 'index.html');
@@ -165,7 +178,7 @@ function fixture() {
   fs.writeFileSync(restoreReviewerPublicKeyFile, reviewerPublicKeyPem, { mode: 0o600 });
   fs.writeFileSync(restoreReviewerSignatureFile, reviewerSignature, { mode: 0o600 });
   return {
-    directory, restoreFile, destinationFile, attestationFile, trustStoreFile,
+    directory, restoreFile, destinationFile, attestationFile, trustStoreFile, repositoryPostureFile,
     restoreArchiveFile, restoredMarkerFile, restoreLogFile, databaseProbeFile,
     sourcePreview, previewDestination, productionRoot, sourceBlobSha,
     restoreOperatorPublicKeyFile, restoreOperatorSignatureFile,
@@ -204,6 +217,7 @@ function baseArgs(f) {
     '--expected-restore-operator-public-key-sha256', f.operatorFingerprint,
     '--expected-restore-reviewer-public-key-sha256', f.reviewerFingerprint,
     '--destination-evidence', f.destinationFile,
+    '--repository-posture-observation', f.repositoryPostureFile,
     '--preview-source', f.sourcePreview,
     '--preview-destination', f.previewDestination,
     '--production-document-root', f.productionRoot,
@@ -235,7 +249,7 @@ test('read-only CLI verifies a signed synthetic review but remains NOT_READY wit
     const report = JSON.parse(result.stdout);
     assert.equal(report.status, 'NOT_READY');
     assert.equal(report.deploymentAuthorized, false);
-    assert.equal(report.externalChecksPending.length, 5);
+    assert.equal(report.externalChecksPending.length, 6);
     assert.ok(report.blockers.includes('trusted reviewer authentication adapter is not integrated and verified'));
     assert.equal(report.evidenceFilesRead, true);
     assert.equal(report.attestationFlagsSupplied, 4);
@@ -249,6 +263,9 @@ test('read-only CLI verifies a signed synthetic review but remains NOT_READY wit
     assert.deepEqual(Object.keys(report.restoreEvidenceBundle.files).sort(), ['archive', 'database_probe', 'restore_log', 'restored_marker']);
     assert.equal(report.destinationVerification.matched, true);
     assert.equal(report.destinationVerification.destination_realpath, f.previewDestination);
+    assert.equal(report.repositoryPosture.verified, true);
+    assert.equal(report.repositoryPosture.visibility, 'private');
+    assert.equal(report.repositoryPosture.headSha, f.sourceCommit);
     assert.equal(report.reviewAttestation.verified, true);
     assert.equal(report.reviewAttestation.subject, 'synthetic-reviewer-01');
     assert.equal(report.reviewAttestation.trustStoreSha256, digest(fs.readFileSync(f.trustStoreFile)));
@@ -852,3 +869,19 @@ test('CLI rejects a validly shaped signed review for a stale source commit', () 
   }
 });
 
+
+test('missing repository posture observation blocks an otherwise complete synthetic preflight', () => {
+  const f = fixture();
+  try {
+    const result = run(removeValuePair(baseArgs(f), '--repository-posture-observation'));
+    assert.equal(result.status, 1, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.status, 'NOT_READY');
+    assert.ok(report.blockers.includes(
+      'repository privacy and release-branch protection observation is missing, stale, or mismatched'
+    ));
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
