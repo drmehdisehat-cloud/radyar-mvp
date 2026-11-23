@@ -243,7 +243,7 @@ test('1372 Qavanin rendered-text digest binds the exact transcription without ma
   assert.equal(capture.sourceUrl, candidate.url);
   const bytes = fs.readFileSync(path.join(root, capture.path));
   assert.equal(bytes.length, capture.utf8Bytes, 'transcription byte length must match its observation');
-  assert.equal(bytes.toString('utf8').split(/\\r?\\n/).length, capture.lineCount,
+  assert.equal(bytes.toString('utf8').split(/\r?\n/).length, capture.lineCount,
     'transcription line count must match the visible-line capture');
   assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), capture.sha256,
     'transcription SHA-256 must match the exact repository bytes');
