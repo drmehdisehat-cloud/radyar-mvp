@@ -20,7 +20,7 @@ test('experimental CI actions are pinned to reviewed immutable commit IDs', () =
   assert.match(workflow, /persist-credentials:\s*false/);
   assert.match(workflow, /package-manager-cache:\s*false/);
   assert.match(workflow, /node-version:\s*'22'/);
-  assert.match(workflow, /permissions:\s*\n\s*contents:\s*read/);
+  assert.match(workflow, /permissions:\s*\n\s*contents:\s*read\s*\n\s*checks:\s*read/);
   assert.match(workflow, /- dadyar\/mvp-sync-028/);
   assert.doesNotMatch(workflow, /^\s*(?:deploy|secrets|environment):/mi);
 });

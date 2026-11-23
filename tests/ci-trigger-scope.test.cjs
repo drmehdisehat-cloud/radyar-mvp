@@ -49,7 +49,7 @@ test('experimental CI push and pull-request scopes are explicit and documented',
   }
 
   assert.ok(readme.includes('رویداد ' + fence + 'pull_request' + fence + ' فقط برای PRهایی فعال است'));
-  assert.match(workflow, /^permissions:\s*\r?\n  contents: read/m);
+  assert.match(workflow, /^permissions:\s*\r?\n  contents: read\r?\n  checks: read/m);
   assert.match(workflow, /persist-credentials: false/);
 
   const jobsSection = workflow.split(/^jobs:\s*$/m)[1];

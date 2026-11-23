@@ -20,6 +20,7 @@ concurrency:
   cancel-in-progress: true
 permissions:
   contents: read
+  checks: read
 jobs:
   verify-existing-frontend:
     if: >-

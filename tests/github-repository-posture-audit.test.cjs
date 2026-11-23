@@ -5,6 +5,7 @@ const {
   EXPECTED_REPOSITORY,
   EXPECTED_BRANCH,
   REQUIRED_CHECK,
+  REQUIRED_CHECK_RUN,
   inspectPosture,
   auditRepositoryPosture,
   classifyGitHubReadFailure
@@ -27,6 +28,19 @@ const protectionInfo = () => ({
   allow_deletions: { enabled: false },
   required_conversation_resolution: { enabled: true }
 });
+const checkRunsInfo = () => ({
+  total_count: 1,
+  check_runs: [{
+    id: 123,
+    name: REQUIRED_CHECK_RUN,
+    head_sha: 'a'.repeat(40),
+    status: 'completed',
+    conclusion: 'success',
+    started_at: '2026-11-23T10:00:00Z',
+    completed_at: '2026-11-23T10:00:30Z',
+    app: { slug: 'github-actions' }
+  }]
+});
 
 test('only a private repository with strict CI, independent review and non-destructive protection passes', () => {
   const result = inspectPosture(
@@ -34,7 +48,8 @@ test('only a private repository with strict CI, independent review and non-destr
     EXPECTED_BRANCH,
     repoInfo(),
     branchInfo(),
-    protectionInfo()
+    protectionInfo(),
+    checkRunsInfo()
   );
   assert.equal(result.status, 'POSTURE_VERIFIED');
   assert.equal(result.visibility, 'private');
@@ -52,7 +67,8 @@ test('a public repository remains blocked even when branch rules are otherwise c
     EXPECTED_BRANCH,
     { ...repoInfo(), private: false },
     branchInfo(),
-    protectionInfo()
+    protectionInfo(),
+    checkRunsInfo()
   );
   assert.equal(result.status, 'NOT_READY');
   assert.ok(result.blockers.includes('repository_must_be_private'));
@@ -63,7 +79,7 @@ test('force-push permission must be explicitly disabled', () => {
   for (const allowForcePushes of [undefined, { enabled: true }]) {
     const protection = protectionInfo();
     protection.allow_force_pushes = allowForcePushes;
-    const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protection);
+    const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protection, checkRunsInfo());
     assert.ok(result.blockers.includes('force_pushes_must_be_disabled'));
     assert.equal(result.deploymentAuthorized, false);
   }
@@ -73,7 +89,7 @@ test('branch deletion permission must be explicitly disabled', () => {
   for (const allowDeletions of [undefined, { enabled: true }]) {
     const protection = protectionInfo();
     protection.allow_deletions = allowDeletions;
-    const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protection);
+    const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protection, checkRunsInfo());
     assert.ok(result.blockers.includes('branch_deletion_must_be_disabled'));
   }
 });
@@ -82,7 +98,7 @@ test('review conversation resolution must be explicitly required', () => {
   for (const resolution of [undefined, { enabled: false }]) {
     const protection = protectionInfo();
     protection.required_conversation_resolution = resolution;
-    const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protection);
+    const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protection, checkRunsInfo());
     assert.ok(result.blockers.includes('required_review_conversation_resolution_missing'));
   }
 });
@@ -90,20 +106,20 @@ test('review conversation resolution must be explicitly required', () => {
 test('missing or stale CI and independent review requirements remain blockers', () => {
   const noStrictChecks = protectionInfo();
   noStrictChecks.required_status_checks.strict = false;
-  assert.ok(inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), noStrictChecks)
+  assert.ok(inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), noStrictChecks, checkRunsInfo())
     .blockers.includes('required_dadyar_ci_check_not_strict'));
 
   const noApprover = protectionInfo();
   noApprover.required_pull_request_reviews.required_approving_review_count = 0;
   noApprover.required_pull_request_reviews.dismiss_stale_reviews = false;
-  const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), noApprover);
+  const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), noApprover, checkRunsInfo());
   assert.ok(result.blockers.includes('independent_pull_request_review_policy_missing'));
 });
 
 test('administrator bypass remains blocked', () => {
   const protection = protectionInfo();
   protection.enforce_admins = { enabled: false };
-  const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protection);
+  const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protection, checkRunsInfo());
   assert.ok(result.blockers.includes('branch_protection_not_enforced_for_admins'));
 });
 
@@ -115,6 +131,7 @@ test('live posture audit performs read-only GET requests against the exact repos
       let body;
       if (url === 'https://api.github.com/repos/' + EXPECTED_REPOSITORY) body = repoInfo();
       else if (url.endsWith('/protection')) body = protectionInfo();
+      else if (url.includes('/check-runs?')) body = checkRunsInfo();
       else if (url.includes('/branches/')) body = branchInfo();
       else throw new Error('unexpected_url');
       return { ok: true, json: async () => body };
@@ -122,10 +139,71 @@ test('live posture audit performs read-only GET requests against the exact repos
   });
   assert.equal(result.status, 'POSTURE_VERIFIED');
   assert.equal(result.deploymentAuthorized, false);
-  assert.equal(calls.length, 3);
+  assert.equal(calls.length, 4);
   assert.ok(calls.every(call => call.method === 'GET'));
   assert.ok(calls.every(call => call.url.includes(EXPECTED_REPOSITORY)));
   assert.ok(calls.some(call => call.url.endsWith('/branches/' + encodeURIComponent(EXPECTED_BRANCH) + '/protection')));
+  assert.ok(calls.some(call => call.url.endsWith('/commits/' + 'a'.repeat(40) + '/check-runs?per_page=100')));
+});
+
+test('latest required GitHub Actions check run must succeed on the exact branch HEAD', () => {
+  const runs = checkRunsInfo();
+  runs.check_runs.push({
+    id: 124,
+    name: REQUIRED_CHECK_RUN,
+    head_sha: 'a'.repeat(40),
+    status: 'completed',
+    conclusion: 'failure',
+    started_at: '2026-11-23T10:01:00Z',
+    completed_at: '2026-11-23T10:01:20Z',
+    app: { slug: 'github-actions' }
+  });
+  const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protectionInfo(), runs);
+  assert.ok(result.blockers.includes('required_ci_check_not_successful_on_exact_head'));
+  assert.equal(result.requiredCheckRunId, 124);
+  assert.equal(result.requiredCheckRunConclusion, 'failure');
+  assert.equal(result.deploymentAuthorized, false);
+});
+
+test('a successful check from another SHA, another app, or a pending run cannot satisfy release posture', () => {
+  const cases = [
+    run => { run.head_sha = 'b'.repeat(40); },
+    run => { run.app.slug = 'untrusted-check-app'; },
+    run => { run.status = 'in_progress'; run.conclusion = null; }
+  ];
+  for (const mutate of cases) {
+    const runs = checkRunsInfo();
+    mutate(runs.check_runs[0]);
+    const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protectionInfo(), runs);
+    assert.ok(result.blockers.includes('required_ci_check_not_successful_on_exact_head'));
+    assert.equal(result.deploymentAuthorized, false);
+  }
+});
+
+test('missing or truncated check-run observations fail closed', () => {
+  const missing = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protectionInfo(), null);
+  assert.ok(missing.blockers.includes('required_ci_check_observation_unavailable'));
+  const truncated = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protectionInfo(), {
+    total_count: 101,
+    check_runs: checkRunsInfo().check_runs
+  });
+  assert.ok(truncated.blockers.includes('required_ci_check_observation_truncated'));
+});
+
+test('check-run API permission failures fail closed instead of trusting branch-rule configuration alone', async () => {
+  const result = await auditRepositoryPosture({
+    fetchImpl: async url => {
+      if (url === 'https://api.github.com/repos/' + EXPECTED_REPOSITORY) return { ok: true, json: async () => repoInfo() };
+      if (url.endsWith('/protection')) return { ok: true, json: async () => protectionInfo() };
+      if (url.includes('/branches/')) return { ok: true, json: async () => branchInfo() };
+      if (url.includes('/check-runs?')) return { ok: false, status: 403, json: async () => ({ message: 'PRIVATE_CHECK_DETAILS' }) };
+      throw new Error('unexpected_url');
+    }
+  });
+  assert.equal(result.status, 'NOT_VERIFIED');
+  assert.deepEqual(result.blockers, ['github_api_forbidden_or_permission_insufficient']);
+  assert.equal(JSON.stringify(result).includes('PRIVATE_CHECK_DETAILS'), false);
+  assert.equal(result.deploymentAuthorized, false);
 });
 
 test('forbidden GitHub access fails closed with a specific blocker', async () => {

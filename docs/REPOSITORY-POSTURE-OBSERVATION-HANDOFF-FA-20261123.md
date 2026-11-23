@@ -26,7 +26,7 @@
 
 ## تولید مشاهده تازه برای Preflight
 
-پس از اعمال تنظیمات، مالک یا اپراتور مجاز می‌تواند روی ماشین امن خود، با یک GitHub token دارای مجوز read-only برای metadata و administration، گزارش را تولید کند. توکن فقط در متغیر محیطی محلی قرار گیرد و هرگز چاپ یا commit نشود:
+پس از اعمال تنظیمات، مالک یا اپراتور مجاز می‌تواند روی ماشین امن خود، با یک GitHub token دارای مجوز read-only برای metadata، administration و checks:read، گزارش را تولید کند. توکن فقط در متغیر محیطی محلی قرار گیرد و هرگز چاپ یا commit نشود:
 
 ```sh
 GITHUB_REPOSITORY=drmehdisehat-cloud/radyar-mvp \
@@ -36,7 +36,7 @@ node scripts/audit-github-repository-posture.cjs > /secure/path/repository-postu
 chmod 600 /secure/path/repository-posture.json
 ```
 
-خروجی باید `status=POSTURE_VERIFIED`، `visibility=private`، `branchProtected=true` و `blockers=[]` داشته باشد. گزارش خطا، 403 یا `NOT_VERIFIED` قابل استفاده نیست.
+خروجی باید `status=POSTURE_VERIFIED`، `visibility=private`، `branchProtected=true` و `blockers=[]` داشته باشد. ممیزی همچنین آخرین Check Run با نام `verify-existing-frontend` را از GitHub می‌خواند و فقط نتیجه `completed/success` از اپ `github-actions` روی SHA دقیق HEAD را می‌پذیرد؛ نتیجه قدیمی، در حال اجرا، متعلق به SHA دیگر، اپ دیگر یا فهرست ناقص Check Runها مانع است. گزارش خطا، 403 یا `NOT_VERIFIED` قابل استفاده نیست.
 
 در Preflight، فایل باید خارج از Git checkout و با مجوز مالک‌خواندنی باشد و با گزینه `--repository-posture-observation` معرفی شود. گزارش حداکثر ۱۵ دقیقه اعتبار دارد و `headSha` آن باید دقیقاً با `--expected-source-commit` برابر باشد؛ پس از هر commit تازه باید دوباره تولید شود.
 
