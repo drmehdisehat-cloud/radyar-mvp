@@ -100,7 +100,7 @@ test('force-push permission must be explicitly disabled', () => {
   for (const allowForcePushes of [undefined, { enabled: true }]) {
     const protection = protectionInfo();
     protection.allow_force_pushes = allowForcePushes;
-    const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protection, checkRunsInfo());
+    const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protection, checkRunsInfo(), workflowRunsInfo());
     assert.ok(result.blockers.includes('force_pushes_must_be_disabled'));
     assert.equal(result.deploymentAuthorized, false);
   }
@@ -110,7 +110,7 @@ test('branch deletion permission must be explicitly disabled', () => {
   for (const allowDeletions of [undefined, { enabled: true }]) {
     const protection = protectionInfo();
     protection.allow_deletions = allowDeletions;
-    const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protection, checkRunsInfo());
+    const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protection, checkRunsInfo(), workflowRunsInfo());
     assert.ok(result.blockers.includes('branch_deletion_must_be_disabled'));
   }
 });
@@ -119,7 +119,7 @@ test('review conversation resolution must be explicitly required', () => {
   for (const resolution of [undefined, { enabled: false }]) {
     const protection = protectionInfo();
     protection.required_conversation_resolution = resolution;
-    const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protection, checkRunsInfo());
+    const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protection, checkRunsInfo(), workflowRunsInfo());
     assert.ok(result.blockers.includes('required_review_conversation_resolution_missing'));
   }
 });
@@ -127,20 +127,20 @@ test('review conversation resolution must be explicitly required', () => {
 test('missing or stale CI and independent review requirements remain blockers', () => {
   const noStrictChecks = protectionInfo();
   noStrictChecks.required_status_checks.strict = false;
-  assert.ok(inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), noStrictChecks, checkRunsInfo())
+  assert.ok(inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), noStrictChecks, checkRunsInfo(), workflowRunsInfo())
     .blockers.includes('required_dadyar_ci_check_not_strict'));
 
   const noApprover = protectionInfo();
   noApprover.required_pull_request_reviews.required_approving_review_count = 0;
   noApprover.required_pull_request_reviews.dismiss_stale_reviews = false;
-  const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), noApprover, checkRunsInfo());
+  const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), noApprover, checkRunsInfo(), workflowRunsInfo());
   assert.ok(result.blockers.includes('independent_pull_request_review_policy_missing'));
 });
 
 test('administrator bypass remains blocked', () => {
   const protection = protectionInfo();
   protection.enforce_admins = { enabled: false };
-  const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protection, checkRunsInfo());
+  const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protection, checkRunsInfo(), workflowRunsInfo());
   assert.ok(result.blockers.includes('branch_protection_not_enforced_for_admins'));
 });
 
