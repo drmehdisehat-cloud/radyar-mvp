@@ -115,6 +115,7 @@ async function auditRepositoryPosture({
   if (typeof fetchImpl !== 'function') {
     return Object.freeze({
       schema: 'dadyar-github-release-posture-observation-v1',
+      observedAt: new Date().toISOString(),
       status: 'NOT_VERIFIED',
       repository,
       branch,
@@ -140,6 +141,7 @@ async function auditRepositoryPosture({
   } catch (error) {
     return Object.freeze({
       schema: 'dadyar-github-release-posture-observation-v1',
+      observedAt: new Date().toISOString(),
       status: 'NOT_VERIFIED',
       repository,
       branch,
