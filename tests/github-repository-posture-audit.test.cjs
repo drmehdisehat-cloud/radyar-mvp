@@ -6,6 +6,8 @@ const {
   EXPECTED_BRANCH,
   REQUIRED_CHECK,
   REQUIRED_CHECK_RUN,
+  REQUIRED_WORKFLOW_ID,
+  REQUIRED_WORKFLOW_PATH,
   inspectPosture,
   auditRepositoryPosture,
   classifyGitHubReadFailure
@@ -38,7 +40,24 @@ const checkRunsInfo = () => ({
     conclusion: 'success',
     started_at: '2026-11-23T10:00:00Z',
     completed_at: '2026-11-23T10:00:30Z',
-    app: { slug: 'github-actions' }
+    app: { slug: 'github-actions' },
+    check_suite: { id: 321 }
+  }]
+});
+const workflowRunsInfo = () => ({
+  total_count: 1,
+  workflow_runs: [{
+    id: 456,
+    workflow_id: REQUIRED_WORKFLOW_ID,
+    path: REQUIRED_WORKFLOW_PATH,
+    event: 'push',
+    head_branch: EXPECTED_BRANCH,
+    head_sha: 'a'.repeat(40),
+    status: 'completed',
+    conclusion: 'success',
+    check_suite_id: 321,
+    run_started_at: '2026-11-23T10:00:00Z',
+    created_at: '2026-11-23T10:00:00Z'
   }]
 });
 
@@ -49,7 +68,8 @@ test('only a private repository with strict CI, independent review and non-destr
     repoInfo(),
     branchInfo(),
     protectionInfo(),
-    checkRunsInfo()
+    checkRunsInfo(),
+    workflowRunsInfo()
   );
   assert.equal(result.status, 'POSTURE_VERIFIED');
   assert.equal(result.visibility, 'private');
@@ -68,7 +88,8 @@ test('a public repository remains blocked even when branch rules are otherwise c
     { ...repoInfo(), private: false },
     branchInfo(),
     protectionInfo(),
-    checkRunsInfo()
+    checkRunsInfo(),
+    workflowRunsInfo()
   );
   assert.equal(result.status, 'NOT_READY');
   assert.ok(result.blockers.includes('repository_must_be_private'));
@@ -132,6 +153,7 @@ test('live posture audit performs read-only GET requests against the exact repos
       if (url === 'https://api.github.com/repos/' + EXPECTED_REPOSITORY) body = repoInfo();
       else if (url.endsWith('/protection')) body = protectionInfo();
       else if (url.includes('/check-runs?')) body = checkRunsInfo();
+      else if (url.includes('/actions/runs?head_sha=')) body = workflowRunsInfo();
       else if (url.includes('/branches/')) body = branchInfo();
       else throw new Error('unexpected_url');
       return { ok: true, json: async () => body };
@@ -139,11 +161,12 @@ test('live posture audit performs read-only GET requests against the exact repos
   });
   assert.equal(result.status, 'POSTURE_VERIFIED');
   assert.equal(result.deploymentAuthorized, false);
-  assert.equal(calls.length, 4);
+  assert.equal(calls.length, 5);
   assert.ok(calls.every(call => call.method === 'GET'));
   assert.ok(calls.every(call => call.url.includes(EXPECTED_REPOSITORY)));
   assert.ok(calls.some(call => call.url.endsWith('/branches/' + encodeURIComponent(EXPECTED_BRANCH) + '/protection')));
   assert.ok(calls.some(call => call.url.endsWith('/commits/' + 'a'.repeat(40) + '/check-runs?per_page=100')));
+  assert.ok(calls.some(call => call.url.endsWith('/actions/runs?head_sha=' + 'a'.repeat(40) + '&per_page=100')));
 });
 
 test('latest required GitHub Actions check run must succeed on the exact branch HEAD', () => {
@@ -156,9 +179,10 @@ test('latest required GitHub Actions check run must succeed on the exact branch 
     conclusion: 'failure',
     started_at: '2026-11-23T10:01:00Z',
     completed_at: '2026-11-23T10:01:20Z',
-    app: { slug: 'github-actions' }
+    app: { slug: 'github-actions' },
+    check_suite: { id: 321 }
   });
-  const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protectionInfo(), runs);
+  const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protectionInfo(), runs, workflowRunsInfo());
   assert.ok(result.blockers.includes('required_ci_check_not_successful_on_exact_head'));
   assert.equal(result.requiredCheckRunId, 124);
   assert.equal(result.requiredCheckRunConclusion, 'failure');
@@ -174,20 +198,27 @@ test('a successful check from another SHA, another app, or a pending run cannot 
   for (const mutate of cases) {
     const runs = checkRunsInfo();
     mutate(runs.check_runs[0]);
-    const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protectionInfo(), runs);
+    const result = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protectionInfo(), runs, workflowRunsInfo());
     assert.ok(result.blockers.includes('required_ci_check_not_successful_on_exact_head'));
     assert.equal(result.deploymentAuthorized, false);
   }
 });
 
 test('missing or truncated check-run observations fail closed', () => {
-  const missing = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protectionInfo(), null);
+  const missing = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protectionInfo(), null, workflowRunsInfo());
   assert.ok(missing.blockers.includes('required_ci_check_observation_unavailable'));
   const truncated = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protectionInfo(), {
     total_count: 101,
     check_runs: checkRunsInfo().check_runs
-  });
+  }, workflowRunsInfo());
   assert.ok(truncated.blockers.includes('required_ci_check_observation_truncated'));
+  const missingWorkflow = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protectionInfo(), checkRunsInfo(), null);
+  assert.ok(missingWorkflow.blockers.includes('required_workflow_run_observation_unavailable'));
+  const truncatedWorkflow = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protectionInfo(), checkRunsInfo(), {
+    total_count: 101,
+    workflow_runs: workflowRunsInfo().workflow_runs
+  });
+  assert.ok(truncatedWorkflow.blockers.includes('required_workflow_run_observation_truncated'));
 });
 
 test('check-run API permission failures fail closed instead of trusting branch-rule configuration alone', async () => {
@@ -197,6 +228,7 @@ test('check-run API permission failures fail closed instead of trusting branch-r
       if (url.endsWith('/protection')) return { ok: true, json: async () => protectionInfo() };
       if (url.includes('/branches/')) return { ok: true, json: async () => branchInfo() };
       if (url.includes('/check-runs?')) return { ok: false, status: 403, json: async () => ({ message: 'PRIVATE_CHECK_DETAILS' }) };
+      if (url.includes('/actions/runs?head_sha=')) return { ok: true, json: async () => workflowRunsInfo() };
       throw new Error('unexpected_url');
     }
   });
