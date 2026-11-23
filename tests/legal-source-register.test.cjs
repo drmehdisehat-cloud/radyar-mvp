@@ -1,6 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const { auditLegalSourceRegister } = require('../backend/legal-source-register-policy.cjs');
@@ -223,4 +224,40 @@ test('direct CBI page unavailable through this verification channel remains a no
   assert.equal(record.useInLegalAnswers, false);
   assert.equal(indexData.source.status, 'transcribed-not-independently-authenticated');
   assert.equal(indexData.months['7'], 3611.1);
+});
+
+
+test('1372 Qavanin rendered-text digest binds the exact transcription without masquerading as raw official bytes', () => {
+  const record = register.records.find(item => item.id === 'check-issuance-law');
+  const observation = JSON.parse(fs.readFileSync(
+    path.join(root, 'docs/check-law-qavanin-observation-20261123.json'), 'utf8'
+  ));
+  const capture = observation.renderedTextCapture;
+  assert.ok(record && capture, '1372 observation and legal-source record must exist');
+  assert.equal(record.latest1372Observation.file, 'docs/check-law-qavanin-observation-20261123.json');
+  assert.equal(capture.path, 'research/qavanin-1372-check-amendment-rendered-20261123.txt');
+  const candidate = record.officialDocumentUrlCandidates.find(item =>
+    item.documentId === '16863897128756457315'
+  );
+  assert.ok(candidate, '1372 official Qavanin candidate must exist');
+  assert.equal(capture.sourceUrl, candidate.url);
+  const bytes = fs.readFileSync(path.join(root, capture.path));
+  assert.equal(bytes.length, capture.utf8Bytes, 'transcription byte length must match its observation');
+  assert.equal(bytes.toString('utf8').split(/\\r?\\n/).length, capture.lineCount,
+    'transcription line count must match the visible-line capture');
+  assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), capture.sha256,
+    'transcription SHA-256 must match the exact repository bytes');
+  assert.deepEqual(capture.sourceVisibleLineRange, [42, 68]);
+  assert.equal(capture.captureType, 'web-rendered official portal text copied from visible lines');
+  assert.equal(capture.rawHttpResponseBytesCaptured, false);
+  assert.equal(capture.rawResponseSha256, null);
+  assert.equal(observation.verification.rawHttpBytesCaptured, false);
+  assert.equal(observation.verification.rawResponseSha256, null);
+  assert.equal(observation.verification.officialGazetteIssueBytesRetrieved, false);
+  assert.equal(observation.verification.primarySourceVerified, false);
+  assert.equal(observation.verification.humanReviewStatus, 'pending');
+  assert.equal(observation.verification.eventDateVersioningApproved, false);
+  assert.equal(observation.verification.legalAnswerUsePermitted, false);
+  assert.equal(candidate.useInLegalAnswers, false);
+  assert.equal(record.useInLegalAnswers, false);
 });
