@@ -42,6 +42,8 @@ test('only a private repository with strict CI, independent review and non-destr
   assert.equal(result.headSha, 'a'.repeat(40));
   assert.deepEqual(result.blockers, []);
   assert.equal(result.deploymentAuthorized, false);
+  assert.equal(typeof result.observedAt, 'string');
+  assert.ok(Number.isFinite(Date.parse(result.observedAt)));
 });
 
 test('a public repository remains blocked even when branch rules are otherwise complete', () => {
