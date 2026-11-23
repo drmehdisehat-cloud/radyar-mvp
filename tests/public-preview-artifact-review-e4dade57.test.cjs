@@ -86,6 +86,6 @@ test('mobile and offline evidence is not promoted to authenticated review or rel
   assert.match(record.limitations.join(' '), /does not prove that cPanel or SolidCP serves the live URL/);
   assert.doesNotMatch(
     recordBytes.toString('utf8'),
-    /sk-[A-Za-z0-9]{20,}|-----BEGIN (?:RSA |EC )?PRIVATE KEY-----|Bearer\\s+[A-Za-z0-9._-]{12,}/
+    /sk-[A-Za-z0-9]{20,}|-----BEGIN (?:RSA |EC )?PRIVATE KEY-----|Bearer\s+[A-Za-z0-9._-]{12,}/
   );
 });
