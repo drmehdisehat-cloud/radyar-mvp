@@ -37,8 +37,8 @@ test('legal source register is versioned and preserves fail-closed promotion rul
 
 test('Qavanin cheque-law URLs remain non-authorizing research candidates until the consolidated text and event-date amendments are fetched and reviewed', () => {
   const record = register.records.find(item => item.id === 'check-issuance-law');
-  assert.equal(record.latestIndependentObservation.file, 'docs/check-law-qavanin-observation-20261123.json');
-  assert.equal(record.latestIndependentObservation.observedAt, '2026-11-23');
+  assert.equal(record.latest1372Observation.file, 'docs/check-law-qavanin-observation-20261123.json');
+  assert.equal(record.latest1372Observation.observedAt, '2026-11-23');
   assert.ok(record);
   const original = record.officialDocumentUrlCandidates?.find(item =>
     item.url === 'https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131'

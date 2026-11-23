@@ -46,6 +46,8 @@ test('rendered 1372 metadata never activates legal-answer use or event-date vers
   assert.equal(candidate.humanReviewStatus, 'pending');
   assert.equal(candidate.eventDateVersioningApproved, false);
   assert.equal(candidate.useInLegalAnswers, false);
+  assert.equal(record.latest1372Observation.file, 'docs/check-law-qavanin-observation-20261123.json');
+  assert.equal(record.latest1372Observation.observedAt, '2026-11-23');
   assert.equal(record.primarySourceVerified, false);
   assert.equal(record.humanReviewStatus, 'pending');
   assert.equal(record.useInLegalAnswers, false);

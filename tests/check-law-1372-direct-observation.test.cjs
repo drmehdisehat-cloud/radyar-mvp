@@ -54,7 +54,9 @@ test('rendered official text remains research-only until raw bytes, Gazette issu
   assert.equal(observation.verification.eventDateVersioningApproved, false);
   assert.equal(observation.verification.legalAnswerUsePermitted, false);
   assert.ok(candidate, '1372 amendment candidate missing from the legal register');
-  assert.equal(candidate.lastDirectFetchAt, '2026-11-22');
+  assert.equal(candidate.lastDirectFetchAt, '2026-11-23');
+  assert.equal(candidate.latestTextObservation.observedAt, '2026-11-23');
+  assert.equal(candidate.latestMetadataObservation.observedAt, '2026-11-23');
   assert.equal(candidate.rawHttpBytesCaptured, false);
   assert.equal(candidate.rawResponseSha256, null);
   assert.equal(candidate.officialGazetteIssueBytesRetrieved, false);
