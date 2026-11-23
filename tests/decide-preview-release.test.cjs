@@ -201,6 +201,31 @@ test('rejects a staging destination that is an ancestor of the Git checkout', ()
   assert.ok(decision.blockers.includes('preview destination is not verified outside production document root and Git checkout'));
 });
 
+
+test('a Complete label and 140.38 MB backup size never substitute for an isolated restore', () => {
+  const decision = decidePreviewRelease({
+    restoreEvidence: {
+      backup_status: 'Complete',
+      archive_size_mb: 140.38,
+      archive_size_bytes: 140380000
+    },
+    destinationEvidence,
+    isolatedRestoreVerified: true,
+    mobileBrowserVerified: true,
+    zeroApiRequestsVerified: true,
+    localHumanReviewAcknowledged: true,
+    authenticatedHumanReviewAttested: true,
+    authenticatedRestoreAttestation: true,
+    trustedReviewerAuthenticationAdapterVerified: true,
+    repositoryPostureObservation: postureObservation,
+    expectedSourceCommit: postureObservation.headSha
+  });
+  assert.equal(decision.status, 'NOT_READY');
+  assert.ok(decision.blockers.includes('independent restore attestation incomplete or unverified'));
+  assert.ok(decision.blockers.includes('backup metadata is not proof of an isolated restore'));
+  assert.equal(decision.deploymentAuthorized, false);
+});
+
 test('repository privacy and strict branch protection must be freshly verified for the exact reviewed commit', () => {
   const invalidObservations = [
     undefined,
