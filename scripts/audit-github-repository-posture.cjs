@@ -196,7 +196,9 @@ function inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo
         !Number.isFinite(startedAt) || !Number.isFinite(completedAt) || completedAt < startedAt) {
       blockers.push('required_ci_check_not_successful_on_exact_head');
     }
-  } else if (headSha && !blockers.includes('required_workflow_run_not_successful_on_exact_head')) {
+  } else if (headSha &&
+      !blockers.includes('required_workflow_run_not_successful_on_exact_head') &&
+      !blockers.includes('required_workflow_run_self_observation_pending')) {
     blockers.push('required_workflow_run_not_successful_on_exact_head');
   }
   return Object.freeze({
