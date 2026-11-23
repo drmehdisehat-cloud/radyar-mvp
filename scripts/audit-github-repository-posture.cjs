@@ -54,6 +54,17 @@ function inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo
     if (!protectionInfo.enforce_admins || protectionInfo.enforce_admins.enabled !== true) {
       blockers.push('branch_protection_not_enforced_for_admins');
     }
+    // Protect the release ref against destructive bypasses as well as stale CI.
+    if (!protectionInfo.allow_force_pushes || protectionInfo.allow_force_pushes.enabled !== false) {
+      blockers.push('force_pushes_must_be_disabled');
+    }
+    if (!protectionInfo.allow_deletions || protectionInfo.allow_deletions.enabled !== false) {
+      blockers.push('branch_deletion_must_be_disabled');
+    }
+    if (!protectionInfo.required_conversation_resolution ||
+        protectionInfo.required_conversation_resolution.enabled !== true) {
+      blockers.push('required_review_conversation_resolution_missing');
+    }
   }
 
   return Object.freeze({
