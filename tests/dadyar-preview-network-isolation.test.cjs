@@ -62,7 +62,14 @@ test('network guard detects every forbidden API in a synthetic probe', () => {
     'importScripts("/worker.js")',
     'new WebTransport("https://example.invalid")',
     'new SharedWorker("/shared.js")',
-    'navigator.serviceWorker.register("/sw.js")'
+    'navigator.serviceWorker.register("/sw.js")',
+    'new RTCPeerConnection({ iceServers: [{ urls: "stun:example.invalid" }] })',
+    'new webkitRTCPeerConnection()',
+    'new RTCDataChannel()',
+    'navigator.bluetooth.requestDevice({ acceptAllDevices: true })',
+    'navigator.usb.requestDevice({ filters: [] })',
+    'navigator.serial.requestPort()',
+    'navigator.hid.requestDevice({ filters: [] })'
   ].join('; ');
   for (const pattern of forbiddenNetworkPatterns) {
     assert.match(fixture, pattern, 'detector failed to recognize forbidden API: ' + pattern);
