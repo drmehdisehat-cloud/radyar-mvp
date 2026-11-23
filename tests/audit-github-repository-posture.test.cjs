@@ -154,7 +154,7 @@ test('fails closed when GitHub API access or branch-protection permission is una
     }
   });
   assert.equal(result.status, 'NOT_VERIFIED');
-  assert.deepEqual(result.blockers, ['github_api_read_failed_or_permission_insufficient']);
+  assert.deepEqual(result.blockers, ['github_api_forbidden_or_permission_insufficient']);
   assert.equal(result.deploymentAuthorized, false);
 });
 
