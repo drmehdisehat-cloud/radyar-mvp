@@ -1205,7 +1205,26 @@
         "humanReviewStatus": "pending",
         "eventDateVersioningApproved": false,
         "useInLegalAnswers": false
-      }
+      },
+      "supplementalObservationAttempts": [
+        {
+          "file": "docs/check-law-qavanin-recheck-20261124.json",
+          "observedAt": "2026-11-24",
+          "status": "official-rendered-observation-only",
+          "consolidatedTextRendered": true,
+          "consolidatedMetadataRendered": true,
+          "amendment1372TextRendered": true,
+          "amendment1372MetadataAttempted": true,
+          "amendment1372MetadataRendered": false,
+          "rawHttpResponseBytesCaptured": false,
+          "rawResponseSha256": null,
+          "officialGazetteIssueBytesRetrieved": false,
+          "primarySourceVerified": false,
+          "humanReviewStatus": "pending",
+          "eventDateVersioningApproved": false,
+          "useInLegalAnswers": false
+        }
+      ]
     },
     {
       "id": "uniform-opinion-850",
@@ -1473,5 +1492,7 @@
         "نسخه معتبر در تاریخ رویداد باید با هش متن دقیق و بازبینی حقوقی انسانی مستقل ثبت شود."
       ]
     }
-  ]
+  ],
+  "lastSupplementalObservationAt": "2026-11-24",
+  "latestSupplementalObservationFile": "docs/check-law-qavanin-recheck-20261124.json"
 }
