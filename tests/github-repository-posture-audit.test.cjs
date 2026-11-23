@@ -171,6 +171,7 @@ test('live posture audit performs read-only GET requests against the exact repos
 
 test('latest required GitHub Actions check run must succeed on the exact branch HEAD', () => {
   const runs = checkRunsInfo();
+  runs.total_count = 2;
   runs.check_runs.push({
     id: 124,
     name: REQUIRED_CHECK_RUN,
@@ -211,14 +212,14 @@ test('missing or truncated check-run observations fail closed', () => {
     total_count: 101,
     check_runs: checkRunsInfo().check_runs
   }, workflowRunsInfo());
-  assert.ok(truncated.blockers.includes('required_ci_check_observation_truncated'));
+  assert.ok(truncated.blockers.includes('required_ci_check_observation_incomplete_or_truncated'));
   const missingWorkflow = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protectionInfo(), checkRunsInfo(), null);
   assert.ok(missingWorkflow.blockers.includes('required_workflow_run_observation_unavailable'));
   const truncatedWorkflow = inspectPosture(EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(), protectionInfo(), checkRunsInfo(), {
     total_count: 101,
     workflow_runs: workflowRunsInfo().workflow_runs
   });
-  assert.ok(truncatedWorkflow.blockers.includes('required_workflow_run_observation_truncated'));
+  assert.ok(truncatedWorkflow.blockers.includes('required_workflow_run_observation_incomplete_or_truncated'));
 });
 
 test('check-run API permission failures fail closed instead of trusting branch-rule configuration alone', async () => {
