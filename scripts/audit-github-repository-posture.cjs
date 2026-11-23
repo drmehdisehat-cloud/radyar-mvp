@@ -297,7 +297,7 @@ async function main() {
     repository: process.env.GITHUB_REPOSITORY || EXPECTED_REPOSITORY,
     branch: EXPECTED_BRANCH,
     token: process.env.GITHUB_TOKEN,
-    currentRunId: /^\\d+$/.test(process.env.GITHUB_RUN_ID || '') ? Number(process.env.GITHUB_RUN_ID) : null
+    currentRunId: /^\d+$/.test(process.env.GITHUB_RUN_ID || '') ? Number(process.env.GITHUB_RUN_ID) : null
   });
   process.stdout.write(JSON.stringify(result, null, 2) + '\n');
   if (process.argv.includes('--enforce') && result.status !== 'POSTURE_VERIFIED') {
