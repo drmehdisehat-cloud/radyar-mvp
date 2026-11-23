@@ -22,6 +22,19 @@ async function getJson(url, fetchImpl, token) {
   return response.json();
 }
 
+function classifyGitHubReadFailure(error) {
+  const message = error && typeof error.message === 'string' ? error.message : '';
+  const match = /^github_api_read_failed_(\\d{3})$/.exec(message);
+  if (!match) return 'github_api_network_or_transport_failure';
+  const status = Number(match[1]);
+  if (status === 401) return 'github_api_authentication_failed';
+  if (status === 403) return 'github_api_forbidden_or_permission_insufficient';
+  if (status === 404) return 'github_api_resource_not_found_or_hidden';
+  if (status === 429) return 'github_api_rate_limited';
+  if (status >= 500) return 'github_api_server_error';
+  return 'github_api_http_error_' + status;
+}
+
 function inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo) {
   const blockers = [];
   if (repoInfo.full_name !== repository) blockers.push('repository_identity_mismatch');
@@ -122,13 +135,13 @@ async function auditRepositoryPosture({
       );
     }
     return inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo);
-  } catch {
+  } catch (error) {
     return Object.freeze({
       schema: 'dadyar-github-release-posture-observation-v1',
       status: 'NOT_VERIFIED',
       repository,
       branch,
-      blockers: Object.freeze(['github_api_read_failed_or_permission_insufficient']),
+      blockers: Object.freeze([classifyGitHubReadFailure(error)]),
       deploymentAuthorized: false
     });
   }
@@ -140,7 +153,7 @@ async function main() {
     branch: EXPECTED_BRANCH,
     token: process.env.GITHUB_TOKEN
   });
-  process.stdout.write(JSON.stringify(result, null, 2) + '\n');
+  process.stdout.write(JSON.stringify(result, null, 2) + '\\n');
   if (process.argv.includes('--enforce') && result.status !== 'POSTURE_VERIFIED') {
     process.exitCode = 1;
   }
@@ -154,7 +167,7 @@ if (require.main === module) {
       status: 'NOT_VERIFIED',
       blockers: ['audit_execution_failed'],
       deploymentAuthorized: false
-    }, null, 2) + '\n');
+    }, null, 2) + '\\n');
     process.exitCode = 1;
   });
 }
@@ -164,5 +177,6 @@ module.exports = {
   EXPECTED_BRANCH,
   REQUIRED_CHECK,
   auditRepositoryPosture,
+  classifyGitHubReadFailure,
   inspectPosture
 };
