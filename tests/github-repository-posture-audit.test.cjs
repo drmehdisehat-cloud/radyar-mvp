@@ -351,3 +351,59 @@ test('a malformed matching completed check run blocks release instead of falling
   assert.ok(result.blockers.includes('required_ci_check_observation_invalid'));
   assert.equal(result.deploymentAuthorized, false);
 });
+
+
+test('labels the active exact-head push workflow as self-observation pending', () => {
+  const runs = workflowRunsInfo();
+  runs.workflow_runs[0].status = 'in_progress';
+  runs.workflow_runs[0].conclusion = null;
+  const result = inspectPosture(
+    EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(),
+    protectionInfo(), checkRunsInfo(), runs, 456
+  );
+  assert.equal(result.requiredWorkflowRunId, 456);
+  assert.equal(result.requiredWorkflowRunIsCurrentExecution, true);
+  assert.equal(result.requiredWorkflowRunIsPendingSelfObservation, true);
+  assert.ok(result.blockers.includes('required_workflow_run_self_observation_pending'));
+  assert.ok(!result.blockers.includes('required_workflow_run_not_successful_on_exact_head'));
+  assert.equal(result.deploymentAuthorized, false);
+});
+
+test('does not label a completed failed current workflow as pending self-observation', () => {
+  const runs = workflowRunsInfo();
+  runs.workflow_runs[0].conclusion = 'failure';
+  const result = inspectPosture(
+    EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(),
+    protectionInfo(), checkRunsInfo(), runs, 456
+  );
+  assert.equal(result.requiredWorkflowRunIsCurrentExecution, true);
+  assert.equal(result.requiredWorkflowRunIsPendingSelfObservation, false);
+  assert.ok(result.blockers.includes('required_workflow_run_not_successful_on_exact_head'));
+  assert.ok(!result.blockers.includes('required_workflow_run_self_observation_pending'));
+});
+
+test('does not misclassify another in-progress exact-head run as the current execution', () => {
+  const runs = workflowRunsInfo();
+  runs.workflow_runs[0].status = 'in_progress';
+  runs.workflow_runs[0].conclusion = null;
+  const result = inspectPosture(
+    EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(),
+    protectionInfo(), checkRunsInfo(), runs, 455
+  );
+  assert.equal(result.requiredWorkflowRunIsCurrentExecution, false);
+  assert.equal(result.requiredWorkflowRunIsPendingSelfObservation, false);
+  assert.ok(result.blockers.includes('required_workflow_run_not_successful_on_exact_head'));
+  assert.ok(!result.blockers.includes('required_workflow_run_self_observation_pending'));
+});
+
+test('a separate audit invocation can rely on the completed push run for the same head', () => {
+  const result = inspectPosture(
+    EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(),
+    protectionInfo(), checkRunsInfo(), workflowRunsInfo(), 789
+  );
+  assert.equal(result.requiredWorkflowRunId, 456);
+  assert.equal(result.requiredWorkflowRunIsCurrentExecution, false);
+  assert.equal(result.requiredWorkflowRunIsPendingSelfObservation, false);
+  assert.equal(result.status, 'POSTURE_VERIFIED');
+  assert.deepEqual(result.blockers, []);
+});
