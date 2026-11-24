@@ -33,11 +33,11 @@ function manifestFor(htmlBytes, overrides = {}) {
     topic_hint_count: 27,
     api_enabled: false,
     public_ai_enabled: false,
-    reviewer_authentication: 'not-implemented',
+    reviewer_authentication: 'not-configured',
     backup_restore_verified: false,
     destination_verified: false,
     deployment_authorized: false,
-    notice: 'Integrity evidence only. This manifest does not prove backup restoration, destination validity, reviewer identity, legal accuracy, or deployment authorization.',
+    notice: 'Integrity evidence only. Reviewer authentication is not configured; server-side adapters have only synthetic integration coverage. This manifest does not prove backup restoration, destination validity, reviewer identity, legal accuracy, or deployment authorization.',
     ...overrides
   };
 }
@@ -139,7 +139,7 @@ test('rejects altered HTML, wrong source commit and release flags promoted to tr
   const promoted = Buffer.from(JSON.stringify(manifestFor(HTML, { deployment_authorized: true })), 'utf8');
   assert.throws(() => verifyArtifactBuffer(makeZip(validEntries({ manifest: promoted })), COMMIT), /manifest_release_flags_must_remain_false/);
 });
-test('rejects duplicate JSON keys and a mismatched Git blob pin', () => {
+test('rejects ambiguous or promoted reviewer authentication states in downloaded artifacts', () => {\n  for (const value of ['not-implemented', 'verified', 'connected']) {\n    const manifest = Buffer.from(JSON.stringify(manifestFor(HTML, { reviewer_authentication: value })), 'utf8');\n    assert.throws(() => verifyArtifactBuffer(makeZip(validEntries({ manifest })), COMMIT), /manifest_reviewer_authentication_must_remain_unconfigured/);\n  }\n});\ntest('rejects duplicate JSON keys and a mismatched Git blob pin', () => {
   const duplicateManifest = JSON.stringify(manifestFor(HTML)).replace('"schema":', '"schema":"duplicate","schema":');
   assert.throws(() => verifyArtifactBuffer(makeZip(validEntries({ manifest: duplicateManifest })), COMMIT), /manifest_invalid_json:duplicate_json_key/);
   const wrongBlob = Buffer.from(JSON.stringify(manifestFor(HTML, { git_blob_sha1: '0'.repeat(40) })), 'utf8');
