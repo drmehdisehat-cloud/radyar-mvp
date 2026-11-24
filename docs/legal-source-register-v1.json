@@ -1,6 +1,6 @@
 {
   "schema": "dadyar-legal-source-register-v1",
-  "observedAt": "2026-11-23",
+  "observedAt": "2026-11-24",
   "policy": {
     "approvalRule": "A secondary page, search result, owner image, or plausible official-portal URL is not an authenticated primary legal source.",
     "answerUse": "Only records with an independently verified primary document, event-date version, direct document URL, and approved human review may support a legal answer.",
@@ -346,11 +346,11 @@
         },
         {
           "url": "https://qavanin.ir/Law/TreeText/?IDS=16863897128756457315",
-          "candidateStatus": "official-primary-text-and-metadata-rendered-2026-11-23-raw-bytes-and-gazette-issue-not-captured",
+          "candidateStatus": "official-primary-text-and-metadata-rendered-2026-11-24-raw-bytes-and-gazette-issue-not-captured",
           "documentId": "16863897128756457315",
           "sourceClass": "primary-official-qavanin",
-          "lastDirectFetchAt": "2026-11-23",
-          "lastDirectFetchResult": "Official Qavanin TreeText and Attribute pages independently rendered on 2026-11-23; raw response bytes and SHA-256 were not captured.",
+          "lastDirectFetchAt": "2026-11-24",
+          "lastDirectFetchResult": "Official Qavanin TreeText and Attribute pages independently rendered on 2026-11-24; approval, Council confirmation, Gazette 14189, publication, promulgation and effective-date fields were visible. Raw response bytes, SHA-256 and Gazette issue bytes were not captured.",
           "approvalDateShown": "1372/08/11",
           "guardianCouncilConfirmationDateShown": "1372/08/19",
           "officialAttributeUrl": "https://qavanin.ir/Law/Attribute/?IDS=16863897128756457315",
@@ -359,9 +359,9 @@
           "effectiveFromShown": "1372/09/17",
           "humanReviewStatus": "pending",
           "useInLegalAnswers": false,
-          "note": "متن و صفحه اطلاعات پایه رسمی Qavanin در واکشی مستقل ۱۴۰۵/۰۹/۰۲ قابل مشاهده شدند. فراداده نمایش‌داده‌شده: روزنامه رسمی ۱۴۱۸۹، انتشار ۱۳۷۲/۰۹/۰۱، ابلاغ ۱۳۷۲/۰۸/۲۵ و اجرا ۱۳۷۲/۰۹/۱۷. بایت خام HTTP، هش SHA-256 و فایل اصل روزنامه رسمی دریافت نشده‌اند؛ بازبینی انسانی و نسخه زمانی معتبر نیز تأیید نشده‌اند. این رکورد فقط سرنخ پژوهشی است.",
+          "note": "متن و صفحه اطلاعات پایه رسمی Qavanin در ۱۴۰۵/۰۹/۰۳ دوباره قابل مشاهده شدند. فراداده نمایش‌داده‌شده: روزنامه رسمی ۱۴۱۸۹، انتشار ۱۳۷۲/۰۹/۰۱، ابلاغ ۱۳۷۲/۰۸/۲۵ و اجرا ۱۳۷۲/۰۹/۱۷. بایت خام HTTP، هش SHA-256 و فایل اصل روزنامه رسمی دریافت نشده‌اند؛ بازبینی انسانی و نسخه زمانی معتبر هنوز تأیید نشده‌اند. این رکورد فقط سرنخ پژوهشی است.",
           "latestTextObservation": {
-            "observedAt": "2026-11-23",
+            "observedAt": "2026-11-24",
             "directTextUrl": "https://qavanin.ir/Law/TreeText/?IDS=16863897128756457315",
             "textPageRendered": true,
             "visibleLines": [
@@ -405,7 +405,7 @@
           "officialGazetteIssueBytesRetrieved": false,
           "officialGazettePublicationDateShown": "1372/09/01",
           "promulgationDateShown": "1372/08/25",
-          "metadataLastDirectFetchAt": "2026-11-23",
+          "metadataLastDirectFetchAt": "2026-11-24",
           "textVisibleLines": [
             7,
             9,
@@ -453,7 +453,7 @@
           ],
           "primarySourceVerified": false,
           "latestMetadataObservation": {
-            "observedAt": "2026-11-23",
+            "observedAt": "2026-11-24",
             "directMetadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=16863897128756457315",
             "metadataPageRendered": true,
             "visibleLines": [
@@ -478,13 +478,16 @@
             "officialGazettePublicationDateShown": "1372/09/01",
             "promulgationDateShown": "1372/08/25",
             "effectiveDateShown": "1372/09/17",
+            "notificationNumberShown": "52663",
             "rawHttpBytesCaptured": false,
             "rawResponseSha256": null,
             "officialGazetteIssueBytesRetrieved": false,
             "primarySourceVerified": false,
             "humanReviewStatus": "pending",
             "useInLegalAnswers": false
-          }
+          },
+          "metadataRetrievedAt": "2026-11-24",
+          "metadataPageRendered": true
         },
         {
           "url": "https://qavanin.ir/Law/TreeText/?IDS=5510706429727435487",
@@ -1133,10 +1136,10 @@
         "note": "Fresh rendered-page observation only. The original 1355 act's effective date and the 1403 regulation's effective date are distinct. No event-date legal version is approved until raw bytes, SHA-256, Gazette issue and independent human review are recorded."
       },
       "latest1372Observation": {
-        "file": "docs/check-law-qavanin-observation-20261123.json",
-        "observedAt": "2026-11-23",
+        "file": "docs/check-law-qavanin-recheck-20261124.json",
+        "observedAt": "2026-11-24",
         "sourceClass": "primary-official-qavanin-rendered-observation",
-        "status": "official-portal-observation-only",
+        "status": "official-portal-rendered-text-and-metadata-observation-only",
         "textRendered": true,
         "textVisibleLines": [
           7,
@@ -1184,6 +1187,8 @@
           33,
           34
         ],
+        "approvalDateShown": "1372/08/11",
+        "guardianCouncilConfirmationDateShown": "1372/08/19",
         "officialGazetteNumberShown": "14189",
         "officialGazettePublicationDateShown": "1372/09/01",
         "promulgationDateShown": "1372/08/25",
@@ -1216,6 +1221,23 @@
           "amendment1372TextRendered": true,
           "amendment1372MetadataAttempted": true,
           "amendment1372MetadataRendered": false,
+          "rawHttpResponseBytesCaptured": false,
+          "rawResponseSha256": null,
+          "officialGazetteIssueBytesRetrieved": false,
+          "primarySourceVerified": false,
+          "humanReviewStatus": "pending",
+          "eventDateVersioningApproved": false,
+          "useInLegalAnswers": false
+        },
+        {
+          "file": "docs/check-law-qavanin-recheck-20261124.json",
+          "observedAt": "2026-11-24",
+          "status": "official-rendered-observation-only",
+          "consolidatedTextRendered": true,
+          "consolidatedMetadataRendered": true,
+          "amendment1372TextRendered": true,
+          "amendment1372MetadataAttempted": true,
+          "amendment1372MetadataRendered": true,
           "rawHttpResponseBytesCaptured": false,
           "rawResponseSha256": null,
           "officialGazetteIssueBytesRetrieved": false,

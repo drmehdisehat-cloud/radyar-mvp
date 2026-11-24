@@ -43,9 +43,16 @@ test('records the 2026-11-24 direct official Qavanin text and metadata render ob
   assert.equal(amendment.approvalDateShown, '1372/08/11');
   assert.equal(amendment.guardianCouncilConfirmationDateShown, '1372/08/19');
   assert.equal(amendment.metadataPageAttempted, true);
-  assert.equal(amendment.metadataPageRendered, false);
-  assert.equal(amendment.metadataFailure, 'timeout');
-  assert.equal(amendment.lastSuccessfulMetadataObservationAt, '2026-11-23');
+  assert.equal(amendment.metadataPageRendered, true);
+  assert.deepEqual(amendment.metadataVisibleLines, [7,9,19,21,22,23,24,25,26,27,29,30,31,32,33,34]);
+  assert.equal(amendment.metadataFailure, null);
+  assert.equal(amendment.previousMetadataFailure, 'timeout');
+  assert.equal(amendment.lastSuccessfulMetadataObservationAt, '2026-11-24');
+  assert.equal(amendment.metadataObservation.officialGazetteNumberShown, '14189');
+  assert.equal(amendment.metadataObservation.officialGazettePublicationDateShown, '1372/09/01');
+  assert.equal(amendment.metadataObservation.promulgationDateShown, '1372/08/25');
+  assert.equal(amendment.metadataObservation.effectiveDateShown, '1372/09/17');
+  assert.equal(amendment.metadataObservation.notificationNumberShown, '52663');
 });
 
 test('a rendered page or a prior metadata observation never promotes a source to answer-eligible status', () => {

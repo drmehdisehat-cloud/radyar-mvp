@@ -47,7 +47,7 @@ test('1372 and later cheque amendment dates cannot masquerade as commencement da
       assert.equal(recheck.sources.amendment1372.approvalDateShown, '1372/08/11');
       assert.equal(recheck.sources.amendment1372.guardianCouncilConfirmationDateShown, '1372/08/19');
       assert.equal(recheck.sources.amendment1372.textPageRendered, true);
-      assert.equal(recheck.sources.amendment1372.metadataPageRendered, false);
+      assert.equal(recheck.sources.amendment1372.metadataPageRendered, true);
       continue;
     }
     assert.equal(amendment.dateMeaning, 'article-amendment-label-only');
@@ -123,7 +123,7 @@ test('1397 and 1400 primary-source leads remain unverified after official portal
   assert.equal(matrix.legalConclusionPermitted, false);
 });
 
-test('1372 Qavanin text and last successful metadata are recorded without legal promotion', () => {
+test('1372 Qavanin text and current metadata are recorded without legal promotion', () => {
   const amendment = matrix.amendments.find(item => item.label === '1372');
   const candidate = amendment.candidateInstrument;
   assert.equal(candidate.candidatePrimaryTextRetrieved, true);
@@ -131,9 +131,12 @@ test('1372 Qavanin text and last successful metadata are recorded without legal 
   assert.equal(candidate.primaryTextObservation.observedAt, '2026-11-24');
   assert.equal(candidate.primaryTextObservation.rawHttpResponseBytesCaptured, false);
   assert.equal(candidate.primaryTextObservation.rawResponseSha256, null);
-  assert.equal(candidate.primaryMetadataObservation.observedAt, '2026-11-23');
+  assert.equal(candidate.primaryMetadataObservation.observedAt, '2026-11-24');
+  assert.equal(candidate.primaryMetadataObservation.metadataPageRendered, true);
+  assert.ok(candidate.primaryMetadataObservation.visibleLines.includes(34));
   assert.equal(candidate.primaryMetadataObservation.officialGazetteNumberShown, '14189');
   assert.equal(candidate.primaryMetadataObservation.effectiveDateShown, '1372/09/17');
+  assert.equal(candidate.publicationResearchLead.checkedAt, '2026-11-24');
   assert.equal(candidate.publicationResearchLead.primaryGazetteIssueRetrieved, false);
   assert.equal(candidate.publicationResearchLead.effectiveDateIndependentlyVerified, false);
   assert.equal(amendment.officialGazetteNumber, null);

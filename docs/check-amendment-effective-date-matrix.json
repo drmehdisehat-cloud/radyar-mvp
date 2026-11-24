@@ -6,7 +6,7 @@
   "primaryConsolidatedLawUrl": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
   "originalLawMetadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
   "originalLawEffectiveDateShown": "1355/06/04",
-  "warning": "The official qavanin portal shows the 1403 Council of Ministers monetary-threshold adjustment and appendix row 42 for cheque article 7. This does NOT independently prove official-gazette publication, legal commencement, transitional applicability, subsequent amendments, or case-specific criminal-law effect. The 1403 instrument is an executive adjustment, not a parliamentary amendment. This record remains research-only and is not eligible for v1 legal coverage. Official instrument metadata observed on 2026-10-28 shows execution date 1403/05/08, conflicting with a secondary report of 1403/05/07; no commencement date is certified. A direct Qavanin TreeText rendering for the 1372 amendment was rechecked on 2026-11-24, while its metadata page timed out; the last successful metadata rendering remains 2026-11-23. The displayed 1372/09/17 effective-date field is retained only as an unverified portal observation, not as an approved event-date boundary.",
+  "warning": "The 1372 amendment text and metadata pages rendered on 2026-11-24. The displayed approval, promulgation, Gazette publication and effective dates are separate research observations. Raw bytes, SHA-256, Official Gazette issue 14189, the complete amendment chain, transitional rules and independent human review remain missing; no displayed date is an approved event-date boundary.",
   "amendments": [
     {
       "label": "1372",
@@ -29,7 +29,7 @@
       "independentPrimaryAmendmentTextVerified": false,
       "humanReviewer": null,
       "humanReviewedAt": null,
-      "reviewTask": "Retrieve and hash Official Gazette issue 14189 and the signed 1372 amendment text; reconcile the approval date 1372/08/11, Council confirmation 1372/08/19, last-successful portal metadata showing publication 1372/09/01, promulgation 1372/08/25 and effective date 1372/09/17, then verify commencement and transitional rules against the complete later amendment chain. Do not use the displayed effective date as an approved event-date boundary until exact source bytes and independent human review are recorded.",
+      "reviewTask": "Retrieve and hash Official Gazette issue 14189 and the signed 1372 amendment text; reconcile the approval date 1372/08/11, Council confirmation 1372/08/19, rendered Gazette publication 1372/09/01, promulgation 1372/08/25 and displayed effective date 1372/09/17, then verify commencement and transitional rules against the complete later amendment chain. Do not use the displayed effective date as an approved event-date boundary until exact source bytes, Gazette issue bytes and independent human review are recorded.",
       "instrumentType": "parliamentary-amending-act",
       "instrumentIdentificationStatus": "primary-qavanin-rendered-gazette-bytes-unverified",
       "candidateInstrument": {
@@ -82,11 +82,31 @@
           "scope": "Direct official Qavanin page rendered; raw HTTP bytes, Gazette issue bytes, commencement, transitional rules and independent human review are not verified."
         },
         "primaryMetadataObservation": {
-          "observedAt": "2026-11-23",
+          "observedAt": "2026-11-24",
           "sourceType": "official-qavanin-portal-instrument-metadata",
           "url": "https://qavanin.ir/Law/Attribute/?IDS=16863897128756457315",
+          "visibleLines": [
+            7,
+            9,
+            19,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34
+          ],
+          "approvalDateShown": "1372/08/11",
+          "notificationNumberShown": "52663",
+          "issuingAuthorityShown": "مجلس شورای اسلامی",
           "officialGazetteNumberShown": "14189",
-          "officialGazetteDateShown": "1372/09/01",
           "officialGazettePublicationDateShown": "1372/09/01",
           "promulgationDateShown": "1372/08/25",
           "effectiveDateShown": "1372/09/17",
@@ -94,18 +114,22 @@
           "rawResponseSha256": null,
           "officialGazetteIssueBytesRetrieved": false,
           "humanReviewStatus": "pending",
-          "note": "Last successful metadata rendering on 2026-11-23; the 2026-11-24 metadata recheck timed out. These displayed fields are research observations only."
+          "useInLegalAnswers": false,
+          "note": "Direct official Qavanin metadata page rendered on 2026-11-24. Exact raw HTTP bytes, SHA-256 and Official Gazette issue 14189 were not retrieved or hashed; displayed dates remain research observations only.",
+          "officialGazetteDateShown": "1372/09/01",
+          "metadataPageRendered": true
         },
         "publicationResearchLead": {
-          "checkedAt": "2026-11-23",
-          "status": "last-successful-official-portal-metadata-observation-gazette-bytes-unverified",
+          "checkedAt": "2026-11-24",
+          "status": "official-portal-metadata-rendered-gazette-bytes-unverified",
           "reportedOfficialGazetteNumber": "14189",
           "reportedOfficialGazetteDate": "1372/09/01",
+          "reportedPromulgationDate": "1372/08/25",
           "reportedEffectiveDate": "1372/09/17",
           "supportingPrimaryPortalUrl": "https://qavanin.ir/Law/Attribute/?IDS=16863897128756457315",
           "primaryGazetteIssueRetrieved": false,
           "effectiveDateIndependentlyVerified": false,
-          "warning": "The portal metadata page rendered on 2026-11-23 but its raw bytes and the Gazette issue were not retrieved or hashed; the 2026-11-24 metadata recheck timed out."
+          "warning": "The official metadata page rendered on 2026-11-24, but exact raw bytes, SHA-256 and Official Gazette issue 14189 were not retrieved or hashed; the displayed effective date remains a research observation, not an approved event-date boundary."
         },
         "officialGazetteAndTemporalEffectVerified": false,
         "approvedForLegalConclusions": false,
