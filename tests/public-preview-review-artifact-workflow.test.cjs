@@ -15,9 +15,19 @@ test('public review artifact workflow runs only on the dedicated experimental br
 });
 
 test('public review artifact workflow has read-only repository permissions', () => {
-  assert.match(workflow, /^permissions:\n  contents: read$/m);
-  assert.doesNotMatch(workflow, /^  (?:contents|deployments|id-token): write$/m);
+  assert.match(workflow, /^permissions:\n  contents: read\n  checks: read\n  actions: read$/m);
+  assert.doesNotMatch(workflow, /^  (?:contents|checks|actions|deployments|id-token): write$/m);
   assert.doesNotMatch(workflow, /^\s*environment:/m);
+});
+
+test('the artifact posture audit waits for the exact-head required CI workflow to complete', () => {
+  const wait = workflow.indexOf('name: Wait for exact-head stage-0 CI to finish before posture audit');
+  const audit = workflow.indexOf('name: Audit GitHub repository release posture (read-only; informational)');
+  assert.ok(wait >= 0, 'exact-head CI wait step is required');
+  assert.ok(audit > wait, 'posture audit must run after exact-head CI completion');
+  assert.match(workflow, /GITHUB_REF: \$\{\{ github\.ref \}\}/);
+  assert.match(workflow, /GITHUB_SHA: \$\{\{ github\.sha \}\}/);
+  assert.match(workflow, /node scripts\/wait-for-experimental-ci\.cjs/);
 });
 
 test('the exact public ZIP is independently verified before the upload step', () => {

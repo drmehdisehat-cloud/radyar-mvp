@@ -8,6 +8,7 @@ on:
 permissions:
   contents: read
   checks: read
+  actions: read
 
 concurrency:
   group: dadyar-public-preview-review-${{ github.ref }}
@@ -42,6 +43,7 @@ jobs:
           node --check scripts/verify-restore-attestation-pinned.cjs
           node --check scripts/create-public-preview-integrity-manifest.cjs
           node --check scripts/verify-public-preview-artifact.cjs
+          node --check scripts/wait-for-experimental-ci.cjs
           node --check tests/real-browser-smoke.cjs
       - name: Audit full Git history for known secret signatures
         run: node scripts/audit-git-history.cjs
@@ -57,6 +59,13 @@ jobs:
           node --test "${contracts[@]}"
       - name: Audit release blockers (informational; never deploy)
         run: node scripts/check-v1-readiness.cjs
+      - name: Wait for exact-head stage-0 CI to finish before posture audit
+        env:
+          GITHUB_TOKEN: \${{ github.token }}
+          GITHUB_REPOSITORY: \${{ github.repository }}
+          GITHUB_REF: \${{ github.ref }}
+          GITHUB_SHA: \${{ github.sha }}
+        run: node scripts/wait-for-experimental-ci.cjs
       - name: Audit GitHub repository release posture (read-only; informational)
         env:
           GITHUB_TOKEN: ${{ github.token }}

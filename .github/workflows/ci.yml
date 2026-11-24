@@ -59,6 +59,7 @@ jobs:
           node --check scripts/verify-restore-attestation-signatures.cjs
           node --check scripts/verify-restore-attestation-pinned.cjs
           node --check scripts/create-public-preview-integrity-manifest.cjs
+          node --check scripts/wait-for-experimental-ci.cjs
           node --check tests/real-browser-smoke.cjs
       - name: Audit full Git history for known secret signatures
         run: node scripts/audit-git-history.cjs
