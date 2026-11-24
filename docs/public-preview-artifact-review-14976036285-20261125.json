@@ -1,0 +1,69 @@
+{
+  "schema": "dadyar-public-preview-artifact-review-v1",
+  "observedAt": "2026-11-25",
+  "observationTimePrecision": "date-only; exact download timestamp is not asserted",
+  "repository": "drmehdisehat-cloud/radyar-mvp",
+  "branch": "dadyar/ai-chat-private-20261101",
+  "sourceCommit": "0c3421ea16bc91aa3dbabd6d92362c069c82218a",
+  "workflow": {
+    "name": "Dadyar public-only preview review artifact",
+    "runId": 45511884606,
+    "jobId": 138861403342,
+    "event": "push",
+    "conclusion": "success",
+    "runUrl": "https://github.com/drmehdisehat-cloud/radyar-mvp/actions/runs/45511884606"
+  },
+  "artifact": {
+    "id": 14976036285,
+    "name": "dadyar-public-preview-review-0c3421ea16bc91aa3dbabd6d92362c069c82218a",
+    "sizeBytes": 19726,
+    "createdAt": "2026-11-24T23:41:00Z",
+    "expiresAt": "2026-12-01T23:40:59Z",
+    "url": "https://github.com/drmehdisehat-cloud/radyar-mvp/actions/runs/45511884606/artifacts/14976036285",
+    "archiveSha256": "9b762166a709d474d2416041fb28bc971ccf39e84995667cc657af7631d9cfd1",
+    "entries": [
+      {
+        "path": "index.html",
+        "sizeBytes": 65821,
+        "sha256": "fb31fa29491d3e087d1700a8a053305f3fce555c28728b6ebe0fba7ef822b327",
+        "gitBlobSha1": "90f7616162591efb9c7f0b059105e09f12873e98"
+      },
+      {
+        "path": "INTEGRITY.json",
+        "sizeBytes": 967,
+        "sha256": "d6faa87c1da41afa579a66616302614a8ed423d4793c7f4cfcff06d1eb35b18c"
+      }
+    ],
+    "entryCount": 2
+  },
+  "manifest": {
+    "schema": "dadyar-public-preview-integrity-v1",
+    "sourceCommit": "0c3421ea16bc91aa3dbabd6d92362c069c82218a",
+    "workflowCommit": "0c3421ea16bc91aa3dbabd6d92362c069c82218a",
+    "sourceBranch": "dadyar/ai-chat-private-20261101",
+    "sourceFile": "public/index.html",
+    "targetSubpath": "/dadyar-preview/",
+    "sha256": "fb31fa29491d3e087d1700a8a053305f3fce555c28728b6ebe0fba7ef822b327",
+    "gitBlobSha1": "90f7616162591efb9c7f0b059105e09f12873e98",
+    "topicHintCount": 27,
+    "apiEnabled": false,
+    "publicAiEnabled": false,
+    "reviewerAuthentication": "not-configured",
+    "backupRestoreVerified": false,
+    "destinationVerified": false,
+    "deploymentAuthorized": false
+  },
+  "verification": {
+    "downloadedFromGitHub": true,
+    "zipListingVerified": true,
+    "archiveSha256Recomputed": true,
+    "htmlSha256Recomputed": true,
+    "integrityManifestSha256Recomputed": true,
+    "manifestMatchesArtifact": true,
+    "htmlMatchesSourceGitBlob": true,
+    "productionHostRequested": false,
+    "restorePerformed": false,
+    "destinationTestPerformed": false
+  },
+  "releaseBoundary": "Artifact integrity evidence only. This record does not prove an isolated backup restore, hosting destination validity, authenticated human reviewer identity, legal accuracy, or deployment authorization. Do not publish until every independent release gate is satisfied."
+}
