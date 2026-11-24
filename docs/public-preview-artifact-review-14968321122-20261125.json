@@ -1,6 +1,6 @@
 {
   "schema": "dadyar-public-preview-artifact-review-v1",
-  "observedAt": "2026-11-25T02:08:50+03:30",
+  "observedAt": "2026-11-25",
   "repository": "drmehdisehat-cloud/radyar-mvp",
   "branch": "dadyar/ai-chat-private-20261101",
   "sourceCommit": "a62b9d78f42f8b461beb0256e35a46d29abc430a",
@@ -64,5 +64,6 @@
     "restorePerformed": false,
     "destinationTestPerformed": false
   },
-  "releaseBoundary": "Integrity evidence only. This review does not prove a backup restore, destination validity, reviewer identity, legal accuracy, or deployment authorization. Do not publish until the independent restore, trusted reviewer authentication, destination validation, security review, and owner authorization gates are satisfied."
+  "releaseBoundary": "Integrity evidence only. This review does not prove a backup restore, destination validity, reviewer identity, legal accuracy, or deployment authorization. Do not publish until the independent restore, trusted reviewer authentication, destination validation, security review, and owner authorization gates are satisfied.",
+  "observationTimePrecision": "date-only; exact download timestamp is not asserted"
 }
