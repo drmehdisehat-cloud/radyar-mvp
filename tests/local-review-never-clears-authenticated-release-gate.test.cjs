@@ -16,7 +16,7 @@ test('offline preview identifies its reviewer entry as local and unauthenticated
   const downloadStart = preview.indexOf('<button type="button" id="download"', sectionStart);
   assert.ok(sectionStart >= 0 && downloadStart > sectionStart, 'human-review section missing');
   const section = preview.slice(sectionStart, downloadStart);
-  assert.match(section, /بازبینی محلی توسط انسان \\(بدون احراز هویت\\)/);
+  assert.ok(section.includes('بازبینی محلی توسط انسان (بدون احراز هویت)'));
   assert.match(section, /هویت یا سمت بازبین احراز نمی‌شود/);
   assert.match(section, /ثبت اظهار محلی بازبین/);
   const downloadHandler = preview.slice(preview.indexOf("document.getElementById('download').addEventListener"));
