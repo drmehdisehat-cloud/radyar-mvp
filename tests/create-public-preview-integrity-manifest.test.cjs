@@ -50,10 +50,11 @@ test('creates a public integrity sidecar bound to exact HTML bytes and source co
   assert.equal(manifest.topic_hint_count, 27);
   assert.equal(manifest.api_enabled, false);
   assert.equal(manifest.public_ai_enabled, false);
-  assert.equal(manifest.reviewer_authentication, 'not-implemented');
+  assert.equal(manifest.reviewer_authentication, 'not-configured');
   assert.equal(manifest.backup_restore_verified, false);
   assert.equal(manifest.destination_verified, false);
   assert.equal(manifest.deployment_authorized, false);
+  assert.match(manifest.notice, /Reviewer authentication is not configured/);
   assert.match(manifest.notice, /does not prove backup restoration/);
   assert.equal(result.manifest_sha256, sha256(fs.readFileSync(f.manifestPath)));
   assert.equal(fs.statSync(f.manifestPath).mode & 0o777, 0o644);
@@ -86,7 +87,7 @@ test('rejects package metadata that marks restore, destination or deployment as 
   }
 });
 
-test('rejects API or public AI activation metadata', t => {
+test('rejects ambiguous or promoted reviewer authentication metadata', t => {\n  for (const value of ['not-implemented', 'verified', 'connected']) {\n    const f = fixture(t);\n    const metadataPath = path.join(f.packageRoot, 'handoff', 'PREVIEW-METADATA.json');\n    const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));\n    metadata.reviewer_authentication = value;\n    fs.writeFileSync(metadataPath, JSON.stringify(metadata), { mode: 0o600 });\n    assert.throws(() => createPublicPreviewIntegrityManifest(f.packageRoot), /reviewer_authentication_must_remain_unconfigured/);\n  }\n});\n\ntest('rejects API or public AI activation metadata', t => {
   const f = fixture(t);
   const metadataPath = path.join(f.packageRoot, 'handoff', 'PREVIEW-METADATA.json');
   const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
