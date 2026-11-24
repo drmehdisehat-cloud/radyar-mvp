@@ -115,7 +115,7 @@ function createPublicPreviewIntegrityManifest(packageRootArg) {
   if (metadata.source_file_git_blob_sha1 !== sourceBlobSha1) fail('source_git_blob_sha1_mismatch');
   if (metadata.topic_hint_count !== 27) fail('topic_hint_count_mismatch');
   if (metadata.api_enabled !== false || metadata.public_ai_enabled !== false) fail('api_or_public_ai_must_remain_disabled');
-  if (metadata.reviewer_authentication !== 'not-implemented' ||
+  if (metadata.reviewer_authentication !== 'not-configured' ||
       metadata.reviewer_record_type !== 'local-self-attestation-only') {
     fail('reviewer_authentication_must_remain_unconfigured');
   }
@@ -137,11 +137,11 @@ function createPublicPreviewIntegrityManifest(packageRootArg) {
     topic_hint_count: 27,
     api_enabled: false,
     public_ai_enabled: false,
-    reviewer_authentication: 'not-implemented',
+    reviewer_authentication: 'not-configured',
     backup_restore_verified: false,
     destination_verified: false,
     deployment_authorized: false,
-    notice: 'Integrity evidence only. This manifest does not prove backup restoration, destination validity, reviewer identity, legal accuracy, or deployment authorization.'
+    notice: 'Integrity evidence only. Reviewer authentication is not configured; server-side adapters have only synthetic integration coverage. This manifest does not prove backup restoration, destination validity, reviewer identity, legal accuracy, or deployment authorization.'
   });
   const manifestBytes = Buffer.from(JSON.stringify(manifest, null, 2) + '\n', 'utf8');
   if (manifestBytes.length > MAX_MANIFEST_BYTES) fail('integrity_manifest_too_large');
