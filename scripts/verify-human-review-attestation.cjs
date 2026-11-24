@@ -66,6 +66,7 @@ function verifyHumanReviewAttestation({
   expectedSourceCommit,
   expectedSourceBlobSha1,
   expectedArtifactSha256,
+  forbiddenPublicKeySha256s = [],
   now = Date.now()
 } = {}) {
   const fail = reason => ({ verified: false, reason });
@@ -78,6 +79,17 @@ function verifyHumanReviewAttestation({
       trustStore.reviewers.length < 1 || trustStore.reviewers.length > 100) {
     return fail('invalid_trust_store');
   }
+  if (!Array.isArray(forbiddenPublicKeySha256s) ||
+      forbiddenPublicKeySha256s.length > 16 ||
+      forbiddenPublicKeySha256s.some(value =>
+        typeof value !== 'string' || !SHA256.test(value) || /^0{64}$/i.test(value)
+      ) ||
+      new Set(forbiddenPublicKeySha256s.map(value => value.toLowerCase())).size !== forbiddenPublicKeySha256s.length) {
+    return fail('invalid_forbidden_key_fingerprints');
+  }
+  const forbiddenKeyFingerprints = new Set(
+    forbiddenPublicKeySha256s.map(value => value.toLowerCase())
+  );
 
   const p = attestation.payload;
   if (p.schema !== 'dadyar-human-review-attestation-v2' ||
@@ -152,6 +164,9 @@ function verifyHumanReviewAttestation({
     const fingerprint = crypto.createHash('sha256')
       .update(reviewerKey.export({ type: 'spki', format: 'der' }))
       .digest('hex');
+    if (forbiddenKeyFingerprints.has(fingerprint)) {
+      return fail('reviewer_key_reused_across_restore_signers');
+    }
     if (publicKeyFingerprints.has(fingerprint)) {
       return fail('duplicate_trust_store_public_key');
     }

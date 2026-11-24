@@ -183,7 +183,8 @@ function fixture() {
     sourcePreview, previewDestination, productionRoot, sourceBlobSha,
     restoreOperatorPublicKeyFile, restoreOperatorSignatureFile,
     restoreReviewerPublicKeyFile, restoreReviewerSignatureFile,
-    operatorFingerprint, reviewerFingerprint, sourceCommit, sourceHash
+    operatorFingerprint, reviewerFingerprint, sourceCommit, sourceHash,
+    operatorKeys, reviewerKeys, humanReviewKeys: { publicKey, privateKey }
   };
 }
 
@@ -240,6 +241,42 @@ function removeValuePair(args, flag) {
   if (index >= 0) copy.splice(index, 2);
   return copy;
 }
+
+test('rejects reuse of a restore signer key for the human-review trust domain', () => {
+  const f = fixture();
+  try {
+    const trustStore = JSON.parse(fs.readFileSync(f.trustStoreFile, 'utf8'));
+    trustStore.reviewers[0].public_key_pem =
+      f.operatorKeys.publicKey.export({ type: 'spki', format: 'pem' });
+    fs.writeFileSync(f.trustStoreFile, JSON.stringify(trustStore), { mode: 0o600 });
+
+    const attestation = JSON.parse(fs.readFileSync(f.attestationFile, 'utf8'));
+    attestation.signature = crypto.sign(
+      null,
+      Buffer.from(canonicalizePayload(attestation.payload), 'utf8'),
+      f.operatorKeys.privateKey
+    ).toString('base64url');
+    fs.writeFileSync(f.attestationFile, JSON.stringify(attestation), { mode: 0o600 });
+
+    const args = baseArgs(f);
+    const pinIndex = args.indexOf('--expected-review-trust-store-sha256');
+    args[pinIndex + 1] = digest(fs.readFileSync(f.trustStoreFile));
+    const result = run(args);
+    assert.equal(result.status, 1, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.status, 'NOT_READY');
+    assert.equal(report.restoreAttestation.verified, true);
+    assert.equal(report.reviewAttestation.verified, false);
+    assert.equal(
+      report.reviewAttestation.reason,
+      'reviewer_key_reused_across_restore_signers'
+    );
+    assert.equal(report.deploymentAuthorized, false);
+    assert.equal(report.deploymentPerformed, false);
+  } finally {
+    fs.rmSync(f.directory, { recursive: true, force: true });
+  }
+});
 
 test('read-only CLI verifies a signed synthetic review but remains NOT_READY without the trusted auth adapter', () => {
   const f = fixture();

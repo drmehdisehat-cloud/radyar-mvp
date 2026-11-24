@@ -122,6 +122,33 @@ test('rejects the same Ed25519 public key registered under two reviewer identiti
   assert.equal(verify(f).reason, 'duplicate_trust_store_public_key');
 });
 
+test('rejects a human-review key reused by either restore signer', () => {
+  const f = fixture();
+  const key = crypto.createPublicKey(f.trustStore.reviewers[0].public_key_pem);
+  const fingerprint = crypto.createHash('sha256')
+    .update(key.export({ type: 'spki', format: 'der' }))
+    .digest('hex');
+  assert.equal(
+    verify(f, { forbiddenPublicKeySha256s: [fingerprint] }).reason,
+    'reviewer_key_reused_across_restore_signers'
+  );
+});
+
+test('rejects malformed or duplicate cross-domain key fingerprint pins', () => {
+  const f = fixture();
+  for (const values of [
+    ['not-a-fingerprint'],
+    ['0'.repeat(64)],
+    ['a'.repeat(64), 'A'.repeat(64)],
+    'a'.repeat(64)
+  ]) {
+    assert.equal(
+      verify(f, { forbiddenPublicKeySha256s: values }).reason,
+      'invalid_forbidden_key_fingerprints'
+    );
+  }
+});
+
 test('rejects an issuer mismatch and non-approved decision', () => {
   const f = fixture();
   f.attestation = resign(f, { issuer: 'different-issuer' });

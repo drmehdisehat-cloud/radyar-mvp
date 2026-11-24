@@ -357,7 +357,13 @@ function main(argv) {
               trustStore: trustStoreRecord.value,
               expectedSourceCommit,
               expectedSourceBlobSha1: verifiedDestination.expected_source_blob_sha1,
-              expectedArtifactSha256
+              expectedArtifactSha256,
+              forbiddenPublicKeySha256s: restoreAttestation.verified === true
+                ? [
+                    restoreAttestation.operator_public_key_sha256,
+                    restoreAttestation.reviewer_public_key_sha256
+                  ]
+                : []
             }),
             trustStoreSha256: trustStoreRecord.sha256,
             sourceCheckoutVerified: sourceCheckout.verified,
