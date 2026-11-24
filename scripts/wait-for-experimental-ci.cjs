@@ -1,9 +1,8 @@
 'use strict';
 
-// Wait for the exact branch push's required CI workflow to finish before the
-// separate public-review-artifact workflow audits repository posture.
-// This prevents a race where the required CI run is still in_progress even
-// though its required job has already passed. This script never deploys.
+// Wait for the exact branch push's required CI job, not the whole workflow.
+// The separate posture-audit job is informational and may still be running;
+// the required frontend check is the release-gating signal. This script never deploys.
 
 const API = 'https://api.github.com';
 const EXPECTED_REPOSITORY = 'drmehdisehat-cloud/radyar-mvp';
@@ -11,6 +10,7 @@ const EXPECTED_BRANCH = 'dadyar/ai-chat-private-20261101';
 const REQUIRED_WORKFLOW_ID = 393734552;
 const REQUIRED_WORKFLOW_PATH = '.github/workflows/ci.yml';
 const REQUIRED_JOB = 'verify-existing-frontend';
+const ACTIVE_STATUSES = ['queued', 'in_progress', 'waiting', 'requested', 'pending'];
 
 async function getJson(url, fetchImpl, token) {
   const response = await fetchImpl(url, {
@@ -86,9 +86,12 @@ async function waitForRequiredCi({
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const payload = await getJson(runsUrl, fetchImpl, token);
     const run = latestExactRun(payload, branch, normalizedSha);
-    if (run && run.status === 'completed') {
-      if (run.conclusion !== 'success') {
+    if (run) {
+      if (run.status === 'completed' && run.conclusion !== 'success') {
         throw new Error('required_workflow_not_successful_on_exact_head');
+      }
+      if (!ACTIVE_STATUSES.includes(run.status) && run.status !== 'completed') {
+        throw new Error('required_workflow_status_unrecognized');
       }
       const jobsPayload = await getJson(
         API + '/repos/' + repository + '/actions/runs/' + run.id + '/jobs?per_page=100',
@@ -101,25 +104,35 @@ async function waitForRequiredCi({
         throw new Error('required_workflow_job_observation_incomplete');
       }
       const requiredJob = jobsPayload.jobs.find(job => job && job.name === REQUIRED_JOB);
-      if (!requiredJob || requiredJob.status !== 'completed' || requiredJob.conclusion !== 'success' ||
-          typeof requiredJob.head_sha !== 'string' || requiredJob.head_sha.toLowerCase() !== normalizedSha) {
+      if (requiredJob && requiredJob.status === 'completed') {
+        if (requiredJob.conclusion !== 'success' ||
+            typeof requiredJob.head_sha !== 'string' ||
+            requiredJob.head_sha.toLowerCase() !== normalizedSha) {
+          throw new Error('required_ci_job_not_successful_on_exact_head');
+        }
+        if (run.status !== 'in_progress' && !(run.status === 'completed' && run.conclusion === 'success')) {
+          throw new Error('required_workflow_status_inconsistent_with_job');
+        }
+        return Object.freeze({
+          status: 'REQUIRED_CHECK_VERIFIED',
+          repository,
+          branch,
+          head_sha: normalizedSha,
+          workflow_id: REQUIRED_WORKFLOW_ID,
+          workflow_run_id: run.id,
+          workflow_status: run.status,
+          workflow_conclusion: run.conclusion,
+          required_job: REQUIRED_JOB,
+          required_job_id: requiredJob.id,
+          deployment_authorized: false
+        });
+      }
+      if (run.status === 'completed') {
         throw new Error('required_ci_job_not_successful_on_exact_head');
       }
-      return Object.freeze({
-        status: 'VERIFIED',
-        repository,
-        branch,
-        head_sha: normalizedSha,
-        workflow_id: REQUIRED_WORKFLOW_ID,
-        workflow_run_id: run.id,
-        workflow_conclusion: run.conclusion,
-        required_job: REQUIRED_JOB,
-        required_job_id: requiredJob.id,
-        deployment_authorized: false
-      });
-    }
-    if (run && !['queued', 'in_progress', 'waiting', 'requested', 'pending'].includes(run.status)) {
-      throw new Error('required_workflow_status_unrecognized');
+      if (requiredJob && !ACTIVE_STATUSES.includes(requiredJob.status)) {
+        throw new Error('required_ci_job_status_unrecognized');
+      }
     }
     if (attempt < maxAttempts) await sleepImpl(intervalMs);
   }

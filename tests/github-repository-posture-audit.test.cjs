@@ -406,7 +406,7 @@ test('does not label a completed failed current workflow as pending self-observa
   assert.ok(!result.blockers.includes('required_workflow_run_self_observation_pending'));
 });
 
-test('does not misclassify another in-progress exact-head run as the current execution', () => {
+test('a separate audit accepts an in-progress exact-head workflow after its required CI job succeeds', () => {
   const runs = workflowRunsInfo();
   runs.workflow_runs[0].status = 'in_progress';
   runs.workflow_runs[0].conclusion = null;
@@ -415,9 +415,34 @@ test('does not misclassify another in-progress exact-head run as the current exe
     protectionInfo(), checkRunsInfo(), runs, 455
   );
   assert.equal(result.requiredWorkflowRunIsCurrentExecution, false);
+  assert.equal(result.requiredWorkflowRunIsActive, true);
   assert.equal(result.requiredWorkflowRunIsPendingSelfObservation, false);
-  assert.ok(result.blockers.includes('required_workflow_run_not_successful_on_exact_head'));
-  assert.ok(!result.blockers.includes('required_workflow_run_self_observation_pending'));
+  assert.equal(result.requiredWorkflowRunJobVerified, true);
+  assert.equal(result.requiredCheckRunConclusion, 'success');
+  assert.equal(result.status, 'POSTURE_VERIFIED');
+  assert.deepEqual(result.blockers, []);
+  assert.equal(result.deploymentAuthorized, false);
+});
+
+test('an in-progress external workflow remains blocked until its exact required check succeeds', () => {
+  const runs = workflowRunsInfo();
+  runs.workflow_runs[0].status = 'in_progress';
+  runs.workflow_runs[0].conclusion = null;
+  const checks = checkRunsInfo();
+  checks.check_runs[0].status = 'in_progress';
+  checks.check_runs[0].conclusion = null;
+  delete checks.check_runs[0].completed_at;
+  const result = inspectPosture(
+    EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(),
+    protectionInfo(), checks, runs, 455
+  );
+  assert.equal(result.requiredWorkflowRunIsCurrentExecution, false);
+  assert.equal(result.requiredWorkflowRunIsActive, true);
+  assert.equal(result.requiredWorkflowRunIsPendingSelfObservation, false);
+  assert.equal(result.requiredWorkflowRunJobVerified, false);
+  assert.equal(result.status, 'NOT_READY');
+  assert.ok(result.blockers.includes('required_ci_check_not_successful_on_exact_head'));
+  assert.ok(!result.blockers.includes('required_workflow_run_not_successful_on_exact_head'));
 });
 
 test('a separate audit invocation can rely on the completed push run for the same head', () => {

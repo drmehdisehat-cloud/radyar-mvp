@@ -21,7 +21,7 @@ test('public review artifact workflow has read-only repository permissions', () 
 });
 
 test('the artifact posture audit waits for the exact-head required CI workflow to complete', () => {
-  const wait = workflow.indexOf('name: Wait for exact-head stage-0 CI to finish before posture audit');
+  const wait = workflow.indexOf('name: Wait for exact-head required CI job to finish before posture audit');
   const audit = workflow.indexOf('name: Audit GitHub repository release posture (read-only; informational)');
   assert.ok(wait >= 0, 'exact-head CI wait step is required');
   assert.ok(audit > wait, 'posture audit must run after exact-head CI completion');

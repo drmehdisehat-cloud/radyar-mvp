@@ -59,7 +59,7 @@ jobs:
           node --test "${contracts[@]}"
       - name: Audit release blockers (informational; never deploy)
         run: node scripts/check-v1-readiness.cjs
-      - name: Wait for exact-head stage-0 CI to finish before posture audit
+      - name: Wait for exact-head required CI job to finish before posture audit
         env:
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}

@@ -88,6 +88,7 @@ function inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo
     ? branchInfo.commit.sha.toLowerCase() : null;
   let requiredWorkflowRun = null;
   let requiredWorkflowRunIsCurrentExecution = false;
+  let requiredWorkflowRunIsActive = false;
   let requiredWorkflowRunIsActiveSelfObservation = false;
   let requiredWorkflowRunIsCompletedSuccess = false;
   if (!headSha) {
@@ -136,9 +137,12 @@ function inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo
       requiredWorkflowRun && Number.isSafeInteger(currentRunId) && currentRunId > 0 &&
       requiredWorkflowRun.id === currentRunId
     );
-    requiredWorkflowRunIsActiveSelfObservation = Boolean(
-      requiredWorkflowRunIsCurrentExecution &&
+    requiredWorkflowRunIsActive = Boolean(
+      requiredWorkflowRun &&
       ['queued', 'in_progress', 'waiting', 'requested', 'pending'].includes(requiredWorkflowRun.status)
+    );
+    requiredWorkflowRunIsActiveSelfObservation = Boolean(
+      requiredWorkflowRunIsCurrentExecution && requiredWorkflowRunIsActive
     );
     requiredWorkflowRunIsCompletedSuccess = Boolean(
       requiredWorkflowRun &&
@@ -147,7 +151,7 @@ function inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo
     );
     if (!requiredWorkflowRun ||
         !Number.isSafeInteger(requiredWorkflowRun.id) || requiredWorkflowRun.id < 1 ||
-        (!requiredWorkflowRunIsCompletedSuccess && !requiredWorkflowRunIsActiveSelfObservation)) {
+        (!requiredWorkflowRunIsCompletedSuccess && !requiredWorkflowRunIsActive)) {
       blockers.push(requiredWorkflowRunIsActiveSelfObservation
         ? 'required_workflow_run_self_observation_pending'
         : 'required_workflow_run_not_successful_on_exact_head');
@@ -161,7 +165,7 @@ function inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo
       checkRunsInfo.total_count !== checkRunsInfo.check_runs.length)) {
     blockers.push('required_ci_check_observation_incomplete_or_truncated');
   } else if (headSha && requiredWorkflowRun &&
-      (requiredWorkflowRunIsCompletedSuccess || requiredWorkflowRunIsActiveSelfObservation)) {
+      (requiredWorkflowRunIsCompletedSuccess || requiredWorkflowRunIsActive)) {
     const expectedSuiteId = requiredWorkflowRun.check_suite_id;
     const candidates = checkRunsInfo.check_runs.filter(run =>
       run && run.name === REQUIRED_CHECK_RUN &&
@@ -235,6 +239,7 @@ function inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo
       ? requiredWorkflowRun.conclusion : null,
     requiredWorkflowRunStatus: requiredWorkflowRun && typeof requiredWorkflowRun.status === 'string'
       ? requiredWorkflowRun.status : null,
+    requiredWorkflowRunIsActive,
     requiredWorkflowRunIsCurrentExecution,
     requiredWorkflowRunIsPendingSelfObservation,
     requiredWorkflowRunJobVerified: Boolean(requiredCheckRun && requiredCheckRun.status === 'completed' &&

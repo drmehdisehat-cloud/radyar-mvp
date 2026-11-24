@@ -57,17 +57,34 @@ test('accepts only the exact push workflow and required job after completion', a
     maxAttempts: 1,
     intervalMs: 0
   });
-  assert.equal(result.status, 'VERIFIED');
+  assert.equal(result.status, 'REQUIRED_CHECK_VERIFIED');
   assert.equal(result.workflow_run_id, 12345);
   assert.equal(result.required_job_id, 67890);
   assert.equal(result.deployment_authorized, false);
 });
 
-test('waits for the current exact-head run instead of accepting an in-progress run', async () => {
-  const payloads = [
-    { total_count: 1, workflow_runs: [run({ status: 'in_progress', conclusion: null })] },
-    { total_count: 1, workflow_runs: [run()] }
+test('accepts the exact required job after success while the informational audit job is still running', async () => {
+  const result = await waitForRequiredCi({
+    repository: EXPECTED_REPOSITORY,
+    branch: EXPECTED_BRANCH,
+    sha: SHA,
+    token: 'synthetic-token',
+    fetchImpl: apiFor({ total_count: 1, workflow_runs: [run({ status: 'in_progress', conclusion: null })] }),
+    maxAttempts: 1,
+    intervalMs: 0
+  });
+  assert.equal(result.status, 'REQUIRED_CHECK_VERIFIED');
+  assert.equal(result.workflow_status, 'in_progress');
+  assert.equal(result.workflow_conclusion, null);
+  assert.equal(result.deployment_authorized, false);
+});
+
+test('waits while the required job itself is in progress, then accepts its exact-head success', async () => {
+  const jobPayloads = [
+    { total_count: 1, jobs: [job({ status: 'in_progress', conclusion: null })] },
+    { total_count: 1, jobs: [job()] }
   ];
+  let jobsRead = 0;
   let sleeps = 0;
   const result = await waitForRequiredCi({
     repository: EXPECTED_REPOSITORY,
@@ -75,15 +92,17 @@ test('waits for the current exact-head run instead of accepting an in-progress r
     sha: SHA,
     token: 'synthetic-token',
     fetchImpl: async url => {
-      if (url.includes('/actions/runs?')) return response(payloads.shift());
-      return response({ total_count: 1, jobs: [job()] });
+      if (url.includes('/actions/runs?')) return response({ total_count: 1, workflow_runs: [run({ status: 'in_progress', conclusion: null })] });
+      jobsRead += 1;
+      return response(jobPayloads.shift());
     },
     sleepImpl: async () => { sleeps += 1; },
     maxAttempts: 2,
     intervalMs: 0
   });
+  assert.equal(jobsRead, 2);
   assert.equal(sleeps, 1);
-  assert.equal(result.status, 'VERIFIED');
+  assert.equal(result.status, 'REQUIRED_CHECK_VERIFIED');
 });
 
 test('does not accept a stale successful run from a different commit', async () => {
