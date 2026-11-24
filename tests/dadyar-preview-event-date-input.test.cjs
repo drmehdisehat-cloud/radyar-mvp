@@ -6,12 +6,12 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
-const parserSource = html.match(/function parseSyntheticEventDateInput\\(value\\)\\{[\\s\\S]*?\\n\\}/)?.[0];
+const parserSource = html.match(/function parseSyntheticEventDateInput\(value\)\{[\s\S]*?\n\}/)?.[0];
 
 function parse(value) {
   assert.ok(parserSource, 'synthetic event-date parser missing');
   const sandbox = {};
-  vm.runInNewContext(parserSource + '\\nglobalThis.__parse = parseSyntheticEventDateInput;', sandbox, { timeout: 1000 });
+  vm.runInNewContext(parserSource + '\nglobalThis.__parse = parseSyntheticEventDateInput;', sandbox, { timeout: 1000 });
   const result = sandbox.__parse(value);
   return { formatValid: result.formatValid, normalized: result.normalized };
 }
@@ -57,5 +57,5 @@ test('event-date input invalidates stale drafts and is cleared on reset/pagehide
 
 test('event date remains local and the preview has no network or browser persistence sink', () => {
   assert.match(html, /connect-src 'none'/);
-  assert.doesNotMatch(html, /\\bfetch\\s*\\(|XMLHttpRequest|WebSocket|localStorage|sessionStorage|indexedDB|sendBeacon/);
+  assert.doesNotMatch(html, /\bfetch\s*\(|XMLHttpRequest|WebSocket|localStorage|sessionStorage|indexedDB|sendBeacon/);
 });
