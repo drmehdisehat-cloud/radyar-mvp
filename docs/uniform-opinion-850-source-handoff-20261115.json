@@ -109,5 +109,24 @@
       }
     ],
     "conclusion": "در ۱۴۰۵/۰۸/۲۶ واکشی مستقیم هر دو صفحه TreeText فقط پوسته انتقال هفت‌خطی نشان داد و صفحه فراداده قانون صدور چک timeout شد. نتایج ثانویه برای کشف سرنخ باقی می‌مانند و جای متن اولیه، شماره/تاریخ انتشار روزنامه رسمی، نسخه معتبر در تاریخ رویداد یا بازبینی انسانی را نمی‌گیرند. هیچ متن حقوقی از نتایج ثانویه وارد رجیستری پاسخ‌گو نشد."
+  },
+  "latestOfficialRenderedObservation": {
+    "file": "docs/uniform-opinion-850-source-observation-20261124.json",
+    "observedAt": "2026-11-24",
+    "sourceClass": "primary-official-qavanin-rendered-page",
+    "textUrl": "https://qavanin.ir/Law/TreeText/?IDS=6755160463259811436",
+    "metadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=6755160463259811436",
+    "textPageRendered": true,
+    "metadataPageRendered": true,
+    "rawPrimaryBytesCaptured": false,
+    "primaryTextSha256": null,
+    "officialGazetteIssueBytesRetrieved": false,
+    "officialGazetteIssueNumber": null,
+    "officialGazettePublicationDate": null,
+    "publicationTransmissionNumberShown": "9000/6345/110",
+    "publicationTransmissionDateJalali": "1403/05/31",
+    "humanReviewStatus": "pending",
+    "eventDateVersioningApproved": false,
+    "legalConclusionPermitted": false
   }
 }
