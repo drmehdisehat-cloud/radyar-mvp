@@ -10,7 +10,7 @@ test('offline cheque preview exposes a responsive viewport and 44px touch target
   assert.match(html, /button,select\{[^}]*min-height:44px/);
   assert.match(html, /button,select\{[^}]*max-width:100%/);
   assert.match(html, /input\[type=checkbox\]\{[^}]*min-width:22px;min-height:22px/);
-  assert.match(html, /#free-question,#reviewer-name,#review-note,#delay-principal\{[^}]*min-height:44px/);
+  assert.match(html, /#free-question,#reviewer-name,#review-note,#delay-principal,#event-date\{[^}]*min-height:44px/);
   assert.match(html, /button:focus-visible,select:focus-visible,textarea:focus-visible,input:not\(\[type=checkbox\]\):focus-visible,input\[type=checkbox\]:focus-visible\{outline:3px/);
 });
 
