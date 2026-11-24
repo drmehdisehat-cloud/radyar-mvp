@@ -317,3 +317,44 @@ test('external evidence reader detects parent-directory mutation during descript
   }
   assert.equal(mutated, true);
 });
+
+test('external evidence reader tolerates unrelated entries in a root-owned sticky shared temp parent', t => {
+  if (process.platform === 'win32') return;
+  const shared = fs.realpathSync(os.tmpdir());
+  const sharedStat = fs.lstatSync(shared, { bigint: true });
+  const sharedMode = sharedStat.mode & 0o7777n;
+  if (sharedStat.uid !== 0n || (sharedMode & 0o1000n) === 0n) {
+    t.skip('shared temp parent is not root-owned and sticky');
+    return;
+  }
+
+  const directory = fs.mkdtempSync(path.join(shared, 'dadyar-attestation-sticky-parent-'));
+  fs.chmodSync(directory, 0o700);
+  const file = path.join(directory, 'evidence.bin');
+  const unrelatedEntry = path.join(
+    shared,
+    '.dadyar-sticky-parent-race-' + process.pid + '-' + crypto.randomBytes(8).toString('hex')
+  );
+  const expected = Buffer.from('synthetic evidence under a private descendant');
+  fs.writeFileSync(file, expected, { mode: 0o600 });
+
+  const originalReadFileSync = fs.readFileSync;
+  let mutated = false;
+  fs.readFileSync = function (target, ...args) {
+    const result = originalReadFileSync.call(this, target, ...args);
+    if (typeof target === 'number' && !mutated) {
+      fs.writeFileSync(unrelatedEntry, 'unrelated synthetic temp entry', { mode: 0o600 });
+      mutated = true;
+    }
+    return result;
+  };
+  try {
+    assert.deepEqual(readExternalFile(file, 'evidence', 128), expected);
+    assert.equal(mutated, true);
+  } finally {
+    fs.readFileSync = originalReadFileSync;
+    fs.rmSync(unrelatedEntry, { force: true });
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
