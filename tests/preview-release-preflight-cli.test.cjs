@@ -242,37 +242,43 @@ function removeValuePair(args, flag) {
   return copy;
 }
 
-test('rejects reuse of a restore signer key for the human-review trust domain', () => {
+test('rejects reuse of either Restore signer key for the human-review trust domain', () => {
   const f = fixture();
   try {
-    const trustStore = JSON.parse(fs.readFileSync(f.trustStoreFile, 'utf8'));
-    trustStore.reviewers[0].public_key_pem =
-      f.operatorKeys.publicKey.export({ type: 'spki', format: 'pem' });
-    fs.writeFileSync(f.trustStoreFile, JSON.stringify(trustStore), { mode: 0o600 });
+    const originalTrustStore = fs.readFileSync(f.trustStoreFile);
+    const originalAttestation = fs.readFileSync(f.attestationFile);
+    const restoreSigners = [f.operatorKeys, f.reviewerKeys];
 
-    const attestation = JSON.parse(fs.readFileSync(f.attestationFile, 'utf8'));
-    attestation.signature = crypto.sign(
-      null,
-      Buffer.from(canonicalizePayload(attestation.payload), 'utf8'),
-      f.operatorKeys.privateKey
-    ).toString('base64url');
-    fs.writeFileSync(f.attestationFile, JSON.stringify(attestation), { mode: 0o600 });
+    for (const restoreSigner of restoreSigners) {
+      const trustStore = JSON.parse(originalTrustStore.toString('utf8'));
+      trustStore.reviewers[0].public_key_pem =
+        restoreSigner.publicKey.export({ type: 'spki', format: 'pem' });
+      fs.writeFileSync(f.trustStoreFile, JSON.stringify(trustStore), { mode: 0o600 });
 
-    const args = baseArgs(f);
-    const pinIndex = args.indexOf('--expected-review-trust-store-sha256');
-    args[pinIndex + 1] = digest(fs.readFileSync(f.trustStoreFile));
-    const result = run(args);
-    assert.equal(result.status, 1, result.stderr);
-    const report = JSON.parse(result.stdout);
-    assert.equal(report.status, 'NOT_READY');
-    assert.equal(report.restoreAttestation.verified, true);
-    assert.equal(report.reviewAttestation.verified, false);
-    assert.equal(
-      report.reviewAttestation.reason,
-      'reviewer_key_reused_across_restore_signers'
-    );
-    assert.equal(report.deploymentAuthorized, false);
-    assert.equal(report.deploymentPerformed, false);
+      const attestation = JSON.parse(originalAttestation.toString('utf8'));
+      attestation.signature = crypto.sign(
+        null,
+        Buffer.from(canonicalizePayload(attestation.payload), 'utf8'),
+        restoreSigner.privateKey
+      ).toString('base64url');
+      fs.writeFileSync(f.attestationFile, JSON.stringify(attestation), { mode: 0o600 });
+
+      const args = baseArgs(f);
+      const pinIndex = args.indexOf('--expected-review-trust-store-sha256');
+      args[pinIndex + 1] = digest(fs.readFileSync(f.trustStoreFile));
+      const result = run(args);
+      assert.equal(result.status, 1, result.stderr);
+      const report = JSON.parse(result.stdout);
+      assert.equal(report.status, 'NOT_READY');
+      assert.equal(report.restoreAttestation.verified, true);
+      assert.equal(report.reviewAttestation.verified, false);
+      assert.equal(
+        report.reviewAttestation.reason,
+        'reviewer_key_reused_across_restore_signers'
+      );
+      assert.equal(report.deploymentAuthorized, false);
+      assert.equal(report.deploymentPerformed, false);
+    }
   } finally {
     fs.rmSync(f.directory, { recursive: true, force: true });
   }
