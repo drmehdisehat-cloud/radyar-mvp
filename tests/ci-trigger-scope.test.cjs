@@ -55,7 +55,14 @@ test('experimental CI push and pull-request scopes are explicit and documented',
   const jobsSection = workflow.split(/^jobs:\s*$/m)[1];
   assert.ok(jobsSection, 'jobs section missing');
   const jobNames = Array.from(jobsSection.matchAll(/^  ([a-zA-Z0-9_-]+):\s*$/gm), item => item[1]);
-  assert.deepEqual(jobNames, ['verify-existing-frontend'], 'unexpected job added; review deployment boundary');
+  assert.deepEqual(jobNames, ['verify-existing-frontend', 'audit-release-posture-after-ci'],
+    'only the read-only post-CI posture observer may follow the required frontend check');
+  const auditJob = jobsSection.slice(jobsSection.indexOf('  audit-release-posture-after-ci:'));
+  assert.match(auditJob, /needs:\s*verify-existing-frontend/);
+  assert.match(auditJob, /GITHUB_RUN_ID:\s*\$\{\{ github\.run_id \}\}/);
+  assert.match(auditJob, /node scripts\/audit-github-repository-posture\.cjs/);
+  assert.match(auditJob, /permissions:\s*\n\s+contents: read\n\s+checks: read\n\s+actions: read/);
+  assert.doesNotMatch(auditJob, /\$\{\{\s*secrets\.|contents:\s*write|checks:\s*write|actions:\s*write|deployments:\s*write|environment:/i);
 
   const stepNames = Array.from(jobsSection.matchAll(/^      - name:\s*(.+)$/gm), item => item[1].trim());
   assert.ok(!stepNames.some(name => /^(?:deploy|publish|upload|release)\b/i.test(name)),

@@ -9,8 +9,10 @@ const workflow = fs.readFileSync(path.join(__dirname, '../.github/workflows/ci.y
 
 test('experimental CI actions are pinned to reviewed immutable commit IDs', () => {
   const references = [...workflow.matchAll(/^\s*- uses:\s*([^\s#]+)(?:\s*#.*)?$/gm)].map(m => m[1]);
-  assert.equal(references.length, 2, 'unexpected action must be reviewed before CI use');
+  assert.equal(references.length, 4, 'both jobs must use only the reviewed immutable actions');
   assert.deepEqual(references, [
+    'actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a',
+    'actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1',
     'actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a',
     'actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1'
   ]);
