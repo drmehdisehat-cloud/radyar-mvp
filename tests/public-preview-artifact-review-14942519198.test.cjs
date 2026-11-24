@@ -15,7 +15,7 @@ function sha256(bytes) {
 }
 function gitBlobSha1(bytes) {
   return crypto.createHash('sha1')
-    .update(Buffer.concat([Buffer.from('blob ' + bytes.length + '\\0'), bytes]))
+    .update(Buffer.concat([Buffer.from('blob ' + bytes.length + String.fromCharCode(0)), bytes]))
     .digest('hex');
 }
 
