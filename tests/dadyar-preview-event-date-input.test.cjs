@@ -39,6 +39,7 @@ test('format acceptance never claims official Persian calendar or leap-day valid
 
 test('entered event date is reported as synthetic input but never selects a legal version', () => {
   assert.match(html, /id="event-date"/);
+  assert.match(html, /id="event-date"[^>]*dir="ltr"[^>]*placeholder="1405-09-03"/);
   assert.match(html, /تاریخ واقعه در سناریوی ساختگی:/);
   assert.match(html, /انتخاب نسخه قانون بر اساس تاریخ واقعه: انجام نشد/);
   assert.match(html, /ورود تاریخ واقعه به‌تنهایی نسخه معتبر قانون را تعیین نمی‌کند/);
