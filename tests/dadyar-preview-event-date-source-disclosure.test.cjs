@@ -19,7 +19,7 @@ test('preview discloses missing primary-source and event-date verification befor
   assert.match(notice, /پیوند مستقیم/);
   assert.match(notice, /نسخه معتبر در تاریخ واقعه/);
   assert.match(notice, /بازبینی انسانی مستقل/);
-  assert.match(notice, /تاریخ واقعه نیز در سناریوی ساختگی تعیین نشده است/);
+  assert.match(notice, /ورود تاریخ واقعه به‌تنهایی نسخه معتبر قانون را تعیین نمی‌کند/);
   assert.match(notice, /هیچ پاسخ یا استناد حقوقی قطعی ارائه نمی‌شود/);
   assert.doesNotMatch(notice, /منبع تأییدشده است/);
 });
