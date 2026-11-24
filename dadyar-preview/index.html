@@ -17,7 +17,7 @@
 <label for="issue-date">تاریخ صدور و سررسید در مدارک نمونه مشخص است؟</label><select id="issue-date" data-question="تاریخ صدور و سررسید چک چیست؟"><option value="unknown">نامعلوم</option><option value="yes">در نمونه درج شده</option><option value="no">در نمونه درج نشده</option></select>
 <label for="certificate">گواهی عدم پرداخت نمونه موجود است؟</label><select id="certificate" data-question="گواهی عدم پرداخت موجود است؟"><option value="unknown">نامعلوم</option><option value="yes">در نمونه موجود است</option><option value="no">در نمونه موجود نیست</option></select>
 <label for="defense">ادعای پرداخت یا دفاعی در سناریو مطرح است؟</label><select id="defense" data-question="آیا ادعای پرداخت یا دفاع دیگری مطرح است؟"><option value="unknown">نامعلوم</option><option value="yes">صرفاً ادعا شده است</option><option value="no">در نمونه مطرح نشده</option></select>
-<p><small>پاسخ‌ها صرفاً وضعیت داده ساختگی هستند و اصالت مدارک را تأیید نمی‌کنند.</small></p></fieldset><label for="event-date">تاریخ واقعه در سناریوی ساختگی (اختیاری)</label><input id="event-date" type="text" inputmode="numeric" maxlength="10" dir="ltr" autocomplete="off" placeholder="1405-09-03" aria-describedby="event-date-note"><small id="event-date-note">قالب YYYY-MM-DD یا YYYY/MM/DD؛ این کنترل فقط قالب و بازه ماه/روز را می‌سنجد، نه تقویم رسمی ایران یا کبیسه را. تاریخ واردشده برای انتخاب نسخه قانون استفاده نمی‌شود؛ منبع رسمی و بازبینی انسانی هنوز تأیید نشده‌اند.</small><button id="generate" type="button">ساخت پیش‌نویس غیررسمی</button> <button id="reset" type="button">پاک‌کردن انتخاب‌ها و پیش‌نویس</button><p id="reset-status" role="status" aria-live="polite"></p></section>
+<p><small>پاسخ‌ها صرفاً وضعیت داده ساختگی هستند و اصالت مدارک را تأیید نمی‌کنند.</small></p></fieldset><label for="event-date">تاریخ واقعه در سناریوی ساختگی (اختیاری)</label><input id="event-date" type="text" inputmode="numeric" maxlength="10" dir="ltr" autocomplete="off" placeholder="1405-09-03" aria-describedby="event-date-note"><small id="event-date-note">قالب YYYY-MM-DD یا YYYY/MM/DD؛ روز و ماه با تقویم فارسی ICU مرورگر بررسی می‌شود؛ این کنترل معادل تأیید تقویم رسمی ایران نیست. تاریخ واردشده برای انتخاب نسخه قانون استفاده نمی‌شود؛ منبع رسمی و بازبینی انسانی هنوز تأیید نشده‌اند.</small><button id="generate" type="button">ساخت پیش‌نویس غیررسمی</button> <button id="reset" type="button">پاک‌کردن انتخاب‌ها و پیش‌نویس</button><p id="reset-status" role="status" aria-live="polite"></p></section>
 <section id="result" hidden tabindex="-1" aria-live="polite"><h2>پیش‌نویس برای بازبینی انسانی</h2><p id="topic-scope-status" role="status" aria-live="polite"></p><pre id="report"></pre><section id="human-review" aria-labelledby="human-review-title"><h3 id="human-review-title">بازبینی محلی توسط انسان (بدون احراز هویت)</h3><p role="note"><strong>محدودیت این پیش‌نمایش:</strong> این مرحله فقط جریان بازبینی آفلاین را نمایش می‌دهد؛ هویت یا سمت بازبین احراز نمی‌شود و ثبت آن تأیید حقوقی یا مجوز انتشار نیست.</p><p>برای آزمون جریان آفلاین، بازبین می‌تواند نام، نتیجه و یادداشت خود را ثبت کند. فقط نتیجه «تأیید» همراه با ثبت اظهار محلی، دریافت فایل آموزشی را فعال می‌کند.</p>
 <label for="reviewer-name">برچسب بازبین (فقط داده ساختگی؛ نام واقعی وارد نکنید)</label><input id="reviewer-name" type="text" maxlength="80" autocomplete="off" value="بازبین آزمون" readonly aria-readonly="true" required>
 <label for="review-decision">نتیجه بازبینی</label><select id="review-decision"><option value="pending">در انتظار بازبینی</option><option value="approved">تأیید برای دریافت آموزشی</option><option value="rejected">رد پیش‌نویس</option></select>
@@ -504,6 +504,43 @@ function parseSyntheticEventDateInput(value){
  if(!match)return {formatValid:false,normalized:''};
  const year=Number(match[1]),month=Number(match[2]),day=Number(match[3]);
  if(year<1300||year>1500||month<1||month>12||day<1||day>31)return {formatValid:false,normalized:''};
+ // Validate the civil date with the browser's ICU Persian calendar. This is
+ // a calendar-shape check only; it is not proof of the official Iranian
+ // calendar, a legal effective date, or the law applicable to an event.
+ try{
+  const formatter=new Intl.DateTimeFormat('en-US-u-ca-persian-nu-latn',{
+   timeZone:'UTC',year:'numeric',month:'numeric',day:'numeric'
+  });
+  if(formatter.resolvedOptions().calendar!=='persian')return {formatValid:false,normalized:''};
+  const partsForDay=epochDay=>{
+   const date=new Date(epochDay*86400000);
+   if(!Number.isFinite(date.getTime()))return null;
+   const parts=Object.create(null);
+   for(const part of formatter.formatToParts(date)){
+    if(part.type==='year'||part.type==='month'||part.type==='day')parts[part.type]=Number(part.value);
+   }
+   if(![parts.year,parts.month,parts.day].every(Number.isInteger))return null;
+   return {year:parts.year,month:parts.month,day:parts.day};
+  };
+  const compare=(left,right)=>left.year-right.year||left.month-right.month||left.day-right.day;
+  const target={year,month,day};
+  const firstDay=Math.floor(Date.UTC(year+620,0,1)/86400000);
+  const lastDay=Math.floor(Date.UTC(year+623,0,1)/86400000);
+  let low=firstDay,high=lastDay;
+  while(low<=high){
+   const middle=Math.floor((low+high)/2);
+   const parts=partsForDay(middle);
+   if(!parts)return {formatValid:false,normalized:''};
+   if(compare(parts,target)<0)low=middle+1;
+   else high=middle-1;
+  }
+  const resolved=partsForDay(low);
+  if(!resolved||compare(resolved,target)!==0)return {formatValid:false,normalized:''};
+ }catch{
+  // If ICU's Persian calendar is unavailable or malformed, reject supplied
+  // dates rather than silently falling back to a month/day approximation.
+  return {formatValid:false,normalized:''};
+ }
  return {formatValid:true,normalized:match[1]+'-'+match[2]+'-'+match[3]};
 }
 updateFreeQuestionCounter();
@@ -665,7 +702,7 @@ document.getElementById('generate').addEventListener('click',()=>{
  const hasCertificate=evidence.some(e=>e.description==='گواهی عدم پرداخت نمونه');
  const unknownDueDate=evidence.some(e=>e.description==='تاریخ سررسید در پرونده فرضی مشخص نیست');
  const conflicts=[];
- if(!eventDateResult.formatValid) conflicts.push('قالب تاریخ واقعه معتبر نیست؛ از YYYY-MM-DD یا YYYY/MM/DD با سال ۱۳۰۰ تا ۱۵۰۰، ماه ۰۱ تا ۱۲ و روز ۰۱ تا ۳۱ استفاده کنید. صحت تقویم رسمی و روز کبیسه در این نسخه بررسی نمی‌شود.');
+ if(!eventDateResult.formatValid) conflicts.push('تاریخ واقعه با قالب یا تقویم فارسی ICU مرورگر معتبر نیست؛ از YYYY-MM-DD یا YYYY/MM/DD با سال ۱۳۰۰ تا ۱۵۰۰ استفاده کنید. انطباق با تقویم رسمی ایران باید مستقل بررسی شود.');
  if(questionOutsideChequeScope) conflicts.push('در پرسش آزاد هیچ نشانه قابل تشخیص از حوزه چک پیدا نشد؛ این پیش‌نمایش فقط گزارش چک فرضی را پوشش می‌دهد و پرسش خارج از این دامنه را تحلیل نمی‌کند.');
  if(hasSensitiveIdentifier) conflicts.push('پرسش آزاد احتمالاً حاوی شماره تماس، کد ملی، کارت، ایمیل یا پیوند اینترنتی احتمالی است؛ آن را پاک کنید و فقط از داده ساختگی استفاده کنید.');
  if(hasCertificate && answers[1].state==='no') conflicts.push('گواهی عدم پرداخت در فهرست مدارک انتخاب شده، اما پاسخ مصاحبه وجود آن را رد می‌کند.');
@@ -678,7 +715,7 @@ document.getElementById('generate').addEventListener('click',()=>{
  if(evidence.length>0 && !evidence.some(e=>e.description==='تصویر چک نمونه با شماره ساختگی')) conflicts.push('تصویر چک نمونه انتخاب نشده است؛ ادعای تسویه یا سایر مدارک به‌تنهایی برای دریافت گزارش چک فرضی کافی نیستند.');
  const section=(stance)=>evidence.filter(e=>e.stance===stance).map(e=>'• '+e.description).join('\n')||'ثبت نشده';
  report=['دادیار | چک صرفاً فرضی | نسخه آزمایشی آفلاین','نقش: '+role.value+' | هدف: '+purposes[role.value],roleSimulationNotice,
- 'پرسش آزاد کاربر درباره داده ساختگی: '+(displayQuestion||'ثبت نشده')+'\nدامنه بررسی پرسش آزاد: '+topicScopeMessage+'\nدامنه این پیش‌نمایش: کارگاه چک فرضی؛ پاسخ خودکار حقوقی: ارائه نمی‌شود. منابع معتبر و بررسی انسانی لازم است.','تاریخ واقعه در سناریوی ساختگی: '+(eventDate?formatPersianDigits(eventDate):'تعیین نشده')+'\nقالب ورودی: '+(eventDateResult.formatValid?'قابل قبول در حد قالب و بازه ساده':'نامعتبر')+'؛ صحت تقویم رسمی ایران و روز کبیسه بررسی نشده است.\nانتخاب نسخه قانون بر اساس تاریخ واقعه: انجام نشد؛ منبع رسمی و بازبینی انسانی تأیید نشده‌اند.','ادله موافق:\n'+section('موافق'),'ادله مخالف:\n'+section('مخالف'),'نامعلوم:\n'+section('نامعلوم'),
+ 'پرسش آزاد کاربر درباره داده ساختگی: '+(displayQuestion||'ثبت نشده')+'\nدامنه بررسی پرسش آزاد: '+topicScopeMessage+'\nدامنه این پیش‌نمایش: کارگاه چک فرضی؛ پاسخ خودکار حقوقی: ارائه نمی‌شود. منابع معتبر و بررسی انسانی لازم است.','تاریخ واقعه در سناریوی ساختگی: '+(eventDate?formatPersianDigits(eventDate):'تعیین نشده')+'\nاعتبار تاریخ در تقویم فارسی ICU مرورگر: '+(eventDateResult.formatValid?(eventDate?'معتبر':'تعیین نشده'):'نامعتبر')+'؛ این کنترل انطباق با تقویم رسمی ایران یا نسخه لازم‌الاجرای قانون را اثبات نمی‌کند.\nانتخاب نسخه قانون بر اساس تاریخ واقعه: انجام نشد؛ منبع رسمی و بازبینی انسانی تأیید نشده‌اند.','ادله موافق:\n'+section('موافق'),'ادله مخالف:\n'+section('مخالف'),'نامعلوم:\n'+section('نامعلوم'),
  'تعارض‌های داده فرضی:\n'+(conflicts.map(c=>'• '+c).join('\n')||'تعارض آشکاری میان پاسخ‌های نمونه و فهرست مدارک یافت نشد.'),
  'وضعیت مصاحبه فرضی:\n'+answers.map(a=>'• '+a.question+' '+a.answer).join('\n'),
  'گام‌های بررسی متناسب با نقش (صرفاً آموزشی):\n'+roleGuidance[role.value].map(g=>'• '+g).join('\n'),
