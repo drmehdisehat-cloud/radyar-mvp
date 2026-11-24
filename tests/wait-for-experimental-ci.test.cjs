@@ -79,6 +79,25 @@ test('accepts the exact required job after success while the informational audit
   assert.equal(result.deployment_authorized, false);
 });
 
+test('accepts exact required-job success even when the informational audit makes the overall workflow fail', async () => {
+  const result = await waitForRequiredCi({
+    repository: EXPECTED_REPOSITORY,
+    branch: EXPECTED_BRANCH,
+    sha: SHA,
+    token: 'synthetic-token',
+    fetchImpl: apiFor({
+      total_count: 1,
+      workflow_runs: [run({ status: 'completed', conclusion: 'failure' })]
+    }),
+    maxAttempts: 1,
+    intervalMs: 0
+  });
+  assert.equal(result.status, 'REQUIRED_CHECK_VERIFIED');
+  assert.equal(result.workflow_status, 'completed');
+  assert.equal(result.workflow_conclusion, 'failure');
+  assert.equal(result.deployment_authorized, false);
+});
+
 test('waits while the required job itself is in progress, then accepts its exact-head success', async () => {
   const jobPayloads = [
     { total_count: 1, jobs: [job({ status: 'in_progress', conclusion: null })] },
@@ -137,16 +156,19 @@ test('ignores successful PR runs and other workflows on the same commit', async 
   }), /required_ci_did_not_complete_within_wait_window/);
 });
 
-test('fails closed when the latest exact-head workflow concludes failure', async () => {
+test('fails closed when the exact required job concludes failure even if the workflow observation is completed', async () => {
   await assert.rejects(() => waitForRequiredCi({
     repository: EXPECTED_REPOSITORY,
     branch: EXPECTED_BRANCH,
     sha: SHA,
     token: 'synthetic-token',
-    fetchImpl: apiFor({ total_count: 1, workflow_runs: [run({ conclusion: 'failure' })] }),
+    fetchImpl: apiFor(
+      { total_count: 1, workflow_runs: [run({ status: 'completed', conclusion: 'failure' })] },
+      { total_count: 1, jobs: [job({ conclusion: 'failure' })] }
+    ),
     maxAttempts: 1,
     intervalMs: 0
-  }), /required_workflow_not_successful_on_exact_head/);
+  }), /required_ci_job_not_successful_on_exact_head/);
 });
 
 test('fails closed when the required job is absent, failed or attached to another SHA', async t => {

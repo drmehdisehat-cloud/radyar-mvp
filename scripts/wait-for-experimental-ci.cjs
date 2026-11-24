@@ -87,9 +87,8 @@ async function waitForRequiredCi({
     const payload = await getJson(runsUrl, fetchImpl, token);
     const run = latestExactRun(payload, branch, normalizedSha);
     if (run) {
-      if (run.status === 'completed' && run.conclusion !== 'success') {
-        throw new Error('required_workflow_not_successful_on_exact_head');
-      }
+      // The workflow also has an informational posture-audit job. Its status or
+      // conclusion must not override the exact required frontend job below.
       if (!ACTIVE_STATUSES.includes(run.status) && run.status !== 'completed') {
         throw new Error('required_workflow_status_unrecognized');
       }
@@ -109,9 +108,6 @@ async function waitForRequiredCi({
             typeof requiredJob.head_sha !== 'string' ||
             requiredJob.head_sha.toLowerCase() !== normalizedSha) {
           throw new Error('required_ci_job_not_successful_on_exact_head');
-        }
-        if (run.status !== 'in_progress' && !(run.status === 'completed' && run.conclusion === 'success')) {
-          throw new Error('required_workflow_status_inconsistent_with_job');
         }
         return Object.freeze({
           status: 'REQUIRED_CHECK_VERIFIED',
