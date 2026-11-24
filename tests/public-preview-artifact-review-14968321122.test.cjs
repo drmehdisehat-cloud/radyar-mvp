@@ -17,6 +17,8 @@ test('records the downloaded preview artifact against the exact branch head and 
   assert.match(evidence.sourceCommit, /^[a-f0-9]{40}$/);
   assert.equal(evidence.sourceCommit, evidence.manifest.sourceCommit);
   assert.equal(evidence.sourceCommit, evidence.manifest.workflowCommit);
+  assert.equal(evidence.observedAt, '2026-11-25');
+  assert.equal(evidence.observationTimePrecision, 'date-only; exact download timestamp is not asserted');
   assert.equal(evidence.workflow.event, 'push');
   assert.equal(evidence.workflow.conclusion, 'success');
   assert.equal(evidence.artifact.id, 14968321122);
@@ -70,6 +72,6 @@ test('keeps the review record free of credentials and client matter data', () =>
   assert.doesNotMatch(serialized, /private[_ -]?key|api[_ -]?key|bearer\s+[a-z0-9._-]+|password|client[_ -]?name|case[_ -]?number/i);
   assert.deepEqual(
     Object.keys(evidence).sort(),
-    ['artifact', 'branch', 'manifest', 'observedAt', 'releaseBoundary', 'repository', 'schema', 'sourceCommit', 'verification', 'workflow'].sort()
+    ['artifact', 'branch', 'manifest', 'observationTimePrecision', 'observedAt', 'releaseBoundary', 'repository', 'schema', 'sourceCommit', 'verification', 'workflow'].sort()
   );
 });
