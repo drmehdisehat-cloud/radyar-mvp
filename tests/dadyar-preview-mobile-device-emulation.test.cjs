@@ -630,11 +630,16 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
       '  const reviewer = document.getElementById("reviewer-name");',
       '  reviewer.value = "بازبین آزمون"; reviewer.dispatchEvent(new Event("input", { bubbles: true }));',
       '  const decision = document.getElementById("review-decision");',
-      '  decision.value = "approved"; decision.dispatchEvent(new Event("change", { bubbles: true }));',
       '  const note = document.getElementById("review-note");',
       '  note.value = "بازبینی داده ساختگی"; note.dispatchEvent(new Event("input", { bubbles: true }));',
       '  for (const id of ["review-check-facts","review-check-conflicts","review-check-sources","review-check-privacy"]) { const item = document.getElementById(id); item.checked = true; item.dispatchEvent(new Event("change", { bubbles: true })); }',
       '  const checklistPreservedDraft = !document.getElementById("result").hidden && document.getElementById("report").textContent.length > 0 && exportEligible;',
+      '  decision.value = "rejected"; decision.dispatchEvent(new Event("change", { bubbles: true }));',
+      '  document.getElementById("export-ack").click();',
+      '  document.getElementById("record-review").click();',
+      '  const rejectedReviewBlocked = download.disabled;',
+      '  const rejectedReviewStatus = document.getElementById("review-status").textContent;',
+      '  decision.value = "approved"; decision.dispatchEvent(new Event("change", { bubbles: true }));',
       '  document.getElementById("export-ack").click();',
       '  document.getElementById("record-review").click();',
       '  const enabledAfterReview = !download.disabled;',
@@ -659,7 +664,7 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
       '    maxTouchPoints: navigator.maxTouchPoints, coarsePointer: matchMedia("(pointer: coarse)").matches,',
       '    mobileUserAgent: /iPhone|Mobile/i.test(navigator.userAgent),',
       '    horizontalOverflow: root.scrollWidth > root.clientWidth + 1,',
-      '    initiallyDisabled, blockedBeforeReview, enabledAfterReview, disabledAfterExport,',
+      '    initiallyDisabled, blockedBeforeReview, rejectedReviewBlocked, rejectedReviewStatus, enabledAfterReview, disabledAfterExport,',
       '    multiTopicIds, multiTopicInputCleared, multiTopicRawQuestionEchoed, multiTopicExportEligible, multiTopicScopeStatus, chequeOnlyExportEligible, invalidJalaliDateBlocked, leapJalaliDateAccepted,',
       '    sensitiveInputCleared, sensitiveRawQuestionEchoed, sensitiveVisibleReport, sensitiveExportBlocked, sensitiveStatus,',
       '    reviewStatus, visibleReport, resourceRequests, checklistPreservedDraft',
@@ -683,6 +688,8 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
     assert.equal(snapshot.initiallyDisabled, true);
     assert.equal(snapshot.blockedBeforeReview, true);
     assert.equal(snapshot.enabledAfterReview, true, 'approved local review should enable report download');
+    assert.equal(snapshot.rejectedReviewBlocked, true, 'a rejected local review must never enable report download');
+    assert.match(snapshot.rejectedReviewStatus, /بازبینی رد شد/);
     assert.equal(snapshot.checklistPreservedDraft, true, 'review checklist changes must not invalidate the generated HTTP preview draft');
     assert.equal(snapshot.disabledAfterExport, true, 'export must consume the local review acknowledgement');
     assert.ok(snapshot.multiTopicIds.includes('instruments'), 'cheque hint missing from HTTP preview routing');
