@@ -9,6 +9,7 @@ const CANONICAL_HOST = 'mehdisehat.ir';
 const CANONICAL_PATH = '/dadyar-preview/';
 const MAX_BODY_BYTES = 1024 * 1024;
 const DEFAULT_TIMEOUT_MS = 8000;
+const MAX_TIMEOUT_MS = 120000;
 const SHA256 = /^[a-f0-9]{64}$/i;
 const GIT_BLOB_SHA1 = /^[a-f0-9]{40}$/i;
 
@@ -323,45 +324,81 @@ function fetchPreview(urlValue, expectedSha256, expectedGitBlobSha1, {
   request = https.request
 } = {}) {
   const url = verifyTargetUrl(urlValue);
+  if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > MAX_TIMEOUT_MS) {
+    throw new Error('preview_timeout_invalid');
+  }
   return new Promise((resolve, reject) => {
-    const req = request(url, {
-      method: 'GET',
-      agent: false,
-      headers: {
-        accept: 'text/html',
-        'accept-encoding': 'identity',
-        'cache-control': 'no-cache',
-        'user-agent': 'Dadyar-Preview-ReadOnly-Verification/1.0'
-      }
-    }, response => {
-      const chunks = [];
-      let total = 0;
-      response.on('data', chunk => {
-        const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
-        total += bytes.length;
-        if (total > MAX_BODY_BYTES) {
-          response.destroy(new Error('preview_body_exceeds_1MiB'));
-          return;
+    let settled = false;
+    let deadline;
+    let req;
+    const finish = (error, value) => {
+      if (settled) return;
+      settled = true;
+      if (deadline) clearTimeout(deadline);
+      if (error) reject(error);
+      else resolve(value);
+    };
+
+    try {
+      req = request(url, {
+        method: 'GET',
+        agent: false,
+        headers: {
+          accept: 'text/html',
+          'accept-encoding': 'identity',
+          'cache-control': 'no-cache',
+          'user-agent': 'Dadyar-Preview-ReadOnly-Verification/1.0'
         }
-        chunks.push(bytes);
+      }, response => {
+        const chunks = [];
+        let total = 0;
+        response.on('data', chunk => {
+          const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+          total += bytes.length;
+          if (total > MAX_BODY_BYTES) {
+            const error = new Error('preview_body_exceeds_1MiB');
+            finish(error);
+            response.destroy(error);
+            if (req && typeof req.destroy === 'function') req.destroy(error);
+            return;
+          }
+          chunks.push(bytes);
+        });
+        response.on('error', error => finish(error));
+        response.on('end', () => {
+          try {
+            finish(null, verifyPreviewResponse({
+              statusCode: response.statusCode,
+              headers: response.headers,
+              body: Buffer.concat(chunks),
+              expectedSha256,
+              expectedGitBlobSha1
+            }));
+          } catch (error) {
+            finish(error);
+          }
+        });
       });
-      response.on('error', reject);
-      response.on('end', () => {
-        try {
-          resolve(verifyPreviewResponse({
-            statusCode: response.statusCode,
-            headers: response.headers,
-            body: Buffer.concat(chunks),
-            expectedSha256,
-            expectedGitBlobSha1
-          }));
-        } catch (error) {
-          reject(error);
-        }
-      });
+    } catch (error) {
+      finish(error);
+      return;
+    }
+
+    // setTimeout() below is an idle timeout. A peer that drips bytes just
+    // before each idle timeout could otherwise keep this release probe alive
+    // indefinitely. The absolute deadline bounds the entire request instead.
+    deadline = setTimeout(() => {
+      const error = new Error('preview_request_deadline_exceeded');
+      finish(error);
+      if (req && typeof req.destroy === 'function') req.destroy(error);
+    }, timeoutMs);
+
+    req.setTimeout(timeoutMs, () => {
+      const error = new Error('preview_request_idle_timeout');
+      finish(error);
+      req.destroy(error);
     });
-    req.setTimeout(timeoutMs, () => req.destroy(new Error('preview_request_timeout')));
-    req.on('error', reject);
+    req.on('error', error => finish(error));
     req.end();
   });
 }

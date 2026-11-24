@@ -269,6 +269,57 @@ test('live probe performs one credential-free GET and validates the returned res
 });
 
 
+test('absolute deadline stops a slow-drip response even when the socket idle timeout never fires', async () => {
+  let drip;
+  let destroyed;
+  const request = (url, options, callback) => {
+    const req = new EventEmitter();
+    req.setTimeout = () => {};
+    req.destroy = error => {
+      destroyed = error;
+      if (drip) clearInterval(drip);
+      req.emit('error', error);
+    };
+    req.end = () => {
+      const response = new EventEmitter();
+      response.statusCode = 200;
+      response.headers = { ...headers };
+      response.destroy = error => response.emit('error', error);
+      callback(response);
+      drip = setInterval(() => response.emit('data', Buffer.from('x')), 5);
+    };
+    return req;
+  };
+
+  await assert.rejects(
+    fetchPreview(
+      'https://mehdisehat.ir/dadyar-preview/',
+      expectedSha256,
+      expectedGitBlobSha1,
+      { timeoutMs: 35, request }
+    ),
+    /preview_request_deadline_exceeded/
+  );
+  assert.equal(destroyed && destroyed.message, 'preview_request_deadline_exceeded');
+});
+
+test('rejects invalid or unbounded HTTP probe deadlines before making a request', () => {
+  const request = () => {
+    throw new Error('request_must_not_be_called');
+  };
+  for (const timeoutMs of [0, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY, 120001]) {
+    assert.throws(
+      () => fetchPreview(
+        'https://mehdisehat.ir/dadyar-preview/',
+        expectedSha256,
+        expectedGitBlobSha1,
+        { timeoutMs, request }
+      ),
+      /preview_timeout_invalid/
+    );
+  }
+});
+
 test('rejects duplicate security response headers instead of coalescing them', () => {
   const cases = [
     ['content-type', ['text/html; charset=utf-8', 'text/plain']],
