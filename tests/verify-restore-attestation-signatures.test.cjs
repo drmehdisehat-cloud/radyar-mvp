@@ -263,3 +263,57 @@ test('signature CLI rejects a group/world-readable manifest on POSIX', t => {
   assert.equal(result.status, 1);
   assert.equal(JSON.parse(result.stdout).error, 'manifest_must_be_owner_only');
 });
+
+
+test('external evidence reader rejects group/world-writable parent directories', t => {
+  if (process.platform === 'win32') return;
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-attestation-writable-parent-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const file = path.join(directory, 'evidence.bin');
+  fs.writeFileSync(file, Buffer.from('synthetic evidence'), { mode: 0o600 });
+  fs.chmodSync(directory, 0o777);
+  assert.throws(
+    () => readExternalFile(file, 'evidence', 64),
+    /evidence_parent_must_not_be_group_or_world_writable/
+  );
+});
+
+test('external evidence reader rejects setgid evidence parent directories', t => {
+  if (process.platform === 'win32') return;
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-attestation-setgid-parent-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const file = path.join(directory, 'evidence.bin');
+  fs.writeFileSync(file, Buffer.from('synthetic evidence'), { mode: 0o600 });
+  fs.chmodSync(directory, 0o2700);
+  assert.throws(
+    () => readExternalFile(file, 'evidence', 64),
+    /evidence_parent_has_setuid_or_setgid_bits/
+  );
+});
+
+test('external evidence reader detects parent-directory mutation during descriptor read', t => {
+  if (process.platform === 'win32') return;
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-attestation-parent-race-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const file = path.join(directory, 'evidence.bin');
+  fs.writeFileSync(file, Buffer.from('synthetic evidence'), { mode: 0o600 });
+  const originalReadFileSync = fs.readFileSync;
+  let mutated = false;
+  fs.readFileSync = function (target, ...args) {
+    const result = originalReadFileSync.call(this, target, ...args);
+    if (typeof target === 'number' && !mutated) {
+      fs.writeFileSync(path.join(directory, 'concurrent-entry'), 'synthetic mutation');
+      mutated = true;
+    }
+    return result;
+  };
+  try {
+    assert.throws(
+      () => readExternalFile(file, 'evidence', 64),
+      /evidence_parent_directory_changed_during_read/
+    );
+  } finally {
+    fs.readFileSync = originalReadFileSync;
+  }
+  assert.equal(mutated, true);
+});

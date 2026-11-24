@@ -13,6 +13,58 @@ const MAX_MANIFEST_BYTES = 64 * 1024;
 const MAX_PUBLIC_KEY_BYTES = 16 * 1024;
 const SIGNATURE_BYTES = 64;
 
+function snapshotEvidenceParents(file, label) {
+  if (process.platform === 'win32') return [];
+  const serviceUid = typeof process.geteuid === 'function' ? BigInt(process.geteuid()) : null;
+  if (serviceUid === null) throw new Error(label + '_parent_ownership_cannot_be_verified');
+  const absolute = path.resolve(file);
+  const parsed = path.parse(absolute);
+  const components = path.relative(parsed.root, path.dirname(absolute)).split(path.sep).filter(Boolean);
+  let current = parsed.root;
+  const snapshots = [];
+  for (const component of components) {
+    current = path.join(current, component);
+    const stat = fs.lstatSync(current, { bigint: true });
+    if (stat.isSymbolicLink() || !stat.isDirectory() || fs.realpathSync(current) !== current) {
+      throw new Error(label + '_parent_must_be_a_canonical_real_directory');
+    }
+    const rootOwned = stat.uid === 0n;
+    if (!rootOwned && stat.uid !== serviceUid) {
+      throw new Error(label + '_parent_must_be_root_or_service_owned');
+    }
+    const mode = stat.mode & 0o7777n;
+    if ((mode & 0o6000n) !== 0n) {
+      throw new Error(label + '_parent_has_setuid_or_setgid_bits');
+    }
+    if ((mode & 0o022n) !== 0n && !(rootOwned && (mode & 0o1000n) !== 0n)) {
+      throw new Error(label + '_parent_must_not_be_group_or_world_writable');
+    }
+    snapshots.push(Object.freeze({
+      path: current,
+      dev: stat.dev,
+      ino: stat.ino,
+      uid: stat.uid,
+      mode: stat.mode,
+      mtimeNs: stat.mtimeNs,
+      ctimeNs: stat.ctimeNs
+    }));
+  }
+  return snapshots;
+}
+
+function assertEvidenceParentsUnchanged(snapshots, label) {
+  for (const snapshot of snapshots) {
+    const current = fs.lstatSync(snapshot.path, { bigint: true });
+    if (current.isSymbolicLink() || !current.isDirectory() ||
+        current.dev !== snapshot.dev || current.ino !== snapshot.ino ||
+        current.uid !== snapshot.uid || current.mode !== snapshot.mode ||
+        current.mtimeNs !== snapshot.mtimeNs || current.ctimeNs !== snapshot.ctimeNs ||
+        fs.realpathSync(snapshot.path) !== snapshot.path) {
+      throw new Error(label + '_parent_directory_changed_during_read');
+    }
+  }
+}
+
 function decodeUtf8(bytes, label) {
   try {
     return new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes);
@@ -100,6 +152,11 @@ function readExternalFile(file, label, maxBytes) {
   }
   const real = fs.realpathSync(file);
   if (isInside(REPO_ROOT, real)) throw new Error(label + '_must_be_outside_git_checkout');
+  // Evidence is only as trustworthy as the directories used to reach it.
+  // Require root/service-owned parents, reject writable or special-bit parents
+  // (except root-owned sticky shared temp directories), and pin their identity
+  // and metadata across the descriptor read to detect path replacement.
+  const parentSnapshots = snapshotEvidenceParents(real, label);
   // Reject hard-link aliases as well as symlinks: an external pathname must not
   // expose the same inode as a file elsewhere (including inside this checkout).
   if (!Number.isInteger(fs.constants.O_NOFOLLOW)) throw new Error(label + '_nofollow_open_unavailable');
@@ -121,6 +178,7 @@ function readExternalFile(file, label, maxBytes) {
         after.ctimeNs !== before.ctimeNs || BigInt(bytes.length) !== before.size) {
       throw new Error(label + '_changed_during_read');
     }
+    assertEvidenceParentsUnchanged(parentSnapshots, label);
     return bytes;
   } finally {
     fs.closeSync(fd);
