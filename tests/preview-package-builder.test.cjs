@@ -59,7 +59,7 @@ test('handoff package is minimal, byte-identical, checksum verified and explicit
     assert.equal(metadata.delay_index_source_status, 'transcribed-not-independently-authenticated');
     assert.equal(metadata.api_enabled, false);
     assert.equal(metadata.public_ai_enabled, false);
-    assert.equal(metadata.reviewer_authentication, 'not-implemented');
+    assert.equal(metadata.reviewer_authentication, 'not-configured');
     assert.equal(metadata.backup_restore_verified, false);
     assert.equal(metadata.destination_verified, false);
     assert.equal(metadata.deployment_authorized, false);
