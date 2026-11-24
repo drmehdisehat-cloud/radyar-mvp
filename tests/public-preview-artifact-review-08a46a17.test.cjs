@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const { execFileSync } = require('node:child_process');
 
 const record = JSON.parse(fs.readFileSync(
   path.join(__dirname, '../docs/public-preview-artifact-review-08a46a17-20261123.json'),
@@ -33,7 +34,7 @@ test('latest downloaded preview artifact is pinned to its exact successful push 
 });
 
 test('downloaded source HTML matches the exact branch bytes and Git blob', () => {
-  const source = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'));
+  const source = execFileSync('git', ['show', record.source.commit + ':dadyar-preview/index.html']);
   const sha256 = crypto.createHash('sha256').update(source).digest('hex');
   assert.equal(source.length, record.source.bytes);
   assert.equal(sha256, record.source.sha256);
@@ -46,7 +47,7 @@ test('downloaded ZIP evidence records exactly the two public files and their byt
   assert.deepEqual(record.artifact.archive_entries.map(x => x.path).sort(), ['INTEGRITY.json', 'index.html']);
   const html = record.artifact.archive_entries.find(x => x.path === 'index.html');
   const manifest = record.artifact.archive_entries.find(x => x.path === 'INTEGRITY.json');
-  assert.equal(html.size_bytes, 60839);
+  assert.equal(html.size_bytes, record.source.bytes);
   assert.equal(html.sha256, record.source.sha256);
   assert.equal(html.git_blob_sha1, record.source.git_blob_sha1);
   assert.equal(manifest.size_bytes, 862);
