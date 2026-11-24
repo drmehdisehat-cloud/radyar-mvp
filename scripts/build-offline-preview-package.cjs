@@ -264,7 +264,7 @@ function buildOfflinePreviewPackage(destinationArg, options = {}) {
     delay_index_base_year_status: delayBaseYearStatus,
     delay_index_months_available: Object.keys(delayIndexes).length,
     delay_index_source_status: delaySourceStatus,
-    reviewer_authentication: 'not-implemented',
+    reviewer_authentication: 'not-configured',
     reviewer_record_type: 'local-self-attestation-only',
     backup_restore_verified: false,
     destination_verified: false,
