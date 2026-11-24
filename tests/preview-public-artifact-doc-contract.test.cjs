@@ -29,6 +29,8 @@ test('public artifact docs keep operator handoff and release authorization outsi
   assert.match(docs, /`handoff\/`/);
   assert.match(docs, /در ZIP عمومی بارگذاری نمی‌شوند/);
   assert.match(docs, /هویت، سمت و استقلال بازبین احراز نمی‌شود/);
+  assert.match(docs, /هیچ IdP واقعی، کلید عملیاتی pin‌شده یا مخزن ابطال نشست به سایت متصل نیست/);
+  assert.match(manifestBuilder, /reviewer_authentication: 'not-configured'/);
   assert.match(docs, /اثبات Restore، اعتبار مقصد، هویت بازبین/);
   assert.match(docs, /مجوز صریح مالک/);
   assert.match(docs, /هیچ گام CI در این Workflow استقرار انجام نمی‌دهد/);
