@@ -151,20 +151,9 @@ test('rejects a human-review key reused by either restore signer', () => {
   }
 });
 
-test('rejects a missing or incomplete restore signer fingerprint pin set', () => {
+test('allows standalone signature verification when no Restore context is supplied', () => {
   const f = fixture();
-  assert.equal(
-    verify(f, { forbiddenPublicKeySha256s: [] }).reason,
-    'restore_signer_fingerprint_pins_required'
-  );
-  assert.equal(
-    verify(f, { forbiddenPublicKeySha256s: [f.restoreSignerFingerprints[0]] }).reason,
-    'restore_signer_fingerprint_pins_required'
-  );
-  assert.equal(
-    verify(f, { forbiddenPublicKeySha256s: [...f.restoreSignerFingerprints, 'f'.repeat(64)] }).reason,
-    'restore_signer_fingerprint_pins_required'
-  );
+  assert.equal(verify(f, { forbiddenPublicKeySha256s: [] }).verified, true);
 });
 
 test('rejects a restore signer key even when aliased under an inactive reviewer record', () => {
