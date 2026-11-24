@@ -52,7 +52,7 @@ test('invalid event-date format is a report conflict and blocks export', () => {
 
 test('event-date input invalidates stale drafts and is cleared on reset/pagehide', () => {
   assert.match(html, /eventDateField\.addEventListener\('input',invalidateDraft\)/);
-  assert.match(html, /if\(eventDateField\) eventDateField\.value='';/);
+  assert.match(html, /document\.getElementById\('event-date'\)\.value='';/);
 });
 
 test('event date remains local and the preview has no network or browser persistence sink', () => {
