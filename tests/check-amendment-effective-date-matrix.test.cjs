@@ -51,7 +51,10 @@ test('1372 and later cheque amendment dates cannot masquerade as commencement da
       continue;
     }
     assert.equal(amendment.dateMeaning, 'article-amendment-label-only');
-    assert.match(amendment.dateShownOnConsolidatedArticles, /^1[34]\\d{2}\\/\\d{2}\\/\\d{2}$/);
+    const [year, month, day] = amendment.dateShownOnConsolidatedArticles.split('/');
+    assert.equal(year, amendment.label);
+    assert.equal(month.length, 2);
+    assert.equal(day.length, 2);
     for (const article of amendment.articleLabels) {
       assert.ok(handoff.officialTextObservation.amendmentDatesDisplayed.some(
         observed => observed.article === article &&
