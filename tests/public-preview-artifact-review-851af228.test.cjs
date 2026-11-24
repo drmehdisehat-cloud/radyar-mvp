@@ -4,11 +4,12 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const { execFileSync } = require('node:child_process');
 
 const record = JSON.parse(fs.readFileSync(
   path.resolve(__dirname, '../docs/public-preview-artifact-review-851af228-20261123.json'), 'utf8'
 ));
-const source = fs.readFileSync(path.resolve(__dirname, '../dadyar-preview/index.html'));
+const source = execFileSync('git', ['show', record.sourceCommit + ':dadyar-preview/index.html']);
 const sha256 = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 function gitBlobSha1(bytes) {
   const hash = crypto.createHash('sha1');
