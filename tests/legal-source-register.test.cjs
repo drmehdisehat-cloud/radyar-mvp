@@ -90,16 +90,16 @@ test('Qavanin cheque-law URLs remain non-authorizing research candidates until t
   );
   assert.ok(amendment1372, '1372 official Qavanin text lead must be retained');
   assert.equal(amendment1372.candidateStatus,
-    'official-primary-text-and-metadata-rendered-2026-11-23-raw-bytes-and-gazette-issue-not-captured');
+    'official-primary-text-and-metadata-rendered-2026-11-24-raw-bytes-and-gazette-issue-not-captured');
   assert.equal(amendment1372.approvalDateShown, '1372/08/11');
   assert.equal(amendment1372.guardianCouncilConfirmationDateShown, '1372/08/19');
-  assert.equal(amendment1372.lastDirectFetchAt, '2026-11-23');
+  assert.equal(amendment1372.lastDirectFetchAt, '2026-11-24');
   assert.equal(amendment1372.officialGazetteNumberShown, '14189');
   assert.equal(amendment1372.officialGazetteDateShown, '1372/09/01');
   assert.equal(amendment1372.officialGazettePublicationDateShown, '1372/09/01');
   assert.equal(amendment1372.promulgationDateShown, '1372/08/25');
   assert.equal(amendment1372.effectiveFromShown, '1372/09/17');
-  assert.equal(amendment1372.metadataLastDirectFetchAt, '2026-11-23');
+  assert.equal(amendment1372.metadataLastDirectFetchAt, '2026-11-24');
   assert.equal(amendment1372.rawHttpBytesCaptured, false);
   assert.equal(amendment1372.rawResponseSha256, null);
   assert.equal(amendment1372.officialGazetteIssueBytesRetrieved, false);
