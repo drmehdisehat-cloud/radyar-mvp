@@ -139,7 +139,13 @@ test('rejects altered HTML, wrong source commit and release flags promoted to tr
   const promoted = Buffer.from(JSON.stringify(manifestFor(HTML, { deployment_authorized: true })), 'utf8');
   assert.throws(() => verifyArtifactBuffer(makeZip(validEntries({ manifest: promoted })), COMMIT), /manifest_release_flags_must_remain_false/);
 });
-test('rejects ambiguous or promoted reviewer authentication states in downloaded artifacts', () => {\n  for (const value of ['not-implemented', 'verified', 'connected']) {\n    const manifest = Buffer.from(JSON.stringify(manifestFor(HTML, { reviewer_authentication: value })), 'utf8');\n    assert.throws(() => verifyArtifactBuffer(makeZip(validEntries({ manifest })), COMMIT), /manifest_reviewer_authentication_must_remain_unconfigured/);\n  }\n});\ntest('rejects duplicate JSON keys and a mismatched Git blob pin', () => {
+test('rejects ambiguous or promoted reviewer authentication states in downloaded artifacts', () => {
+  for (const value of ['not-implemented', 'verified', 'connected']) {
+    const manifest = Buffer.from(JSON.stringify(manifestFor(HTML, { reviewer_authentication: value })), 'utf8');
+    assert.throws(() => verifyArtifactBuffer(makeZip(validEntries({ manifest })), COMMIT), /manifest_reviewer_authentication_must_remain_unconfigured/);
+  }
+});
+test('rejects duplicate JSON keys and a mismatched Git blob pin', () => {
   const duplicateManifest = JSON.stringify(manifestFor(HTML)).replace('"schema":', '"schema":"duplicate","schema":');
   assert.throws(() => verifyArtifactBuffer(makeZip(validEntries({ manifest: duplicateManifest })), COMMIT), /manifest_invalid_json:duplicate_json_key/);
   const wrongBlob = Buffer.from(JSON.stringify(manifestFor(HTML, { git_blob_sha1: '0'.repeat(40) })), 'utf8');
