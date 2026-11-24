@@ -61,7 +61,7 @@ test('package builder keeps operator handoff outside the public payload', () => 
     assert.equal(metadata.backup_restore_verified, false);
     assert.equal(metadata.destination_verified, false);
     assert.equal(metadata.deployment_authorized, false);
-    assert.equal(metadata.reviewer_authentication, 'not-implemented');
+    assert.equal(metadata.reviewer_authentication, 'not-configured');
 
     const html = fs.readFileSync(path.join(destination, 'public', 'index.html'), 'utf8');
     assert.match(html, /چک فرضی/);
