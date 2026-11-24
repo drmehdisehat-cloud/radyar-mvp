@@ -234,7 +234,7 @@ test('1372 Qavanin rendered-text digest binds the exact transcription without ma
   ));
   const capture = observation.renderedTextCapture;
   assert.ok(record && capture, '1372 observation and legal-source record must exist');
-  assert.equal(record.latest1372Observation.file, 'docs/check-law-qavanin-observation-20261123.json');
+  assert.equal(record.latest1372Observation.file, 'docs/check-law-qavanin-recheck-20261124.json');
   assert.equal(capture.path, 'research/qavanin-1372-check-amendment-rendered-20261123.txt');
   const candidate = record.officialDocumentUrlCandidates.find(item =>
     item.documentId === '16863897128756457315'
