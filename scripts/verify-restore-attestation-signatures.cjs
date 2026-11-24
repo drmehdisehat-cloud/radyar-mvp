@@ -39,12 +39,18 @@ function snapshotEvidenceParents(file, label) {
     if ((mode & 0o022n) !== 0n && !(rootOwned && (mode & 0o1000n) !== 0n)) {
       throw new Error(label + '_parent_must_not_be_group_or_world_writable');
     }
+    // A root-owned sticky shared temporary directory (for example /tmp)
+    // may legitimately gain unrelated entries while parallel tests run.
+    // Its owner/sticky protection and inode remain pinned; private descendants
+    // still have their timestamps pinned to detect replacement during reads.
+    const sharedSticky = rootOwned && (mode & 0o1000n) !== 0n;
     snapshots.push(Object.freeze({
       path: current,
       dev: stat.dev,
       ino: stat.ino,
       uid: stat.uid,
       mode: stat.mode,
+      sharedSticky,
       mtimeNs: stat.mtimeNs,
       ctimeNs: stat.ctimeNs
     }));
@@ -58,7 +64,8 @@ function assertEvidenceParentsUnchanged(snapshots, label) {
     if (current.isSymbolicLink() || !current.isDirectory() ||
         current.dev !== snapshot.dev || current.ino !== snapshot.ino ||
         current.uid !== snapshot.uid || current.mode !== snapshot.mode ||
-        current.mtimeNs !== snapshot.mtimeNs || current.ctimeNs !== snapshot.ctimeNs ||
+        (!snapshot.sharedSticky &&
+          (current.mtimeNs !== snapshot.mtimeNs || current.ctimeNs !== snapshot.ctimeNs)) ||
         fs.realpathSync(snapshot.path) !== snapshot.path) {
       throw new Error(label + '_parent_directory_changed_during_read');
     }
