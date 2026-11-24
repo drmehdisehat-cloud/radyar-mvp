@@ -211,3 +211,50 @@ test('requires an injected server-side gate and a canonical HTTPS origin at cons
     /canonical HTTPS origin/
   );
 });
+
+
+test('times out an incomplete request body without invoking the release gate', async () => {
+  let gateCalls = 0;
+  await withServer(async () => {
+    gateCalls += 1;
+    return { reportBytes: Buffer.from('must not be released') };
+  }, { bodyTimeoutMs: 250 }, async port => {
+    const response = await new Promise((resolve, reject) => {
+      let responseStarted = false;
+      const request = http.request({
+        hostname: '127.0.0.1',
+        port,
+        method: 'POST',
+        path: DEFAULT_ROUTE_PATH,
+        agent: false,
+        headers: {
+          host: 'preview.example.test',
+          origin: ORIGIN,
+          'content-type': 'application/json; charset=utf-8',
+          'content-length': '64',
+          connection: 'close'
+        }
+      }, incoming => {
+        responseStarted = true;
+        const chunks = [];
+        incoming.on('data', chunk => chunks.push(Buffer.from(chunk)));
+        incoming.on('end', () => resolve({
+          status: incoming.statusCode,
+          headers: incoming.headers,
+          body: Buffer.concat(chunks)
+        }));
+      });
+      request.once('error', error => {
+        if (!responseStarted) reject(error);
+      });
+      // Deliberately leave Content-Length unsatisfied to exercise the body deadline.
+      request.write('{"envelope":');
+    });
+
+    assert.equal(response.status, 408);
+    assert.match(response.headers['cache-control'], /no-store/);
+    assert.equal(response.headers.connection, 'close');
+    assert.match(response.body.toString('utf8'), /مهلت دریافت بدنه درخواست پایان یافت/);
+  });
+  assert.equal(gateCalls, 0);
+});
