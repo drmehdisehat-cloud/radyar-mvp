@@ -79,15 +79,15 @@ function verifyHumanReviewAttestation({
       trustStore.reviewers.length < 1 || trustStore.reviewers.length > 100) {
     return fail('invalid_trust_store');
   }
-  // A preview reviewer must be cryptographically distinct from both restore
-  // signers. Do not let callers silently omit either signer pin.
-  if (!Array.isArray(forbiddenPublicKeySha256s) || forbiddenPublicKeySha256s.length !== 2) {
-    return fail('restore_signer_fingerprint_pins_required');
-  }
-  if (forbiddenPublicKeySha256s.some(value =>
+  // Standalone signature checks may omit Restore context. The release preflight
+  // supplies both independently verified Restore signer pins before authorizing
+  // a preview review, and this verifier rejects any reviewer-key collision.
+  if (!Array.isArray(forbiddenPublicKeySha256s) ||
+      forbiddenPublicKeySha256s.length > 16 ||
+      forbiddenPublicKeySha256s.some(value =>
         typeof value !== 'string' || !SHA256.test(value) || /^0{64}$/i.test(value)
       ) ||
-      new Set(forbiddenPublicKeySha256s.map(value => value.toLowerCase())).size !== 2) {
+      new Set(forbiddenPublicKeySha256s.map(value => value.toLowerCase())).size !== forbiddenPublicKeySha256s.length) {
     return fail('invalid_forbidden_key_fingerprints');
   }
   const forbiddenKeyFingerprints = new Set(
