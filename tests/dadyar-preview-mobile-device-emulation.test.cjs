@@ -315,7 +315,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '    reviewerResetAfterDownload, reapprovalBlockedWithoutFreshDetails, postDownloadReviewStatus,',
       '    reportAfterAcknowledgement, staleDraftInvalidated, multiTopicReport, multiTopicIds,',
       '    pagehideClearedUnsubmittedQuestion, pagehideClearedDraft, pagehideClearedReviewer, pagehideClearedSelections, pagehideClearedReviewApproval, calculatorInitiallyBlocked, calculatorDomTamperingBlocked, calculatorAvailableMonthBounds, pagehideClearedCalculator,',
-      '    multiTopicExportEligible, multiTopicScopeStatus, multiTopicInputCleared, multiTopicRawQuestionEchoed,',
+      '    multiTopicExportEligible, multiTopicScopeStatus, multiTopicInputCleared, multiTopicRawQuestionEchoed, invalidJalaliDateBlocked, leapJalaliDateAccepted,',
       '    landlineNoteCleared, landlineNoteWarning, landlineNoteBlocked, landlineQuestionCleared, landlineQuestionBlocked, landlineQuestionNotEchoed,',
       '    privacyQuestionCleared, privacyRawAbsentFromDraft, privacyExportEligible, privacyReviewApproved, privacyRawAbsentFromExport,',
       '    csp: document.querySelector("meta[http-equiv]")?.content || "",',
@@ -610,7 +610,14 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
       '  question.value = multiTopicRawQuestion;',
       '  question.dispatchEvent(new Event("input", { bubbles: true }));',
       '  const multiTopicIds = classifyQuestion(question.value).map(item => item.id);',
+      '  const eventDate = document.getElementById("event-date");',
+      '  eventDate.value = "1400-12-30"; eventDate.dispatchEvent(new Event("input", { bubbles: true }));',
       '  document.getElementById("generate").click();',
+      '  const invalidJalaliDateBlocked = !exportEligible && download.disabled && document.getElementById("report").textContent.includes("تاریخ واقعه");',
+      '  question.value = multiTopicRawQuestion; question.dispatchEvent(new Event("input", { bubbles: true }));',
+      '  eventDate.value = "1403-12-30"; eventDate.dispatchEvent(new Event("input", { bubbles: true }));',
+      '  document.getElementById("generate").click();',
+      '  const leapJalaliDateAccepted = exportEligible && document.getElementById("report").textContent.includes("۱۴۰۳-۱۲-۳۰");',
       '  const multiTopicInputCleared = question.value === "";',
       '  const multiTopicRawQuestionEchoed = document.getElementById("report").textContent.includes(multiTopicRawQuestion);',
       '  const multiTopicExportEligible = exportEligible;',
@@ -682,6 +689,8 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
     assert.ok(snapshot.multiTopicIds.includes('family'), 'family hint missing from HTTP preview routing');
     assert.equal(snapshot.multiTopicInputCleared, true, 'raw multi-topic question remained in the editable field');
     assert.equal(snapshot.multiTopicRawQuestionEchoed, false, 'raw multi-topic question leaked into the report');
+    assert.equal(snapshot.invalidJalaliDateBlocked, true, 'an impossible Jalali date must block the synthetic report on mobile');
+    assert.equal(snapshot.leapJalaliDateAccepted, true, 'a valid Esfand 30 date must pass the ICU calendar check on mobile');
     assert.equal(snapshot.multiTopicExportEligible, true, 'mixed-topic input containing cheque must allow only the synthetic cheque report');
     assert.equal(snapshot.chequeOnlyExportEligible, true, 'a cheque-only question should remain eligible for human review');
     assert.match(snapshot.multiTopicScopeStatus, /چندموضوعی/);
