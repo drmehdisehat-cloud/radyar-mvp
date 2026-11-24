@@ -8,9 +8,9 @@ const vm = require('node:vm');
 const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
 const parserSource = html.match(/function parseSyntheticEventDateInput\(value\)\{[\s\S]*?\n\}/)?.[0];
 
-function parse(value) {
+function parse(value, globals = {}) {
   assert.ok(parserSource, 'synthetic event-date parser missing');
-  const sandbox = {};
+  const sandbox = { ...globals };
   vm.runInNewContext(parserSource + '\nglobalThis.__parse = parseSyntheticEventDateInput;', sandbox, { timeout: 1000 });
   const result = sandbox.__parse(value);
   return { formatValid: result.formatValid, normalized: result.normalized };
@@ -24,17 +24,21 @@ test('synthetic Jalali event date accepts Persian, Arabic and Latin digits with 
 });
 
 test('event-date format guard rejects malformed and out-of-range month/day values', () => {
-  for (const value of ['1405-13-03', '1405-00-03', '1405-09-00', '1405-09-32', '1405/9/03', '1405-09']) {
+  for (const value of ['1405-13-03', '1405-00-03', '1405-09-00', '1405-09-32', '1405/9/03', '1405-09', '1400-12-30', '1403-07-31']) {
     assert.deepEqual(parse(value), { formatValid: false, normalized: '' }, value);
   }
 });
 
-test('format acceptance never claims official Persian calendar or leap-day validity', () => {
-  // Esfand 30 may or may not be valid in a given year. This preview deliberately
-  // checks only a conservative input shape; it does not use this date legally.
+test('uses the ICU Persian calendar to validate leap-day shape without claiming official Iranian calendar authority', () => {
   assert.deepEqual(parse('1403-12-30'), { formatValid: true, normalized: '1403-12-30' });
-  assert.match(html, /صحت تقویم رسمی ایران و روز کبیسه بررسی نشده است/);
-  assert.match(html, /تقویم رسمی ایران یا کبیسه را/);
+  assert.deepEqual(parse('1400-12-30'), { formatValid: false, normalized: '' });
+  assert.match(html, /تقویم فارسی ICU مرورگر/);
+  assert.match(html, /انطباق با تقویم رسمی ایران/);
+  assert.match(html, /تاریخ واردشده برای انتخاب نسخه قانون استفاده نمی‌شود/);
+});
+
+test('fails closed when the runtime does not expose the Persian ICU calendar', () => {
+  assert.deepEqual(parse('1405-09-03', { Intl: undefined }), { formatValid: false, normalized: '' });
 });
 
 test('entered event date is reported as synthetic input but never selects a legal version', () => {
