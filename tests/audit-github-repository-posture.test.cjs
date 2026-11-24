@@ -263,7 +263,8 @@ test('blocks a newer in-progress trusted workflow run even when an older push ru
   });
   const result = await auditRepositoryPosture({ fetchImpl: fakeFetch(fixtures) });
   assert.equal(result.status, 'NOT_READY');
-  assert.ok(result.blockers.includes('required_workflow_run_not_successful_on_exact_head'));
+  assert.ok(result.blockers.includes('required_ci_check_not_successful_on_exact_head'));
+  assert.ok(!result.blockers.includes('required_workflow_run_not_successful_on_exact_head'));
   assert.equal(result.requiredWorkflowRunId, 790);
   assert.equal(result.deploymentAuthorized, false);
 });
