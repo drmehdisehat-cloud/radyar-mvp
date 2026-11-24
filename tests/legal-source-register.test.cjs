@@ -38,8 +38,8 @@ test('legal source register is versioned and preserves fail-closed promotion rul
 
 test('Qavanin cheque-law URLs remain non-authorizing research candidates until the consolidated text and event-date amendments are fetched and reviewed', () => {
   const record = register.records.find(item => item.id === 'check-issuance-law');
-  assert.equal(record.latest1372Observation.file, 'docs/check-law-qavanin-observation-20261123.json');
-  assert.equal(record.latest1372Observation.observedAt, '2026-11-23');
+  assert.equal(record.latest1372Observation.file, 'docs/check-law-qavanin-recheck-20261124.json');
+  assert.equal(record.latest1372Observation.observedAt, '2026-11-24');
   assert.ok(record);
   const original = record.officialDocumentUrlCandidates?.find(item =>
     item.url === 'https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131'
@@ -134,8 +134,8 @@ test('Qavanin cheque-law URLs remain non-authorizing research candidates until t
   assert.equal(record.useInLegalAnswers, false);
 });
 
-test('registry records the 2026-11-23 Qavanin observation without authorizing legal answers', () => {
-  assert.equal(register.observedAt, '2026-11-23');
+test('registry retains the 2026-11-23 source observations while tracking the 2026-11-24 recheck', () => {
+  assert.equal(register.observedAt, '2026-11-24');
   const record = register.records.find(item => item.id === 'check-issuance-law');
   const page = record.officialPortalObservation.amendmentPages.find(item => item.id === 'check-amendment-1400');
   assert.ok(page);
