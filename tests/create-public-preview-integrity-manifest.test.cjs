@@ -87,7 +87,18 @@ test('rejects package metadata that marks restore, destination or deployment as 
   }
 });
 
-test('rejects ambiguous or promoted reviewer authentication metadata', t => {\n  for (const value of ['not-implemented', 'verified', 'connected']) {\n    const f = fixture(t);\n    const metadataPath = path.join(f.packageRoot, 'handoff', 'PREVIEW-METADATA.json');\n    const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));\n    metadata.reviewer_authentication = value;\n    fs.writeFileSync(metadataPath, JSON.stringify(metadata), { mode: 0o600 });\n    assert.throws(() => createPublicPreviewIntegrityManifest(f.packageRoot), /reviewer_authentication_must_remain_unconfigured/);\n  }\n});\n\ntest('rejects API or public AI activation metadata', t => {
+test('rejects ambiguous or promoted reviewer authentication metadata', t => {
+  for (const value of ['not-implemented', 'verified', 'connected']) {
+    const f = fixture(t);
+    const metadataPath = path.join(f.packageRoot, 'handoff', 'PREVIEW-METADATA.json');
+    const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+    metadata.reviewer_authentication = value;
+    fs.writeFileSync(metadataPath, JSON.stringify(metadata), { mode: 0o600 });
+    assert.throws(() => createPublicPreviewIntegrityManifest(f.packageRoot), /reviewer_authentication_must_remain_unconfigured/);
+  }
+});
+
+test('rejects API or public AI activation metadata', t => {
   const f = fixture(t);
   const metadataPath = path.join(f.packageRoot, 'handoff', 'PREVIEW-METADATA.json');
   const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
