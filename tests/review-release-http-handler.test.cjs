@@ -174,3 +174,40 @@ test('server facade refuses public listeners and request-dispatch mutation', () 
   assert.throws(() => server.on('request', () => {}), /event is not exposed/);
   assert.throws(() => server.once('request', () => {}), /event is not exposed/);
 });
+
+test('rejects caller-supplied reviewer identity headers before invoking the trusted release gate', async () => {
+  let gateCalls = 0;
+  await withServer(async () => {
+    gateCalls += 1;
+    return { reportBytes: Buffer.from('must never be released') };
+  }, {}, async port => {
+    const forgedHeaders = [
+      ['x-authenticated-user', 'synthetic-reviewer'],
+      ['remote-user', 'synthetic-reviewer'],
+      ['x-reviewer-id', 'synthetic-reviewer'],
+      ['x-reviewer-role', 'preview-reviewer'],
+      ['x-reviewer-independent', 'true'],
+      ['x-test-session', 'synthetic-session']
+    ];
+    for (const [name, value] of forgedHeaders) {
+      const response = await send(port, { headers: { [name]: value } });
+      assert.equal(response.status, 400, name);
+      assert.match(response.headers['cache-control'], /no-store/);
+    }
+  });
+  assert.equal(gateCalls, 0);
+});
+
+test('requires an injected server-side gate and a canonical HTTPS origin at construction', () => {
+  assert.throws(
+    () => createReviewReleaseHttpHandler({ allowedOrigin: ORIGIN }),
+    /server-side releaseReviewedReport function is required/
+  );
+  assert.throws(
+    () => createReviewReleaseHttpHandler({
+      allowedOrigin: 'http://preview.example.test',
+      releaseReviewedReport: async () => ({ reportBytes: Buffer.from('synthetic') })
+    }),
+    /canonical HTTPS origin/
+  );
+});
