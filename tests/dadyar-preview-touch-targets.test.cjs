@@ -1,0 +1,31 @@
+'use strict';
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
+
+test('offline cheque preview exposes a responsive viewport and 44px touch targets', () => {
+  assert.match(html, /<meta name="viewport" content="width=device-width,initial-scale=1">/);
+  assert.match(html, /button,select\{[^}]*min-height:44px/);
+  assert.match(html, /button,select\{[^}]*max-width:100%/);
+  assert.match(html, /input\[type=checkbox\]\{[^}]*min-width:22px;min-height:22px/);
+  assert.match(html, /#free-question,#reviewer-name,#review-note,#delay-principal,#event-date\{[^}]*min-height:44px/);
+  assert.match(html, /button:focus-visible,select:focus-visible,textarea:focus-visible,input:not\(\[type=checkbox\]\):focus-visible,input\[type=checkbox\]:focus-visible\{outline:3px/);
+});
+
+test('delay-damages calculator controls remain usable on narrow touch screens', () => {
+  assert.match(html, /#delay-principal\{min-height:44px\}/);
+  assert.match(html, /#delay-due-month,#delay-payment-month,#delay-currency\{width:100%\}/);
+  assert.match(html, /#delay-calculate\{width:100%\}/);
+  assert.match(html, /id="delay-damages-calculator"/);
+  assert.match(html, /id="delay-calculate"/);
+});
+
+test('free-text question exposes its cheque-only scope limitation to assistive technology', () => {
+  const control = html.match(/<textarea\b(?=[^>]*\bid="free-question")[^>]*>/i)?.[0];
+  assert.ok(control, 'free-question textarea must exist');
+  assert.match(control, /\baria-describedby="free-question-scope-note free-question-counter"/);
+  assert.match(html, /id="free-question-scope-note"[^>]*role="note"/);
+  assert.match(html, /این پیش‌نمایش صرفاً بخش مربوط به چک فرضی را پوشش می‌دهد و سایر موضوعات را تحلیل نمی‌کند/);
+});

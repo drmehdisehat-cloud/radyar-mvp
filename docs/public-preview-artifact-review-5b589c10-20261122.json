@@ -1,0 +1,82 @@
+{
+  "schema": "dadyar-public-preview-artifact-review-v1",
+  "verified_date": "2026-11-22",
+  "repository": "drmehdisehat-cloud/radyar-mvp",
+  "source": {
+    "branch": "dadyar/ai-chat-private-20261101",
+    "commit": "9382ebb361dd3e97e4c7d422351c2520ec90005e",
+    "path": "dadyar-preview/index.html",
+    "bytes": 60839,
+    "sha256": "4c754518e9b345a9be98c134d997a329bbe929105ed8b9c7210ef7636d5b1452",
+    "git_blob_sha1": "a151444524a6ff439bba21ec29564e512c3a8472"
+  },
+  "workflow": {
+    "name": "Dadyar public-only preview review artifact",
+    "run_id": 45062628937,
+    "event": "push",
+    "status": "completed",
+    "conclusion": "success",
+    "head_sha": "9382ebb361dd3e97e4c7d422351c2520ec90005e"
+  },
+  "artifact": {
+    "id": 14769642609,
+    "name": "dadyar-public-preview-review-9382ebb361dd3e97e4c7d422351c2520ec90005e",
+    "file_name": "dadyar-preview-9382ebb3.zip",
+    "size_bytes": 18027,
+    "sha256": "5b589c105b6e1ebaafc43260a6d5169b1885979100971840281fad6093665bc9",
+    "archive_entries": [
+      {
+        "path": "index.html",
+        "size_bytes": 60839,
+        "sha256": "4c754518e9b345a9be98c134d997a329bbe929105ed8b9c7210ef7636d5b1452",
+        "git_blob_sha1": "a151444524a6ff439bba21ec29564e512c3a8472"
+      },
+      {
+        "path": "INTEGRITY.json",
+        "size_bytes": 862,
+        "sha256": "88cbdb58c486b9cca1139bb068db28a6b88c479398d147ca1e581c47977c4f67",
+        "git_blob_sha1": "32d599c548c6a117bebba3fc2cebc4e927ce3965"
+      }
+    ],
+    "zip_crc_verified": true
+  },
+  "integrity_manifest": {
+    "schema": "dadyar-public-preview-integrity-v1",
+    "source_commit": "9382ebb361dd3e97e4c7d422351c2520ec90005e",
+    "workflow_commit": "9382ebb361dd3e97e4c7d422351c2520ec90005e",
+    "source_branch": "dadyar/ai-chat-private-20261101",
+    "source_file": "public/index.html",
+    "target_subpath": "/dadyar-preview/",
+    "sha256": "4c754518e9b345a9be98c134d997a329bbe929105ed8b9c7210ef7636d5b1452",
+    "git_blob_sha1": "a151444524a6ff439bba21ec29564e512c3a8472",
+    "topic_hint_count": 27,
+    "api_enabled": false,
+    "public_ai_enabled": false,
+    "reviewer_authentication": "not-implemented",
+    "backup_restore_verified": false,
+    "destination_verified": false,
+    "deployment_authorized": false,
+    "notice": "Integrity evidence only. This manifest does not prove backup restoration, destination validity, reviewer identity, legal accuracy, or deployment authorization."
+  },
+  "checks": {
+    "artifact_metadata_matches_workflow": true,
+    "artifact_sha256_matches_github_digest": true,
+    "zip_listing_exact": true,
+    "zip_crc_and_extraction": true,
+    "manifest_json_parsed": true,
+    "html_sha256_matches_manifest": true,
+    "html_git_blob_sha1_matches_manifest": true,
+    "html_git_blob_sha1_matches_branch_source": true,
+    "source_and_workflow_commit_match_head": true,
+    "network_primitives_absent_in_downloaded_html": true,
+    "csp_connect_src_none": true,
+    "topic_hint_count_matches_27": true
+  },
+  "verification_scope": "The ZIP was downloaded from GitHub Actions artifact 14769642609 for successful push run 45062628937. The downloaded file was 18,027 bytes and its locally computed SHA-256 matched the GitHub artifact digest. ZIP integrity testing passed; the archive contained exactly index.html and INTEGRITY.json. Both extracted files were hashed and the manifest parsed. The HTML SHA-256 and Git blob SHA-1 matched the embedded manifest and the source blob returned by GitHub for the exact branch. Static inspection found no fetch, XMLHttpRequest, WebSocket, EventSource, sendBeacon, localStorage, sessionStorage, indexedDB, external script/style/image resource, or form element; CSP includes connect-src 'none'. The same commit's CI logs confirm 1,260 contract tests and the real Chromium, synthetic cheque, narrow viewport, mobile device emulation, exact HTTP subpath, report-after-local-review, and no-API-call browser tests passed.",
+  "limitations": [
+    "This verifies the downloadable review artifact and its byte integrity only.",
+    "It does not prove a real backup restore, valid hosting destination, authenticated reviewer identity, legal-source correctness, or deployment authorization.",
+    "The local review acknowledgement is not reviewer authentication.",
+    "Do not upload this artifact to the live site."
+  ]
+}

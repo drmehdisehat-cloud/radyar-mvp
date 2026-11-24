@@ -1,0 +1,339 @@
+'use strict';
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const crypto = require('node:crypto');
+const { buildOfflinePreviewPackage } = require('../scripts/build-offline-preview-package.cjs');
+
+const repoRoot = path.resolve(__dirname, '..');
+const sourcePath = path.join(repoRoot, 'dadyar-preview', 'index.html');
+const commit = 'e1210a4059cb29f7775afe63c6a3e59db9ede01d';
+const branch = 'dadyar/ai-chat-private-20261101';
+function hash(bytes) { return crypto.createHash('sha256').update(bytes).digest('hex'); }
+function gitBlobSha1(bytes) {
+  const digest = crypto.createHash('sha1');
+  digest.update('blob ' + bytes.length + String.fromCharCode(0));
+  digest.update(bytes);
+  return digest.digest('hex');
+}
+function withTemp(t, callback) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-preview-package-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  return callback(root);
+}
+
+test('handoff package is minimal, byte-identical, checksum verified and explicitly non-deployable', t => {
+  withTemp(t, root => {
+    const destination = path.join(root, 'bundle');
+    const result = buildOfflinePreviewPackage(destination, { repoRoot, sourcePath, commit, branch });
+    assert.equal(result.checksums_verified, true);
+    assert.equal(result.release_authorized, false);
+    assert.equal(result.api_enabled, false);
+    assert.equal(result.source_commit, commit);
+    assert.deepEqual(fs.readdirSync(destination).sort(), ['handoff', 'public']);
+    assert.deepEqual(fs.readdirSync(path.join(destination, 'public')), ['index.html']);
+    assert.deepEqual(fs.readdirSync(path.join(destination, 'handoff')).sort(),
+      ['PREVIEW-METADATA.json', 'README-fa.txt', 'SHA256SUMS']);
+    assert.deepEqual(fs.readFileSync(path.join(destination, 'public', 'index.html')), fs.readFileSync(sourcePath));
+    assert.equal(fs.statSync(path.join(destination, 'public')).mode & 0o777, 0o755);
+    assert.equal(fs.statSync(path.join(destination, 'public', 'index.html')).mode & 0o777, 0o644);
+    assert.equal(fs.statSync(path.join(destination, 'handoff')).mode & 0o777, 0o700);
+
+    const metadata = JSON.parse(fs.readFileSync(path.join(destination, 'handoff', 'PREVIEW-METADATA.json'), 'utf8'));
+    assert.equal(metadata.source_commit, commit);
+    const sourceBytes = fs.readFileSync(sourcePath);
+    assert.equal(metadata.source_file_sha256, hash(sourceBytes));
+    assert.equal(metadata.source_file_git_blob_sha1, gitBlobSha1(sourceBytes));
+    assert.equal(result.source_blob_sha1, metadata.source_file_git_blob_sha1);
+    assert.equal(metadata.source_branch, branch);
+    assert.equal(metadata.target_subpath, '/dadyar-preview/');
+    assert.equal(metadata.public_payload_path, 'public/index.html');
+    assert.equal(metadata.operator_handoff_path, 'handoff/');
+    assert.equal(metadata.delay_damages_calculator, 'offline-only');
+    assert.equal(metadata.delay_index_series, 'annual-index-published-monthly');
+    assert.equal(metadata.delay_index_base_year, 1395);
+    assert.match(metadata.delay_index_base_year_status, /^inferred-from-1395-average-100/);
+    assert.equal(metadata.delay_index_months_available, 7);
+    assert.equal(metadata.delay_index_source_status, 'transcribed-not-independently-authenticated');
+    assert.equal(metadata.api_enabled, false);
+    assert.equal(metadata.public_ai_enabled, false);
+    assert.equal(metadata.reviewer_authentication, 'not-implemented');
+    assert.equal(metadata.backup_restore_verified, false);
+    assert.equal(metadata.destination_verified, false);
+    assert.equal(metadata.deployment_authorized, false);
+
+    const readme = fs.readFileSync(path.join(destination, 'handoff', 'README-fa.txt'), 'utf8');
+    assert.match(readme, /بازیابی بکاپ در محیط مستقل/);
+    assert.match(readme, /هویت بازبین احراز نمی‌شود/);
+    assert.match(readme, /مجوز استقرار نیست/);
+    assert.match(readme, /فقط public\/index\.html/);
+    assert.match(readme, /handoff\/ را بارگذاری نکنید/);
+
+    const manifest = fs.readFileSync(path.join(destination, 'handoff', 'SHA256SUMS'), 'utf8').trim().split('\n');
+    assert.equal(manifest.length, 3);
+    for (const row of manifest) {
+      const match = row.match(/^([a-f0-9]{64})  (.+)$/);
+      assert.ok(match, 'manifest row must use sha256sum format');
+      assert.equal(hash(fs.readFileSync(path.join(destination, match[2]))), match[1]);
+    }
+  });
+});
+
+test('builder refuses to overwrite an existing destination', t => {
+  withTemp(t, root => {
+    const destination = path.join(root, 'existing');
+    fs.mkdirSync(destination);
+    fs.writeFileSync(path.join(destination, 'keep.txt'), 'keep');
+    assert.throws(() => buildOfflinePreviewPackage(destination, { repoRoot, sourcePath, commit, branch }), /already exists/);
+    assert.equal(fs.readFileSync(path.join(destination, 'keep.txt'), 'utf8'), 'keep');
+  });
+});
+
+test('builder refuses a destination inside the repository', () => {
+  const destination = path.join(repoRoot, '.preview-package-test-must-not-exist');
+  assert.throws(() => buildOfflinePreviewPackage(destination, { repoRoot, sourcePath, commit, branch }),
+    /outside the repository/);
+  assert.equal(fs.existsSync(destination), false);
+});
+
+test('builder requires a full immutable source commit SHA', t => {
+  withTemp(t, root => {
+    const destination = path.join(root, 'bundle');
+    assert.throws(() => buildOfflinePreviewPackage(destination, { repoRoot, sourcePath, branch, commit: 'main' }),
+      /full 40-character source commit SHA/);
+    assert.equal(fs.existsSync(destination), false);
+  });
+});
+
+test('builder refuses any branch other than the named experimental branch', t => {
+  withTemp(t, root => {
+    const destination = path.join(root, 'bundle');
+    assert.throws(() => buildOfflinePreviewPackage(destination, { repoRoot, sourcePath, commit, branch: 'main' }),
+      /restricted to the approved experimental branch/);
+    assert.equal(fs.existsSync(destination), false);
+  });
+});
+
+test('builder refuses a symlinked preview source', t => {
+  withTemp(t, root => {
+    const fakeRoot = path.join(root, 'repo');
+    const previewDir = path.join(fakeRoot, 'dadyar-preview');
+    fs.mkdirSync(previewDir, { recursive: true });
+    const symlinkSource = path.join(previewDir, 'index.html');
+    fs.symlinkSync(sourcePath, symlinkSource);
+    const destination = path.join(root, 'bundle');
+    assert.throws(() => buildOfflinePreviewPackage(destination, {
+      repoRoot: fakeRoot, sourcePath: symlinkSource, commit, branch
+    }), /regular, non-symlink file/);
+    assert.equal(fs.existsSync(destination), false);
+  });
+});
+
+test('builder rejects a source with a remote dependency or network-capable API', t => {
+  withTemp(t, root => {
+    const fakeRoot = path.join(root, 'repo');
+    const previewDir = path.join(fakeRoot, 'dadyar-preview');
+    fs.mkdirSync(previewDir, { recursive: true });
+    const unsafeSource = path.join(previewDir, 'index.html');
+    const unsafeHtml = fs.readFileSync(sourcePath, 'utf8') + '\n<script>fetch("/api")</script>';
+    fs.writeFileSync(unsafeSource, unsafeHtml);
+    const destination = path.join(root, 'bundle');
+    assert.throws(() => buildOfflinePreviewPackage(destination, {
+      repoRoot: fakeRoot, sourcePath: unsafeSource, commit, branch
+    }), /network-capable browser APIs/);
+    assert.equal(fs.existsSync(destination), false);
+  });
+});
+
+test('builder rejects a symlinked source ancestor even when its target remains inside the checkout', t => {
+  withTemp(t, root => {
+    const fakeRoot = path.join(root, 'repo');
+    const realPreview = path.join(fakeRoot, 'real-preview');
+    const aliasPreview = path.join(fakeRoot, 'alias-preview');
+    fs.mkdirSync(realPreview, { recursive: true });
+    fs.copyFileSync(sourcePath, path.join(realPreview, 'index.html'));
+    fs.symlinkSync(realPreview, aliasPreview, 'dir');
+    const destination = path.join(root, 'bundle');
+    assert.throws(() => buildOfflinePreviewPackage(destination, {
+      repoRoot: fakeRoot,
+      sourcePath: path.join(aliasPreview, 'index.html'),
+      commit,
+      branch
+    }), /path changed before read/);
+    assert.equal(fs.existsSync(destination), false);
+  });
+});
+
+test('builder rejects a hard-linked preview source', t => {
+  withTemp(t, root => {
+    const fakeRoot = path.join(root, 'repo');
+    const previewDir = path.join(fakeRoot, 'dadyar-preview');
+    fs.mkdirSync(previewDir, { recursive: true });
+    const source = path.join(previewDir, 'index.html');
+    const alias = path.join(previewDir, 'alias.html');
+    fs.copyFileSync(sourcePath, source);
+    fs.linkSync(source, alias);
+    const destination = path.join(root, 'bundle');
+    assert.throws(() => buildOfflinePreviewPackage(destination, {
+      repoRoot: fakeRoot, sourcePath: source, commit, branch
+    }), /must not have hard-link aliases/);
+    assert.equal(fs.existsSync(destination), false);
+  });
+});
+
+test('builder rejects an oversized preview source before creating the package', t => {
+  withTemp(t, root => {
+    const fakeRoot = path.join(root, 'repo');
+    const previewDir = path.join(fakeRoot, 'dadyar-preview');
+    fs.mkdirSync(previewDir, { recursive: true });
+    const source = path.join(previewDir, 'index.html');
+    fs.writeFileSync(source, Buffer.concat([
+      fs.readFileSync(sourcePath),
+      Buffer.from('<!--'),
+      Buffer.alloc(1024 * 1024, 0x61),
+      Buffer.from('-->')
+    ]));
+    const destination = path.join(root, 'bundle');
+    assert.throws(() => buildOfflinePreviewPackage(destination, {
+      repoRoot: fakeRoot, sourcePath: source, commit, branch
+    }), /exceeds maximum size/);
+    assert.equal(fs.existsSync(destination), false);
+  });
+});
+
+
+test('builder refuses a package when the visible 1405 source-verification warning is removed', t => {
+  withTemp(t, root => {
+    const fakeRoot = path.join(root, 'repo');
+    const previewDir = path.join(fakeRoot, 'dadyar-preview');
+    fs.mkdirSync(previewDir, { recursive: true });
+    const source = path.join(previewDir, 'index.html');
+    const original = fs.readFileSync(sourcePath, 'utf8');
+    const warning = 'هنوز با جدول رسمی بانک مرکزی تطبیق مستقل نشده‌اند';
+    assert.ok(original.includes(warning), 'canonical preview warning missing');
+    fs.writeFileSync(source, original.replace(warning, 'وضعیت منبع نامشخص'));
+    const destination = path.join(root, 'bundle');
+    assert.throws(() => buildOfflinePreviewPackage(destination, {
+      repoRoot: fakeRoot, sourcePath: source, commit, branch
+    }), /visible unverified 1405 index-source disclosure/);
+    assert.equal(fs.existsSync(destination), false);
+  });
+});
+
+test('builder refuses a package when the calculator result loses its source disclosure', t => {
+  withTemp(t, root => {
+    const fakeRoot = path.join(root, 'repo');
+    const previewDir = path.join(fakeRoot, 'dadyar-preview');
+    fs.mkdirSync(previewDir, { recursive: true });
+    const source = path.join(previewDir, 'index.html');
+    const original = fs.readFileSync(sourcePath, 'utf8');
+    const disclosure = 'منبع داده: تصویر مالک؛ تأیید رسمی و حقوقی نشده است';
+    assert.ok(original.includes(disclosure), 'canonical calculator disclosure missing');
+    fs.writeFileSync(source, original.replace(disclosure, 'منبع داده: نامشخص'));
+    const destination = path.join(root, 'bundle');
+    assert.throws(() => buildOfflinePreviewPackage(destination, {
+      repoRoot: fakeRoot, sourcePath: source, commit, branch
+    }), /calculator-result source disclosure/);
+    assert.equal(fs.existsSync(destination), false);
+  });
+});
+
+
+test('builder records the actual PR head separately from GitHub merge SHA', t => {
+  withTemp(t, root => {
+    const names = [
+      'GITHUB_SHA',
+      'DADYAR_PREVIEW_SOURCE_SHA',
+      'DADYAR_PREVIEW_WORKFLOW_SHA',
+      'DADYAR_PREVIEW_EVENT',
+      'DADYAR_PREVIEW_BRANCH',
+      'GITHUB_REF_NAME'
+    ];
+    const previous = Object.fromEntries(names.map(name => [name, process.env[name]]));
+    const mergeSha = 'f'.repeat(40);
+    process.env.GITHUB_SHA = mergeSha;
+    process.env.DADYAR_PREVIEW_SOURCE_SHA = commit;
+    process.env.DADYAR_PREVIEW_WORKFLOW_SHA = mergeSha;
+    process.env.DADYAR_PREVIEW_EVENT = 'pull_request';
+    process.env.DADYAR_PREVIEW_BRANCH = branch;
+    process.env.GITHUB_REF_NAME = '8/merge';
+    try {
+      const destination = path.join(root, 'bundle');
+      const result = buildOfflinePreviewPackage(destination, { repoRoot, sourcePath });
+      const metadata = JSON.parse(fs.readFileSync(path.join(destination, 'handoff', 'PREVIEW-METADATA.json'), 'utf8'));
+      assert.equal(result.source_commit, commit);
+      assert.equal(result.workflow_commit, mergeSha);
+      assert.equal(metadata.source_commit, commit);
+      assert.equal(metadata.workflow_commit, mergeSha);
+      assert.equal(metadata.workflow_event, 'pull_request');
+      assert.equal(metadata.source_branch, branch);
+      assert.equal(metadata.deployment_authorized, false);
+    } finally {
+      for (const name of names) {
+        if (previous[name] === undefined) delete process.env[name];
+        else process.env[name] = previous[name];
+      }
+    }
+  });
+});
+
+test('builder uses the explicit experimental branch identity on pull-request merge refs', t => {
+  withTemp(t, root => {
+    const previousRef = process.env.GITHUB_REF_NAME;
+    const previousBranch = process.env.DADYAR_PREVIEW_BRANCH;
+    process.env.GITHUB_REF_NAME = '8/merge';
+    process.env.DADYAR_PREVIEW_BRANCH = branch;
+    try {
+      const destination = path.join(root, 'bundle');
+      const result = buildOfflinePreviewPackage(destination, { repoRoot, sourcePath, commit });
+      assert.equal(result.source_commit, commit);
+      const metadata = JSON.parse(fs.readFileSync(path.join(destination, 'handoff', 'PREVIEW-METADATA.json'), 'utf8'));
+      assert.equal(metadata.source_branch, branch);
+      assert.equal(metadata.deployment_authorized, false);
+    } finally {
+      if (previousRef === undefined) delete process.env.GITHUB_REF_NAME;
+      else process.env.GITHUB_REF_NAME = previousRef;
+      if (previousBranch === undefined) delete process.env.DADYAR_PREVIEW_BRANCH;
+      else process.env.DADYAR_PREVIEW_BRANCH = previousBranch;
+    }
+  });
+});
+
+
+test('builder rejects external SVG image, filter and use references while allowing same-document fragments', t => {
+  withTemp(t, root => {
+    const fakeRoot = path.join(root, 'repo');
+    const previewDir = path.join(fakeRoot, 'dadyar-preview');
+    fs.mkdirSync(previewDir, { recursive: true });
+    const original = fs.readFileSync(sourcePath, 'utf8');
+    const fixtures = [
+      '<svg><image href="https://example.invalid/pixel.svg"></image></svg>',
+      '<svg><image xlink:href="//example.invalid/pixel.svg"></image></svg>',
+      '<svg><feImage href="data:image/png;base64,AAAA"></feImage></svg>',
+      '<svg><use href="icons.svg#mark"></use></svg>',
+      '<svg><use href="#local" xlink:href="https://example.invalid/sprite.svg#remote"></use></svg>'
+    ];
+
+    fixtures.forEach((fixture, index) => {
+      const unsafeSource = path.join(previewDir, 'unsafe-' + index + '.html');
+      fs.writeFileSync(unsafeSource, original.replace('</body>', fixture + '</body>'));
+      const destination = path.join(root, 'unsafe-bundle-' + index);
+      assert.throws(() => buildOfflinePreviewPackage(destination, {
+        repoRoot: fakeRoot, sourcePath: unsafeSource, commit, branch
+      }), /external SVG references/);
+      assert.equal(fs.existsSync(destination), false);
+    });
+
+    const safeSource = path.join(previewDir, 'safe.html');
+    fs.writeFileSync(safeSource, original.replace('</body>',
+      '<svg><symbol id="local-mark"><path d="M0 0h1v1z"></path></symbol><use href="#local-mark"></use></svg></body>'));
+    const safeDestination = path.join(root, 'safe-bundle');
+    const result = buildOfflinePreviewPackage(safeDestination, {
+      repoRoot: fakeRoot, sourcePath: safeSource, commit, branch
+    });
+    assert.equal(result.checksums_verified, true);
+    assert.equal(fs.existsSync(path.join(safeDestination, 'public', 'index.html')), true);
+  });
+});

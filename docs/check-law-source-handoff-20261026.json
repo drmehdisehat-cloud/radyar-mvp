@@ -1,0 +1,169 @@
+{
+  "schemaVersion": 1,
+  "topic": "check",
+  "status": "research-only",
+  "observedAt": "2026-10-27",
+  "warning": "Primary-source HTML law text was retrieved on 2026-10-27, but amendment completeness, publication and effective dates, currentness and human legal review are not yet verified. This research record must not count toward v1 legal source coverage.",
+  "candidateOfficialDocument": {
+    "url": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
+    "discoveredFrom": "https://hoghogh.ai/laws/%D9%82%D8%A7%D9%86%D9%88%D9%86-%D8%B5%D8%AF%D9%88%D8%B1-%DA%86%DA%A9/1",
+    "discoveryType": "secondary-source-link",
+    "observedResult": "official-html-text-retrieved",
+    "officialTextRetrieved": true,
+    "documentIdConfirmedFromOfficialText": true
+  },
+  "parliamentaryCrossChecks": [
+    {
+      "url": "https://rc.majlis.ir/fa/law/show/92322",
+      "purpose": "Compare reported original/earlier amendment text",
+      "observedResult": "request-timeout",
+      "officialTextRetrieved": false
+    },
+    {
+      "url": "https://rc.majlis.ir/fa/law/show/1091223",
+      "purpose": "Compare reported 1397 amendment text",
+      "observedResult": "request-timeout",
+      "officialTextRetrieved": false
+    }
+  ],
+  "officialTextUrl": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
+  "officialPublicationDate": null,
+  "effectiveDate": null,
+  "currentConsolidatedTextVerifiedAt": null,
+  "amendmentsCheckedAt": null,
+  "humanReviewer": null,
+  "humanReviewedAt": null,
+  "releaseSourceEligible": false,
+  "reviewQuestions": [
+    "Independently cross-check the consolidated official page and its amendment history, including the displayed 1397, 1400 and 1403 article dates and any later amendments.",
+    "Verify primary official gazette publication and effective dates separately from approval dates, including transitional provisions for issuance, delivery and Sayad registration.",
+    "Verify the current effect of articles 4, 5, 11, 13, 14, 21 bis and 23 for specific scenarios without deriving an automatic civil/criminal eligibility conclusion from one interview answer.",
+    "Cross-check the official qavanin document against parliamentary and official gazette publications; prior parliamentary links timed out on 2026-10-26.",
+    "Record qualified reviewer identity, review date, exact official text version, amendment review and written sign-off before exposing legal conclusions or counting v1 legal coverage.",
+    "Verify each subsequent amendment's own official-gazette number, publication date, effective date and transitional rules; do not reuse the original law's 1355/06/04 effective date for amendments."
+  ],
+  "officialTextObservation": {
+    "retrievedAt": "2026-10-27",
+    "source": "primary-official-qavanin",
+    "retrievalFormat": "HTML-visible-law-text",
+    "lawTitleShown": "قانون صدور چك",
+    "approvalDateShown": "1355/04/16",
+    "amendmentDatesDisplayed": [
+      {
+        "article": "4",
+        "date": "1397/08/13"
+      },
+      {
+        "article": "5",
+        "date": "1397/08/13"
+      },
+      {
+        "article": "6",
+        "date": "1400/01/29"
+      },
+      {
+        "article": "7",
+        "date": "1403/03/30"
+      },
+      {
+        "article": "21 مکرر، تبصره 1",
+        "date": "1400/01/29"
+      },
+      {
+        "article": "23",
+        "date": "1397/08/13"
+      },
+      {
+        "article": "24",
+        "date": "1400/01/29"
+      }
+    ],
+    "scope": "Observed article headings and selected amendment labels on official HTML page; not a verified amendment history, publication date, effective date, or legal opinion.",
+    "sourceContentCopied": false
+  },
+  "originalLawMetadataObservation": {
+    "retrievedAt": "2026-10-27",
+    "source": "primary-official-qavanin-attribute",
+    "officialAttributeUrl": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
+    "approvalDateShown": "1355/04/16",
+    "promulgationDateShown": "1355/05/09",
+    "originalGazetteNumberShown": "9210",
+    "originalGazetteDateShown": "1355/05/19",
+    "originalEffectiveDateShown": "1355/06/04",
+    "lastStatusShown": "اصلاحي 1403/03/30",
+    "scope": "These are metadata displayed for the original 1355 law and the portal's latest-status label, not independent evidence of publication or effective dates of the 1397, 1400, 1403 or later amendments.",
+    "amendmentEffectiveDatesVerified": false,
+    "releaseSourceEligible": false
+  },
+  "latestOfficialMetadataRecheck": {
+    "observedAt": "2026-11-10",
+    "sourceType": "primary-official-qavanin-attribute-page",
+    "url": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
+    "retrievalResult": "retrieved",
+    "lawTitleShown": "قانون صدور چك",
+    "approvalDateShown": "1355/04/16",
+    "notificationNumberShown": "33206",
+    "notificationAuthorityShown": "نخست وزير",
+    "originalOfficialGazetteNumberShown": "9210",
+    "originalOfficialGazetteDateShown": "1355/05/19",
+    "originalEffectiveDateShown": "1355/06/04",
+    "lastStatusShown": "اصلاحي 1403/03/30",
+    "consolidatedTextRecheck": {
+      "url": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
+      "observedAt": "2026-11-10",
+      "retrievalResult": "request-timeout"
+    },
+    "amendmentPublicationDatesVerified": false,
+    "amendmentEffectiveDatesVerified": false,
+    "currentConsolidatedTextVerified": false,
+    "humanReviewer": null,
+    "humanReviewedAt": null,
+    "releaseSourceEligible": false,
+    "scope": "Official portal metadata for the original 1355 act was rechecked. The displayed last-status label does not prove the publication or commencement dates of later amendments, their transitional rules, or a complete current consolidated text. The direct consolidated-text page timed out during this recheck."
+  },
+  "latestOfficialSourceRetry": {
+    "observedAt": "2026-11-13",
+    "scope": "recheck of primary-source URLs only; no legal text was imported",
+    "officialSourceAttempts": [
+      {
+        "authority": "پایگاه ملی قوانین و مقررات کشور",
+        "purpose": "متن تجمیعی قانون صدور چک",
+        "url": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
+        "retrievalResult": "timeout",
+        "textRetrieved": false
+      },
+      {
+        "authority": "پایگاه ملی قوانین و مقررات کشور",
+        "purpose": "فراداده قانون صدور چک",
+        "url": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
+        "retrievalResult": "timeout",
+        "textRetrieved": false
+      },
+      {
+        "authority": "مرکز پژوهش‌های مجلس شورای اسلامی",
+        "purpose": "متن اصلاح قانون صدور چک مصوب ۱۳۹۷",
+        "url": "https://rc.majlis.ir/fa/law/show/1091223",
+        "retrievalResult": "timeout",
+        "textRetrieved": false
+      },
+      {
+        "authority": "پایگاه ملی قوانین و مقررات کشور",
+        "purpose": "متن قانون اصلاح قانون صدور چک مصوب ۱۴۰۰",
+        "url": "https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689",
+        "retrievalResult": "timeout",
+        "textRetrieved": false
+      }
+    ],
+    "secondaryDiscoveryOnly": {
+      "publisher": "لالکس",
+      "url": "https://lawlex.ir/laws/chek",
+      "observedAt": "2026-11-13",
+      "role": "secondary index / discovery lead only",
+      "surfacedOfficialLead": "https://rc.majlis.ir/fa/law/show/1091223",
+      "legalTextImported": false,
+      "releaseSourceEligible": false
+    },
+    "conclusion": "No primary legal text, official-gazette publication date, amendment commencement date, or event-date version was newly verified. Keep the check-law source research-only and prohibit legal conclusions based on this recheck."
+  },
+  "legalConclusionPermitted": false
+}

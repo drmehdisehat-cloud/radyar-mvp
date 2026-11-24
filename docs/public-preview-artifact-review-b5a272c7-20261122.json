@@ -1,0 +1,100 @@
+{
+  "schema": "dadyar-public-preview-artifact-review-record-v1",
+  "verified_date": "2026-11-22",
+  "repository": "drmehdisehat-cloud/radyar-mvp",
+  "source_branch": "dadyar/ai-chat-private-20261101",
+  "source_commit": "b5a272c7198daaa621a3a47f5cb7b1653884af2a",
+  "workflow_name": "Dadyar public-only preview review artifact",
+  "workflow_path": ".github/workflows/public-preview-review-artifact.yml",
+  "workflow_run_id": 45008570969,
+  "workflow_event": "push",
+  "workflow_conclusion": "success",
+  "artifact_id": 14748299878,
+  "artifact_name": "dadyar-public-preview-review-b5a272c7198daaa621a3a47f5cb7b1653884af2a",
+  "artifact_expires_at": "2026-11-29T09:39:46Z",
+  "archive": {
+    "downloaded_file_name": "dadyar-preview-b5a272c7.zip",
+    "size_bytes": 17980,
+    "sha256": "6b5a6fa6ceacac6dbba4b1025dd12d7394062aad921941c8e4e38d2311b2be9f",
+    "entries": [
+      {
+        "path": "index.html",
+        "size_bytes": 60548,
+        "sha256": "b0d328daecaacbea98d92d3c928909411da906d817ba0a58471af26ea52833bb",
+        "git_blob_sha1": "b32d86ce81cc9374db2c7e46d7122ce47c2b1065"
+      },
+      {
+        "path": "INTEGRITY.json",
+        "size_bytes": 862,
+        "sha256": "b45fb199d6926744562d99801281263e81668bc91324ce829619840bff091791"
+      }
+    ]
+  },
+  "ci": {
+    "current_head_runs": [
+      {
+        "id": 45008570968,
+        "event": "push",
+        "workflow": "Dadyar stage-0 experimental CI",
+        "conclusion": "success"
+      },
+      {
+        "id": 45008570969,
+        "event": "push",
+        "workflow": "Dadyar public-only preview review artifact",
+        "conclusion": "success"
+      },
+      {
+        "id": 45008574486,
+        "event": "pull_request",
+        "conclusion": "success"
+      },
+      {
+        "id": 45008574694,
+        "event": "pull_request",
+        "conclusion": "success"
+      },
+      {
+        "id": 45008575208,
+        "event": "pull_request",
+        "conclusion": "success"
+      }
+    ],
+    "contract_tests": {
+      "passed": 1228,
+      "failed": 0,
+      "skipped": 0
+    },
+    "browser_checks": "real Chromium, synthetic cheque, 390x844 mobile device emulation, and 27-topic routing commands completed successfully"
+  },
+  "checks": {
+    "artifact_metadata_matches_run": true,
+    "archive_sha256_matches_github_metadata": true,
+    "archive_sha256_matches_workflow_log": true,
+    "downloaded_archive_size_matches_metadata": true,
+    "zip_listing_exact": true,
+    "zip_crc_and_decompression_test": true,
+    "manifest_json_parsed": true,
+    "html_sha256_matches_manifest": true,
+    "html_git_blob_sha1_matches_manifest": true,
+    "html_git_blob_sha1_matches_branch_source": true,
+    "source_commit_matches_manifest": true,
+    "workflow_commit_matches_manifest": true,
+    "source_branch_matches_manifest": true,
+    "target_subpath_matches": "/dadyar-preview/",
+    "topic_hint_count": 27,
+    "api_enabled": false,
+    "public_ai_enabled": false,
+    "reviewer_authentication": "not-implemented",
+    "backup_restore_verified": false,
+    "destination_verified": false,
+    "deployment_authorized": false
+  },
+  "verification_scope": "The artifact was downloaded from GitHub Actions artifact 14748299878 to the local runtime. The actual ZIP was measured at 17,980 bytes; sha256sum returned 6b5a6fa6ceacac6dbba4b1025dd12d7394062aad921941c8e4e38d2311b2be9f. unzip -l showed exactly index.html and INTEGRITY.json; unzip -t reported no errors. The extracted manifest was parsed. SHA-256 values were recomputed for both files. The HTML Git blob SHA-1 was recomputed using the Git blob header and matched the GitHub blob SHA returned for dadyar-preview/index.html at the exact source branch. The archive digest and artifact ID also matched GitHub artifact metadata and the successful workflow log. The manifest binds source commit and workflow commit to b5a272c7198daaa621a3a47f5cb7b1653884af2a and the requested /dadyar-preview/ subpath.",
+  "limitations": [
+    "This record attests only to the downloaded review artifact and its byte integrity.",
+    "It does not prove a real backup restore, a valid hosting destination, authenticated reviewer identity, legal-source correctness, or deployment authorization.",
+    "The GitHub repository is public and this review artifact is publicly downloadable; it contains only the two explicitly listed public preview files.",
+    "Do not upload this artifact to the live site."
+  ]
+}

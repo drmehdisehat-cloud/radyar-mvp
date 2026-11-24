@@ -1,0 +1,103 @@
+{
+  "schema": "dadyar-public-preview-artifact-review-v1",
+  "observedAt": "2026-11-23",
+  "sourceCommit": "851af228bed4b78310b0c31d7977d5162dab7e18",
+  "sourceBranch": "dadyar/ai-chat-private-20261101",
+  "workflow": {
+    "artifactRun": {
+      "id": 45079354417,
+      "conclusion": "success",
+      "url": "https://github.com/drmehdisehat-cloud/radyar-mvp/actions/runs/45079354417"
+    },
+    "contractAndBrowserRun": {
+      "id": 45079354489,
+      "conclusion": "success",
+      "url": "https://github.com/drmehdisehat-cloud/radyar-mvp/actions/runs/45079354489"
+    },
+    "contractTests": {
+      "passed": 1274,
+      "failed": 0,
+      "skipped": 0
+    },
+    "browserTests": [
+      {
+        "file": "tests/real-browser-smoke.cjs",
+        "passed": 2,
+        "failed": 0
+      },
+      {
+        "file": "tests/synthetic-cheque-chromium-e2e.test.cjs",
+        "passed": 1,
+        "failed": 0
+      },
+      {
+        "file": "tests/dadyar-preview-mobile-device-emulation.test.cjs",
+        "passed": 1,
+        "failed": 0
+      },
+      {
+        "file": "tests/dadyar-preview-mobile-chromium.test.cjs",
+        "passed": 2,
+        "failed": 0
+      },
+      {
+        "file": "tests/dadyar-preview-27-domain-routing.test.cjs",
+        "passed": 12,
+        "failed": 0
+      }
+    ]
+  },
+  "artifact": {
+    "id": 14776222595,
+    "name": "dadyar-public-preview-review-851af228bed4b78310b0c31d7977d5162dab7e18",
+    "sizeBytes": 18027,
+    "downloaded": true,
+    "archiveSha256": "fca4478fefefb310e5400549ab2993da285f5084b1ed7a08eb943d9abc0dfc28",
+    "zipIntegrity": "passed",
+    "entries": [
+      {
+        "path": "index.html",
+        "sizeBytes": 60839,
+        "sha256": "4c754518e9b345a9be98c134d997a329bbe929105ed8b9c7210ef7636d5b1452",
+        "gitBlobSha1": "a151444524a6ff439bba21ec29564e512c3a8472"
+      },
+      {
+        "path": "INTEGRITY.json",
+        "sizeBytes": 862,
+        "sha256": "e44db360eabc915bbfb052b55738dae851b8fcdc56cd2d2226dfec06d375bf15"
+      }
+    ]
+  },
+  "manifest": {
+    "schema": "dadyar-public-preview-integrity-v1",
+    "sourceCommit": "851af228bed4b78310b0c31d7977d5162dab7e18",
+    "workflowCommit": "851af228bed4b78310b0c31d7977d5162dab7e18",
+    "sourceBranch": "dadyar/ai-chat-private-20261101",
+    "sourceFile": "public/index.html",
+    "targetSubpath": "/dadyar-preview/",
+    "topicHintCount": 27,
+    "apiEnabled": false,
+    "publicAiEnabled": false,
+    "reviewerAuthentication": "not-implemented",
+    "backupRestoreVerified": false,
+    "destinationVerified": false,
+    "deploymentAuthorized": false
+  },
+  "checks": {
+    "artifactDownloadedFromGitHubActions": true,
+    "archiveSha256ComputedLocally": true,
+    "zipIntegrityTestPassed": true,
+    "exactEntrySetPassed": true,
+    "htmlSha256MatchedManifest": true,
+    "htmlGitBlobMatchedManifest": true,
+    "manifestSha256ComputedLocally": true,
+    "manifestPinnedToSourceCommit": true,
+    "ciContractSuitePassed": 1274,
+    "chromiumAndMobileSuitesPassed": 18,
+    "liveSiteHttpVerified": false,
+    "hostingBackupRestoreProven": false,
+    "hostingDestinationCanonicalPathVerified": false
+  },
+  "decision": "REVIEW_ONLY_NOT_DEPLOYABLE",
+  "note": "The artifact and CI evidence are verified for source commit 851af228. This is not proof of a hosting backup restore, reviewer identity, legal-source approval, live destination validity, or authorization to deploy."
+}

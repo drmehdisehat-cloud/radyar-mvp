@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="fa" dir="rtl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>دادیار | کاربرگ فرضی چک</title>
+<style>
+*{box-sizing:border-box}body{font:16px/1.9 Tahoma,Arial;background:#f4f7f6;color:#18333c;margin:0}main{max-width:800px;margin:auto;padding:18px}section{background:#fff;border:1px solid #cbd8d6;border-radius:16px;padding:18px;margin:14px 0}label{display:block;margin:12px 0}input,select,textarea,button{font:inherit;padding:10px;border:1px solid #81999a;border-radius:8px;max-width:100%}input,select,textarea{display:block;width:100%}textarea{min-height:85px}button{background:#164653;color:white;cursor:pointer;margin:8px 3px}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #e7a44a}#draft{white-space:pre-wrap;overflow-wrap:anywhere;background:#edf3f2;padding:14px;border-radius:10px}@media(max-width:500px){main{padding:9px}section{padding:13px}}
+</style>
+<main><h1>کاربرگ مصاحبه فرضی پرونده چک</h1>
+<p><strong>نسخه آفلاین آزمایشی:</strong> هیچ داده‌ای به سرور ارسال نمی‌شود. فقط اطلاعات ساختگی وارد کنید. این ابزار رأی، دادخواست آماده ثبت یا مشاوره قطعی نیست؛ مرجع صالح و مواد قانونی باید از منابع رسمی روز و توسط وکیل بررسی شوند.</p>
+<section><form id="intake" autocomplete="off">
+<label>نقش فرضی<select name="role" required><option value="">انتخاب کنید</option><option>دارنده چک</option><option>صادرکننده چک</option><option>انتقال‌گیرنده چک</option><option>نماینده حقوقی</option></select></label>
+<label>وضعیت چک<select name="state" required><option value="">انتخاب کنید</option><option>سررسید نشده</option><option>برگشت خورده</option><option>پرداخت شده</option><option>وضعیت نامعلوم</option></select></label>
+<label>ثبت در سامانه صیاد<select name="sayad" required><option value="">انتخاب کنید</option><option>تأیید شده</option><option>تأیید نشده</option><option>نامعلوم</option></select></label>
+<label>زمان‌بندی ساختگی (بدون نام، شماره حساب، شماره چک یا مشخصات واقعی)<textarea name="timeline" maxlength="600" placeholder="مثلاً چک فرضی در ماه اول صادر و در ماه دوم ارائه شد"></textarea></label>
+<label>مدارک فرضی<select name="evidence" required><option value="">انتخاب کنید</option><option>تصویر فرضی چک</option><option>گواهی فرضی عدم پرداخت</option><option>هر دو</option><option>هیچ‌کدام</option></select></label>
+<label>آیا گواهی عدم پرداخت فرضی دارید؟<select name="certificate" required><option value="">انتخاب کنید</option><option>بله</option><option>خیر</option><option>نامعلوم</option></select></label>
+<label>در صورت پرداخت پس از برگشت، ترتیب رویدادها مشخص است؟<select name="settlementChronology" required><option value="">انتخاب کنید</option><option>برگشت سپس پرداخت و تسویه مستند</option><option>پرداخت پیش از گواهی برگشت</option><option>نامعلوم یا بدون مدرک</option><option>موضوعیت ندارد</option></select></label>
+<label>آیا درباره اصالت امضا اختلاف فرضی وجود دارد؟<select name="signature" required><option value="">انتخاب کنید</option><option>بله</option><option>خیر</option><option>نامعلوم</option></select></label>
+<label>ابهام یا دفاع طرف مقابل (ساختگی)<textarea name="opposition" maxlength="600"></textarea></label>
+<fieldset id="role-followups"><legend>پرسش‌های تکمیلی نقش انتخابی</legend><p id="role-hint">ابتدا نقش فرضی را انتخاب کنید.</p><div id="role-answers"></div></fieldset>
+<button type="submit">ساخت پیش‌نویس قابل بازبینی</button><button type="reset">پاک‌کردن</button>
+</form></section>
+<section><h2>خروجی غیررسمی</h2><div id="draft" role="status" aria-live="polite">فرم را با اطلاعات فرضی تکمیل کنید.</div><label><input id="export-confirm" type="checkbox" style="display:inline;width:auto" disabled> تأیید می‌کنم داده‌ها ساختگی‌اند و این متن پیش از هر استفاده حقوقی نیازمند بررسی انسانی و منابع رسمی روز است.</label><button id="download" type="button" disabled>دریافت متن</button></section></main>
+<script>
+'use strict';
+const form=document.getElementById('intake'),draft=document.getElementById('draft'),download=document.getElementById('download');
+const exportConfirm=document.getElementById('export-confirm');
+let report='';
+function clean(value){return String(value||'').replace(/[\u202a-\u202e\u2066-\u2069]/g,'').trim();}
+// Attribute every user-authored line in exported drafts.
+function quoted(value){return clean(value).split(/\r\n|[\r\n\u0085\u2028\u2029]/u).map(line=>'│ '+line).join('\n');}
+// Local-only privacy guard. Reject recognizable identifiers; do not transmit or log them.
+function containsSensitiveIdentifier(value){
+ const s=String(value||'').replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u2069\uFEFF]/g,'').replace(/[۰-۹٠-٩]/g,ch=>{
+  const n=ch.charCodeAt(0);return String(n>=0x6f0&&n<=0x6f9?n-0x6f0:n-0x660);
+ });
+ const compact=s.replace(/[\s\u200c\u200d()\-–]/g,'');
+ // Iranian national ID checksum; reject only structurally valid 10-digit identifiers.
+ // This is a limited local warning, not a guarantee of anonymisation.
+ const hasNationalId=[...compact.matchAll(/(?:^|\D)(\d{10})(?!\d)/g)].some(match=>{
+  const id=match[1];if(/^(\d)\1{9}$/.test(id))return false;
+  const sum=[...id.slice(0,9)].reduce((total,digit,index)=>total+Number(digit)*(10-index),0);
+  const remainder=sum%11,check=remainder<2?remainder:11-remainder;
+  return Number(id[9])===check;
+ });
+ return hasNationalId || /(?:^|\D)(?:\+?98|0098|0)?9\d{9}(?!\d)/.test(compact) ||
+  /(?:^|\D)\d{16}(?!\d)/.test(compact) ||
+  /(?:^|[^A-Z0-9])IR\s*\d(?:[\s\u200c\u200d\-–]*\d){23}(?!\d)/i.test(s) ||
+  /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(s);
+}
+
+form.addEventListener('submit',event=>{
+ event.preventDefault();if(!form.reportValidity())return;
+ const d=new FormData(form);
+ const fields=['role','state','sayad','timeline','evidence','certificate','settlementChronology','signature','opposition'];
+ const v=Object.fromEntries(fields.map(k=>[k,clean(d.get(k))]));
+ const gaps=[];
+ const roleQuestions={
+  'دارنده چک':['زنجیره انتقال و سمت دارنده چگونه احراز می‌شود؟','اصل چک و گواهی عدم پرداخت برای بررسی در دسترس هستند؟','آیا پرداخت جزئی یا توافق تسویه پس از برگشت رخ داده است؟'],
+  'صادرکننده چک':['مبنای صدور و قرارداد مرتبط چه بوده است؟','آیا پرداخت، تضمینی بودن یا ایراد امضا با مدرک قابل بررسی است؟','آیا ابلاغ یا مطالبه‌ای دریافت شده و تاریخ آن چیست؟'],
+  'انتقال‌گیرنده چک':['زمان و شیوه انتقال و وضعیت تأیید صیاد چگونه بوده است؟','سمت انتقال‌دهنده و سابقه ظهرنویسی چگونه احراز می‌شود؟','آیا ایرادات یا پرداخت‌های پیشین به اطلاع انتقال‌گیرنده رسیده است؟'],
+  'نماینده حقوقی':['حدود اختیار نمایندگی و مدارک مثبت سمت چیست؟','ادله موافق و مخالف هر دو طرف کدام‌اند؟','کدام تاریخ‌ها و اسناد پیش از انتخاب مسیر اقدام باید راستی‌آزمایی شوند؟']
+ };
+ const followups=roleQuestions[v.role]||[];
+ const answers=[...document.querySelectorAll('#role-answers textarea')].map((el,i)=>({question:followups[i],answer:clean(el.value)}));
+ const missingFollowups=answers.length!==3 || answers.some(x=>!x.answer);
+ const hasIdentifiers=[v.timeline,v.opposition,...answers.map(x=>x.answer)].some(containsSensitiveIdentifier);
+ if(hasIdentifiers){
+  report='';exportConfirm.checked=false;exportConfirm.disabled=true;download.disabled=true;
+  draft.textContent='⛔ نشانه‌ای از شماره تماس، شماره کارت یا ایمیل در پاسخ‌ها دیده شد. این کاربرگ فقط برای داده ساختگی است؛ شناسه‌ها را حذف و دوباره تلاش کنید.';
+  return;
+ }
+
+ if(missingFollowups)gaps.push('پاسخ همه پرسش‌های تکمیلی نقش برای خروجی ضروری است.');
+
+ if(v.state==='برگشت خورده' && v.certificate!=='بله')gaps.push('برای بررسی مسیر اقدام، وجود و جزئیات گواهی عدم پرداخت باید روشن شود.');
+ if(v.sayad!=='تأیید شده')gaps.push('وضعیت ثبت و تأیید صیاد نیازمند بررسی مستقل است.');
+ if(v.signature!=='خیر')gaps.push('اختلاف یا ابهام درباره اصالت امضا باید توسط متخصص بررسی شود.');
+ if(!v.timeline)gaps.push('تاریخ‌های مؤثر و ترتیب رویدادها هنوز مشخص نیست.');
+ if(v.evidence==='هیچ‌کدام')gaps.push('مدارک پایه هنوز ارائه نشده‌اند.');
+ if(v.state==='وضعیت نامعلوم')gaps.push('وضعیت پرداخت یا برگشت چک باید پیش از خروجی روشن شود.');
+ if(v.certificate==='نامعلوم')gaps.push('وجود یا نبود گواهی عدم پرداخت باید پیش از خروجی روشن شود.');
+ if(v.certificate==='بله' && !['گواهی فرضی عدم پرداخت','هر دو'].includes(v.evidence))gaps.push('ناسازگاری پاسخ‌ها: وجود گواهی عدم پرداخت اعلام شده، اما در فهرست مدارک انتخاب نشده است؛ پیش از هر تحلیل اصلاح یا توضیح داده شود.');
+ if(v.certificate==='خیر' && ['گواهی فرضی عدم پرداخت','هر دو'].includes(v.evidence))gaps.push('ناسازگاری پاسخ‌ها: گواهی عدم پرداخت در مدارک انتخاب شده، اما وجود آن رد شده است؛ وضعیت واقعی باید روشن شود.');
+ if(v.state==='پرداخت شده' && v.certificate==='بله' && v.settlementChronology!=='برگشت سپس پرداخت و تسویه مستند')gaps.push('پرداخت و وجود گواهی عدم پرداخت لزوماً متناقض نیستند؛ ترتیب زمانی پرداخت، برگشت و تسویه باید روشن شود.');
+ report=['کاربرگ فرضی دادیار | چک','نقش: '+v.role,'وضعیت: '+v.state,'ثبت صیاد: '+v.sayad,'شرح زمان‌بندی (اظهار فرضی):\n'+quoted(v.timeline||'نامشخص'),'مدارک: '+v.evidence,'گواهی عدم پرداخت: '+v.certificate,'ترتیب برگشت و تسویه (اظهار فرضی): '+v.settlementChronology,'اختلاف امضا: '+v.signature,'ابهام/دفاع (اظهار فرضی):\n'+quoted(v.opposition||'نامشخص'),'','پرسش‌ها و پاسخ‌های تکمیلی متناسب با نقش:',...answers.map((x,i)=>(i+1)+'. '+x.question+'\nپاسخ فرضی:\n'+quoted(x.answer||'پاسخ داده نشده')),'','ابهام‌های شناسایی‌شده (نه نتیجه حقوقی):',...(gaps.length?gaps:['ابهام اولیه مشخصی در پاسخ‌های انتخابی ثبت نشد؛ صحت آنها همچنان نیازمند بررسی است.']),'','موارد نیازمند بررسی انسانی: اصالت و وضعیت چک، ثبت و انتقال صیاد، گواهی عدم پرداخت، تاریخ‌های مؤثر، ادله و دفاعیات طرفین، مرجع و مسیر قانونی متناسب با مقررات معتبر در تاریخ اقدام.','این متن صرفاً پیش‌نویس فرضی است؛ هیچ ماده قانونی یا نتیجه قضایی تأیید نشده است.'].join('\n');
+ draft.textContent=report;
+// Contradictory evidence answers must be reconciled before an export is offered.
+const certificateInEvidence=['گواهی فرضی عدم پرداخت','هر دو'].includes(v.evidence);
+const certificateContradiction=(v.certificate==='بله'&&!certificateInEvidence)||
+ (v.certificate==='خیر'&&certificateInEvidence);
+exportConfirm.checked=false;
+const unresolvedEvidence=v.state==='وضعیت نامعلوم' || v.certificate==='نامعلوم' || v.sayad!=='تأیید شده' || v.signature!=='خیر' || !v.timeline || v.evidence==='هیچ‌کدام' || (v.state==='برگشت خورده' && v.certificate!=='بله') || (v.state==='پرداخت شده' && v.certificate==='بله' && v.settlementChronology!=='برگشت سپس پرداخت و تسویه مستند');
+exportConfirm.disabled=certificateContradiction || missingFollowups || unresolvedEvidence;
+download.disabled=true;
+if(missingFollowups){
+ draft.textContent+='\n\n⛔ دریافت گزارش تا تکمیل سه پاسخ تکمیلی نقش غیرفعال است.';
+ report='';
+}
+if(certificateContradiction){
+ draft.textContent+='\n\n⛔ دریافت گزارش تا اصلاح تناقض گواهی عدم پرداخت و فهرست مدارک غیرفعال است.';
+ report='';
+}
+if(unresolvedEvidence){
+ draft.textContent+='\n\n⛔ دریافت گزارش تا روشن‌شدن وضعیت چک، گواهی عدم پرداخت، صیاد، امضا، زمان‌بندی و مدارک ضروری غیرفعال است.';
+ report='';
+}
+});
+// Render role-specific answer fields; role changes discard prior answers, never reuse them.
+const roleFollowups={
+ 'دارنده چک':['زنجیره انتقال و سمت دارنده چگونه احراز می‌شود؟','اصل چک و گواهی عدم پرداخت برای بررسی در دسترس هستند؟','آیا پرداخت جزئی یا توافق تسویه پس از برگشت رخ داده است؟'],
+ 'صادرکننده چک':['مبنای صدور و قرارداد مرتبط چه بوده است؟','آیا پرداخت، تضمینی بودن یا ایراد امضا با مدرک قابل بررسی است؟','آیا ابلاغ یا مطالبه‌ای دریافت شده و تاریخ آن چیست؟'],
+ 'انتقال‌گیرنده چک':['زمان و شیوه انتقال و وضعیت تأیید صیاد چگونه بوده است؟','سمت انتقال‌دهنده و سابقه ظهرنویسی چگونه احراز می‌شود؟','آیا ایرادات یا پرداخت‌های پیشین به اطلاع انتقال‌گیرنده رسیده است؟'],
+ 'نماینده حقوقی':['حدود اختیار نمایندگی و مدارک مثبت سمت چیست؟','ادله موافق و مخالف هر دو طرف کدام‌اند؟','کدام تاریخ‌ها و اسناد پیش از انتخاب مسیر اقدام باید راستی‌آزمایی شوند؟']
+};
+function renderRoleAnswers(){
+ const host=document.getElementById('role-answers');host.replaceChildren();
+ const questions=roleFollowups[form.elements.role.value]||[];
+ document.getElementById('role-hint').textContent=questions.length?'پاسخ‌ها فقط برای پیش‌نویس فرضی و آفلاین استفاده می‌شوند.':'ابتدا نقش فرضی را انتخاب کنید.';
+ questions.forEach((question,i)=>{
+  const label=document.createElement('label');label.textContent=(i+1)+'. '+question;
+  const input=document.createElement('textarea');input.maxLength=600;input.name='followup-'+i;input.setAttribute('aria-label',question);
+  label.appendChild(input);host.appendChild(label);
+ });
+}
+form.elements.role.addEventListener('change',renderRoleAnswers);
+// Never offer a stale export after any interview answer changes.
+function invalidateDraft(){
+ if(!report)return;
+ report='';
+ exportConfirm.checked=false;exportConfirm.disabled=true;
+ draft.textContent='پاسخ‌ها تغییر کردند. برای دریافت گزارش به‌روز، دوباره پیش‌نویس بسازید.';
+ download.disabled=true;
+}
+form.addEventListener('input',invalidateDraft);
+form.addEventListener('change',invalidateDraft);
+form.addEventListener('reset',()=>{setTimeout(renderRoleAnswers,0);report='';draft.textContent='فرم پاک شد. هیچ اطلاعاتی در سرور ذخیره نشده است.';exportConfirm.checked=false;exportConfirm.disabled=true;download.disabled=true;});
+exportConfirm.addEventListener('change',()=>{download.disabled=!report || !exportConfirm.checked;});
+download.addEventListener('click',()=>{
+ if(!report || !exportConfirm.checked)return;
+ const blob=new Blob(['\ufeff',report],{type:'text/plain;charset=utf-8'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='dadyar-synthetic-cheque-draft.txt';a.click();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+window.addEventListener('pagehide',()=>{report='';exportConfirm.checked=false;exportConfirm.disabled=true;download.disabled=true;form.reset();});
+</script></html>
