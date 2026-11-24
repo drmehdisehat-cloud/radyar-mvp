@@ -230,10 +230,10 @@ function verifyArtifactBuffer(buffer, expectedCommit) {
   fail(manifest.git_blob_sha1 === gitBlobSha1(htmlBytes), 'manifest_git_blob_sha1_mismatch');
   fail(manifest.topic_hint_count === topicCount && topicCount === 27, 'manifest_topic_hint_count_mismatch');
   fail(manifest.api_enabled === false && manifest.public_ai_enabled === false, 'manifest_api_or_public_ai_must_remain_disabled');
-  fail(manifest.reviewer_authentication === 'not-implemented', 'manifest_reviewer_authentication_must_remain_unimplemented');
+  fail(manifest.reviewer_authentication === 'not-configured', 'manifest_reviewer_authentication_must_remain_unconfigured');
   fail(manifest.backup_restore_verified === false && manifest.destination_verified === false &&
     manifest.deployment_authorized === false, 'manifest_release_flags_must_remain_false');
-  fail(typeof manifest.notice === 'string' && /does not prove backup restoration/i.test(manifest.notice), 'manifest_limitation_notice_missing');
+  fail(typeof manifest.notice === 'string' && /reviewer authentication is not configured/i.test(manifest.notice) && /does not prove backup restoration/i.test(manifest.notice), 'manifest_limitation_notice_missing');
   return {
     verified: true,
     artifact_sha256: sha256(buffer),
