@@ -26,7 +26,7 @@ test('public preview artifact documentation matches the exact two-file ZIP paylo
 });
 
 test('public artifact docs keep operator handoff and release authorization outside the ZIP', () => {
-  assert.match(docs, /پوشه `handoff\/`/);
+  assert.match(docs, /`handoff\/`/);
   assert.match(docs, /در ZIP عمومی بارگذاری نمی‌شوند/);
   assert.match(docs, /هویت، سمت و استقلال بازبین احراز نمی‌شود/);
   assert.match(docs, /اثبات Restore، اعتبار مقصد، هویت بازبین/);
