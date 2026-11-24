@@ -22,7 +22,7 @@ test('public preview artifact pins PR source SHA separately from workflow merge 
 
 
 test('handoff metadata cannot claim authenticated review, restored backup or an approved destination', () => {
-  assert.match(builder, /reviewer_authentication: 'not-implemented'/);
+  assert.match(builder, /reviewer_authentication: 'not-configured'/);
   assert.match(builder, /reviewer_record_type: 'local-self-attestation-only'/);
   assert.match(builder, /backup_restore_verified: false/);
   assert.match(builder, /destination_verified: false/);
