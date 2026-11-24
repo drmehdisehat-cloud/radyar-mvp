@@ -40,3 +40,18 @@ test('every active focused review base must trigger and execute pull-request CI'
     assert.ok(workflow.includes(`github.base_ref == '${base}'`), `job condition excludes ${base}`);
   }
 });
+
+ 
+test('release posture audit runs after the required CI job and is read-only', () => {
+  const marker = '  audit-release-posture-after-ci:';
+  const start = workflow.indexOf(marker);
+  assert.notEqual(start, -1, 'post-CI posture audit job must exist');
+  const job = workflow.slice(start);
+  assert.match(job, /needs:\s*verify-existing-frontend/);
+  assert.match(job, /if:\s*github\.event_name == 'push' && github\.ref == 'refs\/heads\/dadyar\/ai-chat-private-20261101'/);
+  assert.match(job, /GITHUB_RUN_ID:\s*\$\{\{ github\.run_id \}\}/);
+  assert.match(job, /node scripts\/audit-github-repository-posture\.cjs/);
+  assert.match(job, /permissions:\s*\n\s+contents: read\n\s+checks: read\n\s+actions: read/);
+  assert.doesNotMatch(job, /\$\{\{\s*secrets\.|contents:\s*write|checks:\s*write|actions:\s*write|deployments:\s*write|environment:/i);
+  assert.doesNotMatch(workflow, /name: Audit GitHub repository release posture \(read-only; informational\)/);
+});

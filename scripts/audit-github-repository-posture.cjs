@@ -87,6 +87,9 @@ function inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo
     /^[a-f0-9]{40}$/i.test(branchInfo.commit.sha)
     ? branchInfo.commit.sha.toLowerCase() : null;
   let requiredWorkflowRun = null;
+  let requiredWorkflowRunIsCurrentExecution = false;
+  let requiredWorkflowRunIsActiveSelfObservation = false;
+  let requiredWorkflowRunIsCompletedSuccess = false;
   if (!headSha) {
     blockers.push('release_branch_head_sha_unavailable');
   } else if (!workflowRunsInfo || !Array.isArray(workflowRunsInfo.workflow_runs)) {
@@ -129,19 +132,23 @@ function inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo
         ? normalizedWorkflowCandidates[normalizedWorkflowCandidates.length - 1].run
         : null;
     }
-    const requiredWorkflowRunIsCurrentExecution = Boolean(
+    requiredWorkflowRunIsCurrentExecution = Boolean(
       requiredWorkflowRun && Number.isSafeInteger(currentRunId) && currentRunId > 0 &&
       requiredWorkflowRun.id === currentRunId
     );
-    const requiredWorkflowRunIsPendingSelfObservation = Boolean(
+    requiredWorkflowRunIsActiveSelfObservation = Boolean(
       requiredWorkflowRunIsCurrentExecution &&
       ['queued', 'in_progress', 'waiting', 'requested', 'pending'].includes(requiredWorkflowRun.status)
     );
+    requiredWorkflowRunIsCompletedSuccess = Boolean(
+      requiredWorkflowRun &&
+      requiredWorkflowRun.status === 'completed' &&
+      requiredWorkflowRun.conclusion === 'success'
+    );
     if (!requiredWorkflowRun ||
         !Number.isSafeInteger(requiredWorkflowRun.id) || requiredWorkflowRun.id < 1 ||
-        requiredWorkflowRun.status !== 'completed' ||
-        requiredWorkflowRun.conclusion !== 'success') {
-      blockers.push(requiredWorkflowRunIsPendingSelfObservation
+        (!requiredWorkflowRunIsCompletedSuccess && !requiredWorkflowRunIsActiveSelfObservation)) {
+      blockers.push(requiredWorkflowRunIsActiveSelfObservation
         ? 'required_workflow_run_self_observation_pending'
         : 'required_workflow_run_not_successful_on_exact_head');
     }
@@ -154,7 +161,7 @@ function inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo
       checkRunsInfo.total_count !== checkRunsInfo.check_runs.length)) {
     blockers.push('required_ci_check_observation_incomplete_or_truncated');
   } else if (headSha && requiredWorkflowRun &&
-      requiredWorkflowRun.status === 'completed' && requiredWorkflowRun.conclusion === 'success') {
+      (requiredWorkflowRunIsCompletedSuccess || requiredWorkflowRunIsActiveSelfObservation)) {
     const expectedSuiteId = requiredWorkflowRun.check_suite_id;
     const candidates = checkRunsInfo.check_runs.filter(run =>
       run && run.name === REQUIRED_CHECK_RUN &&
@@ -190,17 +197,28 @@ function inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo
     }
     const startedAt = requiredCheckRun && Date.parse(requiredCheckRun.started_at);
     const completedAt = requiredCheckRun && Date.parse(requiredCheckRun.completed_at);
-    if (!requiredCheckRun ||
-        !Number.isSafeInteger(requiredCheckRun.id) || requiredCheckRun.id < 1 ||
-        requiredCheckRun.status !== 'completed' || requiredCheckRun.conclusion !== 'success' ||
-        !Number.isFinite(startedAt) || !Number.isFinite(completedAt) || completedAt < startedAt) {
-      blockers.push('required_ci_check_not_successful_on_exact_head');
+    const requiredCheckRunIsSuccessful = Boolean(
+      requiredCheckRun &&
+      Number.isSafeInteger(requiredCheckRun.id) && requiredCheckRun.id > 0 &&
+      requiredCheckRun.status === 'completed' && requiredCheckRun.conclusion === 'success' &&
+      Number.isFinite(startedAt) && Number.isFinite(completedAt) && completedAt >= startedAt
+    );
+    if (!requiredCheckRunIsSuccessful) {
+      const requiredCheckRunIsPending = !requiredCheckRun || requiredCheckRun.status !== 'completed';
+      blockers.push(requiredWorkflowRunIsActiveSelfObservation && requiredCheckRunIsPending
+        ? 'required_workflow_run_self_observation_pending'
+        : 'required_ci_check_not_successful_on_exact_head');
     }
   } else if (headSha &&
       !blockers.includes('required_workflow_run_not_successful_on_exact_head') &&
       !blockers.includes('required_workflow_run_self_observation_pending')) {
     blockers.push('required_workflow_run_not_successful_on_exact_head');
   }
+  const requiredWorkflowRunIsPendingSelfObservation = Boolean(
+    requiredWorkflowRunIsActiveSelfObservation &&
+    checkRunsInfo && Array.isArray(checkRunsInfo.check_runs) &&
+    (!requiredCheckRun || requiredCheckRun.status !== 'completed')
+  );
   return Object.freeze({
     schema: 'dadyar-github-release-posture-observation-v1',
     observedAt: new Date().toISOString(),
@@ -215,11 +233,12 @@ function inspectPosture(repository, branch, repoInfo, branchInfo, protectionInfo
       ? requiredWorkflowRun.head_sha.toLowerCase() : null,
     requiredWorkflowRunConclusion: requiredWorkflowRun && typeof requiredWorkflowRun.conclusion === 'string'
       ? requiredWorkflowRun.conclusion : null,
-    requiredWorkflowRunIsCurrentExecution: Boolean(requiredWorkflowRun && Number.isSafeInteger(currentRunId) &&
-      currentRunId > 0 && requiredWorkflowRun.id === currentRunId),
-    requiredWorkflowRunIsPendingSelfObservation: Boolean(requiredWorkflowRun &&
-      Number.isSafeInteger(currentRunId) && currentRunId > 0 && requiredWorkflowRun.id === currentRunId &&
-      ['queued', 'in_progress', 'waiting', 'requested', 'pending'].includes(requiredWorkflowRun.status)),
+    requiredWorkflowRunStatus: requiredWorkflowRun && typeof requiredWorkflowRun.status === 'string'
+      ? requiredWorkflowRun.status : null,
+    requiredWorkflowRunIsCurrentExecution,
+    requiredWorkflowRunIsPendingSelfObservation,
+    requiredWorkflowRunJobVerified: Boolean(requiredCheckRun && requiredCheckRun.status === 'completed' &&
+      requiredCheckRun.conclusion === 'success'),
     requiredWorkflowCheckSuiteId: requiredWorkflowRun && Number.isSafeInteger(requiredWorkflowRun.check_suite_id)
       ? requiredWorkflowRun.check_suite_id : null,
     requiredCheckRunId: requiredCheckRun && Number.isSafeInteger(requiredCheckRun.id) ? requiredCheckRun.id : null,

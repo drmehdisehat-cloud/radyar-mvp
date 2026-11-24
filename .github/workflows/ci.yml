@@ -74,11 +74,6 @@ jobs:
           node --test "${contracts[@]}"
       - name: Audit v1 release blockers (informational; never deploy)
         run: node scripts/check-v1-readiness.cjs
-      - name: Audit GitHub repository release posture (read-only; informational)
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-        run: node scripts/audit-github-repository-posture.cjs
       - name: Audit cheque amendment evidence gaps (research only)
         run: node scripts/audit-check-evidence.cjs
       - name: Assert unapproved v1 stays blocked (experimental only)
@@ -128,3 +123,29 @@ jobs:
             ${{ runner.temp }}/dadyar-preview-handoff/public/INTEGRITY.json
           if-no-files-found: error
           retention-days: 7
+# Observe repository posture only after the required CI job has completed.
+  # This lets the audit verify the current run's completed required check.
+  audit-release-posture-after-ci:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dadyar/ai-chat-private-20261101'
+    needs: verify-existing-frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: read
+      checks: read
+      actions: read
+    steps:
+      - uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Audit repository posture after required CI check completes
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: node scripts/audit-github-repository-posture.cjs

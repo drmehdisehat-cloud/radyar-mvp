@@ -353,7 +353,7 @@ test('a malformed matching completed check run blocks release instead of falling
 });
 
 
-test('labels the active exact-head push workflow as self-observation pending', () => {
+test('post-job audit accepts the completed required CI check from its own active push workflow', () => {
   const runs = workflowRunsInfo();
   runs.workflow_runs[0].status = 'in_progress';
   runs.workflow_runs[0].conclusion = null;
@@ -363,9 +363,33 @@ test('labels the active exact-head push workflow as self-observation pending', (
   );
   assert.equal(result.requiredWorkflowRunId, 456);
   assert.equal(result.requiredWorkflowRunIsCurrentExecution, true);
+  assert.equal(result.requiredWorkflowRunStatus, 'in_progress');
+  assert.equal(result.requiredWorkflowRunConclusion, null);
+  assert.equal(result.requiredWorkflowRunIsPendingSelfObservation, false);
+  assert.equal(result.requiredWorkflowRunJobVerified, true);
+  assert.equal(result.requiredCheckRunConclusion, 'success');
+  assert.equal(result.status, 'POSTURE_VERIFIED');
+  assert.deepEqual(result.blockers, []);
+  assert.equal(result.deploymentAuthorized, false);
+});
+
+test('post-job audit remains pending until the required CI check completes successfully', () => {
+  const runs = workflowRunsInfo();
+  runs.workflow_runs[0].status = 'in_progress';
+  runs.workflow_runs[0].conclusion = null;
+  const checks = checkRunsInfo();
+  checks.check_runs[0].status = 'in_progress';
+  checks.check_runs[0].conclusion = null;
+  delete checks.check_runs[0].completed_at;
+  const result = inspectPosture(
+    EXPECTED_REPOSITORY, EXPECTED_BRANCH, repoInfo(), branchInfo(),
+    protectionInfo(), checks, runs, 456
+  );
+  assert.equal(result.status, 'NOT_READY');
+  assert.equal(result.requiredWorkflowRunIsCurrentExecution, true);
   assert.equal(result.requiredWorkflowRunIsPendingSelfObservation, true);
+  assert.equal(result.requiredWorkflowRunJobVerified, false);
   assert.ok(result.blockers.includes('required_workflow_run_self_observation_pending'));
-  assert.ok(!result.blockers.includes('required_workflow_run_not_successful_on_exact_head'));
   assert.equal(result.deploymentAuthorized, false);
 });
 
