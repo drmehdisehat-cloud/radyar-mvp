@@ -184,11 +184,22 @@ function verifyHtml(htmlBytes) {
   fail(Buffer.from(html, 'utf8').equals(htmlBytes), 'preview_html_invalid_utf8');
   fail(/<html\s+lang="fa"\s+dir="rtl"/i.test(html), 'preview_must_be_persian_rtl');
   fail(/<meta\s+name="robots"\s+content="noindex,nofollow,noarchive"/i.test(html), 'preview_must_be_noindex');
-  fail(/default-src\s+'none'/i.test(html) && /connect-src\s+'none'/i.test(html), 'preview_network_csp_missing');
+  fail(/default-src\s+'none'/i.test(html) && /connect-src\s+'none'/i.test(html) && /worker-src\s+'none'/i.test(html), 'preview_network_csp_missing');
   fail(/چک فرضی/.test(html) && /اطلاعات واقعی وارد نکنید/.test(html), 'synthetic_data_notice_missing');
   fail(/id="free-question"/.test(html), 'free_question_input_missing');
   fail(/نقش‌های وکیل، قاضی، دادستان، ضابط و سردفتر[\s\S]{0,180}شبیه‌سازی/.test(html), 'role_simulation_disclosure_missing');
   fail(!/\b(?:fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon)\b/i.test(html), 'network_api_code_detected');
+  const inlineScripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script\s*>/gi)];
+  fail(inlineScripts.length === 1, 'preview_inline_script_count_mismatch');
+  const executable = inlineScripts.map(match => match[1]).join('\n');
+  const forbiddenWorkerAndPeerPatterns = [
+    /\b(?:Worker|SharedWorker|importScripts|WebTransport)\b/i,
+    /\bserviceWorker\b/i,
+    /\b(?:RTCPeerConnection|webkitRTCPeerConnection|RTCDataChannel)\b/i,
+    /\bnavigator\s*\.\s*(?:bluetooth|usb|serial|hid)\b/i
+  ];
+  fail(forbiddenWorkerAndPeerPatterns.every(pattern => !pattern.test(executable)),
+    'network_capable_api_code_detected');
   fail(!/<form\b/i.test(html), 'network_form_detected');
   // Verify the downloaded ZIP independently of the source-package builder.
   // Even a same-origin URL can make the supposedly offline preview issue a request.

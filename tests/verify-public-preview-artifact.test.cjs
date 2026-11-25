@@ -6,14 +6,14 @@ const os = require('node:os');
 const path = require('node:path');
 const zlib = require('node:zlib');
 const {
-  crc32, gitBlobSha1, sha256, verifyArtifactBuffer, verifyArtifactFile
+  crc32, gitBlobSha1, sha256, verifyHtml, verifyArtifactBuffer, verifyArtifactFile
 } = require('../scripts/verify-public-preview-artifact.cjs');
 
 const COMMIT = 'b'.repeat(40);
 const TOPIC_IDS = Array.from({ length: 27 }, (_, index) => '"id":"topic-' + (index + 1) + '"').join(',');
 const HTML = Buffer.from([
   '<!doctype html><html lang="fa" dir="rtl">',
-  '<head><meta name="robots" content="noindex,nofollow,noarchive"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; connect-src \'none\'"></head>',
+  '<head><meta name="robots" content="noindex,nofollow,noarchive"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; connect-src \'none\'; worker-src \'none\'"></head>',
   '<body><h1>چک فرضی</h1><p>داده‌های ساختگی؛ اطلاعات واقعی وارد نکنید.</p>',
   '<p>نقش‌های وکیل، قاضی، دادستان، ضابط و سردفتر صرفاً شبیه‌سازی آموزشی‌اند.</p>',
   '<textarea id="free-question"></textarea><script>const topicHints = [',
@@ -151,6 +151,35 @@ test('rejects duplicate JSON keys and a mismatched Git blob pin', () => {
   const wrongBlob = Buffer.from(JSON.stringify(manifestFor(HTML, { git_blob_sha1: '0'.repeat(40) })), 'utf8');
   assert.throws(() => verifyArtifactBuffer(makeZip(validEntries({ manifest: wrongBlob })), COMMIT), /manifest_git_blob_sha1_mismatch/);
 });
+test('requires an explicit deny-all worker policy in the downloaded payload CSP', () => {
+  const weakened = Buffer.from(HTML.toString('utf8').replace("worker-src 'none'", "worker-src 'self'"), 'utf8');
+  assert.throws(() => verifyHtml(weakened), /preview_network_csp_missing/);
+});
+
+test('rejects worker, service-worker, WebRTC and device-network APIs in downloaded payload code', () => {
+  const payloads = [
+    'new Worker("/synthetic-worker.js")',
+    'new SharedWorker("/synthetic-shared-worker.js")',
+    'navigator.serviceWorker.register("/synthetic-sw.js")',
+    'importScripts("/synthetic-import.js")',
+    'new WebTransport("https://example.invalid")',
+    'new RTCPeerConnection({})',
+    'new webkitRTCPeerConnection()',
+    'new RTCDataChannel()',
+    'navigator.bluetooth.requestDevice({ acceptAllDevices: true })',
+    'navigator.usb.requestDevice({ filters: [] })',
+    'navigator.serial.requestPort()',
+    'navigator.hid.requestDevice({ filters: [] })'
+  ];
+  for (const payload of payloads) {
+    const changed = Buffer.from(
+      HTML.toString('utf8').replace('const topicHints = [', payload + '; const topicHints = ['),
+      'utf8'
+    );
+    assert.throws(() => verifyHtml(changed), /network_capable_api_code_detected/, payload);
+  }
+});
+
 test('rejects malformed ZIP bytes and tampered CRC values', () => {
   assert.throws(() => verifyArtifactBuffer(Buffer.from('not a zip'), COMMIT), /archive_size_out_of_bounds|zip_end_of_central_directory_missing/);
   const damaged = Buffer.from(makeZip(validEntries()));
