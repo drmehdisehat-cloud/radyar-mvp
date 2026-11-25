@@ -174,7 +174,9 @@
             "rawResponseSha256": null,
             "officialGazetteIssueBytesRetrieved": false,
             "humanReviewStatus": "pending",
-            "useInLegalAnswers": false
+            "useInLegalAnswers": false,
+            "originalGazetteNumberShown": "9210",
+            "originalGazettePublicationDateShown": "1355/05/19"
           },
           "primarySourceVerified": false
         },
