@@ -7,7 +7,7 @@ const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
 const register = JSON.parse(fs.readFileSync(path.join(root, 'docs/legal-source-register-v1.json'), 'utf8'));
-const observation = JSON.parse(fs.readFileSync(path.join(root, 'docs/check-law-qavanin-recheck-20261124.json'), 'utf8'));
+const observation = JSON.parse(fs.readFileSync(path.join(root, 'docs/check-law-qavanin-recheck-20261125.json'), 'utf8'));
 const record = register.records.find(item => item.id === 'check-issuance-law');
 const candidate = record.officialDocumentUrlCandidates.find(item => item.documentId === '16863897128756457315');
 const source = observation.sources.amendment1372;
