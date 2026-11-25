@@ -48,31 +48,32 @@ test('review artifact workflow remains read-only and has no secret or deployment
 });
 
 
+
 test('public artifact uploads exactly the two public files and never the operator handoff', () => {
   const uploadStepMatch = workflow.match(
-    /^      - name: Upload only public HTML and integrity manifest for review \(not deployment\)[\\s\\S]*$/m
+    /^      - name: Upload only public HTML and integrity manifest for review \(not deployment\)[\s\S]*$/m
   );
   assert.ok(uploadStepMatch, 'the public-only upload step must remain explicit');
   const uploadStep = uploadStepMatch[0];
-  assert.equal((workflow.match(/uses: actions\\/upload-artifact@/g) || []).length, 1,
+  assert.equal((workflow.match(/uses: actions\/upload-artifact@/g) || []).length, 1,
     'the workflow must have exactly one artifact upload');
   assert.match(uploadStep, /if-no-files-found: error/);
   assert.match(uploadStep, /retention-days: 7/);
-  const uploadedPaths = uploadStep.split(/\\r?\\n/)
+  const uploadedPaths = uploadStep.split(/\r?\n/)
     .map(line => line.trim())
     .filter(line => line.startsWith('${{ runner.temp }}/'));
   assert.deepEqual(uploadedPaths, [
     '${{ runner.temp }}/dadyar-preview-handoff/public/index.html',
     '${{ runner.temp }}/dadyar-preview-handoff/public/INTEGRITY.json'
   ]);
-  assert.doesNotMatch(uploadStep, /handoff\\/|PREVIEW-METADATA|README-fa|SHA256SUMS|\\.env|\\$\\{\\{\\s*secrets\\./i);
+  assert.doesNotMatch(uploadStep, /handoff\/|PREVIEW-METADATA|README-fa|SHA256SUMS|\.env|\$\{\{\s*secrets\./i);
 
   const verifyStep = workflow.match(
-    /^      - name: Verify exact public ZIP before upload \\(not deployment\\)[\\s\\S]*?(?=^      - name: |$)/m
+    /^      - name: Verify exact public ZIP before upload \(not deployment\)[\s\S]*?(?=^      - name: |$)/m
   );
   assert.ok(verifyStep, 'the exact public ZIP verifier must run before upload');
   assert.ok(verifyStep.index < workflow.indexOf(uploadStep),
     'the exact ZIP verifier must precede artifact upload');
-  assert.match(verifyStep[0], /cd "\$RUNNER_TEMP\\/dadyar-preview-handoff\\/public"/);
-  assert.match(verifyStep[0], /zip -q -X "\$archive" index\\.html INTEGRITY\\.json/);
+  assert.match(verifyStep[0], /cd "\$RUNNER_TEMP\/dadyar-preview-handoff\/public"/);
+  assert.match(verifyStep[0], /zip -q -X "\$archive" index\.html INTEGRITY\.json/);
 });
