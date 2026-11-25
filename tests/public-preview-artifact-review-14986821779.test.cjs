@@ -82,6 +82,6 @@ test('records repository privacy and branch-protection blockers without treating
 
 test('keeps artifact evidence free of credentials and real client matter data', () => {
   const serialized = JSON.stringify(evidence);
-  assert.doesNotMatch(serialized, /private[_ -]?key|api[_ -]?key|bearer\\s+[a-z0-9._-]+|password|client[_ -]?name|case[_ -]?number/i);
+  assert.doesNotMatch(serialized, /private[_ -]?key|api[_ -]?key|bearer\s+[a-z0-9._-]+|password|client[_ -]?name|case[_ -]?number/i);
   assert.equal(evidence.observedAt, '2026-11-25');
 });
