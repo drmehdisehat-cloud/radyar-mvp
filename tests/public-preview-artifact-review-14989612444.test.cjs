@@ -69,5 +69,12 @@ test('records current PR review state and keeps all release PRs in draft', () =>
 
 test('keeps the evidence record free of client data and credential material', () => {
   const serialized = JSON.stringify(evidence);
-  assert.doesNotMatch(serialized, /-----BEGIN|bearer\\s+[a-z0-9._-]+|client[_ -]?name|case[_ -]?number/i);
+  const forbiddenCredentialPattern = /-----BEGIN|bearer\s+[a-z0-9._-]+|client[_ -]?name|case[_ -]?number/i;
+  assert.doesNotMatch(serialized, forbiddenCredentialPattern);
+});
+
+test('credential audit pattern detects a conventional Bearer authorization header', () => {
+  const forbiddenCredentialPattern = /-----BEGIN|bearer\s+[a-z0-9._-]+|client[_ -]?name|case[_ -]?number/i;
+  assert.equal(forbiddenCredentialPattern.test('Authorization: Bearer synthetic-token-123'), true);
+  assert.equal(forbiddenCredentialPattern.test('ordinary preview review note'), false);
 });
