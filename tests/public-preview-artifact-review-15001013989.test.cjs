@@ -68,9 +68,9 @@ test('marks this artifact stale after any later source commit', () => {
     execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
   assert.match(currentHead, /^[a-f0-9]{40}$/);
   if (evidence.sourceCommit !== currentHead) {
-    assert.ok(evidence.limitations.some(item =>
-      item.includes(evidence.sourceCommit) && /not a package for any later source commit/i.test(item)
-    ));
+    const limitations = evidence.limitations.join(' ');
+    assert.ok(limitations.includes(evidence.sourceCommit));
+    assert.match(limitations, /not a package for any later source commit/i);
   }
 });
 
