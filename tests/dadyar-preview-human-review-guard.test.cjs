@@ -218,7 +218,7 @@ test('editing reviewer details after approval invalidates export and requires a 
   const report = await h.exportedBlob.text();
   assert.match(report, /ثبت بازبینی انسانی \(اظهار محلی؛ هویت احراز نشده\)/);
   assert.match(report, /نام بازبین: بازبین آزمون/);
-  assert.match(report, /نتیجه بازبینی: تأیید برای دریافت آموزشی/);
+  assert.match(report, /نتیجه بازبینی: تأیید محلی برای دریافت گزارش آزمایشی/);
   assert.match(report, /محدودیت: این اظهار محلی است و تأیید حقوقی یا احراز هویت محسوب نمی‌شود/);
   assert.equal(h.get('download').disabled, true, 'approval must be consumed after one export');
   assert.equal(h.get('export-ack').checked, false);
