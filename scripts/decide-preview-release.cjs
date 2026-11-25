@@ -67,12 +67,12 @@ function matchesCanonicalRealpath(inputPath, realpath) {
 function isSafeRestoreLabel(value) {
   return typeof value === 'string' && value.length > 0 && value.length <= 256 &&
     value.trim() === value &&
-    !/[\\u0000-\\u001f\\u007f-\\u009f\\u00ad\\u061c\\u200b\\u200e\\u200f\\u202a-\\u202e\\u2060-\\u206f\\ufeff]/u.test(value);
+    !/[\u0000-\u001f\u007f-\u009f\u00ad\u061c\u200b\u200e\u200f\u202a-\u202e\u2060-\u206f\ufeff]/u.test(value);
 }
 function normalizedRestoreIdentity(value) {
   // ZWNJ/ZWJ are valid in Persian labels, but must not make two audit identities
   // appear different when the visible name is otherwise identical.
-  return value.normalize('NFKC').replace(/[\\u200c\\u200d]/gu, '').toLowerCase();
+  return value.normalize('NFKC').replace(/[\u200c\u200d]/gu, '').toLowerCase();
 }
 
 function hasIndependentRestoreAttestation(evidence) {
