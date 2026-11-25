@@ -96,6 +96,23 @@ function validateVersion(version, observedAt, requireHumanReview) {
   }
   if (!SHA256.test(String(version.textSha256 || ''))) issues.push('invalid_text_sha256');
 
+  // Require a retained, document-specific raw HTTP response record in addition
+  // to the extracted-text digest. This is structural evidence only: it does not
+  // prove that the bytes were retained or that the supplied digest is authentic.
+  const rawResponse = version.rawResponse;
+  if (!rawResponse || typeof rawResponse !== 'object' || Array.isArray(rawResponse)) {
+    issues.push('raw_response_missing');
+  } else {
+    if (rawResponse.url !== version.officialDocumentUrl) issues.push('raw_response_url_mismatch');
+    if (rawResponse.status !== 200) issues.push('raw_response_http_status_not_200');
+    if (!Number.isSafeInteger(rawResponse.byteLength) || rawResponse.byteLength < 1 ||
+        rawResponse.byteLength > 50 * 1024 * 1024) issues.push('invalid_raw_response_byte_length');
+    if (!SHA256.test(String(rawResponse.sha256 || ''))) issues.push('invalid_raw_response_sha256');
+    if (!validDate(rawResponse.capturedAt) || rawResponse.capturedAt > observedAt) {
+      issues.push('invalid_raw_response_capture_date');
+    }
+  }
+
   if (requireHumanReview) {
     const review = version.humanReview;
     if (!review || typeof review !== 'object' || Array.isArray(review)) {
@@ -112,6 +129,10 @@ function validateVersion(version, observedAt, requireHumanReview) {
       if (review.decision !== 'approved') issues.push('human_review_not_approved');
       if (!SHA256.test(String(review.reviewedTextSha256 || '')) || review.reviewedTextSha256 !== version.textSha256) {
         issues.push('review_not_bound_to_exact_text_hash');
+      }
+      if (!SHA256.test(String(review.reviewedRawResponseSha256 || '')) ||
+          review.reviewedRawResponseSha256 !== rawResponse?.sha256) {
+        issues.push('review_not_bound_to_exact_raw_response_hash');
       }
     }
   }
