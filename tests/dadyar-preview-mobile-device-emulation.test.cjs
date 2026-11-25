@@ -351,7 +351,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.equal(snapshot.exportedFilename, 'dadyar-synthetic-cheque.txt');
     assert.match(snapshot.exportedReport, /ثبت بازبینی انسانی \(اظهار محلی؛ هویت احراز نشده\)/);
     assert.match(snapshot.exportedReport, /نام بازبین: بازبین آزمون/);
-    assert.match(snapshot.exportedReport, /نتیجه بازبینی: تأیید برای دریافت آموزشی/);
+    assert.match(snapshot.exportedReport, /نتیجه بازبینی: تأیید محلی برای دریافت گزارش آزمایشی/);
     assert.match(snapshot.exportedReport, /یادداشت بازبین: بازبینی داده ساختگی/);
     assert.match(snapshot.exportedReport, /این اظهار محلی است و تأیید حقوقی یا احراز هویت محسوب نمی‌شود/);
     assert.equal(snapshot.approvalConsumed, true, 'approval was not consumed after report download');
@@ -736,7 +736,7 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
     assert.ok(fs.existsSync(downloadedPath), 'approved synthetic report was not downloaded');
     const downloadedReport = fs.readFileSync(downloadedPath, 'utf8');
     assert.match(downloadedReport, /نام بازبین: بازبین آزمون/);
-    assert.match(downloadedReport, /نتیجه بازبینی: تأیید برای دریافت آموزشی/);
+    assert.match(downloadedReport, /نتیجه بازبینی: تأیید محلی برای دریافت گزارش آزمایشی/);
     assert.match(downloadedReport, /یادداشت بازبین: بازبینی داده ساختگی/);
     assert.match(downloadedReport, /پرسش آزاد با دامنه چک فرضی هم‌راستاست/);
     assert.doesNotMatch(downloadedReport, /پرسش آزاد چندموضوعی تشخیص داده شد/);
