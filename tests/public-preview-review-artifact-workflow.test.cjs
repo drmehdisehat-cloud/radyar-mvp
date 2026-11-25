@@ -39,6 +39,8 @@ test('built public payload is served over the exact local HTTP subpath before ZI
     'the built artifact must pass local HTTP smoke before packaging and upload');
   assert.match(workflow, /node scripts\/verify-public-preview-artifact-http\.cjs "\$RUNNER_TEMP\/dadyar-preview-handoff"/);
   assert.match(workflow, /node --check scripts\/verify-public-preview-artifact-http\.cjs/);
+  assert.doesNotMatch(workflow, /\\\\\$\\{\\{/,
+    'GitHub expression delimiters must not be escaped in workflow YAML');
   const verifier = fs.readFileSync(path.join(root, 'scripts/verify-public-preview-artifact-http.cjs'), 'utf8');
   assert.match(verifier, /server\.listen\(0, '127\.0\.0\.1'/);
   assert.match(verifier, /production_host_contacted: false/);

@@ -16,7 +16,7 @@ on:
       - dadyar/restore-probe-review-base-20261117
       - dadyar/preview-package-layout-review-base-20261117
 concurrency:
-  group: \${{ github.workflow }}-\${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 permissions:
   contents: read
@@ -69,11 +69,11 @@ jobs:
           shopt -s nullglob
           tests=(tests/*.test.cjs)
           contracts=()
-          for test_file in "\${tests[@]}"; do
+          for test_file in "${tests[@]}"; do
             [[ "$test_file" == tests/synthetic-cheque-chromium-e2e.test.cjs || "$test_file" == tests/dadyar-preview-mobile-chromium.test.cjs || "$test_file" == tests/dadyar-preview-mobile-device-emulation.test.cjs ]] || contracts+=("$test_file")
           done
-          test "\${#contracts[@]}" -gt 0
-          node --test "\${contracts[@]}"
+          test "${#contracts[@]}" -gt 0
+          node --test "${contracts[@]}"
       - name: Audit v1 release blockers (informational; never deploy)
         run: node scripts/check-v1-readiness.cjs
       - name: Audit cheque amendment evidence gaps (research only)
@@ -101,10 +101,10 @@ jobs:
           (github.event_name == 'push' && github.ref == 'refs/heads/dadyar/ai-chat-private-20261101') ||
           (github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'dadyar/ai-chat-private-20261101')
         env:
-          GITHUB_SHA: \${{ github.sha }}
-          DADYAR_PREVIEW_SOURCE_SHA: \${{ github.event.pull_request.head.sha || github.sha }}
-          DADYAR_PREVIEW_WORKFLOW_SHA: \${{ github.sha }}
-          DADYAR_PREVIEW_EVENT: \${{ github.event_name }}
+          GITHUB_SHA: ${{ github.sha }}
+          DADYAR_PREVIEW_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          DADYAR_PREVIEW_WORKFLOW_SHA: ${{ github.sha }}
+          DADYAR_PREVIEW_EVENT: ${{ github.event_name }}
           DADYAR_PREVIEW_BRANCH: dadyar/ai-chat-private-20261101
         run: node scripts/build-offline-preview-package.cjs "$RUNNER_TEMP/dadyar-preview-handoff"
       - name: Create public preview integrity manifest (not deployment)
@@ -119,10 +119,10 @@ jobs:
            (github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'dadyar/ai-chat-private-20261101'))
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: dadyar-public-preview-\${{ github.event.pull_request.head.sha || github.sha }}
+          name: dadyar-public-preview-${{ github.event.pull_request.head.sha || github.sha }}
           path: |
-            \${{ runner.temp }}/dadyar-preview-handoff/public/index.html
-            \${{ runner.temp }}/dadyar-preview-handoff/public/INTEGRITY.json
+            ${{ runner.temp }}/dadyar-preview-handoff/public/index.html
+            ${{ runner.temp }}/dadyar-preview-handoff/public/INTEGRITY.json
           if-no-files-found: error
           retention-days: 7
 # Observe repository posture only after the required CI job has completed.
@@ -147,7 +147,7 @@ jobs:
           package-manager-cache: false
       - name: Audit repository posture after required CI check completes
         env:
-          GITHUB_TOKEN: \${{ github.token }}
-          GITHUB_REPOSITORY: \${{ github.repository }}
-          GITHUB_RUN_ID: \${{ github.run_id }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
         run: node scripts/audit-github-repository-posture.cjs
