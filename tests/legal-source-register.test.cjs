@@ -45,8 +45,11 @@ test('Qavanin cheque-law URLs remain non-authorizing research candidates until t
     item.url === 'https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131'
   );
   assert.ok(original, 'official original-law text URL must remain discoverable');
-  assert.equal(original.candidateStatus, 'official-consolidated-text-and-original-metadata-rendered-2026-11-25-raw-bytes-not-captured');
-  assert.match(original.lastDirectFetchResult, /On 2026-11-25 the Qavanin TreeText and Attribute pages rendered/);
+  assert.equal(original.candidateStatus, 'official-metadata-rendered-2026-11-26-text-transfer-interstitial-raw-bytes-not-captured');
+  assert.match(original.lastDirectFetchResult, /official Qavanin Attribute page rendered on 2026-11-26.*TreeText endpoint returned only a transfer\/interstitial page/);
+  assert.equal(original.latestMetadataObservation.observedAt, '2026-11-26');
+  assert.equal(original.latestTextObservation.observedAt, '2026-11-25');
+  assert.equal(original.latestRecheck.directTextPageRendered, false);
   assert.equal(original.currentConsolidatedTextVerified, false);
   assert.equal(original.amendmentEffectiveDatesVerified, false);
   assert.equal(original.humanReviewStatus, 'pending');
@@ -134,8 +137,8 @@ test('Qavanin cheque-law URLs remain non-authorizing research candidates until t
   assert.equal(record.useInLegalAnswers, false);
 });
 
-test('registry retains the 2026-11-23 source observations while tracking the 2026-11-25 recheck', () => {
-  assert.equal(register.observedAt, '2026-11-25');
+test('registry retains the 2026-11-23 source observations while tracking the 2026-11-26 metadata recheck', () => {
+  assert.equal(register.observedAt, '2026-11-26');
   const record = register.records.find(item => item.id === 'check-issuance-law');
   const page = record.officialPortalObservation.amendmentPages.find(item => item.id === 'check-amendment-1400');
   assert.ok(page);
