@@ -44,6 +44,8 @@ test('metadata-only observation remains non-authorizing and preserves the last r
   assert.equal(source.legalAnswerUsePermitted, false);
   assert.equal(candidate.lastDirectFetchAt, '2026-11-26');
   assert.equal(candidate.latestMetadataObservation.observedAt, '2026-11-26');
+  assert.equal(candidate.latestMetadataObservation.originalGazetteNumberShown, '9210');
+  assert.equal(candidate.latestMetadataObservation.originalGazettePublicationDateShown, '1355/05/19');
   assert.equal(candidate.latestMetadataObservation.rawHttpResponseBytesCaptured, false);
   assert.equal(candidate.latestMetadataObservation.useInLegalAnswers, false);
   assert.equal(candidate.latestTextObservation.observedAt, '2026-11-25');

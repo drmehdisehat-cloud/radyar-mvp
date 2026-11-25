@@ -175,7 +175,9 @@
             "officialGazetteIssueBytesRetrieved": false,
             "primarySourceVerified": false,
             "humanReviewStatus": "pending",
-            "useInLegalAnswers": false
+            "useInLegalAnswers": false,
+            "originalGazetteNumberShown": "9210",
+            "originalGazettePublicationDateShown": "1355/05/19"
           },
           "primarySourceVerified": false,
           "latestRecheck": {
