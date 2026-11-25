@@ -3,6 +3,7 @@
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const net = require('node:net');
 const { spawnSync } = require('node:child_process');
 const { TextDecoder } = require('node:util');
 const { readStableRegularFile } = require('./stable-file-integrity.cjs');
@@ -93,6 +94,7 @@ function validateDefaultsFile(file, expectedUser) {
   let groupCount = 0;
   let inClientGroup = false;
   const seen = new Set();
+  const options = Object.create(null);
   for (const raw of lines) {
     const line = raw.trim();
     if (!line || line.startsWith('#') || line.startsWith(';')) continue;
@@ -109,10 +111,57 @@ function validateDefaultsFile(file, expectedUser) {
     const key = match[1].toLowerCase();
     if (!ALLOWED_OPTIONS.has(key) || seen.has(key)) fail('defaults_file_option_forbidden');
     seen.add(key);
+    options[key] = match[2];
     if (key === 'user' && match[2] !== expectedUser) fail('defaults_file_user_mismatch');
   }
   if (groupCount !== 1 || !inClientGroup) fail('defaults_file_client_group_required');
-  return Buffer.from(result.bytes);
+  return { bytes: Buffer.from(result.bytes), options };
+}
+
+function validateRemoteDatabaseTransport(options) {
+  const host = options.host === undefined ? 'localhost' : options.host;
+  if (typeof host !== 'string' || !host || host !== host.trim() ||
+      host.length > 253 || /[\u0000-\u0020\u007f/\\;=]/.test(host)) {
+    fail('database_host_invalid');
+  }
+
+  const normalizedHost = host.toLowerCase();
+  const ipVersion = net.isIP(normalizedHost);
+  const loopback = normalizedHost === 'localhost' ||
+    normalizedHost === '::1' ||
+    (ipVersion === 4 && normalizedHost.startsWith('127.'));
+  if (loopback) return true;
+
+  if ((options.protocol || '').toUpperCase() !== 'TCP') {
+    fail('remote_database_requires_explicit_tcp');
+  }
+
+  const sslMode = options['ssl-mode'];
+  const mariadbVerify = /^(?:1|on|true|yes)$/i.test(options['ssl-verify-server-cert'] || '');
+  const identityVerified = sslMode !== undefined
+    ? sslMode.toUpperCase() === 'VERIFY_IDENTITY'
+    : mariadbVerify;
+  if (!identityVerified) fail('remote_database_requires_ssl_verify_identity');
+
+  const caFile = options['ssl-ca'];
+  if (typeof caFile !== 'string' || !path.isAbsolute(caFile) || path.resolve(caFile) !== caFile) {
+    fail('remote_database_requires_absolute_ssl_ca');
+  }
+  if (isInside(REPO_ROOT, caFile)) fail('ssl_ca_inside_git_checkout');
+  assertNoSymlinkPath(caFile, 'ssl_ca');
+  assertTrustedParents(caFile);
+  const ca = readStableRegularFile(caFile, 'mysql CA certificate', { maxBytes: 1024 * 1024 });
+  if (process.platform !== 'win32') {
+    const serviceUid = typeof process.geteuid === 'function' ? BigInt(process.geteuid()) : null;
+    if (serviceUid === null || (ca.stat.uid !== 0n && ca.stat.uid !== serviceUid)) {
+      fail('ssl_ca_owner_invalid');
+    }
+    const mode = ca.stat.mode & 0o7777n;
+    if ((mode & 0o7000n) !== 0n || (mode & 0o022n) !== 0n || (mode & 0o444n) === 0n) {
+      fail('ssl_ca_permissions_invalid');
+    }
+  }
+  return true;
 }
 
 function validateTimestamp(value) {
@@ -150,7 +199,8 @@ function probeIsolatedDatabase({
   if (typeof mysqlBinary !== 'string' || mysqlBinary !== 'mysql') fail('mysql_binary_must_be_system_client');
   if (typeof spawn !== 'function' || typeof now !== 'function') fail('probe_dependency_invalid');
 
-  const defaultsBytes = validateDefaultsFile(defaultsFile, expectedUser);
+  const defaults = validateDefaultsFile(defaultsFile, expectedUser);
+  validateRemoteDatabaseTransport(defaults.options);
   const tempRoot = fs.realpathSync(os.tmpdir());
   const tempDirectory = fs.mkdtempSync(path.join(tempRoot, 'dadyar-db-probe-'));
   let tempFile;
@@ -170,7 +220,7 @@ function probeIsolatedDatabase({
       fs.constants.O_EXCL | (fs.constants.O_NOFOLLOW || 0);
     const fd = fs.openSync(tempFile, flags, 0o600);
     try {
-      fs.writeFileSync(fd, defaultsBytes);
+      fs.writeFileSync(fd, defaults.bytes);
       fs.fsyncSync(fd);
     } finally {
       fs.closeSync(fd);
