@@ -87,7 +87,7 @@ test('approved review exports exactly once and consumes the approval', () => {
   assert.match(exported, /گزارش کاملاً ساختگی دادیار/);
   assert.match(exported, /ثبت بازبینی انسانی \(اظهار محلی؛ هویت احراز نشده\)/);
   assert.match(exported, /نام بازبین: بازبین نمونه/);
-  assert.match(exported, /نتیجه بازبینی: تأیید برای دریافت آموزشی/);
+  assert.match(exported, /نتیجه بازبینی: تأیید محلی برای دریافت گزارش آزمایشی/);
   assert.match(exported, /محدودیت: این اظهار محلی است و تأیید حقوقی یا احراز هویت محسوب نمی‌شود/);
   assert.equal(state.reviewRecord, null);
   assert.equal(state.exportAck.checked, false);
