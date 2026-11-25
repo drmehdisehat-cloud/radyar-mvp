@@ -64,6 +64,17 @@ function matchesCanonicalRealpath(inputPath, realpath) {
 
 // This is a schema/consistency check for an operator-supplied record, not proof.
 // A structurally complete record must never be labelled release-ready by this module.
+function isSafeRestoreLabel(value) {
+  return typeof value === 'string' && value.length > 0 && value.length <= 256 &&
+    value.trim() === value &&
+    !/[\\u0000-\\u001f\\u007f-\\u009f\\u00ad\\u061c\\u200b\\u200e\\u200f\\u202a-\\u202e\\u2060-\\u206f\\ufeff]/u.test(value);
+}
+function normalizedRestoreIdentity(value) {
+  // ZWNJ/ZWJ are valid in Persian labels, but must not make two audit identities
+  // appear different when the visible name is otherwise identical.
+  return value.normalize('NFKC').replace(/[\\u200c\\u200d]/gu, '').toLowerCase();
+}
+
 function hasIndependentRestoreAttestation(evidence) {
   if (!evidence || evidence.restore_proven !== true ||
       evidence.evidence !== 'independent-restore-manifest-v1') return false;
@@ -80,10 +91,10 @@ function hasIndependentRestoreAttestation(evidence) {
   for (const key of ['restore_target_id', 'restore_operator', 'independent_reviewer',
     'restore_database_name', 'production_database_name',
     'restore_database_user', 'production_database_user']) {
-    if (typeof evidence[key] !== 'string' || !evidence[key].trim()) return false;
+    if (!isSafeRestoreLabel(evidence[key])) return false;
   }
-  if (evidence.restore_operator.trim().toLowerCase() ===
-      evidence.independent_reviewer.trim().toLowerCase()) return false;
+  if (normalizedRestoreIdentity(evidence.restore_operator) ===
+      normalizedRestoreIdentity(evidence.independent_reviewer)) return false;
   if (evidence.restore_database_name.trim().toLowerCase() ===
       evidence.production_database_name.trim().toLowerCase()) return false;
   if (evidence.restore_database_user.trim().toLowerCase() ===
