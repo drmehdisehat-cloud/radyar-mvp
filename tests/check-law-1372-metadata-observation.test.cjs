@@ -15,21 +15,23 @@ const source = observation.sources.amendment1372;
 test('1372 cheque amendment has direct official Qavanin text and metadata links', () => {
   assert.equal(candidate.url, 'https://qavanin.ir/Law/TreeText/?IDS=16863897128756457315');
   assert.equal(candidate.officialAttributeUrl, 'https://qavanin.ir/Law/Attribute/?IDS=16863897128756457315');
+  assert.equal(source.directTextUrl, candidate.url);
+  assert.equal(source.directMetadataUrl, candidate.officialAttributeUrl);
   assert.equal(source.approvalDateShown, '1372/08/11');
   assert.equal(source.guardianCouncilConfirmationDateShown, '1372/08/19');
+  assert.equal(source.textPageRendered, true);
   assert.equal(source.metadataPageRendered, true);
-  assert.equal(source.metadataObservation.officialGazetteNumberShown, '14189');
-  assert.equal(source.metadataObservation.officialGazettePublicationDateShown, '1372/09/01');
-  assert.equal(source.metadataObservation.promulgationDateShown, '1372/08/25');
-  assert.equal(source.metadataObservation.effectiveDateShown, '1372/09/17');
-  assert.equal(source.metadataObservation.notificationNumberShown, '52663');
+  assert.equal(source.metadata.officialGazetteNumberShown, '14189');
+  assert.equal(source.metadata.officialGazettePublicationDateShown, '1372/09/01');
+  assert.equal(source.metadata.promulgationDateShown, '1372/08/25');
+  assert.equal(source.metadata.effectiveDateShown, '1372/09/17');
+  assert.equal(source.metadata.notificationNumberShown, '52663');
 });
 
 test('fresh rendered 1372 metadata still does not authenticate raw bytes or Gazette issue', () => {
-  assert.equal(source.metadataPageRendered, true);
-  assert.equal(source.metadataObservation.rawHttpResponseBytesCaptured, false);
-  assert.equal(source.metadataObservation.rawResponseSha256, null);
-  assert.equal(source.metadataObservation.officialGazetteIssueBytesRetrieved, false);
+  assert.equal(source.rawHttpResponseBytesCaptured, false);
+  assert.equal(source.rawResponseSha256, null);
+  assert.equal(source.officialGazetteIssueBytesRetrieved, false);
   assert.equal(observation.verification.primarySourceVerified, false);
   assert.equal(observation.verification.humanReviewStatus, 'pending');
   assert.equal(observation.verification.eventDateVersioningApproved, false);
@@ -48,7 +50,7 @@ test('latest register observation is current but remains ineligible for legal an
   assert.equal(candidate.humanReviewStatus, 'pending');
   assert.equal(candidate.eventDateVersioningApproved, false);
   assert.equal(candidate.useInLegalAnswers, false);
-  assert.equal(record.latest1372Observation.file, 'docs/check-law-qavanin-recheck-20261124.json');
+  assert.equal(record.latest1372Observation.file, 'docs/check-law-qavanin-recheck-20261125.json');
   assert.equal(record.latest1372Observation.observedAt, '2026-11-25');
   assert.equal(record.primarySourceVerified, false);
   assert.equal(record.humanReviewStatus, 'pending');
