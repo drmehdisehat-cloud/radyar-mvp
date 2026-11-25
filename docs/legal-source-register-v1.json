@@ -1,6 +1,6 @@
 {
   "schema": "dadyar-legal-source-register-v1",
-  "observedAt": "2026-11-24",
+  "observedAt": "2026-11-25",
   "policy": {
     "approvalRule": "A secondary page, search result, owner image, or plausible official-portal URL is not an authenticated primary legal source.",
     "answerUse": "Only records with an independently verified primary document, event-date version, direct document URL, and approved human review may support a legal answer.",
@@ -48,7 +48,8 @@
         "بازبینی مستقل حقوقی و ثبت امضای بازبین متصل به SHA-256 همان نسخه.",
         "The 2026-11-22 official portal recheck is a rendered-page observation; raw HTTP bytes and SHA-256 remain unavailable, and the 1358 Gazette issue itself has not been independently retrieved.",
         "Capture the raw HTTP response bytes and SHA-256 for the 1403 regulation and the consolidated cheque law; retrieve the Gazette issue bytes and signed attachment, then bind independent human review to those exact hashes.",
-        "احراز قواعد انتقالی و ساخت نسخه معتبر در تاریخ وقوع رویداد، پیش از استفاده در پاسخ حقوقی."
+        "احراز قواعد انتقالی و ساخت نسخه معتبر در تاریخ وقوع رویداد، پیش از استفاده در پاسخ حقوقی.",
+        "The 1403 regulation metadata page rendered on 2026-11-25 and showed Gazette 23097 and effective date 1403/05/08, but the text page timed out; retrieve the text and verify its exact scope before connecting it to cheque-law provisions."
       ],
       "officialDocumentUrlCandidates": [
         {
@@ -342,15 +343,53 @@
             "humanReviewStatus": "pending",
             "useInLegalAnswers": false,
             "note": "The official portal rendered the regulation text and metadata on 2026-11-21. The Gazette issue bytes and signed appendix were not independently downloaded or hashed; the earlier timeout is retained as a historical observation."
-          }
+          },
+          "latestMetadataObservation": {
+            "observedAt": "2026-11-25",
+            "directMetadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=634882870797924421",
+            "metadataPageRendered": true,
+            "visibleLines": [
+              7,
+              9,
+              19,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "decisionDateShown": "1403/03/30",
+            "notificationNumberShown": "56261/ت62298هـ",
+            "officialGazetteNumberShown": "23097",
+            "officialGazettePublicationDateShown": "1403/04/23",
+            "promulgationDateShown": "1403/04/04",
+            "effectiveDateShown": "1403/05/08",
+            "lastStatusShown": "1403/08/27",
+            "rawHttpBytesCaptured": false,
+            "rawResponseSha256": null,
+            "officialGazetteIssueBytesRetrieved": false,
+            "primarySourceVerified": false,
+            "humanReviewStatus": "pending",
+            "useInLegalAnswers": false
+          },
+          "metadataRetrievedAt": "2026-11-25",
+          "latestMetadataFetchResult": "Official Qavanin attribute page rendered on 2026-11-25; direct TreeText request timed out. Metadata only; no raw bytes, SHA-256, Gazette issue bytes or legal review."
         },
         {
           "url": "https://qavanin.ir/Law/TreeText/?IDS=16863897128756457315",
-          "candidateStatus": "official-primary-text-and-metadata-rendered-2026-11-24-raw-bytes-and-gazette-issue-not-captured",
+          "candidateStatus": "official-primary-text-and-metadata-rendered-2026-11-25-raw-bytes-and-gazette-issue-not-captured",
           "documentId": "16863897128756457315",
           "sourceClass": "primary-official-qavanin",
-          "lastDirectFetchAt": "2026-11-24",
-          "lastDirectFetchResult": "Official Qavanin TreeText and Attribute pages independently rendered on 2026-11-24; approval, Council confirmation, Gazette 14189, publication, promulgation and effective-date fields were visible. Raw response bytes, SHA-256 and Gazette issue bytes were not captured.",
+          "lastDirectFetchAt": "2026-11-25",
+          "lastDirectFetchResult": "Official Qavanin TreeText and Attribute pages independently rendered on 2026-11-25; approval, Council confirmation, Gazette 14189, publication, promulgation and effective-date fields were visible. Raw response bytes, SHA-256 and Gazette issue bytes were not captured.",
           "approvalDateShown": "1372/08/11",
           "guardianCouncilConfirmationDateShown": "1372/08/19",
           "officialAttributeUrl": "https://qavanin.ir/Law/Attribute/?IDS=16863897128756457315",
@@ -359,9 +398,9 @@
           "effectiveFromShown": "1372/09/17",
           "humanReviewStatus": "pending",
           "useInLegalAnswers": false,
-          "note": "متن و صفحه اطلاعات پایه رسمی Qavanin در ۱۴۰۵/۰۹/۰۳ دوباره قابل مشاهده شدند. فراداده نمایش‌داده‌شده: روزنامه رسمی ۱۴۱۸۹، انتشار ۱۳۷۲/۰۹/۰۱، ابلاغ ۱۳۷۲/۰۸/۲۵ و اجرا ۱۳۷۲/۰۹/۱۷. بایت خام HTTP، هش SHA-256 و فایل اصل روزنامه رسمی دریافت نشده‌اند؛ بازبینی انسانی و نسخه زمانی معتبر هنوز تأیید نشده‌اند. این رکورد فقط سرنخ پژوهشی است.",
+          "note": "متن و فراداده صفحه رسمی Qavanin در مشاهده مستقیم ۱۴۰۵/۰۹/۰۴ قابل خواندن بودند. شماره روزنامه رسمی ۱۴۱۸۹، انتشار ۱۳۷۲/۰۹/۰۱، ابلاغ ۱۳۷۲/۰۸/۲۵ و اجرا ۱۳۷۲/۰۹/۱۷ نمایش داده شد. بایت خام HTTP، SHA-256 و فایل اصل روزنامه رسمی دریافت نشده و بازبینی انسانی و نسخه معتبر در تاریخ واقعه تأیید نشده‌اند؛ استفاده در پاسخ حقوقی ممنوع است.",
           "latestTextObservation": {
-            "observedAt": "2026-11-24",
+            "observedAt": "2026-11-25",
             "directTextUrl": "https://qavanin.ir/Law/TreeText/?IDS=16863897128756457315",
             "textPageRendered": true,
             "visibleLines": [
@@ -384,6 +423,10 @@
               56,
               57,
               58,
+              59,
+              60,
+              61,
+              62,
               63,
               64,
               65,
@@ -405,7 +448,7 @@
           "officialGazetteIssueBytesRetrieved": false,
           "officialGazettePublicationDateShown": "1372/09/01",
           "promulgationDateShown": "1372/08/25",
-          "metadataLastDirectFetchAt": "2026-11-24",
+          "metadataLastDirectFetchAt": "2026-11-25",
           "textVisibleLines": [
             7,
             9,
@@ -426,6 +469,10 @@
             56,
             57,
             58,
+            59,
+            60,
+            61,
+            62,
             63,
             64,
             65,
@@ -453,7 +500,7 @@
           ],
           "primarySourceVerified": false,
           "latestMetadataObservation": {
-            "observedAt": "2026-11-24",
+            "observedAt": "2026-11-25",
             "directMetadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=16863897128756457315",
             "metadataPageRendered": true,
             "visibleLines": [
@@ -486,7 +533,7 @@
             "humanReviewStatus": "pending",
             "useInLegalAnswers": false
           },
-          "metadataRetrievedAt": "2026-11-24",
+          "metadataRetrievedAt": "2026-11-25",
           "metadataPageRendered": true
         },
         {
@@ -1136,8 +1183,8 @@
         "note": "Fresh rendered-page observation only. The original 1355 act's effective date and the 1403 regulation's effective date are distinct. No event-date legal version is approved until raw bytes, SHA-256, Gazette issue and independent human review are recorded."
       },
       "latest1372Observation": {
-        "file": "docs/check-law-qavanin-recheck-20261124.json",
-        "observedAt": "2026-11-24",
+        "file": "docs/check-law-qavanin-recheck-20261125.json",
+        "observedAt": "2026-11-25",
         "sourceClass": "primary-official-qavanin-rendered-observation",
         "status": "official-portal-rendered-text-and-metadata-observation-only",
         "textRendered": true,
@@ -1161,6 +1208,10 @@
           56,
           57,
           58,
+          59,
+          60,
+          61,
+          62,
           63,
           64,
           65,
@@ -1238,6 +1289,26 @@
           "amendment1372TextRendered": true,
           "amendment1372MetadataAttempted": true,
           "amendment1372MetadataRendered": true,
+          "rawHttpResponseBytesCaptured": false,
+          "rawResponseSha256": null,
+          "officialGazetteIssueBytesRetrieved": false,
+          "primarySourceVerified": false,
+          "humanReviewStatus": "pending",
+          "eventDateVersioningApproved": false,
+          "useInLegalAnswers": false
+        },
+        {
+          "file": "docs/check-law-qavanin-recheck-20261125.json",
+          "observedAt": "2026-11-25",
+          "status": "official-rendered-observation-only",
+          "consolidatedTextRendered": false,
+          "consolidatedMetadataRendered": false,
+          "amendment1372TextRendered": true,
+          "amendment1372MetadataAttempted": true,
+          "amendment1372MetadataRendered": true,
+          "amendment1403TextAttempted": true,
+          "amendment1403TextRendered": false,
+          "amendment1403MetadataRendered": true,
           "rawHttpResponseBytesCaptured": false,
           "rawResponseSha256": null,
           "officialGazetteIssueBytesRetrieved": false,
@@ -1599,6 +1670,6 @@
       ]
     }
   ],
-  "lastSupplementalObservationAt": "2026-11-24",
-  "latestSupplementalObservationFile": "docs/check-law-qavanin-recheck-20261124.json"
+  "lastSupplementalObservationAt": "2026-11-25",
+  "latestSupplementalObservationFile": "docs/check-law-qavanin-recheck-20261125.json"
 }

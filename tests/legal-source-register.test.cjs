@@ -38,8 +38,8 @@ test('legal source register is versioned and preserves fail-closed promotion rul
 
 test('Qavanin cheque-law URLs remain non-authorizing research candidates until the consolidated text and event-date amendments are fetched and reviewed', () => {
   const record = register.records.find(item => item.id === 'check-issuance-law');
-  assert.equal(record.latest1372Observation.file, 'docs/check-law-qavanin-recheck-20261124.json');
-  assert.equal(record.latest1372Observation.observedAt, '2026-11-24');
+  assert.equal(record.latest1372Observation.file, 'docs/check-law-qavanin-recheck-20261125.json');
+  assert.equal(record.latest1372Observation.observedAt, '2026-11-25');
   assert.ok(record);
   const original = record.officialDocumentUrlCandidates?.find(item =>
     item.url === 'https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131'
@@ -90,16 +90,16 @@ test('Qavanin cheque-law URLs remain non-authorizing research candidates until t
   );
   assert.ok(amendment1372, '1372 official Qavanin text lead must be retained');
   assert.equal(amendment1372.candidateStatus,
-    'official-primary-text-and-metadata-rendered-2026-11-24-raw-bytes-and-gazette-issue-not-captured');
+    'official-primary-text-and-metadata-rendered-2026-11-25-raw-bytes-and-gazette-issue-not-captured');
   assert.equal(amendment1372.approvalDateShown, '1372/08/11');
   assert.equal(amendment1372.guardianCouncilConfirmationDateShown, '1372/08/19');
-  assert.equal(amendment1372.lastDirectFetchAt, '2026-11-24');
+  assert.equal(amendment1372.lastDirectFetchAt, '2026-11-25');
   assert.equal(amendment1372.officialGazetteNumberShown, '14189');
   assert.equal(amendment1372.officialGazetteDateShown, '1372/09/01');
   assert.equal(amendment1372.officialGazettePublicationDateShown, '1372/09/01');
   assert.equal(amendment1372.promulgationDateShown, '1372/08/25');
   assert.equal(amendment1372.effectiveFromShown, '1372/09/17');
-  assert.equal(amendment1372.metadataLastDirectFetchAt, '2026-11-24');
+  assert.equal(amendment1372.metadataLastDirectFetchAt, '2026-11-25');
   assert.equal(amendment1372.rawHttpBytesCaptured, false);
   assert.equal(amendment1372.rawResponseSha256, null);
   assert.equal(amendment1372.officialGazetteIssueBytesRetrieved, false);
@@ -134,8 +134,8 @@ test('Qavanin cheque-law URLs remain non-authorizing research candidates until t
   assert.equal(record.useInLegalAnswers, false);
 });
 
-test('registry retains the 2026-11-23 source observations while tracking the 2026-11-24 recheck', () => {
-  assert.equal(register.observedAt, '2026-11-24');
+test('registry retains the 2026-11-23 source observations while tracking the 2026-11-25 recheck', () => {
+  assert.equal(register.observedAt, '2026-11-25');
   const record = register.records.find(item => item.id === 'check-issuance-law');
   const page = record.officialPortalObservation.amendmentPages.find(item => item.id === 'check-amendment-1400');
   assert.ok(page);
@@ -234,7 +234,7 @@ test('1372 Qavanin rendered-text digest binds the exact transcription without ma
   ));
   const capture = observation.renderedTextCapture;
   assert.ok(record && capture, '1372 observation and legal-source record must exist');
-  assert.equal(record.latest1372Observation.file, 'docs/check-law-qavanin-recheck-20261124.json');
+  assert.equal(record.latest1372Observation.file, 'docs/check-law-qavanin-recheck-20261125.json');
   assert.equal(capture.path, 'research/qavanin-1372-check-amendment-rendered-20261123.txt');
   const candidate = record.officialDocumentUrlCandidates.find(item =>
     item.documentId === '16863897128756457315'

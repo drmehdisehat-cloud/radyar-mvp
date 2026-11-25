@@ -37,9 +37,9 @@ test('fresh rendered 1372 metadata still does not authenticate raw bytes or Gaze
 });
 
 test('latest register observation is current but remains ineligible for legal answers', () => {
-  assert.equal(candidate.lastDirectFetchAt, '2026-11-24');
-  assert.equal(candidate.latestTextObservation.observedAt, '2026-11-24');
-  assert.equal(candidate.latestMetadataObservation.observedAt, '2026-11-24');
+  assert.equal(candidate.lastDirectFetchAt, '2026-11-25');
+  assert.equal(candidate.latestTextObservation.observedAt, '2026-11-25');
+  assert.equal(candidate.latestMetadataObservation.observedAt, '2026-11-25');
   assert.equal(candidate.latestMetadataObservation.metadataPageRendered, true);
   assert.equal(candidate.latestMetadataObservation.effectiveDateShown, '1372/09/17');
   assert.equal(candidate.rawHttpBytesCaptured, false);
@@ -49,7 +49,7 @@ test('latest register observation is current but remains ineligible for legal an
   assert.equal(candidate.eventDateVersioningApproved, false);
   assert.equal(candidate.useInLegalAnswers, false);
   assert.equal(record.latest1372Observation.file, 'docs/check-law-qavanin-recheck-20261124.json');
-  assert.equal(record.latest1372Observation.observedAt, '2026-11-24');
+  assert.equal(record.latest1372Observation.observedAt, '2026-11-25');
   assert.equal(record.primarySourceVerified, false);
   assert.equal(record.humanReviewStatus, 'pending');
   assert.equal(record.useInLegalAnswers, false);
