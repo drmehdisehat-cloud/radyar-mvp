@@ -76,3 +76,19 @@ test('public artifact uploads exactly the two public files and never the operato
   assert.match(verifyStep, /\bcd "\$RUNNER_TEMP\/dadyar-preview-handoff\/public"/);
   assert.match(verifyStep, /zip -q -X "\$archive" index\.html INTEGRITY\.json/);
 });
+
+test('operator handoff distinguishes the private-gated CI artifact from the separate public review artifact', () => {
+  const handoff = fs.readFileSync(path.join(__dirname, '../docs/GITHUB-REPOSITORY-PRIVACY-HANDOFF-FA.md'), 'utf8');
+  assert.match(handoff, /\.github\/workflows\/ci\.yml/);
+  assert.match(handoff, /\.github\/workflows\/public-preview-review-artifact\.yml/);
+  assert.match(handoff, /45606730101/);
+  assert.match(handoff, /45606730041/);
+  assert.match(handoff, /15018910288/);
+  assert.match(handoff, /19728/);
+  assert.match(handoff, /e049a4c7a390050262cdf837d22f253d11a4aa9d0afea0f6e298815f60da07bf/);
+  assert.match(handoff, /reviewer_authentication=not-configured/);
+  assert.match(handoff, /backup_restore_verified=false/);
+  assert.match(handoff, /destination_verified=false/);
+  assert.match(handoff, /deployment_authorized=false/);
+});
+
