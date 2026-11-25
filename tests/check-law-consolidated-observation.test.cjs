@@ -47,14 +47,14 @@ test('raw bytes and independent human review remain mandatory before legal-answe
   assert.equal(observation.verification.primarySourceVerified, false);
   assert.equal(observation.verification.humanReviewStatus, 'pending');
   assert.equal(observation.verification.legalAnswerUsePermitted, false);
-  assert.equal(candidate.lastDirectFetchAt, '2026-11-23');
+  assert.equal(candidate.lastDirectFetchAt, '2026-11-25');
   assert.equal(candidate.latestTextObservation.rawHttpResponseBytesCaptured, false);
   assert.equal(candidate.latestMetadataObservation.originalGazetteNumberShown, '9210');
   assert.equal(candidate.primarySourceVerified, false);
   assert.equal(candidate.humanReviewStatus, 'pending');
   assert.equal(candidate.useInLegalAnswers, false);
   assert.equal(record.latestConsolidatedTextObservation.file,
-    'docs/check-law-consolidated-observation-20261123.json');
+    'docs/check-law-qavanin-recheck-20261125.json');
   assert.equal(record.latestConsolidatedTextObservation.useInLegalAnswers, false);
   assert.equal(register.policy.defaultUseInLegalAnswers, false);
 });

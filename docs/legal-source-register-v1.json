@@ -1302,10 +1302,13 @@
         "useInLegalAnswers": false
       },
       "latestConsolidatedTextObservation": {
-        "file": "docs/check-law-consolidated-observation-20261123.json",
-        "observedAt": "2026-11-23",
+        "file": "docs/check-law-qavanin-recheck-20261125.json",
+        "observedAt": "2026-11-25",
         "status": "official-consolidated-text-and-original-metadata-rendered-only",
+        "documentId": "11400475274213876131",
         "rawHttpResponseBytesCaptured": false,
+        "rawResponseSha256": null,
+        "officialGazetteIssueBytesRetrieved": false,
         "primarySourceVerified": false,
         "humanReviewStatus": "pending",
         "eventDateVersioningApproved": false,
