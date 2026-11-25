@@ -128,9 +128,9 @@ test('accepts remote MySQL only with TCP, VERIFY_IDENTITY and a stable external 
   const f = fixture(t, [
     'host=db.iranhost.example',
     'protocol=TCP',
-    'ssl-mode=VERIFY_IDENTITY',
-    'ssl-ca=' + f.caFile
+    'ssl-mode=VERIFY_IDENTITY'
   ]);
+  fs.appendFileSync(f.defaultsFile, 'ssl-ca=' + f.caFile + '\n');
   let observed;
   const result = probeIsolatedDatabase({
     ...options(f.defaultsFile),
@@ -158,9 +158,9 @@ test('accepts remote MariaDB only with server-certificate verification and a sta
   const f = fixture(t, [
     'host=db.iranhost.example',
     'protocol=TCP',
-    'ssl-verify-server-cert=1',
-    'ssl-ca=' + f.caFile
+    'ssl-verify-server-cert=1'
   ]);
+  fs.appendFileSync(f.defaultsFile, 'ssl-ca=' + f.caFile + '\n');
   const result = probeIsolatedDatabase({
     ...options(f.defaultsFile),
     spawn: () => ({ status: 0, stdout: 'stage_db\tstage_user\t1\t10.11.8-MariaDB\n', stderr: '' })
