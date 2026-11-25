@@ -201,3 +201,25 @@ test('rejects setgid or setuid bits on an ancestor above the preview directory',
     /destination ancestor must not have setuid or setgid bits/
   );
 });
+
+test('rejects a group/world-writable destination file', t => {
+  const f = fixture(t);
+  fs.chmodSync(f.destination, 0o666);
+  assert.equal(fs.statSync(f.destination).mode & 0o022, 0o022);
+  assert.throws(
+    () => verifyPreview(f.source, f.destination, f.productionRoot, f.expectedBlob),
+    /destination must not be group or world writable/
+  );
+});
+
+test('rejects setuid and setgid bits on the destination file', t => {
+  const f = fixture(t);
+  for (const mode of [0o4644, 0o2644]) {
+    fs.chmodSync(f.destination, mode);
+    assert.notEqual(fs.statSync(f.destination).mode & 0o6000, 0);
+    assert.throws(
+      () => verifyPreview(f.source, f.destination, f.productionRoot, f.expectedBlob),
+      /destination must not have special permission bits/
+    );
+  }
+});
