@@ -1,5 +1,26 @@
 # راهنمای رفع موانع Artifact و انتشار پیش‌نمایش دادیار
 
+## آخرین مشاهده زنده، ۲۰۲۶-۱۱-۲۶ ساعت ۰۰:۰۹:۵۳ UTC
+
+این بخش با خواندن مستقیم GitHub API و بدون تغییر main یا تنظیمات مخزن ثبت شده است.
+
+- شاخه: `dadyar/ai-chat-private-20261101`
+- HEAD شاخه: `1fcd96c81ea39ecdfd4c0671cc62cf07806ec9c9`
+- فایل پیش‌نمایش: `dadyar-preview/index.html`؛ Git Blob SHA-1: `6c48d116ecfccb111170f3aa9536572a2c3b3935`
+- main: `d3f02e3b0d4cd3f5d40aabc63bd5d3d93d792318`
+- اختلاف main...شاخه: ۱۸۸۲ کامیت جلوتر، صفر عقب‌تر.
+- مخزن: `public`؛ شاخه آزمایشی: `protected=false` (پاسخ مستقیم Branch API).
+- PRهای باز: ۲۶؛ هر ۲۶ مورد در فهرست خوانده‌شده Draft هستند. PR شماره ۱۷ به شاخه بازبینی `dadyar/preview-package-layout-review-base-20261117` متصل است، نه main.
+- CI اصلی روی همین SHA: اجرای `45715727600` با نتیجه `success`؛ Jobهای `verify-existing-frontend` و `audit-release-posture-after-ci` موفق‌اند.
+- بسته بازبینی عمومی روی همین SHA: اجرای `45715727669` با نتیجه `success`؛ Artifact شماره `15070061668`، اندازه ثبت‌شده GitHub برابر ۱۹٬۷۲۸ بایت، نام `dadyar-public-preview-review-1fcd96c81ea39ecdfd4c0671cc62cf07806ec9c9`.
+- مشاهده مستقیم Branch API، `protected=false` را نشان می‌دهد؛ بنابراین حفاظت شاخه واقعاً غیرفعال است، نه صرفاً نامعلوم.
+- اصلاح تاریخی `4d4f7530c47f438a1d89e18afef246cec026391f` و اجرای `42206234440` دوباره خوانده شدند؛ اجرای تاریخی `success` و متصل به همان SHA است.
+- آزمون زنده دامنه از محیط اجرا به علت خطای DNS محلی (Temporary failure in name resolution) کامل نشد. این خطا اثبات قطعی قطعی‌بودن سایت یا DNS عمومی نیست؛ وضعیت HTTPS سایت در این مشاهده «تأییدنشده» است.
+
+**تصمیم:** این مشاهده هیچ مجوز استقراری صادر نمی‌کند. تا Restore واقعی در Sandbox، احراز هویت مستقل بازبین، اعتبارسنجی مقصد، خصوصی‌سازی مخزن و حفاظت شاخه، `deployment_authorized=false` باقی می‌ماند.
+
+---
+
 آخرین راستی‌آزمایی مستند: 2026-11-25T11:42Z
 شاخه: dadyar/ai-chat-private-20261101
 HEAD راستی‌آزمایی‌شده: db66fed3764f46942421e91c9a706833fff37ba3
