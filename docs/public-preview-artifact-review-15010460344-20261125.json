@@ -1,0 +1,257 @@
+{
+  "schema": "dadyar-public-preview-artifact-review-v1",
+  "observedAt": "2026-11-25T14:07:43+03:30",
+  "repository": "drmehdisehat-cloud/radyar-mvp",
+  "branch": "dadyar/ai-chat-private-20261101",
+  "sourceCommit": "eb321c9c146ea3e429567da7abe1242d038a9905",
+  "commitSignature": {
+    "verified": false,
+    "reason": "unsigned"
+  },
+  "main": {
+    "sha": "d3f02e3b0d4cd3f5d40aabc63bd5d3d93d792318",
+    "aheadBy": 1843,
+    "behindBy": 0
+  },
+  "historicalAnchor": {
+    "correctionCommit": "4d4f7530c47f438a1d89e18afef246cec026391f",
+    "workflowRunId": 42206234440,
+    "workflowConclusion": "success",
+    "workflowHeadSha": "4d4f7530c47f438a1d89e18afef246cec026391f"
+  },
+  "requiredCi": {
+    "runId": 45588159109,
+    "jobs": [
+      {
+        "id": 139115012569,
+        "name": "verify-existing-frontend",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 139115401973,
+        "name": "audit-release-posture-after-ci",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ],
+    "contractTests": {
+      "passed": 1497,
+      "failed": 0,
+      "skipped": 0
+    },
+    "browser": {
+      "realBrowserSmoke": {
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0
+      },
+      "checkIntake": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      },
+      "syntheticCheque": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      },
+      "narrowChromium": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      },
+      "mobileSubpathReviewAndZeroApi": {
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0
+      },
+      "topicRouting": {
+        "passed": 12,
+        "failed": 0,
+        "skipped": 0
+      },
+      "total": {
+        "passed": 19,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    "pullRequestRuns": [
+      {
+        "id": 45588171387,
+        "headSha": "eb321c9c146ea3e429567da7abe1242d038a9905",
+        "conclusion": "success"
+      },
+      {
+        "id": 45588168948,
+        "headSha": "eb321c9c146ea3e429567da7abe1242d038a9905",
+        "conclusion": "success"
+      },
+      {
+        "id": 45588170213,
+        "headSha": "eb321c9c146ea3e429567da7abe1242d038a9905",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "artifactWorkflow": {
+    "name": "Dadyar public-only preview review artifact",
+    "runId": 45588159102,
+    "jobId": 139115013067,
+    "event": "push",
+    "jobStatus": "completed",
+    "jobConclusion": "success",
+    "runUrl": "https://github.com/drmehdisehat-cloud/radyar-mvp/actions/runs/45588159102"
+  },
+  "artifact": {
+    "id": 15010460344,
+    "name": "dadyar-public-preview-review-eb321c9c146ea3e429567da7abe1242d038a9905",
+    "sizeBytes": 19727,
+    "archiveSha256": "75fbbc89729cebf61fb7ee029117a5055333dfec11607817a4d11b72a8480477",
+    "entries": [
+      {
+        "path": "index.html",
+        "sizeBytes": 65821,
+        "sha256": "fb31fa29491d3e087d1700a8a053305f3fce555c28728b6ebe0fba7ef822b327",
+        "gitBlobSha1": "90f7616162591efb9c7f0b059105e09f12873e98"
+      },
+      {
+        "path": "INTEGRITY.json",
+        "sizeBytes": 967,
+        "sha256": "d66c4a22e3a5c6288d97820eae1b681a64dbee869b4c4a7f2f1669a6d0f73d3e"
+      }
+    ],
+    "entryCount": 2
+  },
+  "manifest": {
+    "schema": "dadyar-public-preview-integrity-v1",
+    "sourceCommit": "eb321c9c146ea3e429567da7abe1242d038a9905",
+    "workflowCommit": "eb321c9c146ea3e429567da7abe1242d038a9905",
+    "sourceBranch": "dadyar/ai-chat-private-20261101",
+    "sourceFile": "public/index.html",
+    "targetSubpath": "/dadyar-preview/",
+    "sha256": "fb31fa29491d3e087d1700a8a053305f3fce555c28728b6ebe0fba7ef822b327",
+    "gitBlobSha1": "90f7616162591efb9c7f0b059105e09f12873e98",
+    "topicHintCount": 27,
+    "apiEnabled": false,
+    "publicAiEnabled": false,
+    "reviewerAuthentication": "not-configured",
+    "backupRestoreVerified": false,
+    "destinationVerified": false,
+    "deploymentAuthorized": false
+  },
+  "verification": {
+    "downloadedFromGitHub": true,
+    "zipListingVerified": true,
+    "archiveSha256Recomputed": true,
+    "htmlSha256Recomputed": true,
+    "integrityManifestSha256Recomputed": true,
+    "manifestMatchesArtifact": true,
+    "htmlMatchesSourceGitBlob": true,
+    "networkApiPrimitivesAbsent": true,
+    "cspConnectSrcNone": true,
+    "mobileDeviceEmulation": {
+      "width": 390,
+      "height": 844,
+      "deviceScaleFactor": 3,
+      "touchPoints": 5,
+      "horizontalOverflow": false
+    },
+    "compactMobileViewport": {
+      "width": 320,
+      "height": 740,
+      "horizontalOverflow": false
+    },
+    "remoteRequests": [],
+    "rejectedHumanReviewKeepsExportBlocked": true,
+    "approvedLocalReviewEnablesOneShotExport": true,
+    "rawFreeQuestionExcludedFromReport": true,
+    "productionHostRequestAttempted": true,
+    "productionHostDnsResolution": "failed_in_this_runner",
+    "productionHostVerified": false,
+    "restorePerformed": false,
+    "destinationTestPerformed": false,
+    "reviewerIdentityVerified": false,
+    "legalAccuracyVerified": false
+  },
+  "repositoryPosture": {
+    "auditRunId": 45588159109,
+    "status": "NOT_READY",
+    "visibility": "public",
+    "branchProtected": false,
+    "auditBlockers": [
+      "repository_must_be_private",
+      "release_branch_protection_disabled"
+    ],
+    "rulesets": []
+  },
+  "pullRequests": [
+    {
+      "number": 8,
+      "title": "feat: add offline 1405 delay-damages calculator to Dadyar preview",
+      "state": "open",
+      "draft": true,
+      "base": "dadyar/mvp-sync-028",
+      "headSha": "eb321c9c146ea3e429567da7abe1242d038a9905",
+      "submittedReviews": 0
+    },
+    {
+      "number": 16,
+      "title": "Review-only: isolated MySQL probe and restore evidence validation",
+      "state": "open",
+      "draft": true,
+      "base": "dadyar/restore-probe-review-base-20261117",
+      "headSha": "eb321c9c146ea3e429567da7abe1242d038a9905",
+      "submittedReviews": 0
+    },
+    {
+      "number": 17,
+      "title": "build(preview): separate public payload from operator handoff",
+      "state": "open",
+      "draft": true,
+      "base": "dadyar/preview-package-layout-review-base-20261117",
+      "headSha": "eb321c9c146ea3e429567da7abe1242d038a9905",
+      "submittedReviews": 0
+    },
+    {
+      "number": 21,
+      "title": "security: require trusted reviewer authentication adapter before preview release",
+      "state": "open",
+      "draft": true,
+      "headSha": "3a5a492c8e8871de546fb9089086e6cfe9e03400",
+      "ciRunId": 44307315424,
+      "ciConclusion": "success",
+      "submittedReviews": 0
+    },
+    {
+      "number": 30,
+      "title": "test(security): exercise the signed-review report HTTP boundary",
+      "state": "open",
+      "draft": true,
+      "headSha": "9ba1ddd643c44b2fbf760ffd8c38a5c4a2aa7c84",
+      "ciRunId": 45149171104,
+      "ciConclusion": "success",
+      "submittedReviews": 0
+    },
+    {
+      "number": 32,
+      "title": "security: require both restore signer pins for preview review",
+      "state": "open",
+      "draft": true,
+      "headSha": "c03d02f8bbc689fca20dffc663bda6bb8a532d41",
+      "ciRunId": 45377800307,
+      "ciConclusion": "success",
+      "submittedReviews": 0
+    }
+  ],
+  "artifactCurrentAtCapture": true,
+  "limitations": [
+    "This artifact is bound only to source commit eb321c9c146ea3e429567da7abe1242d038a9905.",
+    "It is not a package for any later source commit and must not be presented as the current build after this evidence-record commit.",
+    "The artifact proves downloaded bytes and exact-head CI observations only; it does not prove a real backup restore, destination validity, authenticated reviewer identity, legal accuracy, or deployment authorization.",
+    "The live host could not be resolved from this execution runner; this does not establish a public DNS outage.",
+    "Do not upload or publish until every independent release gate is satisfied."
+  ],
+  "releaseBoundary": "Integrity evidence only. No production deployment, restore, destination validation, authenticated reviewer verification, legal accuracy review, or deployment authorization occurred."
+}
