@@ -258,3 +258,60 @@ test('times out an incomplete request body without invoking the release gate', a
   });
   assert.equal(gateCalls, 0);
 });
+
+
+const { createServer: createDevelopmentServer } = require('../backend/server');
+
+test('signed-review report route stays unavailable in the development server until a trusted auth adapter is integrated', async () => {
+  const hadNodeEnv = Object.prototype.hasOwnProperty.call(process.env, 'NODE_ENV');
+  const previousNodeEnv = process.env.NODE_ENV;
+  process.env.NODE_ENV = 'development';
+  const server = createDevelopmentServer();
+  let listening = false;
+  try {
+    await new Promise((resolve, reject) => {
+      server.once('error', reject);
+      server.once('listening', resolve);
+      server.listen({ host: '127.0.0.1', port: 0 });
+    });
+    listening = true;
+    const address = server.address();
+    assert.ok(address && typeof address.port === 'number');
+    const response = await new Promise((resolve, reject) => {
+      const request = http.request({
+        hostname: '127.0.0.1',
+        port: address.port,
+        method: 'POST',
+        path: '/api/dadyar/review-report',
+        headers: {
+          host: '127.0.0.1:' + address.port,
+          'content-type': 'application/json',
+          'content-length': '2',
+          connection: 'close'
+        }
+      }, incoming => {
+        const chunks = [];
+        incoming.on('data', chunk => chunks.push(Buffer.from(chunk)));
+        incoming.on('end', () => resolve({
+          status: incoming.statusCode,
+          headers: incoming.headers,
+          body: Buffer.concat(chunks).toString('utf8')
+        }));
+      });
+      request.once('error', reject);
+      request.end('{}');
+    });
+    assert.equal(response.status, 404);
+    assert.deepEqual(JSON.parse(response.body), { error: 'not_found' });
+    assert.match(response.headers['cache-control'], /no-store/);
+    assert.equal(response.headers['x-content-type-options'], 'nosniff');
+  } finally {
+    if (listening) {
+      await new Promise((resolve, reject) => {
+        server.close(error => error ? reject(error) : resolve());
+      });
+    }
+    if (hadNodeEnv) process.env.NODE_ENV = previousNodeEnv;
+    else delete process.env.NODE_ENV;
+  }
+});
