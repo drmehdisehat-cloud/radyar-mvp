@@ -54,13 +54,13 @@
       "officialDocumentUrlCandidates": [
         {
           "url": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
-          "candidateStatus": "official-consolidated-text-and-original-metadata-rendered-2026-11-25-raw-bytes-not-captured",
+          "candidateStatus": "official-metadata-rendered-2026-11-26-text-transfer-interstitial-raw-bytes-not-captured",
           "documentId": "11400475274213876131",
           "sourceClass": "primary-official-qavanin",
           "discoverySource": "docs/check-law-source-handoff-20261026.json",
           "officialAttributeUrl": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
-          "lastDirectFetchAt": "2026-11-25",
-          "lastDirectFetchResult": "On 2026-11-25 the Qavanin TreeText and Attribute pages rendered in a direct web observation. The text page showed the original adoption date and amendment labels 1372/08/11, 1400/01/29 and 1403/03/30; the Attribute page showed Gazette 9210, original publication 1355/05/19, promulgation 1355/05/09, effective date 1355/06/04 and latest-status label 1403/03/30. Raw response bytes and SHA-256 were not captured.",
+          "lastDirectFetchAt": "2026-11-26",
+          "lastDirectFetchResult": "The official Qavanin Attribute page rendered on 2026-11-26 and displayed original Gazette 9210 and original 1355 dates plus the latest-status label 1403/03/30. The TreeText endpoint returned only a transfer/interstitial page in this retrieval. Raw response bytes, SHA-256, Gazette issue bytes, independent human review and event-date versioning remain unavailable.",
           "originalGazetteNumberShown": "9210",
           "originalGazetteDateShown": "1355/05/19",
           "lastStatusShown": "اصلاحي 1403/03/30",
@@ -139,7 +139,7 @@
             "useInLegalAnswers": false
           },
           "latestMetadataObservation": {
-            "observedAt": "2026-11-25",
+            "observedAt": "2026-11-26",
             "observationMethod": "web-rendered-page",
             "metadataPageRendered": true,
             "visibleLines": [
@@ -160,25 +160,59 @@
               33,
               34
             ],
-            "instrumentTypeShown": "قانون",
-            "adoptingAuthorityShown": "مجلس شورای ملی-مجلس سنا",
-            "notificationNumberShown": "33206",
-            "notifyingAuthorityShown": "نخست وزیر",
-            "officialGazetteNumberShown": "9210",
+            "instrumentTitleShown": "قانون صدور چك",
             "originalAdoptionDateShown": "1355/04/16",
-            "originalPromulgationDateShown": "1355/05/09",
-            "originalEffectiveDateShown": "1355/06/04",
+            "adoptingAuthorityShown": "مجلس شوراي ملي-مجلس سنا",
+            "notificationNumberShown": "33206",
+            "notifyingAuthorityShown": "نخست وزير",
+            "officialGazetteNumberShown": "9210",
             "officialGazettePublicationDateShown": "1355/05/19",
-            "latestStatusShown": "اصلاحی 1403/03/30",
+            "promulgationDateShown": "1355/05/09",
+            "originalEffectiveDateShown": "1355/06/04",
+            "latestStatusShown": "اصلاحي 1403/03/30",
             "rawHttpResponseBytesCaptured": false,
             "rawResponseSha256": null,
             "officialGazetteIssueBytesRetrieved": false,
+            "primarySourceVerified": false,
             "humanReviewStatus": "pending",
-            "useInLegalAnswers": false,
-            "originalGazetteNumberShown": "9210",
-            "originalGazettePublicationDateShown": "1355/05/19"
+            "useInLegalAnswers": false
           },
-          "primarySourceVerified": false
+          "primarySourceVerified": false,
+          "latestRecheck": {
+            "observedAt": "2026-11-26",
+            "directTextAttempted": true,
+            "directTextPageRendered": false,
+            "directTextResult": "transfer-interstitial-only",
+            "directMetadataPageRendered": true,
+            "metadataVisibleLines": [
+              7,
+              9,
+              19,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "officialGazetteNumberShown": "9210",
+            "officialGazettePublicationDateShown": "1355/05/19",
+            "originalEffectiveDateShown": "1355/06/04",
+            "latestStatusShown": "اصلاحي 1403/03/30",
+            "rawHttpResponseBytesCaptured": false,
+            "rawResponseSha256": null,
+            "primarySourceVerified": false,
+            "humanReviewStatus": "pending",
+            "eventDateVersioningApproved": false,
+            "useInLegalAnswers": false
+          }
         },
         {
           "url": "https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689",
@@ -1377,6 +1411,22 @@
           "documentId": "11400475274213876131",
           "sourceClass": "primary-official-qavanin-rendered-observation",
           "useInLegalAnswers": false
+        },
+        {
+          "file": "docs/check-law-qavanin-recheck-20261126.json",
+          "observedAt": "2026-11-26",
+          "documentId": "11400475274213876131",
+          "sourceClass": "primary-official-qavanin-metadata-observation",
+          "status": "official-metadata-rendered-only",
+          "consolidatedTextRendered": false,
+          "consolidatedMetadataRendered": true,
+          "rawHttpResponseBytesCaptured": false,
+          "rawResponseSha256": null,
+          "officialGazetteIssueBytesRetrieved": false,
+          "primarySourceVerified": false,
+          "humanReviewStatus": "pending",
+          "eventDateVersioningApproved": false,
+          "useInLegalAnswers": false
         }
       ],
       "latestConsolidatedObservation": {
@@ -1758,6 +1808,6 @@
       ]
     }
   ],
-  "lastSupplementalObservationAt": "2026-11-25",
-  "latestSupplementalObservationFile": "docs/check-law-qavanin-recheck-20261125.json"
+  "lastSupplementalObservationAt": "2026-11-26",
+  "latestSupplementalObservationFile": "docs/check-law-qavanin-recheck-20261126.json"
 }
