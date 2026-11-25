@@ -121,6 +121,7 @@ test('invalid dates and overlapping event-date versions fail closed', () => {
   overlap.eventDateVersions.push({
     ...overlap.eventDateVersions[0], id: 'check-law-v2',
     officialDocumentUrl: 'https://qavanin.ir/Law/TreeText/?IDS=12346', documentId: '12346',
+    rawResponse: { ...overlap.eventDateVersions[0].rawResponse, url: 'https://qavanin.ir/Law/TreeText/?IDS=12346' },
     effectiveFrom: '2024-01-01'
   });
   const result = auditLegalSourceRegister(registry([overlap]));
