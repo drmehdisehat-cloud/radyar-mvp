@@ -262,7 +262,7 @@ test('times out an incomplete request body without invoking the release gate', a
 
 const { createServer: createDevelopmentServer } = require('../backend/server');
 
-test('signed-review report route stays unavailable in the development server until a trusted auth adapter is integrated', async () => {
+test('signed-review report route stays unavailable for every HTTP method in the development server until a trusted auth adapter is integrated', async () => {
   const hadNodeEnv = Object.prototype.hasOwnProperty.call(process.env, 'NODE_ENV');
   const previousNodeEnv = process.env.NODE_ENV;
   process.env.NODE_ENV = 'development';
@@ -277,34 +277,44 @@ test('signed-review report route stays unavailable in the development server unt
     listening = true;
     const address = server.address();
     assert.ok(address && typeof address.port === 'number');
-    const response = await new Promise((resolve, reject) => {
-      const request = http.request({
-        hostname: '127.0.0.1',
-        port: address.port,
-        method: 'POST',
-        path: '/api/dadyar/review-report',
-        headers: {
+
+    for (const method of ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']) {
+      const body = method === 'POST' ? '{}' : undefined;
+      const response = await new Promise((resolve, reject) => {
+        const headers = {
           host: '127.0.0.1:' + address.port,
-          'content-type': 'application/json',
-          'content-length': '2',
           connection: 'close'
+        };
+        if (body !== undefined) {
+          headers['content-type'] = 'application/json';
+          headers['content-length'] = String(Buffer.byteLength(body));
         }
-      }, incoming => {
-        const chunks = [];
-        incoming.on('data', chunk => chunks.push(Buffer.from(chunk)));
-        incoming.on('end', () => resolve({
-          status: incoming.statusCode,
-          headers: incoming.headers,
-          body: Buffer.concat(chunks).toString('utf8')
-        }));
+        const request = http.request({
+          hostname: '127.0.0.1',
+          port: address.port,
+          method,
+          path: '/api/dadyar/review-report',
+          headers
+        }, incoming => {
+          const chunks = [];
+          incoming.on('data', chunk => chunks.push(Buffer.from(chunk)));
+          incoming.on('end', () => resolve({
+            status: incoming.statusCode,
+            headers: incoming.headers,
+            body: Buffer.concat(chunks).toString('utf8')
+          }));
+        });
+        request.once('error', reject);
+        request.end(body);
       });
-      request.once('error', reject);
-      request.end('{}');
-    });
-    assert.equal(response.status, 404);
-    assert.deepEqual(JSON.parse(response.body), { error: 'not_found' });
-    assert.match(response.headers['cache-control'], /no-store/);
-    assert.equal(response.headers['x-content-type-options'], 'nosniff');
+
+      assert.equal(response.status, 404, method + ' must not expose the review route');
+      assert.deepEqual(JSON.parse(response.body), { error: 'not_found' }, method);
+      assert.match(response.headers['cache-control'], /no-store/, method);
+      assert.equal(response.headers['x-content-type-options'], 'nosniff', method);
+      assert.equal(response.headers['access-control-allow-origin'], undefined, method);
+      assert.equal(response.headers['set-cookie'], undefined, method);
+    }
   } finally {
     if (listening) {
       await new Promise((resolve, reject) => {
