@@ -11,7 +11,7 @@ permissions:
   actions: read
 
 concurrency:
-  group: dadyar-public-preview-review-${{ github.ref }}
+  group: dadyar-public-preview-review-\${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -43,6 +43,7 @@ jobs:
           node --check scripts/verify-restore-attestation-pinned.cjs
           node --check scripts/create-public-preview-integrity-manifest.cjs
           node --check scripts/verify-public-preview-artifact.cjs
+          node --check scripts/verify-public-preview-artifact-http.cjs
           node --check scripts/wait-for-experimental-ci.cjs
           node --check tests/real-browser-smoke.cjs
       - name: Audit full Git history for known secret signatures
@@ -52,24 +53,24 @@ jobs:
           shopt -s nullglob
           tests=(tests/*.test.cjs)
           contracts=()
-          for test_file in "${tests[@]}"; do
+          for test_file in "\${tests[@]}"; do
             [[ "$test_file" == tests/synthetic-cheque-chromium-e2e.test.cjs || "$test_file" == tests/dadyar-preview-mobile-chromium.test.cjs || "$test_file" == tests/dadyar-preview-mobile-device-emulation.test.cjs ]] || contracts+=("$test_file")
           done
-          test "${#contracts[@]}" -gt 0
-          node --test "${contracts[@]}"
+          test "\${#contracts[@]}" -gt 0
+          node --test "\${contracts[@]}"
       - name: Audit release blockers (informational; never deploy)
         run: node scripts/check-v1-readiness.cjs
       - name: Wait for exact-head required CI job to finish before posture audit
         env:
-          GITHUB_TOKEN: ${{ github.token }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_REF: ${{ github.ref }}
-          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_TOKEN: \${{ github.token }}
+          GITHUB_REPOSITORY: \${{ github.repository }}
+          GITHUB_REF: \${{ github.ref }}
+          GITHUB_SHA: \${{ github.sha }}
         run: node scripts/wait-for-experimental-ci.cjs
       - name: Audit GitHub repository release posture (read-only; informational)
         env:
-          GITHUB_TOKEN: ${{ github.token }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: \${{ github.token }}
+          GITHUB_REPOSITORY: \${{ github.repository }}
         run: node scripts/audit-github-repository-posture.cjs
       - name: Audit cheque amendment evidence gaps (research only)
         run: node scripts/audit-check-evidence.cjs
@@ -93,8 +94,8 @@ jobs:
           node --test tests/dadyar-preview-27-domain-routing.test.cjs
       - name: Build isolated preview handoff (not deployment)
         env:
-          DADYAR_PREVIEW_SOURCE_SHA: ${{ github.sha }}
-          DADYAR_PREVIEW_WORKFLOW_SHA: ${{ github.sha }}
+          DADYAR_PREVIEW_SOURCE_SHA: \${{ github.sha }}
+          DADYAR_PREVIEW_WORKFLOW_SHA: \${{ github.sha }}
           DADYAR_PREVIEW_EVENT: push
           DADYAR_PREVIEW_BRANCH: dadyar/ai-chat-private-20261101
         run: |
@@ -102,6 +103,8 @@ jobs:
           node scripts/build-offline-preview-package.cjs "$RUNNER_TEMP/dadyar-preview-handoff"
       - name: Create public integrity manifest (not deployment)
         run: node scripts/create-public-preview-integrity-manifest.cjs "$RUNNER_TEMP/dadyar-preview-handoff"
+      - name: Serve built public payload on exact local HTTP subpath (not deployment)
+        run: node scripts/verify-public-preview-artifact-http.cjs "$RUNNER_TEMP/dadyar-preview-handoff"
       - name: Verify exact public ZIP before upload (not deployment)
         run: |
           set -euo pipefail
@@ -116,9 +119,9 @@ jobs:
       - name: Upload only public HTML and integrity manifest for review (not deployment)
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: dadyar-public-preview-review-${{ github.sha }}
+          name: dadyar-public-preview-review-\${{ github.sha }}
           path: |
-            ${{ runner.temp }}/dadyar-preview-handoff/public/index.html
-            ${{ runner.temp }}/dadyar-preview-handoff/public/INTEGRITY.json
+            \${{ runner.temp }}/dadyar-preview-handoff/public/index.html
+            \${{ runner.temp }}/dadyar-preview-handoff/public/INTEGRITY.json
           if-no-files-found: error
           retention-days: 7

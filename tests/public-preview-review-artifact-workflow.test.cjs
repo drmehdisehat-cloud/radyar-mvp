@@ -30,6 +30,21 @@ test('the artifact posture audit waits for the exact-head required CI workflow t
   assert.match(workflow, /node scripts\/wait-for-experimental-ci\.cjs/);
 });
 
+test('built public payload is served over the exact local HTTP subpath before ZIP verification and upload', () => {
+  const manifest = workflow.indexOf('name: Create public integrity manifest (not deployment)');
+  const smoke = workflow.indexOf('name: Serve built public payload on exact local HTTP subpath (not deployment)');
+  const verify = workflow.indexOf('name: Verify exact public ZIP before upload (not deployment)');
+  const upload = workflow.indexOf('name: Upload only public HTML and integrity manifest for review (not deployment)');
+  assert.ok(manifest >= 0 && smoke > manifest && verify > smoke && upload > verify,
+    'the built artifact must pass local HTTP smoke before packaging and upload');
+  assert.match(workflow, /node scripts\/verify-public-preview-artifact-http\.cjs "\$RUNNER_TEMP\/dadyar-preview-handoff"/);
+  assert.match(workflow, /node --check scripts\/verify-public-preview-artifact-http\.cjs/);
+  const verifier = fs.readFileSync(path.join(root, 'scripts/verify-public-preview-artifact-http.cjs'), 'utf8');
+  assert.match(verifier, /server\.listen\(0, '127\.0\.0\.1'/);
+  assert.match(verifier, /production_host_contacted: false/);
+  assert.doesNotMatch(verifier, /https?:\/\/mehdisehat\.ir|process\.env\.GITHUB_TOKEN|Authorization/i);
+});
+
 test('the exact public ZIP is independently verified before the upload step', () => {
   const verify = workflow.indexOf('name: Verify exact public ZIP before upload (not deployment)');
   const upload = workflow.indexOf('name: Upload only public HTML and integrity manifest for review (not deployment)');
