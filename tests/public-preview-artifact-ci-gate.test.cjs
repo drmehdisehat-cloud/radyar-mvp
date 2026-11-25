@@ -38,7 +38,7 @@ test('full contract and browser gates run before the public artifact is built or
   const upload = step('Upload only public HTML and integrity manifest for review (not deployment)');
   assert.ok(history < contracts && contracts < releaseAudit && releaseAudit < browsers && browsers < build && build < manifest && manifest < verify && verify < upload,
     'artifact upload must be downstream of every required verification step');
-  assert.match(workflow, /tests=\(tests\/\*\.test\.cjs\)/);
+  assert.match(workflow, /tests=\(tests\/\*\.test\.cjs tests\/\*\.test\.js\)/);
   assert.match(workflow, /node --test \"\$\{contracts\[@\]\}\"/);
   for (const browserTest of [
     'tests/real-browser-smoke.cjs',
