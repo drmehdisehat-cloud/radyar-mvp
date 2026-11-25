@@ -74,5 +74,5 @@ test('public artifact uploads exactly the two public files and never the operato
   assert.doesNotMatch(uploadStep, /\/handoff\/|PREVIEW-METADATA|README-fa|SHA256SUMS|\.env|\$\{\{\s*secrets\./i);
 
   assert.match(verifyStep, /\bcd "\$RUNNER_TEMP\/dadyar-preview-handoff\/public"/);
-  assert.match(verifyStep, /zip -q -X "$archive" index\.html INTEGRITY\.json/);
+  assert.match(verifyStep, /zip -q -X "\$archive" index\.html INTEGRITY\.json/);
 });
