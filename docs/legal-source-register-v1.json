@@ -1286,10 +1286,14 @@
         "useInLegalAnswers": false
       },
       "latestConsolidatedTextObservation": {
-        "file": "docs/check-law-qavanin-recheck-20261125.json",
-        "observedAt": "2026-11-25",
-        "status": "official-consolidated-text-and-original-metadata-rendered-only",
+        "file": "docs/check-law-qavanin-browser-recheck-20261126.json",
+        "observedAt": "2026-11-26",
+        "status": "official-consolidated-text-rendered-unhashed",
         "documentId": "11400475274213876131",
+        "visibleTextLineRange": [
+          42,
+          113
+        ],
         "rawHttpResponseBytesCaptured": false,
         "rawResponseSha256": null,
         "officialGazetteIssueBytesRetrieved": false,
