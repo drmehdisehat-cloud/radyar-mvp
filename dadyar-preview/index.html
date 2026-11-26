@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; media-src 'none'; manifest-src 'none'; worker-src 'none'; child-src 'none'; script-src 'sha256-1+IXqFCbbwBvtY93HBBp7ZTCncxC2f9V6P+LIw3V7C4='; style-src 'sha256-oliqLRt2lafCG7mjMEg2P09QJrx0GL70EKYbUpOqFQ8='; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; media-src 'none'; manifest-src 'none'; worker-src 'none'; child-src 'none'; script-src 'sha256-+k5vglEqpkiKzW4y+otOOPxmLvaBVoEL7gSuQ333VO4='; style-src 'sha256-oliqLRt2lafCG7mjMEg2P09QJrx0GL70EKYbUpOqFQ8='; form-action 'none'; base-uri 'none'">
 <title>دادیار | پیش‌نمایش آفلاین چک فرضی</title>
 <style>body{font:1rem/1.9 system-ui,sans-serif;background:#f5f6fa;color:#17243b;margin:0}main{max-width:780px;margin:auto;padding:1.2rem}section{background:white;border-radius:16px;padding:1.2rem;margin:1rem 0;box-shadow:0 2px 12px #17243b12}button,select{font:inherit;min-height:44px;max-width:100%;padding:.5rem;border:1px solid #718096;border-radius:8px}input[type=checkbox]{min-width:22px;min-height:22px;vertical-align:middle}button{background:#dcecfb;cursor:pointer}button:focus-visible,select:focus-visible,textarea:focus-visible,input:not([type=checkbox]):focus-visible,input[type=checkbox]:focus-visible{outline:3px solid #2469a8;outline-offset:2px}fieldset{border:1px solid #b4bfd0;border-radius:12px;margin:1rem 0}label{display:block;margin:.6rem 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}small{color:#475569}#result[hidden]{display:none}#free-question,#reviewer-name,#review-note,#event-date{box-sizing:border-box;width:100%;min-height:44px;font:inherit;border:1px solid #718096;border-radius:8px;padding:.5rem}#review-note{min-height:4.5rem}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}</style></head>
 <body><main><h1>کارگاه آزمایشی دادیار: چک فرضی</h1><p role="status">صرفاً داده‌های ازپیش‌ساخته؛ بدون ارسال اطلاعات، هوش مصنوعی یا ذخیره در سرور. پاسخ خودکار حقوقی: ارائه نمی‌شود. اطلاعات واقعی وارد نکنید.</p><p id="preview-release-status" role="alert"><strong>مرز این نسخه:</strong> این پیش‌نمایش آفلاین و غیرعملیاتی است؛ فقط داده ساختگی وارد کنید. ثبت بازبینی در این صفحه محلی است و هویت بازبین احراز نمی‌شود؛ این ثبت به‌تنهایی تأیید حقوقی یا مجوز انتشار ایجاد نمی‌کند.</p>
@@ -562,6 +562,13 @@ function reviewChecklistComplete(){
 }
 let exportEligible=false;
 let reviewRecord=null;
+let reviewDigestPending=false;
+let reviewAttempt=0;
+async function sha256Hex(value){
+ if(!globalThis.crypto || !globalThis.crypto.subtle || typeof TextEncoder!=='function') throw new Error('secure_web_crypto_unavailable');
+ const digest=await globalThis.crypto.subtle.digest('SHA-256',new TextEncoder().encode(String(value)));
+ return Array.from(new Uint8Array(digest),byte=>byte.toString(16).padStart(2,'0')).join('');
+}
 function hasSensitiveIdentifier(value) {
  const reviewText=String(value||'');
  const normalizedText=reviewText.normalize('NFKC').replace(/\p{Default_Ignorable_Code_Point}/gu,'');
@@ -594,12 +601,12 @@ function safeReviewText(value,max){
   .replace(/\s+/g,' ').trim().slice(0,max);
 }
 function updateExportPermission(){
- const approvedReview=Boolean(reviewRecord && reviewRecord.decision==='approved' && reviewRecord.reportSnapshot===report && Array.isArray(reviewRecord.checklist) && reviewRecord.checklist.length===4 && reviewRecord.checklist.every(item=>item.checked===true));
+ const approvedReview=Boolean(reviewRecord && reviewRecord.decision==='approved' && reviewRecord.reportSnapshot===report && /^[a-f0-9]{64}$/.test(reviewRecord.reportSha256||'') && Array.isArray(reviewRecord.checklist) && reviewRecord.checklist.length===4 && reviewRecord.checklist.every(item=>item.checked===true));
  downloadButton.disabled=!exportEligible || !exportAck.checked || !approvedReview;
- recordReviewButton.disabled=!exportEligible || !report || safeReviewText(reviewerName.value,80).length<2 || safeReviewText(reviewNote.value,300).length<12 || !['approved','rejected'].includes(reviewDecision.value) || !reviewerDetailsAreSafe() || !reviewChecklistComplete() || !exportAck.checked || Boolean(reviewRecord);
+ recordReviewButton.disabled=reviewDigestPending || !exportEligible || !report || safeReviewText(reviewerName.value,80).length<2 || safeReviewText(reviewNote.value,300).length<12 || !['approved','rejected'].includes(reviewDecision.value) || !reviewerDetailsAreSafe() || !reviewChecklistComplete() || !exportAck.checked || Boolean(reviewRecord);
 }
 function invalidateHumanReview(message='اطلاعات بازبینی تغییر کرد؛ نتیجه قبلی باطل شد. پس از بررسی دوباره ثبت کنید.'){
- reviewRecord=null;exportAck.checked=false;reviewStatus.textContent=message;updateExportPermission();
+ reviewAttempt+=1;reviewDigestPending=false;reviewRecord=null;exportAck.checked=false;reviewStatus.textContent=message;updateExportPermission();
 }
 exportAck.addEventListener('change',()=>{
  if(!exportAck.checked) invalidateHumanReview('تأیید بازبینی برداشته شد؛ برای دریافت باید بازبینی تازه ثبت شود.');
@@ -612,15 +619,38 @@ reviewNote.addEventListener('input',()=>invalidateHumanReview());
 reviewerName.addEventListener('input',showReviewerPrivacyWarning);
 reviewNote.addEventListener('input',showReviewerPrivacyWarning);
 exportAck.addEventListener('change',showReviewerPrivacyWarning);
-recordReviewButton.addEventListener('click',()=>{
+recordReviewButton.addEventListener('click',async()=>{
  if(recordReviewButton.disabled)return;
  if(!reviewerDetailsAreSafe()){showReviewerPrivacyWarning();return;}
+ const attempt=++reviewAttempt;
+ const snapshot=report;
  const decision=reviewDecision.value;
- reviewRecord={reviewer:safeReviewText(reviewerName.value,80),decision,note:safeReviewText(reviewNote.value,300),reviewedAt:new Date().toISOString(),checklist:reviewChecklistItems.map(item=>({id:item.id,checked:item.checked,label:item.closest('label').textContent.trim()})),reportSnapshot:report};
- reviewStatus.textContent=decision==='approved'
-  ? 'بازبینی انسانی با اظهار بازبین ثبت شد؛ هویت بازبین در این نسخه آفلاین احراز نمی‌شود.'
-  : 'بازبینی رد شد؛ دریافت گزارش غیرفعال باقی می‌ماند.';
+ const reviewer=safeReviewText(reviewerName.value,80);
+ const note=safeReviewText(reviewNote.value,300);
+ const checklist=reviewChecklistItems.map(item=>({id:item.id,checked:item.checked,label:item.closest('label').textContent.trim()}));
+ reviewDigestPending=true;
  updateExportPermission();
+ reviewStatus.textContent='در حال محاسبه اثرانگشت SHA-256 پیش‌نویس بازبینی‌شده…';
+ try{
+  const reportSha256=await sha256Hex(snapshot);
+  if(attempt!==reviewAttempt)return;
+  const unchanged=report===snapshot && reviewDecision.value===decision &&
+   safeReviewText(reviewerName.value,80)===reviewer && safeReviewText(reviewNote.value,300)===note &&
+   exportAck.checked && reviewChecklistComplete() && reviewerDetailsAreSafe();
+  if(!unchanged){invalidateHumanReview('اطلاعات هنگام محاسبه اثرانگشت تغییر کرد؛ تصمیم ثبت نشد. دوباره بازبینی کنید.');return;}
+  reviewRecord={reviewer,decision,note,reviewedAt:new Date().toISOString(),checklist,reportSnapshot:snapshot,reportSha256};
+  reviewDigestPending=false;
+  reviewStatus.textContent=decision==='approved'
+   ? 'بازبینی انسانی با اظهار بازبین ثبت شد؛ اثرانگشت SHA-256 پیش‌نویس متصل شد، اما هویت بازبین در این نسخه آفلاین احراز نمی‌شود.'
+   : 'بازبینی رد شد؛ دریافت گزارش غیرفعال باقی می‌ماند.';
+  updateExportPermission();
+ }catch(error){
+  if(attempt===reviewAttempt){
+   reviewDigestPending=false;reviewRecord=null;
+   reviewStatus.textContent='اثر انگشت امن در این مرورگر در دسترس نیست؛ ثبت بازبینی و دریافت گزارش مسدود ماند.';
+   updateExportPermission();
+  }
+ }
 });
 // Invalidate an earlier draft as soon as the hypothetical evidence or role changes.
 // Otherwise the download button could export a different case state than the UI.
@@ -739,6 +769,7 @@ document.getElementById('download').addEventListener('click',()=>{
   'نتیجه بازبینی: '+(reviewRecord.decision==='approved'?'تأیید محلی برای دریافت گزارش آزمایشی':'رد'),
   'موارد بررسی‌شده:\n'+reviewRecord.checklist.filter(item=>item.checked).map(item=>'• '+item.label).join('\n'),
   'زمان ثبت بازبینی (مبنای ساعت دستگاه؛ نمایش UTC؛ قابل راستی‌آزمایی مستقل نیست): '+reviewRecord.reviewedAt,
+  'SHA-256 پیش‌نویس بازبینی‌شده: '+reviewRecord.reportSha256,
   'یادداشت بازبین: '+(reviewRecord.note||'ثبت نشده'),
   'محدودیت: این اظهار محلی است و تأیید حقوقی یا احراز هویت محسوب نمی‌شود.'
  ].join('\n');
