@@ -45,11 +45,11 @@ test('Qavanin cheque-law URLs remain non-authorizing research candidates until t
     item.url === 'https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131'
   );
   assert.ok(original, 'official original-law text URL must remain discoverable');
-  assert.equal(original.candidateStatus, 'official-metadata-rendered-2026-11-26-text-transfer-interstitial-raw-bytes-not-captured');
+  assert.equal(original.candidateStatus, 'official-consolidated-text-rendered-2026-11-26-raw-bytes-not-captured');
   assert.match(original.lastDirectFetchResult, /official Qavanin Attribute page rendered on 2026-11-26.*TreeText endpoint returned only a transfer\/interstitial page/);
   assert.equal(original.latestMetadataObservation.observedAt, '2026-11-26');
-  assert.equal(original.latestTextObservation.observedAt, '2026-11-25');
-  assert.equal(original.latestRecheck.directTextPageRendered, false);
+  assert.equal(original.latestTextObservation.observedAt, '2026-11-26');
+  assert.equal(original.latestRecheck.directTextPageRendered, true);
   assert.equal(original.currentConsolidatedTextVerified, false);
   assert.equal(original.amendmentEffectiveDatesVerified, false);
   assert.equal(original.humanReviewStatus, 'pending');
