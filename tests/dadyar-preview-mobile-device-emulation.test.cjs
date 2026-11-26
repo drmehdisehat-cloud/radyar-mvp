@@ -357,8 +357,8 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.equal(snapshot.chequeOnlyPreview, true, 'the cheque preview must not include unrelated calculator UI or data');
     assert.ok(snapshot.multiTopicIds.includes('instruments'), 'cheque hint missing from internal multi-topic routing');
     assert.ok(snapshot.multiTopicIds.includes('family'), 'family hint missing from internal multi-topic routing');
-    assert.equal(snapshot.multiTopicExportEligible, true,
-      'a mixed-topic question containing cheque must keep the synthetic cheque report eligible while other topics remain explicitly out of scope');
+    assert.equal(snapshot.multiTopicExportEligible, false,
+      'a mixed-topic question containing cheque must be classified but blocked from the cheque-only report');
     assert.equal(snapshot.multiTopicInputCleared, true, 'raw free text remained in the editable field after local routing');
     assert.equal(snapshot.multiTopicRawQuestionEchoed, false, 'raw free text was copied into the report');
     assert.match(snapshot.multiTopicReport, /متن خام پرسش آزاد برای حفظ حریم خصوصی در گزارش درج نمی‌شود/);
@@ -592,17 +592,19 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
       '  }',
       '  const question = document.getElementById("free-question");',
       '  const multiTopicRawQuestion = "چک و مهریه در این مثال چه موضوعاتی هستند؟";',
-      '  question.value = multiTopicRawQuestion;',
-      '  question.dispatchEvent(new Event("input", { bubbles: true }));',
-      '  const multiTopicIds = classifyQuestion(question.value).map(item => item.id);',
+      '  const multiTopicIds = classifyQuestion(multiTopicRawQuestion).map(item => item.id);',
       '  const eventDate = document.getElementById("event-date");',
+      '  question.value = "چک صیادی و گواهی عدم پرداخت"; question.dispatchEvent(new Event("input", { bubbles: true }));',
       '  eventDate.value = "1400-12-30"; eventDate.dispatchEvent(new Event("input", { bubbles: true }));',
       '  document.getElementById("generate").click();',
       '  const invalidJalaliDateBlocked = !exportEligible && download.disabled && document.getElementById("report").textContent.includes("تاریخ واقعه");',
-      '  question.value = multiTopicRawQuestion; question.dispatchEvent(new Event("input", { bubbles: true }));',
+      '  question.value = "چک صیادی و گواهی عدم پرداخت"; question.dispatchEvent(new Event("input", { bubbles: true }));',
       '  eventDate.value = "1403-12-30"; eventDate.dispatchEvent(new Event("input", { bubbles: true }));',
       '  document.getElementById("generate").click();',
       '  const leapJalaliDateAccepted = exportEligible && document.getElementById("report").textContent.includes("۱۴۰۳-۱۲-۳۰");',
+      '  question.value = multiTopicRawQuestion; question.dispatchEvent(new Event("input", { bubbles: true }));',
+      '  eventDate.value = ""; eventDate.dispatchEvent(new Event("input", { bubbles: true }));',
+      '  document.getElementById("generate").click();',
       '  const multiTopicInputCleared = question.value === "";',
       '  const multiTopicRawQuestionEchoed = document.getElementById("report").textContent.includes(multiTopicRawQuestion);',
       '  const multiTopicExportEligible = exportEligible;',
@@ -683,7 +685,7 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
     assert.equal(snapshot.multiTopicRawQuestionEchoed, false, 'raw multi-topic question leaked into the report');
     assert.equal(snapshot.invalidJalaliDateBlocked, true, 'an impossible Jalali date must block the synthetic report on mobile');
     assert.equal(snapshot.leapJalaliDateAccepted, true, 'a valid Esfand 30 date must pass the ICU calendar check on mobile');
-    assert.equal(snapshot.multiTopicExportEligible, true, 'mixed-topic input containing cheque must allow only the synthetic cheque report');
+    assert.equal(snapshot.multiTopicExportEligible, false, 'mixed-topic input containing cheque must be blocked from the cheque-only report');
     assert.equal(snapshot.chequeOnlyExportEligible, true, 'a cheque-only question should remain eligible for human review');
     assert.match(snapshot.multiTopicScopeStatus, /چندموضوعی/);
     assert.equal(snapshot.sensitiveInputCleared, true, 'sensitive free text remained in the editable field');
