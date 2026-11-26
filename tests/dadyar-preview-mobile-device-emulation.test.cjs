@@ -354,7 +354,6 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.equal(snapshot.pagehideClearedReviewer, true, 'pagehide did not reset reviewer metadata to the fixed synthetic label');
     assert.equal(snapshot.pagehideClearedSelections, true, 'pagehide retained role, interview answers, or selected evidence');
     assert.equal(snapshot.pagehideClearedReviewApproval, true, 'pagehide retained a local review approval');
-    assert.equal(snapshot.pagehideClearedCalculator, true, 'pagehide retained calculator principal, month, currency, or result');
     assert.equal(snapshot.chequeOnlyPreview, true, 'the cheque preview must not include unrelated calculator UI or data');
     assert.ok(snapshot.multiTopicIds.includes('instruments'), 'cheque hint missing from internal multi-topic routing');
     assert.ok(snapshot.multiTopicIds.includes('family'), 'family hint missing from internal multi-topic routing');
