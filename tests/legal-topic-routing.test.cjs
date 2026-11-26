@@ -26,6 +26,23 @@ test('Arabic and Persian letter variants normalize consistently', () => {
   assert.ok(classifyLegalTopics('چك ساختگی').includes('instruments'));
 });
 
+test('Persian, Arabic-Indic and ASCII legal numerals normalize identically without duplicate scoring', () => {
+  const variants = ['ماده ۵۲۲', 'ماده ٥٢٢', 'ماده 522'];
+  const normalized = variants.map(normalizeTopicText);
+  assert.ok(normalized.every(value => value === normalized[0]));
+  const results = variants.map(classifyLegalTopics);
+  assert.deepEqual(results[1], results[0]);
+  assert.deepEqual(results[2], results[0]);
+  assert.equal(results[0].find(item => item.id === 'civil-procedure').count, 1);
+});
+
+test('Arabic-Indic article digits preserve multi-topic routing across the 27-domain hints', () => {
+  const topics = classifyLegalTopics('ماده ٥٢٢، چك صیادی و اجاره');
+  assert.ok(topics.includes('civil-procedure'));
+  assert.ok(topics.includes('instruments'));
+  assert.ok(topics.includes('property'));
+});
+
 test('unmatched free text remains unclassified instead of forcing a category', () => {
   assert.deepEqual(classifyLegalTopics('پرسش ساختگی با واژه‌های نامرتبط و بی‌سرنخ'), []);
 });
