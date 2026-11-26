@@ -227,6 +227,8 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  for (let i=0;i<100 && !reviewRecord;i++) await new Promise(resolve=>setTimeout(resolve,10));',
       '  const approvedReportSha256 = reviewRecord?.reportSha256 || "";',
       '  const reviewDigestValid = /^[a-f0-9]{64}$/.test(approvedReportSha256);',
+      '  const independentReportSha256 = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(report))), byte => byte.toString(16).padStart(2,"0")).join("");',
+      '  const reviewDigestMatchesReport = independentReportSha256 === approvedReportSha256;',
       '  const enabledAfterHumanReview = !download.disabled',
       '  const reviewStatus = document.getElementById("review-status").textContent;',
       '  const exportEnabledBeforeDownload = !download.disabled;',
@@ -305,7 +307,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '    mobileUserAgent: /iPhone|Mobile/i.test(navigator.userAgent),',
       '    horizontalOverflow: root.scrollWidth > root.clientWidth + 1,',
       '    initialDisabled, blockedBeforeAcknowledgement, rejectedReviewKeepsExportBlocked, rejectedReviewStatus, checklistPreservedDraft, checklistPreservedDraftAfterApproval, enabledAfterHumanReview, reviewStatus,',
-      '    exportEnabledBeforeDownload, exportedReport, exportedFilename, exportedReportHasReviewDigest, reviewDigestValid, approvedReportSha256, approvalConsumed, repeatExportBlocked,',
+      '    exportEnabledBeforeDownload, exportedReport, exportedFilename, exportedReportHasReviewDigest, reviewDigestValid, reviewDigestMatchesReport, approvedReportSha256, approvalConsumed, repeatExportBlocked,',
       '    reviewerResetAfterDownload, reapprovalBlockedWithoutFreshDetails, postDownloadReviewStatus,',
       '    reportAfterAcknowledgement, staleDraftInvalidated, multiTopicReport, multiTopicIds,',
       '    pagehideClearedUnsubmittedQuestion, pagehideClearedDraft, pagehideClearedReviewer, pagehideClearedSelections, pagehideClearedReviewApproval, chequeOnlyPreview,',
@@ -343,6 +345,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.match(snapshot.reviewStatus, /هویت بازبین در این نسخه آفلاین احراز نمی‌شود/);
     assert.equal(snapshot.exportEnabledBeforeDownload, true, 'approved local review did not enable the report download');
     assert.equal(snapshot.reviewDigestValid, true, 'approved review must bind a 64-character SHA-256 digest of the exact report');
+    assert.equal(snapshot.reviewDigestMatchesReport, true, 'independently recomputed digest must match the exact report snapshot');
     assert.equal(snapshot.exportedReportHasReviewDigest, true, 'downloaded report must include the digest captured at review time');
     assert.equal(snapshot.exportedFilename, 'dadyar-synthetic-cheque.txt');
     assert.match(snapshot.exportedReport, /ثبت بازبینی انسانی \(اظهار محلی؛ هویت احراز نشده\)/);
@@ -641,6 +644,8 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
       '  for (let i=0;i<100 && !reviewRecord;i++) await new Promise(resolve=>setTimeout(resolve,10));',
       '  const approvedReportSha256 = reviewRecord?.reportSha256 || "";',
       '  const reviewDigestValid = /^[a-f0-9]{64}$/.test(approvedReportSha256);',
+      '  const independentReportSha256 = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(report))), byte => byte.toString(16).padStart(2,"0")).join("");',
+      '  const reviewDigestMatchesReport = independentReportSha256 === approvedReportSha256;',
       '  const enabledAfterReview = !download.disabled;',
       '  const reviewStatus = document.getElementById("review-status").textContent;',
       '  const visibleReport = document.getElementById("report").textContent;',
@@ -666,7 +671,7 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
       '    initiallyDisabled, blockedBeforeReview, rejectedReviewBlocked, rejectedReviewStatus, enabledAfterReview, disabledAfterExport,',
       '    multiTopicIds, multiTopicInputCleared, multiTopicRawQuestionEchoed, multiTopicExportEligible, multiTopicScopeStatus, chequeOnlyExportEligible, invalidJalaliDateBlocked, leapJalaliDateAccepted,',
       '    sensitiveInputCleared, sensitiveRawQuestionEchoed, sensitiveVisibleReport, sensitiveExportBlocked, sensitiveStatus,',
-      '    reviewStatus, visibleReport, resourceRequests, checklistPreservedDraft, reviewDigestValid, approvedReportSha256',
+      '    reviewStatus, visibleReport, resourceRequests, checklistPreservedDraft, reviewDigestValid, reviewDigestMatchesReport, approvedReportSha256',
       '  };',
       '})()'
     ].join('\n');
@@ -688,6 +693,7 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
     assert.equal(snapshot.blockedBeforeReview, true);
     assert.equal(snapshot.enabledAfterReview, true, 'approved local review should enable report download');
     assert.equal(snapshot.reviewDigestValid, true, 'HTTP preview review must produce a SHA-256 report digest');
+    assert.equal(snapshot.reviewDigestMatchesReport, true, 'HTTP preview digest must match an independent Web Crypto calculation');
     assert.equal(snapshot.rejectedReviewBlocked, true, 'a rejected local review must never enable report download');
     assert.match(snapshot.rejectedReviewStatus, /بازبینی رد شد/);
     assert.equal(snapshot.checklistPreservedDraft, true, 'review checklist changes must not invalidate the generated HTTP preview draft');
