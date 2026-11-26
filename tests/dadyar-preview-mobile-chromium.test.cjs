@@ -40,7 +40,7 @@ test('offline Dadyar preview parses in headless Chromium at a narrow viewport', 
   ], { encoding: 'utf8', timeout: 12000 });
 
   assert.equal(run.status, 0, (run.stderr || '').slice(-3000));
-  assert.match(run.stdout, /کارگاه آزمایشی دادیار: چک فرضی/);
+  assert.match(run.stdout, /کارگاه آزمایشی دادیار: چک فرضی/, `Chromium returned no expected DOM (status=${run.status}, error=${run.error?.message || 'none'}, stderr=${(run.stderr || '').slice(-3000)})`);
   assert.match(run.stdout, /id="free-question"/);
   assert.match(run.stdout, /id="download" disabled/);
   assert.doesNotMatch(html, /delay-damages-calculator|delay-principal|delay-calculate|data-indexes=/i);
