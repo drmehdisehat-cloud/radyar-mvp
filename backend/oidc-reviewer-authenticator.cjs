@@ -9,9 +9,9 @@ const { parseJsonRejectDuplicateKeys } = require('../scripts/strict-json.cjs');
 
 const MAX_TOKEN_BYTES = 8192;
 const MAX_KEYS = 8;
-const LABEL_FORBIDDEN = /[\\u0000-\\u001f\\u007f-\\u009f\\u00ad\\u061c\\u200b-\\u200f\\u202a-\\u202e\\u2060-\\u206f\\ufeff]/u;
+const LABEL_FORBIDDEN = /[\u0000-\u001f\u007f-\u009f\u00ad\u061c\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff]/u;
 const KID_PATTERN = /^[A-Za-z0-9._-]{1,128}$/;
-const TOKEN_PATTERN = /^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$/;
+const TOKEN_PATTERN = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/;
 
 function authenticationFailure() {
   const error = new Error('reviewer_access_token_invalid');
@@ -31,8 +31,13 @@ function validateIssuer(value) {
   let parsed;
   try { parsed = new URL(value); }
   catch { throw new TypeError('OIDC issuer must be a valid HTTPS URL.'); }
+  const normalized = parsed.href;
+  const normalizedWithoutRootSlash = parsed.pathname === '/' && normalized.endsWith('/')
+    ? normalized.slice(0, -1)
+    : normalized;
   if (parsed.protocol !== 'https:' || parsed.username || parsed.password ||
-      parsed.search || parsed.hash || parsed.href !== value) {
+      parsed.search || parsed.hash ||
+      (value !== normalized && value !== normalizedWithoutRootSlash)) {
     throw new TypeError('OIDC issuer must be a canonical HTTPS URL without credentials, query or fragment.');
   }
   return value;
