@@ -34,7 +34,7 @@ test('rendered 1372 Qavanin amendment is reconciled into the cheque registry exa
     effectiveFromShown: null
   });
   assert.equal(
-    registry.observations.latestSupplementalRecheck,
+    registry.observations.latestAmendmentTextObservation,
     'docs/check-law-1372-direct-observation-20261126.json'
   );
 });
