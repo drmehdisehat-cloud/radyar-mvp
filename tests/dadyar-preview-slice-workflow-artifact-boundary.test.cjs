@@ -6,15 +6,27 @@ const path = require('node:path');
 
 const workflow = fs.readFileSync(path.join(__dirname, '..', '.github', 'workflows', 'dadyar-preview-slice.yml'), 'utf8');
 
-test('review artifact build and upload are push-only, never pull-request merge artifacts', () => {
-  assert.ok(workflow.includes("- name: Build and verify public-only review artifact\n        if: github.event_name == 'push'"));
-  assert.ok(workflow.includes("- name: Upload review artifact only; never deploy\n        if: github.event_name == 'push'"));
-  assert.ok(workflow.includes("permissions:\n  contents: read\n  actions: read"));
+test('review artifact build, upload, download and round-trip verification are push-only', () => {
+  const build = workflow.indexOf('- name: Build and verify public-only review artifact');
+  const upload = workflow.indexOf('- name: Upload review artifact only; never deploy');
+  const download = workflow.indexOf('- name: Download uploaded artifact for round-trip verification');
+  const verify = workflow.indexOf('- name: Verify uploaded artifact bytes and release boundary');
+  assert.ok(build >= 0 && upload > build && download > upload && verify > download, 'artifact stages must run in build-upload-download-verify order');
+  for (const position of [build, upload, download, verify]) {
+    const step = workflow.slice(position, workflow.indexOf('\n      - name:', position + 1) < 0 ? workflow.length : workflow.indexOf('\n      - name:', position + 1));
+    assert.ok(step.includes("if: github.event_name == 'push'"), 'every artifact stage must be push-only');
+  }
+  assert.ok(workflow.includes('uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093'));
+  assert.ok(workflow.includes('name: dadyar-preview-review-${{ github.sha }}'));
+  assert.ok(workflow.includes('path: ${{ runner.temp }}/dadyar-preview-roundtrip/'));
+  assert.ok(workflow.includes('node scripts/verify-uploaded-preview-artifact.cjs "$RUNNER_TEMP/dadyar-preview-roundtrip"'));
+  assert.ok(workflow.includes('permissions:\n  contents: read\n  actions: read'));
   assert.equal(workflow.includes('deploy:'), false);
 });
 
-test('artifact source SHA is the push commit SHA, not the pull request head or merge SHA', () => {
+test('artifact source SHA is the push commit SHA, not a pull-request merge SHA', () => {
   assert.ok(workflow.includes('DADYAR_PREVIEW_SOURCE_SHA: ${{ github.sha }}'));
+  assert.ok(workflow.includes('GITHUB_SHA: ${{ github.sha }}'));
   assert.ok(workflow.includes('name: dadyar-preview-review-${{ github.sha }}'));
   assert.equal(workflow.includes('pull_request.head.sha'), false);
 });
