@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const registry = JSON.parse(fs.readFileSync(path.join(__dirname, '../docs/legal-source-registry-check.json'), 'utf8'));
-const latest = JSON.parse(fs.readFileSync(path.join(__dirname, '../docs/check-law-qavanin-recheck-20261126.json'), 'utf8'));
+const latest = JSON.parse(fs.readFileSync(path.join(__dirname, '../docs/check-law-1372-direct-observation-20261126.json'), 'utf8'));
 
 test('canonical registry reflects the latest metadata-only Qavanin recheck without promoting the source', () => {
   assert.equal(registry.observations.metadataRecheckedAt, latest.observedAt);
