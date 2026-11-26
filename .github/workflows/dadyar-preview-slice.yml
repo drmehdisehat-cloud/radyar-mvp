@@ -30,7 +30,7 @@ jobs:
           node-version: '22'
           package-manager-cache: false
       - name: Run offline boundary, 27-domain routing and restore-evidence tests
-        run: node --test tests/dadyar-preview-offline-boundary.test.cjs tests/dadyar-preview-27-domain-routing.test.cjs tests/build-preview-review-artifact.test.cjs tests/preview-staging-evidence.test.cjs tests/dadyar-preview-slice-workflow-artifact-boundary.test.cjs
+        run: node --test tests/dadyar-preview-offline-boundary.test.cjs tests/dadyar-preview-27-domain-routing.test.cjs tests/build-preview-review-artifact.test.cjs tests/preview-staging-evidence.test.cjs tests/dadyar-preview-slice-workflow-artifact-boundary.test.cjs tests/verify-uploaded-preview-artifact.test.cjs
       - name: Run narrow viewport Chromium smoke test
         run: |
           CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium)"
@@ -54,3 +54,14 @@ jobs:
           path: ${{ runner.temp }}/dadyar-preview-public/
           if-no-files-found: error
           retention-days: 7
+      - name: Download uploaded artifact for round-trip verification
+        if: github.event_name == 'push'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: dadyar-preview-review-${{ github.sha }}
+          path: ${{ runner.temp }}/dadyar-preview-roundtrip/
+      - name: Verify uploaded artifact bytes and release boundary
+        if: github.event_name == 'push'
+        env:
+          DADYAR_PREVIEW_SOURCE_SHA: ${{ github.sha }}
+        run: node scripts/verify-uploaded-preview-artifact.cjs "$RUNNER_TEMP/dadyar-preview-roundtrip"
