@@ -68,7 +68,7 @@ test('new official-page observations remain non-authorizing until raw bytes, Gaz
   assert.equal(cheque.primarySourceVerified, false);
   assert.equal(cheque.humanReviewStatus, 'pending');
   assert.equal(cheque.useInLegalAnswers, false);
-  assert.equal(register.latestSupplementalObservationFile, 'docs/check-law-qavanin-recheck-20261126.json');
+  assert.equal(register.latestSupplementalObservationFile, 'docs/check-law-qavanin-browser-recheck-20261126.json');
   assert.equal(register.lastSupplementalObservationAt, '2026-11-26');
   assert.ok(cheque.supplementalObservationAttempts.some(item =>
     item.file === 'docs/check-law-qavanin-recheck-20261125.json' &&
