@@ -58,7 +58,7 @@ test('research status documentation identifies both mirrors and keeps the offici
   assert.ok(statusDoc.includes(vakilyarUrl()));
   assert.ok(statusDoc.includes('vakilsoal.com'));
   assert.ok(statusDoc.includes('تعارض'));
-  assert.ok(statusDoc.includes('تأیید حقوقی مستقل'));
+  assert.ok(statusDoc.includes('بازبینی حقوقی مستقل'));
   assert.ok(statusDoc.includes('https://www.cbi.ir/showitem/35817.aspx'));
 });
 
