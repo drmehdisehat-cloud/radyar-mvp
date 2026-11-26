@@ -61,14 +61,14 @@ test('local report export requires a complete checklist and an approved matching
 });
  
 test('approved local review binds the exact report snapshot with Web Crypto SHA-256 before export', () => {
-  assert.match(script, /async function sha256Hex\\(value\\)/);
-  assert.match(script, /crypto\\.subtle\\.digest\\('SHA-256'/);
-  assert.match(script, /reviewDigestPending/);
-  assert.match(script, /reportSha256/);
-  assert.match(script, /reportSnapshot===report/);
-  assert.match(script, /SHA-256 پیش‌نویس بازبینی‌شده/);
-  assert.match(script, /secure_web_crypto_unavailable/);
-  assert.match(html, /اثر انگشت SHA-256/);
+  assert.ok(script.includes('async function sha256Hex(value)'));
+  assert.ok(script.includes("crypto.subtle.digest('SHA-256'"));
+  assert.ok(script.includes('reviewDigestPending'));
+  assert.ok(script.includes('reportSha256'));
+  assert.ok(script.includes('reportSnapshot===report'));
+  assert.ok(script.includes('SHA-256 پیش‌نویس بازبینی‌شده'));
+  assert.ok(script.includes('secure_web_crypto_unavailable'));
+  assert.ok(html.includes('اثر انگشت SHA-256'));
 });
 
 test('cheque-only preview excludes unrelated calculators and unverified owner-supplied index data', () => {
