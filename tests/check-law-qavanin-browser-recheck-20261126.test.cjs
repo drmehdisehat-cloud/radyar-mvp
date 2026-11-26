@@ -55,3 +55,24 @@ test('the separate 1403 amendment endpoint remains unverified and the live regis
   assert.equal(candidate.latestTextObservation.useInLegalAnswers, false);
   assert.equal(register.latestSupplementalObservationFile, 'docs/check-law-qavanin-browser-recheck-20261126.json');
 });
+
+
+test('latest 1403 regulation metadata summary agrees with the supplemental observation and stays non-authorizing', () => {
+  const regulation = observation.sources.amendment1403SeparateText;
+  assert.equal(regulation.instrumentType, 'executive-regulation');
+  assert.equal(regulation.metadataPageRendered, true);
+  assert.equal(regulation.metadata.officialGazetteNumberShown, '23097');
+  assert.equal(regulation.metadata.officialGazettePublicationDateShown, '1403/04/23');
+  assert.equal(regulation.metadata.promulgationDateShown, '1403/04/04');
+  assert.equal(regulation.metadata.effectiveDateShown, '1403/05/08');
+  assert.match(registry.observations.metadataLatestRecheck, /separate 1403 executive-regulation Attribute page rendered/);
+  assert.doesNotMatch(registry.observations.metadataLatestRecheck, /separate 1403 amendment Attribute endpoint still returned a transfer interstitial/);
+  const earlierObservation = registry.observations.amendmentTextObservations.find(item => item.documentId === '634882870797924421');
+  assert.ok(earlierObservation, 'earlier observation must remain available for audit');
+  assert.equal(earlierObservation.metadataRetrievalResult, 'transfer-interstitial');
+  assert.equal(regulation.rawHttpResponseBytesCaptured, false);
+  assert.equal(regulation.rawResponseSha256, null);
+  assert.equal(registry.status, 'research-only');
+  assert.equal(registry.releaseSourceEligible, false);
+  assert.equal(registry.legalConclusionPermitted, false);
+});
