@@ -60,6 +60,17 @@ test('local report export requires a complete checklist and an approved matching
   assert.match(html, /ثبت بازبینی در این صفحه محلی است/);
 });
  
+test('approved local review binds the exact report snapshot with Web Crypto SHA-256 before export', () => {
+  assert.match(script, /async function sha256Hex\\(value\\)/);
+  assert.match(script, /crypto\\.subtle\\.digest\\('SHA-256'/);
+  assert.match(script, /reviewDigestPending/);
+  assert.match(script, /reportSha256/);
+  assert.match(script, /reportSnapshot===report/);
+  assert.match(script, /SHA-256 پیش‌نویس بازبینی‌شده/);
+  assert.match(script, /secure_web_crypto_unavailable/);
+  assert.match(html, /اثر انگشت SHA-256/);
+});
+
 test('cheque-only preview excludes unrelated calculators and unverified owner-supplied index data', () => {
   assert.match(html, /کارگاه آزمایشی دادیار: چک فرضی/);
   assert.doesNotMatch(html, /delay-damages-calculator|delay-principal|delay-due-month|delay-payment-month|delay-calculate|delay-result|delay-index-list/i);
