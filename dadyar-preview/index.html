@@ -22,6 +22,7 @@
 <label for="reviewer-name">برچسب بازبین (فقط داده ساختگی؛ نام واقعی وارد نکنید)</label><input id="reviewer-name" type="text" maxlength="80" autocomplete="off" value="بازبین آزمون" readonly aria-readonly="true" required>
 <label for="review-decision">نتیجه بازبینی</label><select id="review-decision"><option value="pending">در انتظار بازبینی</option><option value="approved">تأیید محلی برای دریافت گزارش آزمایشی</option><option value="rejected">رد پیش‌نویس</option></select>
 <label for="review-note">یادداشت بازبین (الزامی، حداقل ۱۲ و حداکثر ۳۰۰ نویسه)</label><textarea id="review-note" minlength="12" maxlength="300" rows="2" required></textarea><small>برای این پیش‌نمایش فقط از برچسب «بازبین آزمون» و یادداشت ساختگی استفاده کنید. نام یا نشانی پستی واقعی، شماره تماس، کد ملی، کارت بانکی، ایمیل یا نشانی اینترنتی وارد نکنید.</small>
+<small>برای اتصال محتوایی بازبینی به نسخه دقیق گزارش، اثر انگشت SHA-256 در مرورگر محاسبه و داخل فایل خروجی درج می‌شود. این هش هویت بازبین، زمان معتبر یا صحت حقوقی گزارش را اثبات نمی‌کند.</small>
 <fieldset id="review-checklist"><legend>چک‌لیست اجباری بازبینی پیش از ثبت تصمیم</legend>
 <label><input type="checkbox" id="review-check-facts"> توالی وقایع و پاسخ‌های فرضی را با مدارک انتخاب‌شده تطبیق دادم؛ اصالت هیچ مدرکی احراز نشده است.</label>
 <label><input type="checkbox" id="review-check-conflicts"> تعارض پاسخ‌ها، پرسش‌های بی‌پاسخ و محدودیت دامنه چک را بررسی کردم.</label>
