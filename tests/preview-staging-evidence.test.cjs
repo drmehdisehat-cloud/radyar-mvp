@@ -148,6 +148,14 @@ test('symlinked destination file is rejected even when its target hash matches',
   fs.symlinkSync(external, f.htmlPath);
   await assert.rejects(() => verifyEvidence(f.evidence, f.options), /symlink_forbidden/);
 });
+test('hard-linked destination file is rejected even when its bytes match', async t => {
+  const f = makeFixture(); t.after(f.cleanup);
+  const protectedFile = path.join(f.production, 'index.html');
+  fs.copyFileSync(f.htmlPath, protectedFile);
+  fs.unlinkSync(f.htmlPath);
+  fs.linkSync(protectedFile, f.htmlPath);
+  await assert.rejects(() => verifyEvidence(f.evidence, f.options), /destination_file_hardlink_forbidden:index\\.html/);
+});
 test('operator and reviewer must use distinct trusted Ed25519 keys', async t => {
   const f = makeFixture(); t.after(f.cleanup);
   f.evidence.attestations.reviewer = signPayload(f.payload, f.operatorPrivate);
