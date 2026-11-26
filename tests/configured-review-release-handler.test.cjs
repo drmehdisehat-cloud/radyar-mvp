@@ -26,7 +26,7 @@ function signJwt(header, claims, privateKey) {
   return signingInput + '.' + signature.toString('base64url');
 }
 
-function fixture(t) {
+function fixture(t, identityProviderOverrides = {}) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-oidc-review-'));
   const ledgerDirectory = path.join(root, 'ledger');
   fs.mkdirSync(ledgerDirectory, { mode: 0o700 });
@@ -80,7 +80,8 @@ function fixture(t) {
     now: () => now,
     maxTokenAgeSeconds: 600,
     clockSkewSeconds: 30,
-    isSessionActive: async () => true
+    isSessionActive: async () => true,
+    ...identityProviderOverrides
   };
   const claims = {
     iss: ISSUER,
@@ -152,8 +153,8 @@ function send(port, { token, envelope, headers = {}, origin = ORIGIN } = {}) {
   });
 }
 
-async function withServer(t, run) {
-  const f = fixture(t);
+async function withServer(t, run, identityProviderOverrides = {}) {
+  const f = fixture(t, identityProviderOverrides);
   const server = createReviewReleaseHttpServer(f.handler);
   await new Promise((resolve, reject) => {
     server.once('error', reject);
@@ -204,6 +205,47 @@ test('invalid reviewer role or independence claims are rejected before the repor
     assert.equal(notIndependent.status, 401);
     assert.equal(f.reportLoads(), 0);
   });
+});
+
+
+test('revoked or unavailable session registry fails closed before the report store is read', {
+  timeout: 5000
+}, async t => {
+  const scenarios = [
+    {
+      name: 'revoked session',
+      options: { isSessionActive: async () => false }
+    },
+    {
+      name: 'session registry outage',
+      options: { isSessionActive: async () => { throw new Error('synthetic registry outage'); } }
+    },
+    {
+      name: 'non-cooperative session registry timeout',
+      options: {
+        sessionStatusTimeoutMs: 30,
+        isSessionActive: ({ signal }) => {
+          scenarios[2].signal = signal;
+          return new Promise(() => {});
+        }
+      }
+    }
+  ];
+
+  for (const scenario of scenarios) {
+    await withServer(t, async f => {
+      const response = await send(f.port, {
+        token: f.makeToken({}),
+        envelope: f.attestation
+      });
+      assert.equal(response.status, 401, scenario.name);
+      assert.equal(f.reportLoads(), 0, scenario.name + ' must be rejected before report storage is read');
+    }, scenario.options);
+  }
+
+  assert.ok(scenarios[2].signal instanceof AbortSignal);
+  assert.equal(scenarios[2].signal.aborted, true,
+    'a timed-out session lookup must receive an abort signal');
 });
 
 test('review approval is single-use and a replay is rejected before a second report-store read', async t => {
