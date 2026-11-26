@@ -205,3 +205,28 @@ test('review artifact cannot claim deployment readiness', async t => {
   f.resign();
   await assert.rejects(() => verifyEvidence(f.evidence, f.options), /review_artifact_release_boundary_invalid/);
 });
+
+
+test('IranHost restore handoff confirms the account panel and archive format before any restore command', () => {
+  const runbook = fs.readFileSync(path.join(__dirname, '..', 'docs', 'preview-staging-restore-runbook.md'), 'utf8');
+  const start = runbook.indexOf('## تأیید نوع پنل و قالب بکاپ پیش از هر دستور');
+  assert.ok(start >= 0, 'restore runbook must contain a panel/archive preflight section');
+  const tail = runbook.slice(start);
+  const nextHeading = tail.indexOf('\\n## ', 4);
+  const section = nextHeading >= 0 ? tail.slice(0, nextHeading) : tail;
+  for (const required of [
+    'cPanel',
+    'SolidCP',
+    'قالبی',
+    'ابزار و نسخه',
+    'Restore درجا',
+    'Sandbox مستقل',
+    'نشست تعاملی',
+    'OTP',
+    'کلید API'
+  ]) {
+    assert.ok(section.includes(required), 'restore preflight must explicitly cover: ' + required);
+  }
+  assert.match(section, /Complete/);
+  assert.match(section, /۱۴۰٫۳۸ مگابایت/);
+});
