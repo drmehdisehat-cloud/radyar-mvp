@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - dadyar/preview-review-slice-20261126
+      - dadyar/preview-hardlink-guard-20261126
   pull_request:
     branches:
       - main
