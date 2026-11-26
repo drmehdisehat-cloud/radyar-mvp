@@ -87,3 +87,15 @@ test('inline CSP hashes exactly match the preview script and style bytes', () =>
   assert.equal(scriptHash, crypto.createHash('sha256').update(script, 'utf8').digest('base64'));
   assert.equal(styleHash, crypto.createHash('sha256').update(style, 'utf8').digest('base64'));
 });
+
+test('free-question generation delegates to the hardened shared privacy scanner', () => {
+  const start = script.indexOf("document.getElementById('generate').addEventListener('click',()=>{");
+  assert.ok(start >= 0, 'generate handler is required');
+  const end = script.indexOf('\n});', start);
+  assert.ok(end > start, 'generate handler boundary is required');
+  const handler = script.slice(start, end);
+  assert.match(handler, /const freeQuestionHasSensitiveIdentifier=hasSensitiveIdentifier\(freeQuestion\)/);
+  assert.match(handler, /internalTopicMatches=freeQuestionHasSensitiveIdentifier\?\[\]:classifyQuestion\(freeQuestion\)/);
+  assert.match(handler, /if\(freeQuestionHasSensitiveIdentifier\) conflicts\.push/);
+  assert.doesNotMatch(handler, /normalizedQuestionDigits|compactIdentifierDigits|const hasSensitiveIdentifier=/);
+});
