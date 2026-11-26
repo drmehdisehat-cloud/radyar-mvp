@@ -72,6 +72,7 @@ function fixture(t) {
   const identityProvider = {
     issuer: ISSUER,
     audience: AUDIENCE,
+    reviewIssuer,
     keys: [{
       kid: 'synthetic-idp-key-01',
       publicKeyPem: idpKeys.publicKey.export({ type: 'spki', format: 'pem' })
