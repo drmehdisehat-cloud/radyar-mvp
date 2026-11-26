@@ -47,7 +47,7 @@ function fixture() {
     headers: { authorization: 'Bearer ' + token },
     rawHeaders: ['authorization', 'Bearer ' + token]
   });
-  return { now, claims, makeToken, create, request };
+  return { now, key, claims, makeToken, create, request };
 }
 
 async function rejectsAuth(authenticator, request) {
@@ -61,7 +61,7 @@ test('requires a trusted server-side revocation callback and bounded timeout', (
     issuer: ISSUER,
     audience: AUDIENCE,
     reviewIssuer: REVIEW_ISSUER,
-    keys: [f.create().pinnedKeys]
+    keys: [f.key]
   }), /session status callback/);
   for (const value of [0, 9, 5001, 1.5, NaN]) {
     assert.throws(() => f.create({ sessionStatusTimeoutMs: value }), /10 through 5000/);
