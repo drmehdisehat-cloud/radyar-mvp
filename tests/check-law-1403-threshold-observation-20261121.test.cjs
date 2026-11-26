@@ -43,12 +43,15 @@ test('official portal date is recorded without promoting the secondary conflict 
   assert.deepEqual(observation.eventDateVersions, []);
 });
 
-test('registry keeps the historical timeout while linking the fresh successful portal rendering', () => {
+test('registry preserves the 2026-11-21 observation while linking the fresh 2026-11-26 rendering', () => {
   const record = registry.records.find(item => item.id === 'check-issuance-law');
   const candidate = record.officialDocumentUrlCandidates.find(item => item.documentId === '634882870797924421');
   assert.ok(candidate);
-  assert.equal(candidate.lastDirectFetchResult, 'request-timeout');
-  assert.equal(candidate.latestRecheck.observedAt, '2026-11-21');
+  assert.equal(observation.observedAt, '2026-11-21');
+  assert.equal(observation.instrument.textPageRendered, true);
+  assert.equal(observation.rawHttpBytesCaptured, false);
+  assert.match(candidate.lastDirectFetchResult, /Qavanin TreeText and Attribute pages for the 1403 amendment both rendered/);
+  assert.equal(candidate.latestRecheck.observedAt, '2026-11-26');
   assert.equal(candidate.latestRecheck.textPageRendered, true);
   assert.equal(candidate.latestRecheck.metadataPageRendered, true);
   assert.equal(candidate.latestRecheck.officialGazetteNumberShown, '23097');
