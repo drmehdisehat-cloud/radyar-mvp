@@ -192,16 +192,16 @@ test('missing or invalid bearer identity is rejected before the report store is 
   });
 });
 
-test('authenticated but non-independent or incorrectly assigned users cannot release a report', async t => {
+test('invalid reviewer role or independence claims are rejected before the report store is read', async t => {
   await withServer(t, async f => {
     const wrongRole = await send(f.port, {
       token: f.makeToken({ roles: ['admin'] }), envelope: f.attestation
     });
-    assert.equal(wrongRole.status, 403);
+    assert.equal(wrongRole.status, 401);
     const notIndependent = await send(f.port, {
       token: f.makeToken({ reviewer_independent: false }), envelope: f.attestation
     });
-    assert.equal(notIndependent.status, 403);
+    assert.equal(notIndependent.status, 401);
     assert.equal(f.reportLoads(), 0);
   });
 });
