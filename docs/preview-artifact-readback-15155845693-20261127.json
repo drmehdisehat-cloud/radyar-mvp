@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-11-26T21:45:09Z",
+  "repository": "drmehdisehat-cloud/radyar-mvp",
+  "branch": "dadyar/preview-review-slice-20261126",
+  "sourceCommit": "a5f654bc4905908607bf62a799fdc7e957715bea",
+  "workflowCommit": "a5f654bc4905908607bf62a799fdc7e957715bea",
+  "ci": {
+    "pushRunId": 45900197228,
+    "pushConclusion": "success",
+    "pullRequestRunId": 45900201703,
+    "pullRequestConclusion": "success",
+    "testCounts": {
+      "contractAndSecurity": 56,
+      "narrowChromium": 1,
+      "mobileAndHttp": 2,
+      "total": 59,
+      "failed": 0,
+      "skipped": 0
+    },
+    "roundTripJob": "roundtrip-verify",
+    "roundTripConclusion": "success",
+    "roundTripStatus": "UPLOADED_ARTIFACT_ROUND_TRIP_VERIFIED"
+  },
+  "artifact": {
+    "id": 15155845693,
+    "name": "dadyar-preview-review-a5f654bc4905908607bf62a799fdc7e957715bea",
+    "zipBytes": 17418,
+    "zipSha256": "79add46fea90c4f3dda1e131263994f76993de791ccaac4ef129696345a0c139",
+    "files": [
+      "INTEGRITY.json",
+      "index.html"
+    ],
+    "htmlBytes": 56890,
+    "htmlSha256": "7042f7ef8a533445573d4c5d05110fadfc4f2d6718ca3e61739af0ad280c1da5",
+    "sourceGitBlobSha1": "3bea93e373eb81daee5568e6c67a82868b797f86",
+    "workflowGitBlobSha1": "3bea93e373eb81daee5568e6c67a82868b797f86",
+    "route": "/dadyar-preview/"
+  },
+  "release": {
+    "status": "NOT_READY",
+    "backupRestoreVerified": false,
+    "destinationVerified": false,
+    "reviewerIdentityConfigured": false,
+    "deploymentAuthorized": false,
+    "apiEnabled": false,
+    "publicAiEnabled": false
+  },
+  "limitations": [
+    "CI round-trip verified the uploaded artifact in a dependent job; this is not a hosting deployment.",
+    "A real backup restore in an isolated IranHost sandbox has not been evidenced.",
+    "The hosting destination and its HTTPS route have not been validated.",
+    "The preview review acknowledgement is local and does not authenticate reviewer identity."
+  ]
+}
