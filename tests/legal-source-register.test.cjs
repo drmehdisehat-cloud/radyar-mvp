@@ -46,7 +46,7 @@ test('Qavanin cheque-law URLs remain non-authorizing research candidates until t
   );
   assert.ok(original, 'official original-law text URL must remain discoverable');
   assert.equal(original.candidateStatus, 'official-consolidated-text-rendered-2026-11-26-raw-bytes-not-captured');
-  assert.match(original.lastDirectFetchResult, /official Qavanin Attribute page rendered on 2026-11-26.*TreeText endpoint returned only a transfer\/interstitial page/);
+  assert.match(original.lastDirectFetchResult, /consolidated TreeText page and Attribute metadata page both rendered/);
   assert.equal(original.latestMetadataObservation.observedAt, '2026-11-26');
   assert.equal(original.latestTextObservation.observedAt, '2026-11-26');
   assert.equal(original.latestRecheck.directTextPageRendered, true);
