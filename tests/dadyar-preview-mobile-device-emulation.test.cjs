@@ -281,6 +281,12 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  const landlineQuestionCleared = question.value === "";',
       '  const landlineQuestionBlocked = !exportEligible;',
       '  const landlineQuestionNotEchoed = !document.getElementById("report").textContent.includes(landlineQuestion) && !document.getElementById("report").textContent.includes("02112345678");',
+      '  const unicodeObfuscatedQuestion = "چک فرضی؛ شماره همراه: ۰۹۱۲" + String.fromCodePoint(0x2062) + "۳۴۵۶۷۸۹";',
+      '  question.value = unicodeObfuscatedQuestion; question.dispatchEvent(new Event("input", { bubbles: true }));',
+      '  document.getElementById("generate").click();',
+      '  const unicodeQuestionCleared = question.value === "";',
+      '  const unicodeQuestionBlocked = !exportEligible;',
+      '  const unicodeQuestionNotEchoed = !document.getElementById("report").textContent.includes(unicodeObfuscatedQuestion) && !document.getElementById("report").textContent.includes("09123456789");',
       '  const privacyProbe = "چک فرضی برای شخص نمونه الف در نشانی فرضی خیابان آزمایش";',
       '  question.value = privacyProbe;',
       '  question.dispatchEvent(new Event("input", { bubbles: true }));',
@@ -313,6 +319,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '    pagehideClearedUnsubmittedQuestion, pagehideClearedDraft, pagehideClearedReviewer, pagehideClearedSelections, pagehideClearedReviewApproval, chequeOnlyPreview,',
       '    multiTopicExportEligible, multiTopicScopeStatus, multiTopicInputCleared, multiTopicRawQuestionEchoed,',
       '    landlineNoteCleared, landlineNoteWarning, landlineNoteBlocked, landlineQuestionCleared, landlineQuestionBlocked, landlineQuestionNotEchoed,',
+      '    unicodeQuestionCleared, unicodeQuestionBlocked, unicodeQuestionNotEchoed,',
       '    privacyQuestionCleared, privacyRawAbsentFromDraft, privacyExportEligible, privacyReviewApproved, privacyRawAbsentFromExport,',
       '    csp: document.querySelector("meta[http-equiv]")?.content || "",',
       '    externalResources',
@@ -383,6 +390,9 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.equal(snapshot.landlineQuestionCleared, true, 'synthetic landline number remained in the free-text field');
     assert.equal(snapshot.landlineQuestionBlocked, true, 'free-text landline number did not block report eligibility');
     assert.equal(snapshot.landlineQuestionNotEchoed, true, 'synthetic landline number leaked into the report');
+    assert.equal(snapshot.unicodeQuestionCleared, true, 'Unicode-obfuscated phone number remained in the free-text field');
+    assert.equal(snapshot.unicodeQuestionBlocked, true, 'Unicode-obfuscated phone number did not block report eligibility');
+    assert.equal(snapshot.unicodeQuestionNotEchoed, true, 'Unicode-obfuscated phone number leaked into the report');
     assert.equal(snapshot.privacyQuestionCleared, true, 'free-text field retained the synthetic identifying probe');
     assert.equal(snapshot.privacyExportEligible, false, 'address-like free text must fail closed before report approval');
     assert.equal(snapshot.privacyReviewApproved, false, 'address-like free text must not be approved or exported');
