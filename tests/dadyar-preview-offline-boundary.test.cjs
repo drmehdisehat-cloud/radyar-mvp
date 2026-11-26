@@ -57,3 +57,11 @@ test('local report export requires a complete checklist and an approved matching
   assert.match(html, /هویت بازبین احراز نمی‌شود/);
   assert.match(html, /ثبت بازبینی در این صفحه محلی است/);
 });
+ 
+test('cheque-only preview excludes unrelated calculators and unverified owner-supplied index data', () => {
+  assert.match(html, /کارگاه آزمایشی دادیار: چک فرضی/);
+  assert.doesNotMatch(html, /delay-damages-calculator|delay-principal|delay-due-month|delay-payment-month|delay-calculate|delay-result|delay-index-list/i);
+  assert.doesNotMatch(html, /محاسبه آزمایشی خسارت تأخیر تأدیه ۱۴۰۵/);
+  assert.doesNotMatch(html, /data-indexes=/i);
+  assert.doesNotMatch(html, /2654\\.9|2880\\.4|3092\\.3|3205\\.1|3333\\.9|3452\\.1|3611\\.1/);
+});
