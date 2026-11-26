@@ -18,7 +18,9 @@ test('review artifact build, upload, download and round-trip verification are pu
   }
   assert.ok(workflow.includes('id: upload-preview'));
   assert.ok(workflow.includes('uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333'));
-  assert.ok(workflow.includes('artifact-ids: ${{ steps.upload-preview.outputs.artifact-id }}'));
+  assert.ok(workflow.includes('outputs:\n      artifact-id: ${{ steps.upload-preview.outputs.artifact-id }}'));
+  assert.ok(workflow.includes('roundtrip-verify:\n    if: github.event_name == \'push\'\n    needs: verify-and-package'));
+  assert.ok(workflow.includes('artifact-ids: ${{ needs.verify-and-package.outputs.artifact-id }}'));
   assert.ok(workflow.includes('github-token: ${{ github.token }}'));
   assert.ok(workflow.includes('repository: ${{ github.repository }}'));
   assert.ok(workflow.includes('run-id: ${{ github.run_id }}'));
