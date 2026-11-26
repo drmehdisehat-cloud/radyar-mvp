@@ -60,6 +60,10 @@ verifier هش آرشیو بکاپ، sentinel، Artifact و هر دو فایل م
 
 تا زمانی که این ابزارها به یک برش کوچک و بازبینی‌شده منتقل و در CI همین نسخه اجرا نشده‌اند، خروجی این verifier به‌تنهایی برای اعلام Restore واقعی کافی نیست. از آن به‌عنوان release authorization استفاده نکنید.
 
+## انتخاب Artifact برای staging
+
+Artifact ساخته‌شده در رویداد pull_request ممکن است workflowCommit ادغامی GitHub را ثبت کند که با sourceCommit شاخه PR متفاوت است. چنین بسته‌ای برای staging رد می‌شود. فقط Artifact اجرای push روی همان شاخه بازبینی‌شده را انتخاب کنید که در INTEGRITY.json مقدار sourceCommit و workflowCommit دقیقاً برابر SHA همان شاخه باشد. آزمون CI این مرز را صریحاً کنترل می‌کند.
+
 ## بعد از نتیجه VERIFIED
 
 VERIFIED فقط یعنی شواهد امضاشده و فایل‌های محلی با این قواعد تطبیق دارند. هنوز باید:
