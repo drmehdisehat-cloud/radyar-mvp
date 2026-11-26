@@ -69,7 +69,7 @@ test('a rendered page or a prior metadata observation never promotes a source to
   assert.equal(cheque.useInLegalAnswers, false);
   assert.equal(register.policy.defaultUseInLegalAnswers, false);
   assert.equal(register.latestSupplementalObservationFile,
-    'docs/check-law-qavanin-recheck-20261126.json');
+    'docs/check-law-qavanin-browser-recheck-20261126.json');
   assert.equal(register.lastSupplementalObservationAt, '2026-11-26');
   assert.ok(cheque.supplementalObservationAttempts.some(item =>
     item.file === 'docs/check-law-qavanin-recheck-20261124.json' &&
