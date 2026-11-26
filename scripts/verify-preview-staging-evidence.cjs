@@ -175,7 +175,11 @@ async function verifyEvidence(evidence, options) {
   if (operatorFingerprint === reviewerFingerprint) fail('operator_and_reviewer_must_be_distinct');
 
   return {
-    status: 'VERIFIED',
+    status: 'EVIDENCE_MATCHED_NOT_RELEASE_AUTHORIZED',
+    keyFingerprintsPinned: true,
+    signerIdentityIndependentlyVerified: false,
+    restoreOperationIndependentlyVerified: false,
+    deploymentAuthorized: false,
     sourceCommit: payload.sourceCommit,
     backupSha256: archiveHash,
     previewArtifactSha256: previewArtifact.sha256,
