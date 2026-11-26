@@ -91,7 +91,8 @@ test('Arabic Yeh and Kaf variants normalize before matching Persian legal hints'
 });
 
 test('free text is classified locally then removed before it can enter the report', () => {
-  assert.match(html, /const freeQuestionHasSensitiveIdentifier=hasSensitiveIdentifier\(freeQuestion\)/);\n  assert.match(html, /internalTopicMatches=freeQuestionHasSensitiveIdentifier\?\[\]:classifyQuestion\(freeQuestion\)/);
+  assert.match(html, /const freeQuestionHasSensitiveIdentifier=hasSensitiveIdentifier\(freeQuestion\)/);
+  assert.match(html, /internalTopicMatches=freeQuestionHasSensitiveIdentifier\?\[\]:classifyQuestion\(freeQuestion\)/);
   assert.match(html, /متن خام پرسش آزاد برای حفظ حریم خصوصی در گزارش درج نمی‌شود/);
   assert.match(html, /freeQuestionField\.value='';/);
   assert.doesNotMatch(html, /:freeQuestion;/);
