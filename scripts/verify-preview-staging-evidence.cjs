@@ -63,7 +63,7 @@ function sha256File(filePath) {
   });
 }
 function publicKeyFingerprint(key) {
-  const publicKey = crypto.createPublicKey(key);
+  const publicKey = key && key.type === 'public' ? key : crypto.createPublicKey(key);
   if (publicKey.asymmetricKeyType !== 'ed25519') fail('attestation_key_must_be_ed25519');
   return crypto.createHash('sha256').update(publicKey.export({ type: 'spki', format: 'der' })).digest('hex');
 }
