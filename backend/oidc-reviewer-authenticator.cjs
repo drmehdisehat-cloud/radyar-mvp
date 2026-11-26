@@ -73,6 +73,7 @@ function createOidcReviewerAuthenticator(options = {}) {
   const {
     issuer,
     audience,
+    reviewIssuer,
     keys,
     now = Date.now,
     maxTokenAgeSeconds = 600,
@@ -80,6 +81,7 @@ function createOidcReviewerAuthenticator(options = {}) {
   } = options;
 
   const pinnedIssuer = validateIssuer(issuer);
+  if (!isSafeLabel(reviewIssuer)) throw new TypeError('The review trust-store issuer is required.');
   if (!isSafeLabel(audience)) throw new TypeError('A non-empty exact OIDC audience is required.');
   if (!Array.isArray(keys) || keys.length < 1 || keys.length > MAX_KEYS) {
     throw new TypeError('Between one and eight owner-pinned OIDC RSA public keys are required.');
@@ -185,7 +187,8 @@ function createOidcReviewerAuthenticator(options = {}) {
         claims.roles.every(isSafeLabel) ? [...claims.roles] : [];
       return Object.freeze({
         authenticated: true,
-        issuer: pinnedIssuer,
+        issuer: reviewIssuer,
+        identityIssuer: pinnedIssuer,
         subject: claims.sub,
         independent: claims.independent === true,
         roles: Object.freeze(roles)
