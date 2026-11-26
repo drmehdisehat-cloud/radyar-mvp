@@ -134,6 +134,32 @@ test('a staging database fingerprint equal to production is rejected', async t =
   f.resign();
   await assert.rejects(() => verifyEvidence(f.evidence, f.options), /staging_database_matches_production/);
 });
+test('hard-linked backup archive is rejected before hashing', async t => {
+  const f = makeFixture(); t.after(f.cleanup);
+  const external = path.join(f.root, 'external-backup');
+  fs.copyFileSync(f.backupPath, external);
+  fs.unlinkSync(f.backupPath);
+  fs.linkSync(external, f.backupPath);
+  await assert.rejects(() => verifyEvidence(f.evidence, f.options), /backup_archive_hardlink_forbidden/);
+});
+
+test('hard-linked preview artifact is rejected before hashing', async t => {
+  const f = makeFixture(); t.after(f.cleanup);
+  const external = path.join(f.root, 'external-preview');
+  fs.copyFileSync(f.artifactPath, external);
+  fs.unlinkSync(f.artifactPath);
+  fs.linkSync(external, f.artifactPath);
+  await assert.rejects(() => verifyEvidence(f.evidence, f.options), /preview_artifact_hardlink_forbidden/);
+});
+
+test('reviewer public key is opened without following a symlink', async t => {
+  const f = makeFixture(); t.after(f.cleanup);
+  const link = path.join(f.root, 'reviewer-link.pub.pem');
+  fs.symlinkSync(f.reviewerPublicPath, link);
+  f.options.reviewerPublicKeyPath = link;
+  await assert.rejects(() => verifyEvidence(f.evidence, f.options), /reviewer_key_symlink_forbidden/);
+});
+
 test('hard-linked restore sentinel is rejected even when its bytes match', async t => {
   const f = makeFixture(); t.after(f.cleanup);
   const external = path.join(f.root, 'external-sentinel');
