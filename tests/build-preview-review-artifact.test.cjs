@@ -25,8 +25,15 @@ test('builder emits exactly the public HTML and a source-bound fail-closed manif
   assert.deepEqual(fs.readdirSync(output).sort(), ['INTEGRITY.json', 'index.html']);
   const html = fs.readFileSync(path.join(output, 'index.html'));
   const manifest = JSON.parse(fs.readFileSync(path.join(output, 'INTEGRITY.json'), 'utf8'));
-  assert.equal(manifest.sourceCommit, git('rev-parse', 'HEAD'));
-  assert.equal(manifest.sourceGitBlobSha1, git('rev-parse', 'HEAD:dadyar-preview/index.html'));
+  const workflowCommit = git('rev-parse', 'HEAD');
+  const sourceCommit = process.env.DADYAR_PREVIEW_SOURCE_SHA || workflowCommit;
+  const sourceBlob = git('rev-parse', sourceCommit + ':dadyar-preview/index.html');
+  const workflowBlob = git('rev-parse', 'HEAD:dadyar-preview/index.html');
+  assert.equal(sourceBlob, workflowBlob, 'the reviewed head and workflow checkout must contain the same preview blob');
+  assert.equal(manifest.sourceCommit, sourceCommit);
+  assert.equal(manifest.workflowCommit, workflowCommit);
+  assert.equal(manifest.sourceGitBlobSha1, sourceBlob);
+  assert.equal(manifest.workflowGitBlobSha1, workflowBlob);
   assert.equal(manifest.htmlSha256, sha256(html));
   assert.equal(manifest.htmlBytes, html.length);
   assert.equal(manifest.route, '/dadyar-preview/');
