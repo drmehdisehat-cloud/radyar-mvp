@@ -26,11 +26,11 @@ function classifier() {
   };
   const sandbox = { document, URL: {}, Blob: class {}, setTimeout() {} };
   vm.runInNewContext(
-    script + '\nglobalThis.__classifyQuestion = classifyQuestion; globalThis.__isChequeScopeMatch = isChequeScopeMatch; globalThis.__topicHintCount = topicHints.length; globalThis.__hasSensitiveIdentifier = hasSensitiveIdentifier;',
+    script + '\nglobalThis.__classifyQuestion = classifyQuestion; globalThis.__isChequeScopeMatch = isChequeScopeMatch; globalThis.__isChequeOnlyScope = isChequeOnlyScope; globalThis.__topicHintCount = topicHints.length; globalThis.__hasSensitiveIdentifier = hasSensitiveIdentifier;',
     sandbox,
     { timeout: 1000 }
   );
-  return { classify: sandbox.__classifyQuestion, isChequeScopeMatch: sandbox.__isChequeScopeMatch, hasSensitiveIdentifier: sandbox.__hasSensitiveIdentifier, count: sandbox.__topicHintCount };
+  return { classify: sandbox.__classifyQuestion, isChequeScopeMatch: sandbox.__isChequeScopeMatch, isChequeOnlyScope: sandbox.__isChequeOnlyScope, hasSensitiveIdentifier: sandbox.__hasSensitiveIdentifier, count: sandbox.__topicHintCount };
 }
 
 test('free-text router loads all 27 internal legal-domain hints without a topic menu', () => {
@@ -113,25 +113,37 @@ test('single-word hints do not match as substrings inside unrelated words', () =
   assert.ok(!ids.includes('instruments'));
   assert.ok(!ids.includes('finance'));
 });
-test('cheque preview allows mixed free text when cheque is detected, but blocks non-cheque or unclassified questions', () => {
-  const { classify, isChequeScopeMatch } = classifier();
+test('cheque preview accepts only cheque-only free text; mixed-topic questions are classified but blocked', () => {
+  const { classify, isChequeScopeMatch, isChequeOnlyScope } = classifier();
   const expression = html.match(/const questionOutsideChequeScope=([^;]+);/)?.[1];
   assert.ok(expression, 'cheque-only scope gate missing');
   const outside = question => {
     const internalTopicMatches = classify(question);
-    return vm.runInNewContext(expression, { freeQuestion: question, internalTopicMatches, isChequeScopeMatch });
+    return vm.runInNewContext(expression, { freeQuestion: question, internalTopicMatches, isChequeOnlyScope });
   };
   assert.equal(outside(''), false, 'empty optional question keeps the synthetic cheque flow available');
   assert.equal(outside('چک صیادی و گواهی عدم پرداخت'), false, 'cheque-only question is in scope');
-  assert.equal(outside('چک تضمینی و اجاره'), false, 'mixed cheque/property question keeps the cheque workshop available');
-  assert.equal(outside('چک و طلاق'), false, 'mixed cheque/family question keeps the cheque workshop available');
-  assert.equal(outside('چک و سفته'), false, 'mixed cheque/promissory-note question keeps the cheque workshop available for its cheque part');
-  assert.equal(outside('سفته'), true, 'promissory-note-only question must be blocked');
-  assert.equal(outside('برات'), true, 'bill-of-exchange-only question must be blocked');
-  assert.equal(outside('ظهرنویسی'), true, 'generic endorsement-only question must be blocked');
-  assert.equal(outside('اجاره'), true, 'non-cheque question must be blocked');
-  assert.equal(outside('موضوع نامرتبط و بی‌کلیدواژه'), true, 'unclassified question must be blocked');
+
+  const mixedCases = [
+    ['چک تضمینی و اجاره', ['instruments', 'property']],
+    ['چک و طلاق', ['instruments', 'family']],
+    ['چک و سفته', ['instruments']],
+    ['چک و خسارت تأخیر تأدیه', ['instruments', 'civil']]
+  ];
+  for (const [question, expectedDomains] of mixedCases) {
+    const matches = classify(question);
+    const ids = matches.map(item => item.id);
+    assert.ok(matches.some(isChequeScopeMatch), 'cheque hint must remain discoverable for ' + question);
+    for (const id of expectedDomains) assert.ok(ids.includes(id), 'missing internal domain ' + id + ' for ' + question);
+    assert.equal(isChequeOnlyScope(matches), false, 'mixed or non-cheque keywords must not be treated as cheque-only');
+    assert.equal(outside(question), true, 'mixed-topic question must not produce a cheque-only report: ' + question);
+  }
+
+  for (const question of ['سفته', 'برات', 'ظهرنویسی', 'اجاره', 'موضوع نامرتبط و بی‌کلیدواژه']) {
+    assert.equal(outside(question), true, 'non-cheque or unclassified question must be blocked: ' + question);
+  }
   assert.match(html, /پرسش آزاد چندموضوعی تشخیص داده شد؛ این پیش‌نمایش فقط سناریوی چک فرضی را پوشش می‌دهد و موضوع دیگر را تحلیل نمی‌کند/);
+  assert.match(html, /فقط پرسش تک‌حوزه‌ای چک را می‌پذیرد/);
   assert.match(html, /if\(questionOutsideChequeScope\) conflicts\.push\(/);
 });
 
