@@ -27,6 +27,71 @@ function assertCanonicalExistingPath(value, label, kind) {
   if (kind === 'file' && !stat.isFile()) fail(label + '_not_regular_file');
   return value;
 }
+function assertNoSymlinkComponents(filePath, label) {
+  if (typeof filePath !== 'string' || !path.isAbsolute(filePath) || path.resolve(filePath) !== filePath) {
+    fail(label + '_path_must_be_absolute_canonical');
+  }
+  const root = path.parse(filePath).root;
+  let current = root;
+  const parts = path.relative(root, filePath).split(path.sep).filter(Boolean);
+  for (let i = 0; i < parts.length; i += 1) {
+    current = path.join(current, parts[i]);
+    const stat = fs.lstatSync(current);
+    if (stat.isSymbolicLink()) fail(label + '_symlink_forbidden');
+    if (i < parts.length - 1 && !stat.isDirectory()) fail(label + '_parent_not_directory');
+  }
+  if (fs.realpathSync(filePath) !== filePath) fail(label + '_path_not_canonical');
+}
+
+function openRegularFileNoFollow(filePath, label) {
+  if (typeof fs.constants.O_NOFOLLOW !== 'number') fail(label + '_nofollow_unavailable');
+  assertNoSymlinkComponents(filePath, label);
+  const before = fs.lstatSync(filePath);
+  if (!before.isFile()) fail(label + '_not_regular_file');
+  if (before.nlink !== 1) fail(label + '_hardlink_forbidden');
+  const fd = fs.openSync(filePath, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+  try {
+    const opened = fs.fstatSync(fd);
+    if (!opened.isFile() || opened.nlink !== 1 || opened.dev !== before.dev || opened.ino !== before.ino) {
+      fail(label + '_file_changed_during_open');
+    }
+    assertNoSymlinkComponents(filePath, label);
+    const after = fs.lstatSync(filePath);
+    if (after.isSymbolicLink() || after.dev !== opened.dev || after.ino !== opened.ino || after.nlink !== 1) {
+      fail(label + '_file_changed_during_open');
+    }
+    return { fd, stat: opened };
+  } catch (error) {
+    fs.closeSync(fd);
+    throw error;
+  }
+}
+
+function assertFilePathStillMatches(filePath, label, openedStat, fd) {
+  const currentFdStat = fs.fstatSync(fd);
+  const currentPathStat = fs.lstatSync(filePath);
+  if (!currentFdStat.isFile() || !currentPathStat.isFile() || currentPathStat.isSymbolicLink() ||
+      currentFdStat.dev !== openedStat.dev || currentFdStat.ino !== openedStat.ino ||
+      currentFdStat.size !== openedStat.size || currentFdStat.mtimeMs !== openedStat.mtimeMs ||
+      currentFdStat.ctimeMs !== openedStat.ctimeMs || currentFdStat.nlink !== 1 ||
+      currentPathStat.dev !== openedStat.dev || currentPathStat.ino !== openedStat.ino ||
+      currentPathStat.nlink !== 1) {
+    fail(label + '_file_changed_during_read');
+  }
+  assertNoSymlinkComponents(filePath, label);
+}
+
+function readRegularFileNoFollow(filePath, label, encoding = null) {
+  const opened = openRegularFileNoFollow(filePath, label);
+  try {
+    const bytes = fs.readFileSync(opened.fd);
+    assertFilePathStillMatches(filePath, label, opened.stat, opened.fd);
+    return encoding ? bytes.toString(encoding) : bytes;
+  } finally {
+    fs.closeSync(opened.fd);
+  }
+}
+
 function requireStrictlyWithin(child, parent, code) {
   if (child === parent || !isWithin(child, parent)) fail(code);
 }
@@ -59,13 +124,31 @@ function canonicalize(value) {
   if (Array.isArray(value)) return '[' + value.map(canonicalize).join(',') + ']';
   return '{' + Object.keys(value).sort().map(key => JSON.stringify(key) + ':' + canonicalize(value[key])).join(',') + '}';
 }
-function sha256File(filePath) {
+function sha256File(filePath, label = 'file') {
   return new Promise((resolve, reject) => {
+    let opened;
+    try { opened = openRegularFileNoFollow(filePath, label); }
+    catch (error) { reject(error); return; }
     const hash = crypto.createHash('sha256');
-    const stream = fs.createReadStream(filePath);
+    const stream = fs.createReadStream(null, { fd: opened.fd, autoClose: false });
+    let settled = false;
+    const finish = (error, value) => {
+      if (settled) return;
+      settled = true;
+      try { fs.closeSync(opened.fd); } catch {}
+      if (error) reject(error);
+      else resolve(value);
+    };
     stream.on('data', chunk => hash.update(chunk));
-    stream.on('error', reject);
-    stream.on('end', () => resolve(hash.digest('hex')));
+    stream.on('error', error => finish(error));
+    stream.on('end', () => {
+      try {
+        assertFilePathStillMatches(filePath, label, opened.stat, opened.fd);
+        finish(null, hash.digest('hex'));
+      } catch (error) {
+        finish(error);
+      }
+    });
   });
 }
 function publicKeyFingerprint(key) {
@@ -76,7 +159,7 @@ function publicKeyFingerprint(key) {
 function verifyAttestation(role, attestation, keyPath, expectedFingerprint, signedBytes) {
   if (!attestation || !isHex(attestation.keyFingerprint, 64) || typeof attestation.signatureBase64 !== 'string') fail(role + '_attestation_missing');
   if (!keyPath || !expectedFingerprint || !isHex(expectedFingerprint, 64)) fail(role + '_trusted_key_configuration_missing');
-  const publicKey = crypto.createPublicKey(fs.readFileSync(keyPath));
+  const publicKey = crypto.createPublicKey(readRegularFileNoFollow(keyPath, role + '_key'));
   if (publicKey.asymmetricKeyType !== 'ed25519') fail(role + '_key_must_be_ed25519');
   const actualFingerprint = publicKeyFingerprint(publicKey);
   if (actualFingerprint !== expectedFingerprint || attestation.keyFingerprint !== expectedFingerprint) fail(role + '_trusted_key_fingerprint_mismatch');
@@ -110,7 +193,7 @@ async function verifyEvidence(evidence, options) {
   assertTimestamp(backup.restoreCompletedAt, 'backup_restore');
   const archivePath = assertCanonicalExistingPath(backup.archivePath, 'backup_archive', 'file');
   if (overlaps(archivePath, stagingRoot) || overlaps(archivePath, productionRoot) || overlaps(archivePath, repositoryRoot)) fail('backup_archive_inside_protected_path');
-  const archiveHash = await sha256File(archivePath);
+  const archiveHash = await sha256File(archivePath, 'backup_archive');
   if (!isHex(backup.sha256, 64) || archiveHash !== backup.sha256) fail('backup_archive_sha256_mismatch');
   const restoreRoot = assertCanonicalExistingPath(backup.restoreRoot, 'restore_root', 'directory');
   requireStrictlyWithin(restoreRoot, stagingRoot, 'restore_root_outside_staging');
@@ -118,13 +201,13 @@ async function verifyEvidence(evidence, options) {
   requireStrictlyWithin(sentinelPath, restoreRoot, 'restore_sentinel_outside_restore_root');
   const sentinelStat = fs.lstatSync(sentinelPath);
   if (!sentinelStat.isFile() || sentinelStat.nlink !== 1) fail('restore_sentinel_hardlink_forbidden');
-  if (!isHex(backup.sentinelSha256, 64) || await sha256File(sentinelPath) !== backup.sentinelSha256) fail('restore_sentinel_sha256_mismatch');
+  if (!isHex(backup.sentinelSha256, 64) || await sha256File(sentinelPath, 'restore_sentinel') !== backup.sentinelSha256) fail('restore_sentinel_sha256_mismatch');
 
   const previewArtifact = payload.previewArtifact || {};
   assertExactKeys(previewArtifact, ['archivePath', 'sha256'], 'preview_artifact');
   const artifactPath = assertCanonicalExistingPath(previewArtifact.archivePath, 'preview_artifact', 'file');
   if (overlaps(artifactPath, stagingRoot) || overlaps(artifactPath, productionRoot) || overlaps(artifactPath, repositoryRoot)) fail('preview_artifact_inside_protected_path');
-  if (!isHex(previewArtifact.sha256, 64) || await sha256File(artifactPath) !== previewArtifact.sha256) fail('preview_artifact_sha256_mismatch');
+  if (!isHex(previewArtifact.sha256, 64) || await sha256File(artifactPath, 'preview_artifact') !== previewArtifact.sha256) fail('preview_artifact_sha256_mismatch');
 
   const probe = payload.databaseProbe || {};
   assertExactKeys(probe, ['success', 'query', 'value', 'stagingFingerprint', 'productionFingerprint', 'testedAt'], 'database_probe');
@@ -155,13 +238,13 @@ async function verifyEvidence(evidence, options) {
     requireStrictlyWithin(filePath, destinationRoot, 'destination_file_outside_destination');
     const destinationStat = fs.lstatSync(filePath);
     if (!destinationStat.isFile() || destinationStat.nlink !== 1) fail('destination_file_hardlink_forbidden:' + item.name);
-    const actualHash = await sha256File(filePath);
+    const actualHash = await sha256File(filePath, 'destination_file_' + item.name);
     if (actualHash !== item.sha256) fail('destination_file_sha256_mismatch:' + item.name);
     fileHashes[item.name] = actualHash;
   }
 
   let manifest;
-  try { manifest = JSON.parse(fs.readFileSync(path.join(destinationRoot, 'INTEGRITY.json'), 'utf8')); }
+  try { manifest = JSON.parse(readRegularFileNoFollow(path.join(destinationRoot, 'INTEGRITY.json'), 'destination_integrity_manifest', 'utf8')); }
   catch { fail('destination_integrity_manifest_invalid_json'); }
   if (manifest.schemaVersion !== 1 || manifest.sourceCommit !== payload.sourceCommit || manifest.workflowCommit !== payload.sourceCommit) fail('destination_manifest_source_commit_mismatch');
   if (manifest.route !== '/dadyar-preview/' || !Array.isArray(manifest.files) || JSON.stringify(manifest.files.slice().sort()) !== JSON.stringify(expectedNames)) fail('destination_manifest_route_or_file_set_mismatch');
@@ -210,7 +293,7 @@ async function main() {
   const evidencePath = parsed.positional[0];
   if (!evidencePath || parsed.positional.length !== 1) fail('usage: node verify-preview-staging-evidence.cjs evidence.json --operator-public-key FILE --operator-fingerprint SHA256 --reviewer-public-key FILE --reviewer-fingerprint SHA256');
   const evidenceFile = assertCanonicalExistingPath(evidencePath, 'evidence_file', 'file');
-  const evidence = JSON.parse(fs.readFileSync(evidenceFile, 'utf8'));
+  const evidence = JSON.parse(readRegularFileNoFollow(evidenceFile, 'evidence_file', 'utf8'));
   const result = await verifyEvidence(evidence, {
     operatorPublicKeyPath: parsed.flags['operator-public-key'],
     operatorFingerprint: parsed.flags['operator-fingerprint'],
