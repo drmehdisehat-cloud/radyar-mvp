@@ -52,6 +52,14 @@ node scripts/verify-preview-staging-evidence.cjs /absolute/path/evidence.json --
 
 verifier هش آرشیو بکاپ، sentinel، Artifact و هر دو فایل مقصد را بازخوانی می‌کند؛ جدایی staging از production و checkout، تفاوت fingerprint دیتابیس، مسیر بدون symlink، Manifest متصل به Commit دقیق، امضای Ed25519 و تفاوت کلید اپراتور و بازبین را بررسی می‌کند.
 
+## محدودیت و رابطه با ابزارهای Restore موجود
+
+این verifier یک کنترل تکمیلی برای payload امضاشده و مقصد preview است؛ جایگزین زنجیره کامل Restore نیست. در شاخه اصلی آزمایشی، ابزارهای جداگانه‌تری برای بررسی بایت‌های آرشیو/لاگ/probe، اجرای probe فقط‌خواندنی MySQL و pin اثرانگشت امضاکنندگان وجود دارند: 
+- PR 16: ابزارهای bundle و probe، اما PR بسیار بزرگ و Draft است؛
+- PR 32: pin دو امضاکننده Restore، اما Draft و نیازمند بازبینی مستقل است.
+
+تا زمانی که این ابزارها به یک برش کوچک و بازبینی‌شده منتقل و در CI همین نسخه اجرا نشده‌اند، خروجی این verifier به‌تنهایی برای اعلام Restore واقعی کافی نیست. از آن به‌عنوان release authorization استفاده نکنید.
+
 ## بعد از نتیجه VERIFIED
 
 VERIFIED فقط یعنی شواهد امضاشده و فایل‌های محلی با این قواعد تطبیق دارند. هنوز باید:
