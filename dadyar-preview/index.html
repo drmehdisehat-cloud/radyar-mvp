@@ -436,6 +436,11 @@ const topicHints = [
 function normalizeTopicText(value) {
   return String(value || '').normalize('NFKC')
     .replace(/[يى]/g, 'ی').replace(/ك/g, 'ک')
+    // Normalize Persian, Arabic-Indic and ASCII legal numerals identically.
+    .replace(/[۰-۹٠-٩]/g, digit => {
+      const code = digit.charCodeAt(0);
+      return String(code - (code >= 0x6f0 && code <= 0x6f9 ? 0x6f0 : 0x660));
+    })
     .replace(/\p{M}/gu, '')
     .replace(/[^\p{L}\p{N}]+/gu, ' ').replace(/\s+/gu, ' ').trim();
 }
@@ -450,9 +455,13 @@ function topicKeywordPattern(keyword) {
 function classifyQuestion(text) {
   const normalized = normalizeTopicText(text);
   return topicHints.flatMap(domain => {
-    const matches = domain.keywords.filter(keyword =>
-      topicKeywordPattern(keyword).test(normalized)
-    );
+    const seen = new Set();
+    const matches = domain.keywords.filter(keyword => {
+      const normalizedKeyword = normalizeTopicText(keyword);
+      if (seen.has(normalizedKeyword)) return false;
+      seen.add(normalizedKeyword);
+      return topicKeywordPattern(keyword).test(normalized);
+    });
     return matches.length ? [{ id: domain.id, matches }] : [];
   }).sort((a, b) => b.matches.length - a.matches.length);
 }
