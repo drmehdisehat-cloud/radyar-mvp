@@ -48,6 +48,12 @@ function assertNoSecrets(value, location) {
     assertNoSecrets(child, where + '.' + key);
   }
 }
+function assertExactKeys(value, expected, label) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) fail(label + '_must_be_object');
+  const actual = Object.keys(value).sort();
+  const allowed = expected.slice().sort();
+  if (JSON.stringify(actual) !== JSON.stringify(allowed)) fail(label + '_fields_mismatch');
+}
 function canonicalize(value) {
   if (value === null || typeof value !== 'object') return JSON.stringify(value);
   if (Array.isArray(value)) return '[' + value.map(canonicalize).join(',') + ']';
@@ -82,22 +88,28 @@ function verifyAttestation(role, attestation, keyPath, expectedFingerprint, sign
 async function verifyEvidence(evidence, options) {
   if (!evidence || typeof evidence !== 'object' || !evidence.payload || !evidence.attestations) fail('evidence_envelope_invalid');
   assertNoSecrets(evidence);
+  assertExactKeys(evidence, ['payload', 'attestations'], 'evidence');
   const payload = evidence.payload;
+  assertExactKeys(payload, ['schemaVersion', 'sourceCommit', 'environment', 'backup', 'previewArtifact', 'databaseProbe', 'destination'], 'payload');
   if (payload.schemaVersion !== 1) fail('evidence_schema_version_unsupported');
   if (!isHex(payload.sourceCommit, 40)) fail('source_commit_invalid');
 
   const environment = payload.environment || {};
+  assertExactKeys(environment, ['kind', 'stagingRoot', 'productionDocumentRoot', 'repositoryRoot'], 'environment');
   const stagingRoot = assertCanonicalExistingPath(environment.stagingRoot, 'staging_root', 'directory');
   const productionRoot = assertCanonicalExistingPath(environment.productionDocumentRoot, 'production_document_root', 'directory');
   const repositoryRoot = assertCanonicalExistingPath(environment.repositoryRoot, 'repository_root', 'directory');
   if (environment.kind !== 'isolated-staging') fail('environment_must_be_isolated_staging');
   if (overlaps(stagingRoot, productionRoot)) fail('staging_root_overlaps_production_document_root');
   if (overlaps(stagingRoot, repositoryRoot)) fail('staging_root_overlaps_repository_checkout');
+  if (overlaps(productionRoot, repositoryRoot)) fail('production_document_root_overlaps_repository_checkout');
 
   const backup = payload.backup || {};
+  assertExactKeys(backup, ['archivePath', 'sha256', 'restoreRoot', 'sentinelPath', 'sentinelSha256', 'restoreExitCode', 'restoreCompletedAt'], 'backup');
   if (backup.restoreExitCode !== 0) fail('backup_restore_exit_code_not_zero');
   assertTimestamp(backup.restoreCompletedAt, 'backup_restore');
   const archivePath = assertCanonicalExistingPath(backup.archivePath, 'backup_archive', 'file');
+  if (overlaps(archivePath, stagingRoot) || overlaps(archivePath, productionRoot) || overlaps(archivePath, repositoryRoot)) fail('backup_archive_inside_protected_path');
   const archiveHash = await sha256File(archivePath);
   if (!isHex(backup.sha256, 64) || archiveHash !== backup.sha256) fail('backup_archive_sha256_mismatch');
   const restoreRoot = assertCanonicalExistingPath(backup.restoreRoot, 'restore_root', 'directory');
@@ -107,18 +119,23 @@ async function verifyEvidence(evidence, options) {
   if (!isHex(backup.sentinelSha256, 64) || await sha256File(sentinelPath) !== backup.sentinelSha256) fail('restore_sentinel_sha256_mismatch');
 
   const previewArtifact = payload.previewArtifact || {};
+  assertExactKeys(previewArtifact, ['archivePath', 'sha256'], 'preview_artifact');
   const artifactPath = assertCanonicalExistingPath(previewArtifact.archivePath, 'preview_artifact', 'file');
+  if (overlaps(artifactPath, stagingRoot) || overlaps(artifactPath, productionRoot) || overlaps(artifactPath, repositoryRoot)) fail('preview_artifact_inside_protected_path');
   if (!isHex(previewArtifact.sha256, 64) || await sha256File(artifactPath) !== previewArtifact.sha256) fail('preview_artifact_sha256_mismatch');
 
   const probe = payload.databaseProbe || {};
+  assertExactKeys(probe, ['success', 'query', 'value', 'stagingFingerprint', 'productionFingerprint', 'testedAt'], 'database_probe');
   if (probe.success !== true || probe.query !== 'SELECT 1' || probe.value !== 1) fail('staging_database_probe_failed');
   assertTimestamp(probe.testedAt, 'database_probe');
   if (!isHex(probe.stagingFingerprint, 64) || !isHex(probe.productionFingerprint, 64)) fail('database_fingerprint_invalid');
   if (probe.stagingFingerprint === probe.productionFingerprint) fail('staging_database_matches_production');
 
   const destination = payload.destination || {};
+  assertExactKeys(destination, ['directoryPath', 'files'], 'destination');
   const destinationRoot = assertCanonicalExistingPath(destination.directoryPath, 'destination_root', 'directory');
   requireStrictlyWithin(destinationRoot, stagingRoot, 'destination_outside_staging');
+  if (path.basename(destinationRoot) !== 'dadyar-preview') fail('destination_leaf_must_be_dadyar_preview');
   if (overlaps(destinationRoot, restoreRoot)) fail('destination_overlaps_restore_tree');
   if (overlaps(destinationRoot, productionRoot) || overlaps(destinationRoot, repositoryRoot)) fail('destination_overlaps_protected_path');
   const expectedNames = ['INTEGRITY.json', 'index.html'];
@@ -130,6 +147,7 @@ async function verifyEvidence(evidence, options) {
 
   const fileHashes = {};
   for (const item of destination.files) {
+    assertExactKeys(item, ['name', 'sha256'], 'destination_file');
     if (!isHex(item.sha256, 64)) fail('destination_expected_sha256_invalid:' + item.name);
     const filePath = assertCanonicalExistingPath(path.join(destinationRoot, item.name), 'destination_file_' + item.name, 'file');
     requireStrictlyWithin(filePath, destinationRoot, 'destination_file_outside_destination');
@@ -145,9 +163,12 @@ async function verifyEvidence(evidence, options) {
   if (manifest.route !== '/dadyar-preview/' || !Array.isArray(manifest.files) || JSON.stringify(manifest.files.slice().sort()) !== JSON.stringify(expectedNames)) fail('destination_manifest_route_or_file_set_mismatch');
   if (manifest.htmlSha256 !== fileHashes['index.html']) fail('destination_manifest_html_hash_mismatch');
   const release = manifest.release || {};
-  if (release.status !== 'NOT_READY' || release.apiEnabled !== false || release.publicAiEnabled !== false || release.deploymentAuthorized !== false || release.backupRestoreVerified !== false || release.destinationVerified !== false) fail('review_artifact_release_boundary_invalid');
+  if (release.status !== 'NOT_READY' || release.apiEnabled !== false || release.publicAiEnabled !== false || release.reviewerAuthentication !== 'not-configured' || release.deploymentAuthorized !== false || release.backupRestoreVerified !== false || release.destinationVerified !== false) fail('review_artifact_release_boundary_invalid');
 
   const attestations = evidence.attestations;
+  assertExactKeys(attestations, ['operator', 'reviewer'], 'attestations');
+  assertExactKeys(attestations.operator, ['keyFingerprint', 'signatureBase64'], 'operator_attestation');
+  assertExactKeys(attestations.reviewer, ['keyFingerprint', 'signatureBase64'], 'reviewer_attestation');
   const signedBytes = Buffer.from(canonicalize(payload), 'utf8');
   const operatorFingerprint = verifyAttestation('operator', attestations.operator, options.operatorPublicKeyPath, options.operatorFingerprint, signedBytes);
   const reviewerFingerprint = verifyAttestation('reviewer', attestations.reviewer, options.reviewerPublicKeyPath, options.reviewerFingerprint, signedBytes);
