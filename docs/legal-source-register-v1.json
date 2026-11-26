@@ -336,18 +336,18 @@
         },
         {
           "url": "https://qavanin.ir/Law/TreeText/?IDS=634882870797924421",
-          "candidateStatus": "official-status-index-lead-direct-text-timeout-2026-11-19",
+          "candidateStatus": "official-amendment-text-and-metadata-rendered-2026-11-26-raw-bytes-not-captured",
           "documentId": "634882870797924421",
           "sourceClass": "primary-official-qavanin",
           "discoverySource": "https://qavanin.ir/Law/StatusIndex/?IDS=11400475274213876131",
-          "lastDirectFetchAt": "2026-11-19",
-          "lastDirectFetchResult": "request-timeout",
+          "lastDirectFetchAt": "2026-11-26",
+          "lastDirectFetchResult": "On 2026-11-26 the official Qavanin TreeText and Attribute pages for the 1403 amendment both rendered. The cheque-law Article 7 schedule row is visible at lines 787-793; metadata shows Gazette 23097, publication 1403/04/23 and effective date 1403/05/08. Raw bytes, SHA-256 and Gazette scan/PDF bytes were not captured.",
           "approvalDateShown": "1403/03/30",
           "humanReviewStatus": "pending",
           "useInLegalAnswers": false,
-          "note": "فهرست تنقیحی رسمی قانون، این مصوبه را با تاریخ تصویب ۱۴۰۳/۰۳/۳۰ به‌عنوان قانون اثرگذار معرفی می‌کند؛ واکشی مستقیم متن در همین تاریخ timeout شد. برچسب اصلاحی ماده ۷ در متن تجمیعی به‌تنهایی شماره/تاریخ روزنامه رسمی یا تاریخ لازم‌الاجراشدن را اثبات نمی‌کند.",
+          "note": "بازبینی مستقیم ۱۴۰۵/۰۹/۰۵: متن و فراداده مصوبه ۱۴۰۳/۰۳/۳۰ در Qavanin نمایش داده شد؛ ردیف ماده ۷ قانون صدور چک و حدود ریالی آن در جدول قابل مشاهده است. فراداده شماره روزنامه رسمی ۲۳۰۹۷، تاریخ انتشار ۱۴۰۳/۰۴/۲۳، ابلاغ ۱۴۰۳/۰۴/۰۴ و اجرا ۱۴۰۳/۰۵/۰۸ را نشان می‌دهد. صفحه تصویر روزنامه رسمی باز شد اما فایل تصویر/PDF دریافت و هش‌گذاری نشد؛ بنابراین این منبع هنوز برای پاسخ حقوقی مجاز نیست.",
           "latestRecheck": {
-            "observedAt": "2026-11-21",
+            "observedAt": "2026-11-26",
             "sourceClass": "primary-official-qavanin",
             "directTextUrl": "https://qavanin.ir/Law/TreeText/?IDS=634882870797924421",
             "directMetadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=634882870797924421",
@@ -360,25 +360,34 @@
               787,
               793
             ],
+            "article7BandsInRials": [
+              "780/000/000",
+              "780/000/000 تا 3/900/000/000",
+              "3/900/000/000"
+            ],
             "metadataPageRendered": true,
             "metadataPageLines": [
               19,
               34
             ],
+            "decisionDateShown": "1403/03/30",
+            "notificationNumberShown": "56261/ت62298هـ",
             "officialGazetteNumberShown": "23097",
             "officialGazettePublicationDateShown": "1403/04/23",
             "promulgationDateShown": "1403/04/04",
             "effectiveDateShown": "1403/05/08",
-            "decisionNumberShown": "56261/ت62298هـ",
+            "lastStatusShown": "1403/08/27",
             "rawHttpBytesCaptured": false,
             "rawResponseSha256": null,
+            "officialGazetteIssueBytesRetrieved": false,
             "primarySourceVerified": false,
             "humanReviewStatus": "pending",
+            "eventDateVersioningApproved": false,
             "useInLegalAnswers": false,
-            "note": "The official portal rendered the regulation text and metadata on 2026-11-21. The Gazette issue bytes and signed appendix were not independently downloaded or hashed; the earlier timeout is retained as a historical observation."
+            "note": "Direct official text and metadata rendered; no raw bytes, SHA-256 or Gazette scan/PDF bytes."
           },
           "latestMetadataObservation": {
-            "observedAt": "2026-11-25",
+            "observedAt": "2026-11-26",
             "directMetadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=634882870797924421",
             "metadataPageRendered": true,
             "visibleLines": [
@@ -413,8 +422,30 @@
             "humanReviewStatus": "pending",
             "useInLegalAnswers": false
           },
-          "metadataRetrievedAt": "2026-11-25",
-          "latestMetadataFetchResult": "Official Qavanin attribute page rendered on 2026-11-25; direct TreeText request timed out. Metadata only; no raw bytes, SHA-256, Gazette issue bytes or legal review."
+          "metadataRetrievedAt": "2026-11-26",
+          "latestMetadataFetchResult": "Official Qavanin Attribute page rendered on 2026-11-26; metadata only, with no raw response bytes, reproducible SHA-256, Gazette scan/PDF bytes or independent legal review.",
+          "latestTextObservation": {
+            "observedAt": "2026-11-26",
+            "observationMethod": "browser-rendered-direct-page",
+            "textPageRendered": true,
+            "visibleLineRange": [
+              787,
+              793
+            ],
+            "article7BandsInRials": [
+              "780/000/000",
+              "780/000/000 تا 3/900/000/000",
+              "3/900/000/000"
+            ],
+            "rawHttpResponseBytesCaptured": false,
+            "rawResponseSha256": null,
+            "officialGazetteIssueBytesRetrieved": false,
+            "primarySourceVerified": false,
+            "humanReviewStatus": "pending",
+            "eventDateVersioningApproved": false,
+            "useInLegalAnswers": false,
+            "observationFile": "docs/check-law-qavanin-browser-recheck-20261126.json"
+          }
         },
         {
           "url": "https://qavanin.ir/Law/TreeText/?IDS=16863897128756457315",
@@ -1396,6 +1427,33 @@
           "humanReviewStatus": "pending",
           "eventDateVersioningApproved": false,
           "useInLegalAnswers": false
+        },
+        {
+          "file": "docs/check-law-qavanin-browser-recheck-20261126.json",
+          "observedAt": "2026-11-26",
+          "documentId": "634882870797924421",
+          "sourceClass": "primary-official-qavanin-browser-rendered-observation",
+          "status": "official-amendment-text-and-metadata-rendered-unhashed",
+          "textPageRendered": true,
+          "textVisibleLines": [
+            787,
+            793
+          ],
+          "metadataPageRendered": true,
+          "metadataVisibleLines": [
+            19,
+            34
+          ],
+          "officialGazetteNumberShown": "23097",
+          "officialGazettePublicationDateShown": "1403/04/23",
+          "effectiveDateShown": "1403/05/08",
+          "rawHttpResponseBytesCaptured": false,
+          "rawResponseSha256": null,
+          "officialGazetteIssueBytesRetrieved": false,
+          "primarySourceVerified": false,
+          "humanReviewStatus": "pending",
+          "eventDateVersioningApproved": false,
+          "useInLegalAnswers": false
         }
       ],
       "latestConsolidatedObservation": {
@@ -1423,6 +1481,34 @@
         "originalPromulgationDateShown": "1355/05/09",
         "originalEffectiveDateShown": "1355/06/04",
         "latestStatusLabelShown": "اصلاحي 1403/03/30",
+        "rawHttpBytesCaptured": false,
+        "rawResponseSha256": null,
+        "officialGazetteIssueBytesRetrieved": false,
+        "primarySourceVerified": false,
+        "humanReviewStatus": "pending",
+        "eventDateVersioningApproved": false,
+        "useInLegalAnswers": false
+      },
+      "latest1403Observation": {
+        "file": "docs/check-law-qavanin-browser-recheck-20261126.json",
+        "observedAt": "2026-11-26",
+        "documentId": "634882870797924421",
+        "sourceClass": "primary-official-qavanin",
+        "textRendered": true,
+        "tableLines": [
+          787,
+          793
+        ],
+        "article7BandsInRials": [
+          "780/000/000",
+          "780/000/000 تا 3/900/000/000",
+          "3/900/000/000"
+        ],
+        "metadataRendered": true,
+        "officialGazetteNumber": "23097",
+        "officialGazettePublicationDate": "1403/04/23",
+        "promulgationDate": "1403/04/04",
+        "effectiveDate": "1403/05/08",
         "rawHttpBytesCaptured": false,
         "rawResponseSha256": null,
         "officialGazetteIssueBytesRetrieved": false,

@@ -13,7 +13,7 @@ const candidate = record.officialDocumentUrlCandidates.find(item => item.documen
 test('records the newly rendered consolidated Qavanin text page without upgrading source eligibility', () => {
   const source = observation.sources.consolidatedChequeLaw;
   assert.equal(observation.observedAt, '2026-11-26');
-  assert.equal(observation.status, 'official-consolidated-text-rendered-unhashed');
+  assert.equal(observation.status, 'official-consolidated-and-amendment-text-rendered-unhashed');
   assert.equal(source.textPageRendered, true);
   assert.deepEqual(source.visibleLineRange, [42, 113]);
   assert.equal(source.metadataPageRendered, true);
@@ -30,8 +30,18 @@ test('records the newly rendered consolidated Qavanin text page without upgradin
 
 test('the separate 1403 amendment endpoint remains unverified and the live register remains research-only', () => {
   const amendment = observation.sources.amendment1403SeparateText;
-  assert.equal(amendment.textPageRendered, false);
-  assert.equal(amendment.textPageResult, 'transfer-interstitial');
+  assert.equal(amendment.textPageRendered, true);
+  assert.equal(amendment.textPageResult, 'browser-rendered-direct-page');
+  assert.deepEqual(amendment.visibleLineRange, [787, 793]);
+  assert.deepEqual(amendment.article7BandsInRials, ['780/000/000', '780/000/000 تا 3/900/000/000', '3/900/000/000']);
+  assert.equal(amendment.metadataPageRendered, true);
+  assert.equal(amendment.metadata.officialGazetteNumberShown, '23097');
+  assert.equal(amendment.metadata.officialGazettePublicationDateShown, '1403/04/23');
+  assert.equal(amendment.metadata.promulgationDateShown, '1403/04/04');
+  assert.equal(amendment.metadata.effectiveDateShown, '1403/05/08');
+  assert.equal(amendment.metadata.latestStatusShown, '1403/08/27');
+  assert.equal(observation.sources.officialGazetteImagePage.pageRendered, true);
+  assert.equal(observation.sources.officialGazetteImagePage.pdfBytesRetrieved, false);
   assert.equal(registry.status, 'research-only');
   assert.equal(registry.releaseSourceEligible, false);
   assert.equal(registry.legalConclusionPermitted, false);

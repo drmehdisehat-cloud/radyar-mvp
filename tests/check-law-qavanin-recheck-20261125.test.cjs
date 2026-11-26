@@ -61,7 +61,11 @@ test('new official-page observations remain non-authorizing until raw bytes, Gaz
   assert.equal(candidate1372.latestTextObservation.observedAt, '2026-11-25');
   assert.equal(candidate1372.latestMetadataObservation.observedAt, '2026-11-25');
   assert.equal(candidate1372.useInLegalAnswers, false);
-  assert.equal(candidate1403.latestMetadataObservation.observedAt, '2026-11-25');
+  assert.equal(candidate1403.latestMetadataObservation.observedAt, '2026-11-26');
+  assert.equal(candidate1403.latestTextObservation.observedAt, '2026-11-26');
+  assert.equal(candidate1403.latestRecheck.textPageRendered, true);
+  assert.deepEqual(candidate1403.latestRecheck.chequeArticle7TableLines, [787, 793]);
+  assert.equal(candidate1403.latestMetadataObservation.effectiveDateShown, '1403/05/08');
   assert.equal(candidate1403.useInLegalAnswers, false);
   assert.equal(cheque.latest1372Observation.file, 'docs/check-law-qavanin-recheck-20261125.json');
   assert.equal(cheque.latest1372Observation.observedAt, '2026-11-25');

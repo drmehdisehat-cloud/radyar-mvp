@@ -21,6 +21,10 @@ test('canonical registry keeps consolidated-law metadata recheck separate from t
   assert.equal(browserObservation.sources.consolidatedChequeLaw.textPageRendered, true);
   assert.equal(browserObservation.sources.consolidatedChequeLaw.rawHttpResponseBytesCaptured, false);
   assert.equal(browserObservation.sources.consolidatedChequeLaw.legalAnswerUsePermitted, false);
+  assert.equal(browserObservation.sources.amendment1403SeparateText.textPageRendered, true);
+  assert.equal(browserObservation.sources.amendment1403SeparateText.metadata.officialGazetteNumberShown, '23097');
+  assert.equal(browserObservation.sources.amendment1403SeparateText.metadata.effectiveDateShown, '1403/05/08');
+  assert.equal(browserObservation.sources.amendment1403SeparateText.legalAnswerUsePermitted, false);
   assert.equal(registry.observations.latestBrowserTextObservation, 'docs/check-law-qavanin-browser-recheck-20261126.json');
   assert.equal(registry.status, 'research-only');
   assert.equal(registry.releaseSourceEligible, false);
