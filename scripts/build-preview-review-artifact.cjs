@@ -39,17 +39,23 @@ const sourceStat = fs.lstatSync(source);
 if (!sourceStat.isFile() || sourceStat.isSymbolicLink()) fail('preview_source_must_be_regular_file');
 const html = fs.readFileSync(source);
 const sha256 = crypto.createHash('sha256').update(html).digest('hex');
-const blobSha = execFileSync('git', ['rev-parse', 'HEAD:dadyar-preview/index.html'], { cwd: root, encoding: 'utf8' }).trim();
-const sourceCommit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
-if (process.env.GITHUB_SHA && process.env.GITHUB_SHA !== sourceCommit) fail('workflow_sha_does_not_match_checkout_head');
-if (!/^[a-f0-9]{40}$/.test(blobSha) || !/^[a-f0-9]{40}$/.test(sourceCommit)) fail('git_sha_invalid');
+const workflowCommit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
+const sourceCommit = process.env.DADYAR_PREVIEW_SOURCE_SHA || workflowCommit;
+const sourceBlobSha = execFileSync('git', ['rev-parse', sourceCommit + ':dadyar-preview/index.html'], { cwd: root, encoding: 'utf8' }).trim();
+const workflowBlobSha = execFileSync('git', ['rev-parse', 'HEAD:dadyar-preview/index.html'], { cwd: root, encoding: 'utf8' }).trim();
+const workingTreeBlobSha = execFileSync('git', ['hash-object', source], { cwd: root, encoding: 'utf8' }).trim();
+if (process.env.GITHUB_SHA && process.env.GITHUB_SHA !== workflowCommit) fail('workflow_sha_does_not_match_checkout_head');
+if (!/^[a-f0-9]{40}$/.test(sourceCommit) || !/^[a-f0-9]{40}$/.test(workflowCommit) || !/^[a-f0-9]{40}$/.test(sourceBlobSha) || !/^[a-f0-9]{40}$/.test(workflowBlobSha)) fail('git_sha_invalid');
+if (sourceBlobSha !== workflowBlobSha || workingTreeBlobSha !== sourceBlobSha) fail('preview_source_differs_from_reviewed_head');
 fs.writeFileSync(path.join(output, 'index.html'), html, { flag: 'wx', mode: 0o644 });
 const manifest = {
   schemaVersion: 1,
   artifactType: 'dadyar-public-preview-review-only',
   sourceCommit,
+  workflowCommit,
   sourcePath: 'dadyar-preview/index.html',
-  sourceGitBlobSha1: blobSha,
+  sourceGitBlobSha1: sourceBlobSha,
+  workflowGitBlobSha1: workflowBlobSha,
   htmlSha256: sha256,
   htmlBytes: html.length,
   route: '/dadyar-preview/',
@@ -76,5 +82,5 @@ if (JSON.stringify(names) !== JSON.stringify(['INTEGRITY.json', 'index.html'])) 
 const copied = fs.readFileSync(path.join(output, 'index.html'));
 if (crypto.createHash('sha256').update(copied).digest('hex') !== sha256 || copied.length !== html.length) fail('copied_preview_integrity_mismatch');
 const parsed = JSON.parse(fs.readFileSync(path.join(output, 'INTEGRITY.json'), 'utf8'));
-if (parsed.sourceCommit !== sourceCommit || parsed.sourceGitBlobSha1 !== blobSha || parsed.release.deploymentAuthorized !== false) fail('manifest_binding_or_release_boundary_mismatch');
-process.stdout.write(JSON.stringify({ output, sourceCommit, sourceGitBlobSha1: blobSha, htmlSha256: sha256, htmlBytes: html.length, files: names, releaseStatus: parsed.release.status }) + '\n');
+if (parsed.sourceCommit !== sourceCommit || parsed.workflowCommit !== workflowCommit || parsed.sourceGitBlobSha1 !== sourceBlobSha || parsed.workflowGitBlobSha1 !== workflowBlobSha || parsed.release.deploymentAuthorized !== false) fail('manifest_binding_or_release_boundary_mismatch');
+process.stdout.write(JSON.stringify({ output, sourceCommit, workflowCommit, sourceGitBlobSha1: sourceBlobSha, workflowGitBlobSha1: workflowBlobSha, htmlSha256: sha256, htmlBytes: html.length, files: names, releaseStatus: parsed.release.status }) + '\n');
