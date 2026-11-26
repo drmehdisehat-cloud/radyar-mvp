@@ -103,7 +103,11 @@ function makeFixture() {
 test('signed restore and staging evidence passes only for isolated, hash-matched preview files', async t => {
   const f = makeFixture(); t.after(f.cleanup);
   const result = await verifyEvidence(f.evidence, f.options);
-  assert.equal(result.status, 'VERIFIED');
+  assert.equal(result.status, 'EVIDENCE_MATCHED_NOT_RELEASE_AUTHORIZED');
+  assert.equal(result.keyFingerprintsPinned, true);
+  assert.equal(result.signerIdentityIndependentlyVerified, false);
+  assert.equal(result.restoreOperationIndependentlyVerified, false);
+  assert.equal(result.deploymentAuthorized, false);
   assert.equal(result.sourceCommit, 'a'.repeat(40));
   assert.deepEqual(result.destinationFiles, ['INTEGRITY.json', 'index.html']);
   assert.notEqual(result.operatorFingerprint, result.reviewerFingerprint);
