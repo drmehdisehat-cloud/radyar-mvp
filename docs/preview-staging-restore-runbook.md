@@ -50,7 +50,7 @@ node scripts/sign-preview-staging-evidence.cjs /absolute/path/evidence.json --ro
 
 node scripts/verify-preview-staging-evidence.cjs /absolute/path/evidence.json --operator-public-key /secure/operator-ed25519.pub.pem --operator-fingerprint 64_HEX --reviewer-public-key /secure/reviewer-ed25519.pub.pem --reviewer-fingerprint 64_HEX
 
-verifier هش آرشیو بکاپ، sentinel، Artifact و هر دو فایل مقصد را بازخوانی می‌کند؛ جدایی staging از production و checkout، تفاوت fingerprint دیتابیس، مسیر بدون symlink، Manifest متصل به Commit دقیق، امضای Ed25519 و تفاوت کلید اپراتور و بازبین را بررسی می‌کند. خروجی دقیق آن EVIDENCE_MATCHED_NOT_RELEASE_AUTHORIZED است؛ هویت اشخاص و صحت واقعی عملیات Restore را مستقلاً احراز نمی‌کند و هرگز مجوز انتشار نمی‌دهد.
+verifier هش آرشیو بکاپ، sentinel، Artifact و هر دو فایل مقصد را بازخوانی می‌کند؛ جدایی staging از production و checkout، تفاوت fingerprint دیتابیس، مسیر بدون symlink، Manifest متصل به Commit دقیق، امضای Ed25519 و تفاوت کلید اپراتور و بازبین را بررسی می‌کند. برای جلوگیری از hard link که می‌تواند فایل staging را به فایل تولید متصل کند، هر دو فایل مقصد باید regular file با شمارنده پیوند (nlink) برابر ۱ باشند؛ hard link به فایل تولید یا فایل دیگر رد می‌شود. خروجی دقیق آن EVIDENCE_MATCHED_NOT_RELEASE_AUTHORIZED است؛ هویت اشخاص و صحت واقعی عملیات Restore را مستقلاً احراز نمی‌کند و هرگز مجوز انتشار نمی‌دهد.
 
 ## محدودیت و رابطه با ابزارهای Restore موجود
 
