@@ -151,6 +151,8 @@ async function verifyEvidence(evidence, options) {
     if (!isHex(item.sha256, 64)) fail('destination_expected_sha256_invalid:' + item.name);
     const filePath = assertCanonicalExistingPath(path.join(destinationRoot, item.name), 'destination_file_' + item.name, 'file');
     requireStrictlyWithin(filePath, destinationRoot, 'destination_file_outside_destination');
+    const destinationStat = fs.lstatSync(filePath);
+    if (!destinationStat.isFile() || destinationStat.nlink !== 1) fail('destination_file_hardlink_forbidden:' + item.name);
     const actualHash = await sha256File(filePath);
     if (actualHash !== item.sha256) fail('destination_file_sha256_mismatch:' + item.name);
     fileHashes[item.name] = actualHash;
