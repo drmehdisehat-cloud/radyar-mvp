@@ -211,9 +211,7 @@ test('IranHost restore handoff confirms the account panel and archive format bef
   const runbook = fs.readFileSync(path.join(__dirname, '..', 'docs', 'preview-staging-restore-runbook.md'), 'utf8');
   const start = runbook.indexOf('## تأیید نوع پنل و قالب بکاپ پیش از هر دستور');
   assert.ok(start >= 0, 'restore runbook must contain a panel/archive preflight section');
-  const tail = runbook.slice(start);
-  const nextHeading = tail.indexOf('\\n## ', 4);
-  const section = nextHeading >= 0 ? tail.slice(0, nextHeading) : tail;
+  const section = runbook.slice(start).split(/\n## /, 1)[0];
   for (const required of [
     'cPanel',
     'SolidCP',
