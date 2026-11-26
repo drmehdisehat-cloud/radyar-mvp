@@ -697,20 +697,16 @@ document.getElementById('generate').addEventListener('click',()=>{
  if(typeof freeQuestionCounter!=='undefined') freeQuestionCounter.textContent='۰ از ۳۰۰ نویسه';
  // Fail closed on likely real Iranian mobile numbers, national IDs or bank card numbers in free text.
  // This is a local warning, not a guarantee of anonymisation.
- let normalizedQuestionDigits=freeQuestion.normalize('NFKC').replace(/\p{Default_Ignorable_Code_Point}/gu,'').replace(/[۰-۹]/g,d=>String(d.charCodeAt(0)-0x06F0)).replace(/[٠-٩]/g,d=>String(d.charCodeAt(0)-0x0660)).replace(/[\u061c\u200b\u200c\u200d\u200e\u200f\u202a-\u202e\u2060\u2066-\u2069\ufeff]/g,'');
- let compactIdentifierDigits=normalizedQuestionDigits.replace(/(?<![A-Za-z0-9])IR[\p{P}\p{Z}\s\u061c\u200b\u200c\u200d\u200e\u200f\u202a-\u202e\u2060\u2066-\u2069\ufeff]+(?=\d)/giu,'IR').replace(/(?<=\d)[\p{P}\p{Z}\s\u061c\u200b\u200c\u200d\u200e\u200f\u202a-\u202e\u2060\u2066-\u2069\ufeff]+(?=\d)/gu,'');
- const hasSensitiveIdentifier=/(?:\+?98|0)?9\d{9}(?!\d)|(?<!\d)(?:\+?98|0)[1-8]\d\d{7,8}(?!\d)|(?<!\d)\d{16}(?!\d)|(?<!\d)\d{10}(?!\d)/.test(compactIdentifierDigits) || /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i.test(freeQuestion) || /(?<![A-Za-z0-9])IR\d{24}(?!\d)/i.test(compactIdentifierDigits) || /(?:https?:\/\/|www\.)[^\s<>]+|(?<![\p{L}\p{N}_])(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z]{2,24})(?:\/[^\s<>]*)?/iu.test(freeQuestion) || /(?:نشانی|آدرس|خیابان|کوچه|بلوار|بزرگراه|میدان|پلاک|واحد|طبقه|کد[\s\u200c]*پستی|شهرک|روستا|محله)\s*[:：#\-]?\s*[\p{L}\p{N}]/iu.test(freeQuestion);
- normalizedQuestionDigits='';
- compactIdentifierDigits='';
-// Never echo suspected identifiers into the visible draft, even while export is blocked.
- const displayQuestion=hasSensitiveIdentifier
+ const freeQuestionHasSensitiveIdentifier=hasSensitiveIdentifier(freeQuestion);
+ // Never echo suspected identifiers into the visible draft, even while export is blocked.
+ const displayQuestion=freeQuestionHasSensitiveIdentifier
   ?'نامشخص؛ شناسه حساس احتمالی شناسایی شد و متن ورودی حذف شد'
   :freeQuestion
    ?'متن خام پرسش آزاد برای حفظ حریم خصوصی در گزارش درج نمی‌شود'
    :'ثبت نشده';
  // Internal-only multi-topic hints; never rendered as user-facing categories or legal conclusions.
- internalTopicMatches=hasSensitiveIdentifier?[]:classifyQuestion(freeQuestion);
- const topicScopeMessage=hasSensitiveIdentifier?'پرسش آزاد به دلیل احتمال شناسه حساس بررسی نشد.':describeTopicScope(internalTopicMatches,freeQuestion);
+ internalTopicMatches=freeQuestionHasSensitiveIdentifier?[]:classifyQuestion(freeQuestion);
+ const topicScopeMessage=freeQuestionHasSensitiveIdentifier?'پرسش آزاد به دلیل احتمال شناسه حساس بررسی نشد.':describeTopicScope(internalTopicMatches,freeQuestion);
  topicScopeStatus.textContent=topicScopeMessage;
  // The textarea is already cleared. Keep raw text only in this transient local
  // variable for keyword matching; never render, export or persist it.
@@ -727,7 +723,7 @@ document.getElementById('generate').addEventListener('click',()=>{
  const conflicts=[];
  if(!eventDateResult.formatValid) conflicts.push('تاریخ واقعه با قالب یا تقویم فارسی ICU مرورگر معتبر نیست؛ از YYYY-MM-DD یا YYYY/MM/DD با سال ۱۳۰۰ تا ۱۵۰۰ استفاده کنید. انطباق با تقویم رسمی ایران باید مستقل بررسی شود.');
  if(questionOutsideChequeScope) conflicts.push('پرسش آزاد فاقد نشانه مشخص چک است یا هم‌زمان چند حوزه را پوشش می‌دهد؛ این پیش‌نمایش فقط پرسش تک‌حوزه‌ای چک را می‌پذیرد. پرسش را به بخش چک محدود کنید؛ سایر حوزه‌ها در این نسخه تحلیل نمی‌شوند.');
- if(hasSensitiveIdentifier) conflicts.push('پرسش آزاد احتمالاً حاوی شماره تماس، کد ملی، کارت، ایمیل یا پیوند اینترنتی احتمالی است؛ آن را پاک کنید و فقط از داده ساختگی استفاده کنید.');
+ if(freeQuestionHasSensitiveIdentifier) conflicts.push('پرسش آزاد احتمالاً حاوی شماره تماس، کد ملی، کارت، ایمیل یا پیوند اینترنتی احتمالی است؛ آن را پاک کنید و فقط از داده ساختگی استفاده کنید.');
  if(hasCertificate && answers[1].state==='no') conflicts.push('گواهی عدم پرداخت در فهرست مدارک انتخاب شده، اما پاسخ مصاحبه وجود آن را رد می‌کند.');
  if(!hasCertificate && answers[1].state==='yes') conflicts.push('مصاحبه وجود گواهی عدم پرداخت را اعلام می‌کند، اما مدرکی در فهرست انتخاب نشده است.');
  if(unknownDueDate && answers[0].state==='yes') conflicts.push('تاریخ سررسید نامعلوم علامت خورده، اما مصاحبه تاریخ را موجود اعلام می‌کند.');
@@ -758,7 +754,7 @@ document.getElementById('generate').addEventListener('click',()=>{
  'منابع قانونی: تأییدنشده؛ هیچ استناد قانونی ارائه نمی‌شود.','هیچ ادعایی احراز نشده است. اصالت مدارک، متن قانون، منبع رسمی و تاریخ اعتبار باید توسط متخصص انسانی بررسی شود.',
  'این متن رأی، سند رسمی یا دستور انتظامی نیست.'].join('\n\n');
  out.textContent=report;exportEligible=conflicts.length===0 && unresolved.length===0;reviewRecord=null;reviewerName.value='بازبین آزمون';reviewDecision.value='pending';reviewNote.value='';reviewStatus.textContent='';exportAck.checked=false;updateExportPermission();
- exportStatus.textContent=hasSensitiveIdentifier?'دریافت گزارش غیرفعال است: شناسه حساس احتمالی در پرسش آزاد وجود دارد؛ آن را حذف کنید.':questionOutsideChequeScope?'دریافت گزارش غیرفعال است: پرسش آزاد چندموضوعی، نامرتبط یا نامشخص است؛ این پیش‌نمایش فقط گزارش چک فرضی را پوشش می‌دهد.':evidence.length===0?'دریافت گزارش غیرفعال است: هیچ مدرک فرضی انتخاب نشده است. دست‌کم یک مدرک نمونه انتخاب کنید و پیش‌نویس را دوباره بسازید.':!evidence.some(e=>e.description==='تصویر چک نمونه با شماره ساختگی')?'دریافت گزارش غیرفعال است: تصویر چک نمونه انتخاب نشده است. برای ادامه، مدرک چک فرضی را انتخاب کنید.':conflicts.length>0?'دریافت گزارش به علت تناقض اطلاعات غیرفعال است. پاسخ‌ها یا مدارک فرضی را اصلاح و پیش‌نویس را دوباره تولید کنید.':unresolved.length>0?'دریافت گزارش تا پاسخ‌گویی به '+unresolved.length+' پرسش نامعلوم غیرفعال است؛ پیش‌نویس برای بررسی روی صفحه باقی می‌ماند.':'برای دریافت پیش‌نویس فرضی، ابتدا تأیید بازبینی انسانی را علامت بزنید.';
+ exportStatus.textContent=freeQuestionHasSensitiveIdentifier?'دریافت گزارش غیرفعال است: شناسه حساس احتمالی در پرسش آزاد وجود دارد؛ آن را حذف کنید.':questionOutsideChequeScope?'دریافت گزارش غیرفعال است: پرسش آزاد چندموضوعی، نامرتبط یا نامشخص است؛ این پیش‌نمایش فقط گزارش چک فرضی را پوشش می‌دهد.':evidence.length===0?'دریافت گزارش غیرفعال است: هیچ مدرک فرضی انتخاب نشده است. دست‌کم یک مدرک نمونه انتخاب کنید و پیش‌نویس را دوباره بسازید.':!evidence.some(e=>e.description==='تصویر چک نمونه با شماره ساختگی')?'دریافت گزارش غیرفعال است: تصویر چک نمونه انتخاب نشده است. برای ادامه، مدرک چک فرضی را انتخاب کنید.':conflicts.length>0?'دریافت گزارش به علت تناقض اطلاعات غیرفعال است. پاسخ‌ها یا مدارک فرضی را اصلاح و پیش‌نویس را دوباره تولید کنید.':unresolved.length>0?'دریافت گزارش تا پاسخ‌گویی به '+unresolved.length+' پرسش نامعلوم غیرفعال است؛ پیش‌نویس برای بررسی روی صفحه باقی می‌ماند.':'برای دریافت پیش‌نویس فرضی، ابتدا تأیید بازبینی انسانی را علامت بزنید.';
  box.hidden=false;box.focus();
 });
 document.getElementById('download').addEventListener('click',()=>{
