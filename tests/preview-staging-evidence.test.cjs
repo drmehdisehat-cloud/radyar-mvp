@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { verifyEvidence, publicKeyFingerprint } = require('../scripts/verify-preview-staging-evidence.cjs');
-const { signPayload } = require('../scripts/sign-preview-staging-evidence.cjs');
+const { signPayload, readPrivateKeyFile } = require('../scripts/sign-preview-staging-evidence.cjs');
 function hash(bytes) { return crypto.createHash('sha256').update(bytes).digest('hex'); }
 function makeFixture() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-restore-evidence-'));
@@ -249,4 +249,41 @@ test('artifact readback record binds the exact push artifact and preserves every
   assert.match(record, /رویداد ساخت: `push`/);
   assert.match(record, /رویداد `pull_request` عمداً Skip شدند/);
   assert.match(record, /با هر Commit جدید، Artifact جدید باید جداگانه ساخته و اعتبارسنجی شود/);
+});
+
+
+test('preview evidence signer accepts a private key file restricted to its owner', t => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-signing-key-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const pair = crypto.generateKeyPairSync('ed25519');
+  const pem = pair.privateKey.export({ type: 'pkcs8', format: 'pem' });
+  const keyPath = path.join(root, 'reviewer.pem');
+  fs.writeFileSync(keyPath, pem, { mode: 0o600 });
+  fs.chmodSync(keyPath, 0o600);
+  assert.equal(readPrivateKeyFile(keyPath).toString(), pem);
+  assert.equal(typeof signPayload({ schemaVersion: 1 }, readPrivateKeyFile(keyPath)).signatureBase64, 'string');
+});
+
+test('preview evidence signer rejects a symlinked private key path', t => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-signing-key-link-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const pair = crypto.generateKeyPairSync('ed25519');
+  const pem = pair.privateKey.export({ type: 'pkcs8', format: 'pem' });
+  const target = path.join(root, 'target.pem');
+  const link = path.join(root, 'link.pem');
+  fs.writeFileSync(target, pem, { mode: 0o600 });
+  fs.chmodSync(target, 0o600);
+  fs.symlinkSync(target, link);
+  assert.throws(() => readPrivateKeyFile(link), /private_key_symlink_forbidden/);
+});
+
+test('preview evidence signer rejects group-readable or world-readable private keys', t => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-signing-key-mode-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const pair = crypto.generateKeyPairSync('ed25519');
+  const pem = pair.privateKey.export({ type: 'pkcs8', format: 'pem' });
+  const keyPath = path.join(root, 'too-open.pem');
+  fs.writeFileSync(keyPath, pem, { mode: 0o644 });
+  fs.chmodSync(keyPath, 0o644);
+  assert.throws(() => readPrivateKeyFile(keyPath), /private_key_file_permissions_too_open/);
 });
