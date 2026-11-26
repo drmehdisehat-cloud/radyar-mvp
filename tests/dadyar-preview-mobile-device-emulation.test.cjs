@@ -247,26 +247,14 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  const landlineNoteWarning = document.getElementById("review-status").textContent;',
       '  const landlineNoteBlocked = document.getElementById("record-review").disabled && download.disabled;',
       '  const question = document.getElementById("free-question");',
+      '  const chequeOnlyPreview = !document.getElementById("delay-damages-calculator") && !document.getElementById("delay-principal") && !document.getElementById("delay-calculate");',
       '  question.value = "پرسش فرضی که هنوز ثبت نشده است";',
-      '  const calculatorRoot = document.getElementById("delay-damages-calculator");',
-      '  const calculatorButton = document.getElementById("delay-calculate");',
-      '  const calculatorInitiallyBlocked = calculatorButton.disabled && document.getElementById("delay-result").textContent.includes("محاسبه مسدود است");',
-      '  const calculatorPrincipal = document.getElementById("delay-principal"); calculatorPrincipal.value = "987654321";',
-      '  const calculatorDueMonth = document.getElementById("delay-due-month"); calculatorDueMonth.value = "2";',
-      '  const calculatorPaymentMonth = document.getElementById("delay-payment-month"); calculatorPaymentMonth.value = "6";',
-      '  const calculatorCurrency = document.getElementById("delay-currency"); calculatorCurrency.value = "تومان";',
-      '  // Simulate a user editing both visible metadata and the disabled property.',
-      '  calculatorRoot.dataset.sourceStatus = "verified"; calculatorRoot.dataset.legalReviewStatus = "approved"; calculatorButton.disabled = false;',
-      '  calculatorButton.click();',
-      '  const calculatorDomTamperingBlocked = calculatorButton.disabled && document.getElementById("delay-result").textContent.includes("محاسبه مسدود است");',
-      '  const calculatorAvailableMonthBounds = document.getElementById("delay-due-month").options.length === 7 && document.getElementById("delay-payment-month").options.length === 7;',
       '  window.dispatchEvent(new PageTransitionEvent("pagehide"));',
       '  const pagehideClearedUnsubmittedQuestion = question.value === "";',
       '  const pagehideClearedDraft = document.getElementById("result").hidden && download.disabled;',
       '  const pagehideClearedReviewer = document.getElementById("reviewer-name").value === "بازبین آزمون" && document.getElementById("review-note").value === "";',
       '  const pagehideClearedSelections = document.getElementById("role").selectedIndex === 0 && Array.from(document.querySelectorAll("#interview select")).every(control => control.selectedIndex === 0) && Array.from(document.querySelectorAll("fieldset input[type=checkbox]")).every(control => !control.checked);',
       '  const pagehideClearedReviewApproval = document.getElementById("review-decision").value === "pending" && !document.getElementById("export-ack").checked && document.getElementById("record-review").disabled;',
-      '  const pagehideClearedCalculator = calculatorPrincipal.value === "" && calculatorDueMonth.value === "1" && calculatorPaymentMonth.value === "7" && calculatorCurrency.value === "ریال" && document.getElementById("delay-result").textContent === "برای محاسبه، اصل دین و دو ماه را انتخاب کنید.";',
       '  const sampleEvidence = document.querySelectorAll("#evidence-list input[type=checkbox]"); sampleEvidence[0].checked = true; sampleEvidence[2].checked = true;',
       '  for (const [id,value] of [["issue-date","yes"],["certificate","no"],["defense","yes"]]) { const control = document.getElementById(id); control.value = value; control.dispatchEvent(new Event("change", { bubbles: true })); }',
       '  const multiTopicRawQuestion = "چک و مهریه در این مثال چه موضوعاتی هستند؟";',
@@ -314,7 +302,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '    exportEnabledBeforeDownload, exportedReport, exportedFilename, approvalConsumed, repeatExportBlocked,',
       '    reviewerResetAfterDownload, reapprovalBlockedWithoutFreshDetails, postDownloadReviewStatus,',
       '    reportAfterAcknowledgement, staleDraftInvalidated, multiTopicReport, multiTopicIds,',
-      '    pagehideClearedUnsubmittedQuestion, pagehideClearedDraft, pagehideClearedReviewer, pagehideClearedSelections, pagehideClearedReviewApproval, calculatorInitiallyBlocked, calculatorDomTamperingBlocked, calculatorAvailableMonthBounds, pagehideClearedCalculator,',
+      '    pagehideClearedUnsubmittedQuestion, pagehideClearedDraft, pagehideClearedReviewer, pagehideClearedSelections, pagehideClearedReviewApproval, chequeOnlyPreview,',
       '    multiTopicExportEligible, multiTopicScopeStatus, multiTopicInputCleared, multiTopicRawQuestionEchoed,',
       '    landlineNoteCleared, landlineNoteWarning, landlineNoteBlocked, landlineQuestionCleared, landlineQuestionBlocked, landlineQuestionNotEchoed,',
       '    privacyQuestionCleared, privacyRawAbsentFromDraft, privacyExportEligible, privacyReviewApproved, privacyRawAbsentFromExport,',
@@ -366,10 +354,8 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.equal(snapshot.pagehideClearedReviewer, true, 'pagehide did not reset reviewer metadata to the fixed synthetic label');
     assert.equal(snapshot.pagehideClearedSelections, true, 'pagehide retained role, interview answers, or selected evidence');
     assert.equal(snapshot.pagehideClearedReviewApproval, true, 'pagehide retained a local review approval');
-    assert.equal(snapshot.calculatorInitiallyBlocked, true, 'calculator was usable before official-source and legal-review approval');
-    assert.equal(snapshot.calculatorDomTamperingBlocked, true, 'mutable DOM provenance attributes or disabled-property edits unlocked the unverified calculator');
-    assert.equal(snapshot.calculatorAvailableMonthBounds, true, 'calculator exposed months without supplied index values');
     assert.equal(snapshot.pagehideClearedCalculator, true, 'pagehide retained calculator principal, month, currency, or result');
+    assert.equal(snapshot.chequeOnlyPreview, true, 'the cheque preview must not include unrelated calculator UI or data');
     assert.ok(snapshot.multiTopicIds.includes('instruments'), 'cheque hint missing from internal multi-topic routing');
     assert.ok(snapshot.multiTopicIds.includes('family'), 'family hint missing from internal multi-topic routing');
     assert.equal(snapshot.multiTopicExportEligible, true,

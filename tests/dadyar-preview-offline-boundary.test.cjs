@@ -2,6 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 
@@ -9,6 +10,7 @@ const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'
 const scriptMatches = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)];
 const script = scriptMatches.length === 1 ? scriptMatches[0][2] : '';
 const scriptTag = scriptMatches.length === 1 ? scriptMatches[0][0] : '';
+const style = html.match(/<style>([\\s\\S]*?)<\\/style>/i)?.[1] || '';
 const csp = html.match(/<meta\s+http-equiv="Content-Security-Policy"\s+content="([^"]+)"/i)?.[1] || '';
 
 test('public preview remains a self-contained offline document', () => {
@@ -64,4 +66,13 @@ test('cheque-only preview excludes unrelated calculators and unverified owner-su
   assert.doesNotMatch(html, /محاسبه آزمایشی خسارت تأخیر تأدیه ۱۴۰۵/);
   assert.doesNotMatch(html, /data-indexes=/i);
   assert.doesNotMatch(html, /2654\\.9|2880\\.4|3092\\.3|3205\\.1|3333\\.9|3452\\.1|3611\\.1/);
+});
+
+test('inline CSP hashes exactly match the preview script and style bytes', () => {
+  const scriptHash = csp.match(/script-src 'sha256-([^']+)'/)?.[1];
+  const styleHash = csp.match(/style-src 'sha256-([^']+)'/)?.[1];
+  assert.ok(scriptHash, 'script CSP hash is required');
+  assert.ok(styleHash, 'style CSP hash is required');
+  assert.equal(scriptHash, crypto.createHash('sha256').update(script, 'utf8').digest('base64'));
+  assert.equal(styleHash, crypto.createHash('sha256').update(style, 'utf8').digest('base64'));
 });

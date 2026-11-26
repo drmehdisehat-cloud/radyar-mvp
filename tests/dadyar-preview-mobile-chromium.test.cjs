@@ -43,10 +43,6 @@ test('offline Dadyar preview parses in headless Chromium at a narrow viewport', 
   assert.match(run.stdout, /کارگاه آزمایشی دادیار: چک فرضی/);
   assert.match(run.stdout, /id="free-question"/);
   assert.match(run.stdout, /id="download" disabled/);
-  assert.match(run.stdout, /id="delay-damages-calculator"/);
-  assert.match(run.stdout, /id="delay-principal"/);
-  assert.match(run.stdout, /id="delay-calculate"/);
-  assert.match(html, /3333\.9/);
-  assert.doesNotMatch(html, /3323\.9/);
+  assert.doesNotMatch(html, /delay-damages-calculator|delay-principal|delay-calculate|data-indexes=/i);
   assert.match(run.stdout, /connect-src 'none'/);
 });
