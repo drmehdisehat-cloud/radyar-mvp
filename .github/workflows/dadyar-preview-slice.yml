@@ -17,6 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DADYAR_PREVIEW_SOURCE_SHA: ${{ github.sha }}
+    outputs:
+      artifact-id: ${{ steps.upload-preview.outputs.artifact-id }}
     timeout-minutes: 15
     steps:
       - name: Checkout exact reviewed source
@@ -55,11 +57,30 @@ jobs:
           path: ${{ runner.temp }}/dadyar-preview-public/
           if-no-files-found: error
           retention-days: 7
-      - name: Download uploaded artifact for round-trip verification
+
+  roundtrip-verify:
+    if: github.event_name == 'push'
+    needs: verify-and-package
+    runs-on: ubuntu-latest
+    env:
+      DADYAR_PREVIEW_SOURCE_SHA: ${{ github.sha }}
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact reviewed source
+        uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Set up Node.js 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Download uploaded artifact by exact ID after upload job completes
         if: github.event_name == 'push'
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
-          artifact-ids: ${{ steps.upload-preview.outputs.artifact-id }}
+          artifact-ids: ${{ needs.verify-and-package.outputs.artifact-id }}
           github-token: ${{ github.token }}
           repository: ${{ github.repository }}
           run-id: ${{ github.run_id }}
