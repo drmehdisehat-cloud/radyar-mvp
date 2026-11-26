@@ -64,6 +64,17 @@ test('all 27 taxonomy domains are discoverable from representative synthetic key
   }
 });
 
+test('Persian, Arabic-Indic and ASCII Article 522 variants route identically', () => {
+  const { classify } = classifier();
+  const variants = ['ماده ۵۲۲', 'ماده ٥٢٢', 'ماده 522'];
+  const routed = variants.map(classify);
+  for (const result of routed) {
+    assert.ok(result.some(item => item.id === 'civil-procedure'));
+  }
+  assert.deepEqual(routed[1], routed[0]);
+  assert.deepEqual(routed[2], routed[0]);
+});
+
 test('delay-damages free text routes to civil law and Article 522 to civil procedure', () => {
   const { classify } = classifier();
   const delay = Array.from(classify('خسارت تأخیر تأدیه چک'), item => item.id);
@@ -129,6 +140,7 @@ test('cheque preview accepts only cheque-only free text; mixed-topic questions a
     ['چک تضمینی و اجاره', ['instruments', 'property']],
     ['چک و طلاق', ['instruments', 'family']],
     ['چک و سفته', ['instruments']],
+    ['چک و ماده ٥٢٢', ['instruments', 'civil-procedure']],
     ['چک و خسارت تأخیر تأدیه', ['instruments', 'civil']]
   ];
   for (const [question, expectedDomains] of mixedCases) {
