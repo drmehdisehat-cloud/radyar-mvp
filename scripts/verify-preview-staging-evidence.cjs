@@ -116,6 +116,8 @@ async function verifyEvidence(evidence, options) {
   requireStrictlyWithin(restoreRoot, stagingRoot, 'restore_root_outside_staging');
   const sentinelPath = assertCanonicalExistingPath(backup.sentinelPath, 'restore_sentinel', 'file');
   requireStrictlyWithin(sentinelPath, restoreRoot, 'restore_sentinel_outside_restore_root');
+  const sentinelStat = fs.lstatSync(sentinelPath);
+  if (!sentinelStat.isFile() || sentinelStat.nlink !== 1) fail('restore_sentinel_hardlink_forbidden');
   if (!isHex(backup.sentinelSha256, 64) || await sha256File(sentinelPath) !== backup.sentinelSha256) fail('restore_sentinel_sha256_mismatch');
 
   const previewArtifact = payload.previewArtifact || {};
