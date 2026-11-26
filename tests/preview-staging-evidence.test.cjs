@@ -154,7 +154,7 @@ test('hard-linked destination file is rejected even when its bytes match', async
   fs.copyFileSync(f.htmlPath, protectedFile);
   fs.unlinkSync(f.htmlPath);
   fs.linkSync(protectedFile, f.htmlPath);
-  await assert.rejects(() => verifyEvidence(f.evidence, f.options), /destination_file_hardlink_forbidden:index\\.html/);
+  await assert.rejects(() => verifyEvidence(f.evidence, f.options), /destination_file_hardlink_forbidden:index\.html/);
 });
 test('operator and reviewer must use distinct trusted Ed25519 keys', async t => {
   const f = makeFixture(); t.after(f.cleanup);
