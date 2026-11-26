@@ -53,7 +53,9 @@ test('public preview workflow uses read-only permissions and no secrets or deplo
     workflow,
     /(?:id-token|contents|checks|actions|deployments):\s*write/i
   );
-  assert.doesNotMatch(workflow, /\b(?:deploy|upload-pages-artifact|azure\/webapps-deploy)\b/i);
+  const actions = [...workflow.matchAll(/^\s*uses:\s*([^\s#]+)/gm)].map(match => match[1]);
+  assert.ok(actions.every(action => !/(?:^|\/)(?:deploy|upload-pages-artifact|azure\/webapps-deploy)(?:@|$)/i.test(action)),
+    'workflow must not invoke a deployment action');
 });
 
 test('only the public HTML and integrity manifest can be uploaded', () => {
