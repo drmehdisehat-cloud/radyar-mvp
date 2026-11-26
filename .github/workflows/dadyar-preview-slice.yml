@@ -16,7 +16,7 @@ jobs:
   verify-and-package:
     runs-on: ubuntu-latest
     env:
-      DADYAR_PREVIEW_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      DADYAR_PREVIEW_SOURCE_SHA: ${{ github.sha }}
     timeout-minutes: 15
     steps:
       - name: Checkout exact reviewed source
@@ -30,7 +30,7 @@ jobs:
           node-version: '22'
           package-manager-cache: false
       - name: Run offline boundary, 27-domain routing and restore-evidence tests
-        run: node --test tests/dadyar-preview-offline-boundary.test.cjs tests/dadyar-preview-27-domain-routing.test.cjs tests/build-preview-review-artifact.test.cjs tests/preview-staging-evidence.test.cjs
+        run: node --test tests/dadyar-preview-offline-boundary.test.cjs tests/dadyar-preview-27-domain-routing.test.cjs tests/build-preview-review-artifact.test.cjs tests/preview-staging-evidence.test.cjs tests/dadyar-preview-slice-workflow-artifact-boundary.test.cjs
       - name: Run narrow viewport Chromium smoke test
         run: |
           CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium)"
@@ -42,13 +42,15 @@ jobs:
           test -n "$CHROME_BIN"
           CHROME_BIN="$CHROME_BIN" node --test tests/dadyar-preview-mobile-device-emulation.test.cjs
       - name: Build and verify public-only review artifact
+        if: github.event_name == 'push'
         env:
           GITHUB_SHA: ${{ github.sha }}
         run: node scripts/build-preview-review-artifact.cjs "$RUNNER_TEMP/dadyar-preview-public"
       - name: Upload review artifact only; never deploy
+        if: github.event_name == 'push'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
-          name: dadyar-preview-review-${{ github.event.pull_request.head.sha || github.sha }}
+          name: dadyar-preview-review-${{ github.sha }}
           path: ${{ runner.temp }}/dadyar-preview-public/
           if-no-files-found: error
           retention-days: 7
