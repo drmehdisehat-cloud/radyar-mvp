@@ -79,8 +79,9 @@
       "1400/01/29"
     ],
     "consolidatedTextLatestAttemptAt": "2026-11-26",
-    "latestSupplementalRecheck": "docs/check-law-1372-direct-observation-20261126.json",
-    "latestStatusLabelObserved": "اصلاحي 1403/03/30"
+    "latestSupplementalRecheck": "docs/check-law-qavanin-recheck-20261126.json",
+    "latestStatusLabelObserved": "اصلاحي 1403/03/30",
+    "latestAmendmentTextObservation": "docs/check-law-1372-direct-observation-20261126.json"
   },
   "publicationDate": null,
   "effectiveFrom": null,
