@@ -134,6 +134,14 @@ test('a staging database fingerprint equal to production is rejected', async t =
   f.resign();
   await assert.rejects(() => verifyEvidence(f.evidence, f.options), /staging_database_matches_production/);
 });
+test('hard-linked restore sentinel is rejected even when its bytes match', async t => {
+  const f = makeFixture(); t.after(f.cleanup);
+  const external = path.join(f.root, 'external-sentinel');
+  fs.copyFileSync(f.sentinelPath, external);
+  fs.unlinkSync(f.sentinelPath);
+  fs.linkSync(external, f.sentinelPath);
+  await assert.rejects(() => verifyEvidence(f.evidence, f.options), /restore_sentinel_hardlink_forbidden/);
+});
 test('restore tree outside the isolated staging root is rejected', async t => {
   const f = makeFixture(); t.after(f.cleanup);
   f.payload.backup.restoreRoot = f.production;
