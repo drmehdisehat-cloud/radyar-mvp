@@ -11,6 +11,31 @@ function signPayload(payload, privateKeyPem) {
   const signature = crypto.sign(null, Buffer.from(canonicalize(payload), 'utf8'), privateKey).toString('base64');
   return { keyFingerprint: fingerprint, signatureBase64: signature };
 }
+
+function readPrivateKeyFile(privateKeyPath) {
+  if (typeof privateKeyPath !== 'string' || !path.isAbsolute(privateKeyPath) || path.resolve(privateKeyPath) !== privateKeyPath) fail('private_key_path_must_be_absolute_canonical');
+  const initial = fs.lstatSync(privateKeyPath);
+  if (initial.isSymbolicLink()) fail('private_key_symlink_forbidden');
+  if (!initial.isFile()) fail('private_key_must_be_regular_file');
+  if (process.platform !== 'win32' && (initial.mode & 0o077) !== 0) fail('private_key_file_permissions_too_open');
+  if (fs.realpathSync(privateKeyPath) !== privateKeyPath) fail('private_key_path_not_canonical');
+  if (process.platform !== 'win32' && typeof fs.constants.O_NOFOLLOW !== 'number') fail('private_key_no_follow_unavailable');
+  const flags = fs.constants.O_RDONLY | (process.platform === 'win32' ? 0 : fs.constants.O_NOFOLLOW);
+  let descriptor;
+  try {
+    descriptor = fs.openSync(privateKeyPath, flags);
+    const opened = fs.fstatSync(descriptor);
+    if (!opened.isFile()) fail('private_key_must_be_regular_file');
+    if (process.platform !== 'win32' && (opened.mode & 0o077) !== 0) fail('private_key_file_permissions_too_open');
+    return fs.readFileSync(descriptor);
+  } catch (error) {
+    if (error && error.code === 'ELOOP') fail('private_key_symlink_forbidden');
+    throw error;
+  } finally {
+    if (descriptor !== undefined) fs.closeSync(descriptor);
+  }
+}
+
 function parseArgs(argv) {
   const positional = [];
   const flags = {};
@@ -35,7 +60,7 @@ function main() {
   if (!evidenceStat.isFile() || evidenceStat.isSymbolicLink()) fail('evidence_file_must_be_regular_non_symlink');
   const evidence = JSON.parse(fs.readFileSync(absoluteEvidencePath, 'utf8'));
   if (!evidence || !evidence.payload || typeof evidence.payload !== 'object') fail('evidence_payload_missing');
-  const privateKey = fs.readFileSync(privateKeyPath);
+  const privateKey = readPrivateKeyFile(privateKeyPath);
   const attestation = signPayload(evidence.payload, privateKey);
   evidence.attestations = evidence.attestations || {};
   evidence.attestations[role] = attestation;
@@ -51,4 +76,4 @@ if (require.main === module) {
     process.exitCode = 2;
   }
 }
-module.exports = { signPayload };
+module.exports = { signPayload, readPrivateKeyFile };
