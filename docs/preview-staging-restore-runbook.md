@@ -50,7 +50,7 @@ node scripts/sign-preview-staging-evidence.cjs /absolute/path/evidence.json --ro
 
 node scripts/verify-preview-staging-evidence.cjs /absolute/path/evidence.json --operator-public-key /secure/operator-ed25519.pub.pem --operator-fingerprint 64_HEX --reviewer-public-key /secure/reviewer-ed25519.pub.pem --reviewer-fingerprint 64_HEX
 
-verifier هش آرشیو بکاپ، sentinel، Artifact و هر دو فایل مقصد را بازخوانی می‌کند؛ جدایی staging از production و checkout، تفاوت fingerprint دیتابیس، مسیر بدون symlink، Manifest متصل به Commit دقیق، امضای Ed25519 و تفاوت کلید اپراتور و بازبین را بررسی می‌کند.
+verifier هش آرشیو بکاپ، sentinel، Artifact و هر دو فایل مقصد را بازخوانی می‌کند؛ جدایی staging از production و checkout، تفاوت fingerprint دیتابیس، مسیر بدون symlink، Manifest متصل به Commit دقیق، امضای Ed25519 و تفاوت کلید اپراتور و بازبین را بررسی می‌کند. خروجی دقیق آن EVIDENCE_MATCHED_NOT_RELEASE_AUTHORIZED است؛ هویت اشخاص و صحت واقعی عملیات Restore را مستقلاً احراز نمی‌کند و هرگز مجوز انتشار نمی‌دهد.
 
 ## محدودیت و رابطه با ابزارهای Restore موجود
 
@@ -66,7 +66,7 @@ Artifact ساخته‌شده در رویداد pull_request ممکن است work
 
 ## بعد از نتیجه VERIFIED
 
-VERIFIED فقط یعنی شواهد امضاشده و فایل‌های محلی با این قواعد تطبیق دارند. هنوز باید:
+EVIDENCE_MATCHED_NOT_RELEASE_AUTHORIZED فقط یعنی شواهد امضاشده و فایل‌های محلی با این قواعد تطبیق دارند؛ این نتیجه نه هویت واقعی امضاکنندگان را اثبات می‌کند، نه اجرای واقعی Restore را و نه مجوز انتشار است. هنوز باید:
 
 - HTTPS واقعی staging با هدرهای امنیتی و مسیر /dadyar-preview/ آزموده شود؛
 - IdP واقعی بازبین و ابطال نشست در سرور مستقل آزمایش شود؛
