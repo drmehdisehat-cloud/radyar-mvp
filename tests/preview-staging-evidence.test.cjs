@@ -228,3 +228,25 @@ test('IranHost restore handoff confirms the account panel and archive format bef
   assert.match(section, /Complete/);
   assert.match(section, /۱۴۰٫۳۸ مگابایت/);
 });
+
+
+test('artifact readback record binds the exact push artifact and preserves every release blocker', () => {
+  const record = fs.readFileSync(path.join(__dirname, '..', 'docs', 'preview-artifact-readback-15137958832-20261126.md'), 'utf8');
+  for (const required of [
+    '15137958832',
+    '45861616298',
+    '45861624092',
+    '5513fca9d35e0b712e2a6bdfb3072501c0f89fd7',
+    '03cefd03bc962e8e42f1e283112e8228ee80dd285e6774be0b332242281becbe',
+    '2bcd63edbeb1490032b92aacd384b28537e6eef33d90f882b3068b1f65bcc1c1',
+    'NOT_READY',
+    'backupRestoreVerified = false',
+    'destinationVerified = false',
+    'deploymentAuthorized = false'
+  ]) {
+    assert.ok(record.includes(required), 'artifact readback must preserve: ' + required);
+  }
+  assert.match(record, /رویداد ساخت: `push`/);
+  assert.match(record, /رویداد `pull_request` عمداً Skip شدند/);
+  assert.match(record, /با هر Commit جدید، Artifact جدید باید جداگانه ساخته و اعتبارسنجی شود/);
+});
