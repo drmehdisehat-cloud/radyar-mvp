@@ -16,9 +16,16 @@ test('review artifact build, upload, download and round-trip verification are pu
     const step = workflow.slice(position, workflow.indexOf('\n      - name:', position + 1) < 0 ? workflow.length : workflow.indexOf('\n      - name:', position + 1));
     assert.ok(step.includes("if: github.event_name == 'push'"), 'every artifact stage must be push-only');
   }
+  assert.ok(workflow.includes('id: upload-preview'));
   assert.ok(workflow.includes('uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333'));
+  assert.ok(workflow.includes('artifact-ids: ${{ steps.upload-preview.outputs.artifact-id }}'));
+  assert.ok(workflow.includes('github-token: ${{ github.token }}'));
+  assert.ok(workflow.includes('repository: ${{ github.repository }}'));
+  assert.ok(workflow.includes('run-id: ${{ github.run_id }}'));
   assert.ok(workflow.includes('name: dadyar-preview-review-${{ github.sha }}'));
   assert.ok(workflow.includes('path: ${{ runner.temp }}/dadyar-preview-roundtrip/'));
+  const downloadStep = workflow.slice(download, verify);
+  assert.equal(downloadStep.includes('name: dadyar-preview-review-${{ github.sha }}'), false, 'download must use the exact upload artifact ID, not a second name lookup');
   assert.ok(workflow.includes('node scripts/verify-uploaded-preview-artifact.cjs "$RUNNER_TEMP/dadyar-preview-roundtrip"'));
   assert.ok(workflow.includes('permissions:\n  contents: read\n  actions: read'));
   assert.equal(workflow.includes('deploy:'), false);
