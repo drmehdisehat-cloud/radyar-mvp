@@ -173,6 +173,16 @@ test('unknown evidence fields are rejected before any attestation is trusted', a
   f.resign();
   await assert.rejects(() => verifyEvidence(f.evidence, f.options), /payload_fields_mismatch/);
 });
+test('pull_request merge-SHA artifact is not eligible for staging', async t => {
+  const f = makeFixture(); t.after(f.cleanup);
+  const integrityPath = path.join(f.destination, 'INTEGRITY.json');
+  const manifest = JSON.parse(fs.readFileSync(integrityPath, 'utf8'));
+  manifest.workflowCommit = 'b'.repeat(40);
+  fs.writeFileSync(integrityPath, JSON.stringify(manifest, null, 2) + '\n');
+  f.payload.destination.files.find(item => item.name === 'INTEGRITY.json').sha256 = hash(fs.readFileSync(integrityPath));
+  f.resign();
+  await assert.rejects(() => verifyEvidence(f.evidence, f.options), /destination_manifest_source_commit_mismatch/);
+});
 test('review artifact cannot claim deployment readiness', async t => {
   const f = makeFixture(); t.after(f.cleanup);
   const integrityPath = path.join(f.destination, 'INTEGRITY.json');
