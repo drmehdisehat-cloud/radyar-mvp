@@ -9,7 +9,7 @@ const workflow = fs.readFileSync(path.join(__dirname, '..', '.github', 'workflow
 test('review artifact build, upload, download and round-trip verification are push-only', () => {
   const build = workflow.indexOf('- name: Build and verify public-only review artifact');
   const upload = workflow.indexOf('- name: Upload review artifact only; never deploy');
-  const download = workflow.indexOf('- name: Download uploaded artifact for round-trip verification');
+  const download = workflow.indexOf('- name: Download uploaded artifact by exact ID after upload job completes');
   const verify = workflow.indexOf('- name: Verify uploaded artifact bytes and release boundary');
   assert.ok(build >= 0 && upload > build && download > upload && verify > download, 'artifact stages must run in build-upload-download-verify order');
   for (const position of [build, upload, download, verify]) {
