@@ -1,23 +1,29 @@
 # راهنمای رفع موانع Artifact و انتشار پیش‌نمایش دادیار
 
-## آخرین مشاهده زنده، ۲۰۲۶-۱۱-۲۶ ساعت ۰۰:۰۹:۵۳ UTC
+## آخرین مشاهده زنده، ۲۰۲۶-۱۱-۲۶ ساعت ۰۱:۴۰:۲۶ UTC
 
-این بخش با خواندن مستقیم GitHub API و بدون تغییر main یا تنظیمات مخزن ثبت شده است.
+این بخش با خواندن مستقیم GitHub API، لاگ‌های Actions و بازخوانی فایل‌های شاخه ثبت شده است. هیچ تغییری در main، DNS، تنظیمات مخزن یا میزبانی انجام نشده است.
 
 - شاخه: `dadyar/ai-chat-private-20261101`
-- HEAD شاخه: `1fcd96c81ea39ecdfd4c0671cc62cf07806ec9c9`
-- فایل پیش‌نمایش: `dadyar-preview/index.html`؛ Git Blob SHA-1: `6c48d116ecfccb111170f3aa9536572a2c3b3935`
+- HEAD شاخه: `f17e81fadbcc7b77edfd4f62b3a5d1fbf7e48778`
+- Commit رابط پیش‌نمایش: `18dfc998d0a1fe4dd4488f0d424ffaef61462c24`
+- فایل پیش‌نمایش: `dadyar-preview/index.html`؛ Git Blob SHA-1: `3ba731848fa6e6cc6e5c3c312f444ccb5637576a`
+- دکمه خروجی اکنون صریحاً «دریافت گزارش آزمایشی (بازبینی محلی)» نام دارد و به وضعیت توضیحی خروجی با `aria-describedby` متصل است؛ این تغییر هویت بازبین را احراز نمی‌کند.
 - main: `d3f02e3b0d4cd3f5d40aabc63bd5d3d93d792318`
-- اختلاف main...شاخه: ۱۸۸۲ کامیت جلوتر، صفر عقب‌تر.
+- اختلاف main...شاخه: ۱۸۹۱ کامیت جلوتر، صفر عقب‌تر.
 - مخزن: `public`؛ شاخه آزمایشی: `protected=false` (پاسخ مستقیم Branch API).
-- PRهای باز: ۲۶؛ هر ۲۶ مورد در فهرست خوانده‌شده Draft هستند. PR شماره ۱۷ به شاخه بازبینی `dadyar/preview-package-layout-review-base-20261117` متصل است، نه main.
-- CI اصلی روی همین SHA: اجرای `45715727600` با نتیجه `success`؛ Jobهای `verify-existing-frontend` و `audit-release-posture-after-ci` موفق‌اند.
-- بسته بازبینی عمومی روی همین SHA: اجرای `45715727669` با نتیجه `success`؛ Artifact شماره `15070061668`، اندازه ثبت‌شده GitHub برابر ۱۹٬۷۲۸ بایت، نام `dadyar-public-preview-review-1fcd96c81ea39ecdfd4c0671cc62cf07806ec9c9`.
-- مشاهده مستقیم Branch API، `protected=false` را نشان می‌دهد؛ بنابراین حفاظت شاخه واقعاً غیرفعال است، نه صرفاً نامعلوم.
+- PRهای باز: ۲۶؛ هر ۲۶ مورد Draft هستند. برای PRهای ۱۷، ۱۶، ۸، ۳۲، ۳۱، ۳۰، ۲۹ و ۲۸ هیچ Review ثبت‌شده‌ای مشاهده نشد.
+- CI اصلی روی HEAD دقیق: [اجرای 45737183764](https://github.com/drmehdisehat-cloud/radyar-mvp/actions/runs/45737183764)، نتیجه `success`. لاگ: ۱۵۳۸ آزمون قراردادی موفق، صفر شکست و صفر Skip؛ آزمون جدید برچسب خروجی محلی نیز موفق است.
+- بسته بازبینی عمومی روی همان SHA: [اجرای 45737183775](https://github.com/drmehdisehat-cloud/radyar-mvp/actions/runs/45737183775)، نتیجه `success`. آزمون‌های Chromium/موبایل نیز موفق‌اند؛ مجموع گزارش‌شده برای شش مجموعه مرورگر ۱۹ آزمون، صفر شکست و صفر Skip است.
+- Artifact شماره `15078699707`، نام `dadyar-public-preview-review-f17e81fadbcc7b77edfd4f62b3a5d1fbf7e48778`، اندازه ۱۹٬۷۴۰ بایت؛ انقضا: ۲۰۲۶-۱۲-۰۳ ساعت ۰۱:۴۰:۲۵ UTC.
+- SHA-256 آرشیو عمومی پیش از بارگذاری: `aafabe4404251d3b498c6fec003a02ae00019b029723e9cfc428a30d21e9b7f4`؛ digest ثبت‌شده GitHub برای Artifact: `ac35aba85bf9745da9c4706972384d40cf29cda4d88b6eaa5a43150d284d7c9b`.
+- SHA-256 صفحه HTML: `2207e96f0fe482cb48d6994415f846d9c91462df826a04d823a98fb33be35840`؛ SHA-256 فایل Manifest: `a1524fc6adc709db5c30cbc617154657fa13cb7be6ac7e4d99f491a4808d8b50`.
+- Manifest همان بسته: `target_subpath=/dadyar-preview/`، `reviewer_authentication=not-configured`، `backup_restore_verified=false`، `destination_verified=false` و `deployment_authorized=false`.
+- ممیزی آمادگی حقوقی در CI: `sourceCoverage=0/6`، `humanReviewCoverage=0/6` و `uncheckedGates=10`. شاخص خسارت تأخیر تأدیه نیز تا احراز سند اولیه و بازبینی مستقل غیرفعال می‌ماند.
+- مسیر زنده `https://mehdisehat.ir/dadyar-preview/` در بررسی وب این نوبت قابل واکشی نبود؛ وضعیت HTTPS تأییدنشده است و لینک زنده ارائه نمی‌شود.
 - اصلاح تاریخی `4d4f7530c47f438a1d89e18afef246cec026391f` و اجرای `42206234440` دوباره خوانده شدند؛ اجرای تاریخی `success` و متصل به همان SHA است.
-- آزمون زنده دامنه از محیط اجرا به علت خطای DNS محلی (Temporary failure in name resolution) کامل نشد. این خطا اثبات قطعی قطعی‌بودن سایت یا DNS عمومی نیست؛ وضعیت HTTPS سایت در این مشاهده «تأییدنشده» است.
 
-**تصمیم:** این مشاهده هیچ مجوز استقراری صادر نمی‌کند. تا Restore واقعی در Sandbox، احراز هویت مستقل بازبین، اعتبارسنجی مقصد، خصوصی‌سازی مخزن و حفاظت شاخه، `deployment_authorized=false` باقی می‌ماند.
+**تصمیم:** Artifact جدید فقط بسته بازبینی عمومی شامل `index.html` و `INTEGRITY.json` است؛ نه استقرار سایت است و نه احراز هویت بازبین یا Restore را ثابت می‌کند. تا Restore واقعی در Sandbox، اعتبارسنجی مقصد، احراز هویت مستقل بازبین، خصوصی‌سازی مخزن، حفاظت شاخه، بازبینی حقوقی و مجوز صریح همان انتشار، `deployment_authorized=false` باقی می‌ماند.
 
 ---
 
