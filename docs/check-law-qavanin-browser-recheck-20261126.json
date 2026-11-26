@@ -1,8 +1,8 @@
 {
   "schema": "dadyar-qavanin-browser-recheck-v1",
   "observedAt": "2026-11-26",
-  "status": "official-consolidated-and-amendment-text-rendered-unhashed",
-  "sourceScope": "current consolidated cheque-law text plus the 1403/03/30 amendment schedule; not a byte-verified event-date version or a complete amendment chain",
+  "status": "official-consolidated-law-and-1403-executive-regulation-rendered-unhashed",
+  "sourceScope": "current consolidated cheque-law text plus the 1403/03/30 executive regulation table; not a byte-verified event-date version or a complete amendment chain",
   "sources": {
     "consolidatedChequeLaw": {
       "directTextUrl": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
@@ -106,7 +106,12 @@
         "effectiveDateShown": "1403/05/08",
         "latestStatusShown": "1403/08/27"
       },
-      "note": "The official Qavanin TreeText and Attribute pages rendered on 2026-11-26. The schedule row for the Cheque Issuance Law Article 7 is visible. The official Gazette image page exposes image/PDF controls, but no scan/PDF bytes were retrieved or hashed."
+      "note": "The official Qavanin TreeText and Attribute pages rendered on 2026-11-26. The schedule row for the Cheque Issuance Law Article 7 is visible. The official Gazette image page exposes image/PDF controls, but no scan/PDF bytes were retrieved or hashed.",
+      "instrumentType": "executive-regulation",
+      "authorityShown": "هیئت وزیران",
+      "approvalDateShown": "1403/03/30",
+      "notificationNumberShown": "56261/ت62298هـ",
+      "documentTitle": "اصلاح میزان مبالغ مربوط به جرائم و تخلفات مندرج در قوانین مختلف"
     },
     "officialGazetteImagePage": {
       "url": "https://qavanin.ir/Law/ImageText/?IDS=634882870797924421",
@@ -120,6 +125,6 @@
     "registerStatus": "research-only",
     "releaseSourceEligible": false,
     "legalConclusionPermitted": false,
-    "reason": "Both official consolidated and amendment text pages, and their metadata pages, rendered in browser retrieval. The amendment metadata shows Gazette 23097, publication 1403/04/23, promulgation 1403/04/04 and effective date 1403/05/08. Raw response bytes, reproducible SHA-256, Gazette scan/PDF bytes and independent legal review are still missing."
+    "reason": "The official consolidated-law page and the separate 1403 executive-regulation text and metadata pages rendered in browser retrieval. The regulation metadata shows Gazette 23097, publication 1403/04/23, promulgation 1403/04/04 and effective date 1403/05/08. Raw response bytes, reproducible SHA-256, Gazette scan/PDF bytes and independent legal review are still missing."
   }
 }

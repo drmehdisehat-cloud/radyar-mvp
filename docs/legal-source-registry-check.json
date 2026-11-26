@@ -11,7 +11,7 @@
   "observations": {
     "consolidatedTextRetrievedAt": "2026-11-19",
     "metadataRecheckedAt": "2026-11-26",
-    "consolidatedTextLatestRecheck": "2026-11-26: official consolidated cheque-law TreeText and the separate 1403 amendment TreeText both rendered in browser retrieval; the 1403 schedule row for Article 7 is visible at lines 787-793. Attribute metadata shows Gazette 23097, publication 1403/04/23, promulgation 1403/04/04 and effective date 1403/05/08. Raw bytes, SHA-256, Gazette scan/PDF bytes and human review remain missing.",
+    "consolidatedTextLatestRecheck": "2026-11-26: official consolidated cheque-law TreeText and the separate 1403 executive-regulation TreeText both rendered in browser retrieval; the 1403 schedule row for Article 7 is visible at lines 787-793. Attribute metadata shows Gazette 23097, publication 1403/04/23, promulgation 1403/04/04 and effective date 1403/05/08. Raw bytes, SHA-256, Gazette scan/PDF bytes and human review remain missing.",
     "metadataLatestRecheck": "2026-11-26: official consolidated-law Attribute page rendered original-law metadata and latest status label 1403/03/30; raw HTTP bytes and SHA-256 were not captured. The separate 1403 amendment Attribute endpoint still returned a transfer interstitial in the same recheck.",
     "lastStatusLabelObserved": "اصلاحي 1403/03/30",
     "originalGazetteNumberObserved": "9210",
@@ -83,7 +83,8 @@
     "latestStatusLabelObserved": "اصلاحي 1403/03/30",
     "latestAmendmentTextObservation": "docs/check-law-1372-direct-observation-20261126.json",
     "latestBrowserTextObservation": "docs/check-law-qavanin-browser-recheck-20261126.json",
-    "amendment1403LatestRecheck": "docs/check-law-qavanin-browser-recheck-20261126.json"
+    "amendment1403LatestRecheck": "docs/check-law-qavanin-browser-recheck-20261126.json",
+    "regulation1403LatestRecheck": "docs/check-law-qavanin-browser-recheck-20261126.json"
   },
   "publicationDate": null,
   "effectiveFrom": null,

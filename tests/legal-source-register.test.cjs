@@ -128,7 +128,7 @@ test('Qavanin cheque-law URLs remain non-authorizing research candidates until t
     item.documentId === '634882870797924421'
   );
   assert.ok(amendment1403);
-  assert.match(amendment1403.lastDirectFetchResult, /Qavanin TreeText and Attribute pages for the 1403 amendment both rendered/);
+  assert.match(amendment1403.lastDirectFetchResult, /Qavanin TreeText and Attribute pages for the 1403 executive regulation both rendered/);
   assert.equal(amendment1403.latestTextObservation.observedAt, '2026-11-26');
   assert.equal(amendment1403.latestMetadataObservation.observedAt, '2026-11-26');
   assert.equal(amendment1403.latestRecheck.textPageRendered, true);

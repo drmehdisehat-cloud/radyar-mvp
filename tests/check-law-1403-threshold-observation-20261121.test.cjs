@@ -50,7 +50,7 @@ test('registry preserves the 2026-11-21 observation while linking the fresh 2026
   assert.equal(observation.observedAt, '2026-11-21');
   assert.equal(observation.instrument.textPageRendered, true);
   assert.equal(observation.rawHttpBytesCaptured, false);
-  assert.match(candidate.lastDirectFetchResult, /Qavanin TreeText and Attribute pages for the 1403 amendment both rendered/);
+  assert.match(candidate.lastDirectFetchResult, /Qavanin TreeText and Attribute pages for the 1403 executive regulation both rendered/);
   assert.equal(candidate.latestRecheck.observedAt, '2026-11-26');
   assert.equal(candidate.latestRecheck.textPageRendered, true);
   assert.equal(candidate.latestRecheck.metadataPageRendered, true);

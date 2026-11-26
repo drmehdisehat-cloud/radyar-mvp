@@ -13,7 +13,7 @@ const candidate = record.officialDocumentUrlCandidates.find(item => item.documen
 test('records the newly rendered consolidated Qavanin text page without upgrading source eligibility', () => {
   const source = observation.sources.consolidatedChequeLaw;
   assert.equal(observation.observedAt, '2026-11-26');
-  assert.equal(observation.status, 'official-consolidated-and-amendment-text-rendered-unhashed');
+  assert.equal(observation.status, 'official-consolidated-law-and-1403-executive-regulation-rendered-unhashed');
   assert.equal(source.textPageRendered, true);
   assert.deepEqual(source.visibleLineRange, [42, 113]);
   assert.equal(source.metadataPageRendered, true);
@@ -30,6 +30,9 @@ test('records the newly rendered consolidated Qavanin text page without upgradin
 
 test('the separate 1403 amendment endpoint remains unverified and the live register remains research-only', () => {
   const amendment = observation.sources.amendment1403SeparateText;
+  assert.equal(amendment.instrumentType, 'executive-regulation');
+  assert.equal(amendment.authorityShown, 'هیئت وزیران');
+  assert.equal(amendment.approvalDateShown, '1403/03/30');
   assert.equal(amendment.textPageRendered, true);
   assert.equal(amendment.textPageResult, 'browser-rendered-direct-page');
   assert.deepEqual(amendment.visibleLineRange, [787, 793]);

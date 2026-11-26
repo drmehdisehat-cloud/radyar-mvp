@@ -336,12 +336,12 @@
         },
         {
           "url": "https://qavanin.ir/Law/TreeText/?IDS=634882870797924421",
-          "candidateStatus": "official-amendment-text-and-metadata-rendered-2026-11-26-raw-bytes-not-captured",
+          "candidateStatus": "official-regulation-text-and-metadata-rendered-2026-11-26-raw-bytes-not-captured",
           "documentId": "634882870797924421",
           "sourceClass": "primary-official-qavanin",
           "discoverySource": "https://qavanin.ir/Law/StatusIndex/?IDS=11400475274213876131",
           "lastDirectFetchAt": "2026-11-26",
-          "lastDirectFetchResult": "On 2026-11-26 the official Qavanin TreeText and Attribute pages for the 1403 amendment both rendered. The cheque-law Article 7 schedule row is visible at lines 787-793; metadata shows Gazette 23097, publication 1403/04/23 and effective date 1403/05/08. Raw bytes, SHA-256 and Gazette scan/PDF bytes were not captured.",
+          "lastDirectFetchResult": "On 2026-11-26 the official Qavanin TreeText and Attribute pages for the 1403 executive regulation both rendered. The cheque-law Article 7 schedule row is visible at lines 787-793; metadata shows Gazette 23097, publication 1403/04/23 and effective date 1403/05/08. Raw bytes, SHA-256 and Gazette scan/PDF bytes were not captured.",
           "approvalDateShown": "1403/03/30",
           "humanReviewStatus": "pending",
           "useInLegalAnswers": false,
@@ -384,7 +384,8 @@
             "humanReviewStatus": "pending",
             "eventDateVersioningApproved": false,
             "useInLegalAnswers": false,
-            "note": "Direct official text and metadata rendered; no raw bytes, SHA-256 or Gazette scan/PDF bytes."
+            "note": "Direct official text and metadata rendered; no raw bytes, SHA-256 or Gazette scan/PDF bytes.",
+            "instrumentType": "executive-regulation"
           },
           "latestMetadataObservation": {
             "observedAt": "2026-11-26",
@@ -420,7 +421,8 @@
             "officialGazetteIssueBytesRetrieved": false,
             "primarySourceVerified": false,
             "humanReviewStatus": "pending",
-            "useInLegalAnswers": false
+            "useInLegalAnswers": false,
+            "instrumentType": "executive-regulation"
           },
           "metadataRetrievedAt": "2026-11-26",
           "latestMetadataFetchResult": "Official Qavanin Attribute page rendered on 2026-11-26; metadata only, with no raw response bytes, reproducible SHA-256, Gazette scan/PDF bytes or independent legal review.",
@@ -444,7 +446,8 @@
             "humanReviewStatus": "pending",
             "eventDateVersioningApproved": false,
             "useInLegalAnswers": false,
-            "observationFile": "docs/check-law-qavanin-browser-recheck-20261126.json"
+            "observationFile": "docs/check-law-qavanin-browser-recheck-20261126.json",
+            "instrumentType": "executive-regulation"
           }
         },
         {
@@ -1515,7 +1518,8 @@
         "primarySourceVerified": false,
         "humanReviewStatus": "pending",
         "eventDateVersioningApproved": false,
-        "useInLegalAnswers": false
+        "useInLegalAnswers": false,
+        "instrumentType": "executive-regulation"
       }
     },
     {
