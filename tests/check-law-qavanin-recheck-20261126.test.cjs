@@ -48,12 +48,15 @@ test('metadata-only observation remains non-authorizing and preserves the last r
   assert.equal(candidate.latestMetadataObservation.originalGazettePublicationDateShown, '1355/05/19');
   assert.equal(candidate.latestMetadataObservation.rawHttpResponseBytesCaptured, false);
   assert.equal(candidate.latestMetadataObservation.useInLegalAnswers, false);
-  assert.equal(candidate.latestTextObservation.observedAt, '2026-11-25');
+  assert.equal(candidate.latestTextObservation.observedAt, '2026-11-26');
+  assert.equal(candidate.latestTextObservation.textPageRendered, true);
+  assert.equal(candidate.latestTextObservation.rawHttpResponseBytesCaptured, false);
+  assert.equal(candidate.latestTextObservation.useInLegalAnswers, false);
   assert.equal(candidate.latestTextObservation.useInLegalAnswers, false);
   assert.equal(cheque.primarySourceVerified, false);
   assert.equal(cheque.humanReviewStatus, 'pending');
   assert.equal(cheque.useInLegalAnswers, false);
-  assert.equal(register.latestSupplementalObservationFile, 'docs/check-law-qavanin-recheck-20261126.json');
+  assert.equal(register.latestSupplementalObservationFile, 'docs/check-law-qavanin-browser-recheck-20261126.json');
   assert.equal(register.lastSupplementalObservationAt, '2026-11-26');
   assert.equal(register.observedAt, '2026-11-26');
   assert.ok(cheque.supplementalObservationAttempts.some(item =>

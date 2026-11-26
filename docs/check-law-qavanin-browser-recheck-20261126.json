@@ -1,0 +1,94 @@
+{
+  "schema": "dadyar-qavanin-browser-recheck-v1",
+  "observedAt": "2026-11-26",
+  "status": "official-consolidated-text-rendered-unhashed",
+  "sourceScope": "current consolidated text page only; not a verified event-date version or complete amendment chain",
+  "sources": {
+    "consolidatedChequeLaw": {
+      "directTextUrl": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
+      "directMetadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
+      "textPageAttempted": true,
+      "textPageRendered": true,
+      "textPageResult": "browser-rendered-direct-page",
+      "visibleLineRange": [
+        42,
+        113
+      ],
+      "visibleAmendmentMarkers": [
+        {
+          "article": "1",
+          "marker": "الحاقی 11/08/1372",
+          "line": 45
+        },
+        {
+          "article": "2",
+          "marker": "اصلاحی 11/08/1372",
+          "line": 51
+        },
+        {
+          "article": "3",
+          "marker": "اصلاحی 02/06/1382",
+          "line": 55
+        },
+        {
+          "article": "4",
+          "marker": "اصلاحی 13/08/1397",
+          "line": 58
+        },
+        {
+          "article": "6",
+          "marker": "اصلاحی 29/01/1400",
+          "line": 77
+        },
+        {
+          "article": "7",
+          "marker": "اصلاحی 30/03/1403",
+          "line": 83
+        }
+      ],
+      "metadataPageRendered": true,
+      "metadata": {
+        "instrumentTitleShown": "قانون صدور چك",
+        "originalAdoptionDateShown": "1355/04/16",
+        "adoptingAuthorityShown": "مجلس شوراي ملي-مجلس سنا",
+        "notificationNumberShown": "33206",
+        "notifyingAuthorityShown": "نخست وزير",
+        "officialGazetteNumberShown": "9210",
+        "officialGazettePublicationDateShown": "1355/05/19",
+        "promulgationDateShown": "1355/05/09",
+        "originalEffectiveDateShown": "1355/06/04",
+        "latestStatusShown": "اصلاحي 1403/03/30"
+      },
+      "metadataVisibleLineRange": [
+        19,
+        34
+      ],
+      "rawHttpResponseBytesCaptured": false,
+      "rawResponseSha256": null,
+      "officialGazetteIssueBytesRetrieved": false,
+      "primarySourceVerified": false,
+      "humanReviewStatus": "pending",
+      "eventDateVersioningApproved": false,
+      "legalAnswerUsePermitted": false
+    },
+    "amendment1403SeparateText": {
+      "directTextUrl": "https://qavanin.ir/Law/TreeText/?IDS=634882870797924421",
+      "textPageAttempted": true,
+      "textPageRendered": false,
+      "textPageResult": "transfer-interstitial",
+      "rawHttpResponseBytesCaptured": false,
+      "rawResponseSha256": null,
+      "officialGazetteIssueBytesRetrieved": false,
+      "primarySourceVerified": false,
+      "humanReviewStatus": "pending",
+      "eventDateVersioningApproved": false,
+      "legalAnswerUsePermitted": false
+    }
+  },
+  "decision": {
+    "registerStatus": "research-only",
+    "releaseSourceEligible": false,
+    "legalConclusionPermitted": false,
+    "reason": "The consolidated official page rendered in browser retrieval, but raw response bytes, reproducible SHA-256, amendment Gazette issue bytes, and independent legal review are still missing."
+  }
+}

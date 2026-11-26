@@ -6,17 +6,22 @@ const fs = require('node:fs');
 const path = require('node:path');
 const registry = JSON.parse(fs.readFileSync(path.join(__dirname, '../docs/legal-source-registry-check.json'), 'utf8'));
 const metadataRecheck = JSON.parse(fs.readFileSync(path.join(__dirname, '../docs/check-law-qavanin-recheck-20261126.json'), 'utf8'));
+const browserObservation = JSON.parse(fs.readFileSync(path.join(__dirname, '../docs/check-law-qavanin-browser-recheck-20261126.json'), 'utf8'));
 const amendmentObservation = JSON.parse(fs.readFileSync(path.join(__dirname, '../docs/check-law-1372-direct-observation-20261126.json'), 'utf8'));
 
 test('canonical registry keeps consolidated-law metadata recheck separate from the 1372 amendment text observation', () => {
   assert.equal(registry.observations.metadataRecheckedAt, metadataRecheck.observedAt);
   assert.equal(registry.observations.consolidatedTextLatestAttemptAt, metadataRecheck.observedAt);
-  assert.equal(registry.observations.latestSupplementalRecheck, 'docs/check-law-qavanin-recheck-20261126.json');
+  assert.equal(registry.observations.latestSupplementalRecheck, 'docs/check-law-qavanin-browser-recheck-20261126.json');
   assert.equal(registry.observations.latestAmendmentTextObservation, 'docs/check-law-1372-direct-observation-20261126.json');
-  assert.match(registry.observations.consolidatedTextLatestRecheck, /transfer\/interstitial/);
+  assert.match(registry.observations.consolidatedTextLatestRecheck, /TreeText page rendered/);
   assert.match(registry.observations.metadataLatestRecheck, /raw HTTP bytes and SHA-256 were not captured/);
   assert.equal(metadataRecheck.status, 'official-metadata-rendered-only');
   assert.equal(metadataRecheck.sources.consolidatedChequeLaw.textPageRendered, false);
+  assert.equal(browserObservation.sources.consolidatedChequeLaw.textPageRendered, true);
+  assert.equal(browserObservation.sources.consolidatedChequeLaw.rawHttpResponseBytesCaptured, false);
+  assert.equal(browserObservation.sources.consolidatedChequeLaw.legalAnswerUsePermitted, false);
+  assert.equal(registry.observations.latestBrowserTextObservation, 'docs/check-law-qavanin-browser-recheck-20261126.json');
   assert.equal(registry.status, 'research-only');
   assert.equal(registry.releaseSourceEligible, false);
   assert.equal(registry.legalConclusionPermitted, false);

@@ -54,13 +54,13 @@
       "officialDocumentUrlCandidates": [
         {
           "url": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
-          "candidateStatus": "official-metadata-rendered-2026-11-26-text-transfer-interstitial-raw-bytes-not-captured",
+          "candidateStatus": "official-consolidated-text-rendered-2026-11-26-raw-bytes-not-captured",
           "documentId": "11400475274213876131",
           "sourceClass": "primary-official-qavanin",
           "discoverySource": "docs/check-law-source-handoff-20261026.json",
           "officialAttributeUrl": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
           "lastDirectFetchAt": "2026-11-26",
-          "lastDirectFetchResult": "The official Qavanin Attribute page rendered on 2026-11-26 and displayed original Gazette 9210 and original 1355 dates plus the latest-status label 1403/03/30. The TreeText endpoint returned only a transfer/interstitial page in this retrieval. Raw response bytes, SHA-256, Gazette issue bytes, independent human review and event-date versioning remain unavailable.",
+          "lastDirectFetchResult": "On 2026-11-26 the official Qavanin consolidated TreeText page and Attribute metadata page both rendered through browser retrieval. Visible consolidated text spans lines 42-113 and shows amendment labels including Article 7 amended 1403/03/30. Raw HTTP bytes, SHA-256, amendment Gazette issue bytes, independent human review and event-date versioning remain unavailable.",
           "originalGazetteNumberShown": "9210",
           "originalGazetteDateShown": "1355/05/19",
           "lastStatusShown": "اصلاحي 1403/03/30",
@@ -68,67 +68,20 @@
           "currentConsolidatedTextVerified": false,
           "humanReviewStatus": "pending",
           "useInLegalAnswers": false,
-          "note": "تطبیق مستقیم ۱۴۰۵/۰۹/۰۲: متن تجمیعی و اطلاعات پایه قانون در Qavanin قابل مشاهده بود. شماره روزنامه رسمی ۹۲۱۰ و تاریخ‌های ۱۳۵۵ مربوط به قانون اولیه‌اند، نه تاریخ اثر اصلاحات بعدی. متن ماده ۱ برچسب الحاق ۱۳۷۲/۰۸/۱۱ دارد و صفحه تجمیعی برچسب آخرین وضعیت اصلاحی ۱۴۰۳/۰۳/۳۰ را نشان می‌دهد. بایت خام، روزنامه رسمی اصلاحیه‌ها و نسخه معتبر در تاریخ واقعه هنوز احراز نشده‌اند؛ استفاده در پاسخ حقوقی ممنوع می‌ماند.",
+          "note": "بازبینی مستقیم ۱۴۰۵/۰۹/۰۵: صفحه تجمیعی TreeText قانون صدور چک در بازیابی مرورگری نمایش داده شد و برچسب اصلاح ماده ۷ به تاریخ ۱۴۰۳/۰۳/۳۰ قابل مشاهده بود. صفحه Attribute نیز روزنامه رسمی ۹۲۱۰ و تاریخ‌های مربوط به قانون اولیه ۱۳۵۵ را نشان می‌دهد. این اطلاعات تاریخ انتشار یا لازم‌الاجراشدن اصلاحیه ۱۴۰۳ را اثبات نمی‌کند. بایت خام، SHA-256 بازتولیدپذیر، شماره و فایل روزنامه رسمی اصلاحیه‌ها و بازبینی حقوقی مستقل هنوز موجود نیست؛ استفاده در پاسخ حقوقی ممنوع می‌ماند.",
           "latestTextObservation": {
-            "observedAt": "2026-11-25",
-            "observationMethod": "web-rendered-page",
+            "observedAt": "2026-11-26",
+            "observationMethod": "browser-rendered-direct-page",
             "textPageRendered": true,
-            "visibleLines": [
-              7,
-              9,
+            "visibleLineRange": [
               42,
-              43,
-              44,
-              45,
-              46,
-              47,
-              48,
-              49,
-              50,
-              51,
-              52,
-              53,
-              54,
-              55,
-              56,
-              57,
-              58,
-              59,
-              60,
-              61,
-              62,
-              63,
-              64,
-              65,
-              66,
-              67,
-              68,
-              69,
-              70,
-              71,
-              72,
-              73,
-              74,
-              75,
-              76,
-              77,
-              78,
-              79,
-              80,
-              81,
-              82,
-              83,
-              84,
-              85,
-              86,
-              87,
-              88,
-              89,
-              90
+              113
             ],
             "originalAdoptionDateShown": "1355/04/16",
             "amendmentLabelsShown": [
               "الحاقی 11/08/1372",
+              "اصلاحی 02/06/1382",
+              "اصلاحی 13/08/1397",
               "اصلاحی 29/01/1400",
               "اصلاحی 30/03/1403"
             ],
@@ -136,7 +89,9 @@
             "rawResponseSha256": null,
             "primarySourceVerified": false,
             "humanReviewStatus": "pending",
-            "useInLegalAnswers": false
+            "eventDateVersioningApproved": false,
+            "useInLegalAnswers": false,
+            "observationFile": "docs/check-law-qavanin-browser-recheck-20261126.json"
           },
           "latestMetadataObservation": {
             "observedAt": "2026-11-26",
@@ -183,25 +138,15 @@
           "latestRecheck": {
             "observedAt": "2026-11-26",
             "directTextAttempted": true,
-            "directTextPageRendered": false,
-            "directTextResult": "transfer-interstitial-only",
+            "directTextPageRendered": true,
+            "directTextResult": "browser-rendered-direct-page",
+            "directTextVisibleLineRange": [
+              42,
+              113
+            ],
             "directMetadataPageRendered": true,
-            "metadataVisibleLines": [
-              7,
-              9,
+            "metadataVisibleLineRange": [
               19,
-              21,
-              22,
-              23,
-              24,
-              25,
-              26,
-              27,
-              29,
-              30,
-              31,
-              32,
-              33,
               34
             ],
             "officialGazetteNumberShown": "9210",
@@ -213,7 +158,8 @@
             "primarySourceVerified": false,
             "humanReviewStatus": "pending",
             "eventDateVersioningApproved": false,
-            "useInLegalAnswers": false
+            "useInLegalAnswers": false,
+            "observationFile": "docs/check-law-qavanin-browser-recheck-20261126.json"
           }
         },
         {
@@ -1429,19 +1375,42 @@
           "humanReviewStatus": "pending",
           "eventDateVersioningApproved": false,
           "useInLegalAnswers": false
+        },
+        {
+          "file": "docs/check-law-qavanin-browser-recheck-20261126.json",
+          "observedAt": "2026-11-26",
+          "documentId": "11400475274213876131",
+          "sourceClass": "primary-official-qavanin-browser-rendered-observation",
+          "status": "official-consolidated-text-rendered-unhashed",
+          "consolidatedTextRendered": true,
+          "consolidatedMetadataRendered": true,
+          "amendment1403SeparateTextRendered": false,
+          "rawHttpResponseBytesCaptured": false,
+          "rawResponseSha256": null,
+          "officialGazetteIssueBytesRetrieved": false,
+          "primarySourceVerified": false,
+          "humanReviewStatus": "pending",
+          "eventDateVersioningApproved": false,
+          "useInLegalAnswers": false
         }
       ],
       "latestConsolidatedObservation": {
-        "file": "docs/check-law-qavanin-recheck-20261125.json",
-        "observedAt": "2026-11-25",
-        "sourceClass": "primary-official-qavanin-rendered-observation",
-        "status": "official-portal-rendered-text-and-metadata-observation-only",
+        "file": "docs/check-law-qavanin-browser-recheck-20261126.json",
+        "observedAt": "2026-11-26",
+        "sourceClass": "primary-official-qavanin-browser-rendered-observation",
+        "status": "official-consolidated-text-rendered-unhashed",
         "documentId": "11400475274213876131",
         "textRendered": true,
         "metadataRendered": true,
+        "visibleTextLineRange": [
+          42,
+          113
+        ],
         "originalAdoptionDateShown": "1355/04/16",
         "amendmentLabelsShown": [
           "الحاقی 11/08/1372",
+          "اصلاحی 02/06/1382",
+          "اصلاحی 13/08/1397",
           "اصلاحی 29/01/1400",
           "اصلاحی 30/03/1403"
         ],
@@ -1449,7 +1418,7 @@
         "originalGazettePublicationDateShown": "1355/05/19",
         "originalPromulgationDateShown": "1355/05/09",
         "originalEffectiveDateShown": "1355/06/04",
-        "latestStatusLabelShown": "اصلاحی 1403/03/30",
+        "latestStatusLabelShown": "اصلاحي 1403/03/30",
         "rawHttpBytesCaptured": false,
         "rawResponseSha256": null,
         "officialGazetteIssueBytesRetrieved": false,
@@ -1811,5 +1780,5 @@
     }
   ],
   "lastSupplementalObservationAt": "2026-11-26",
-  "latestSupplementalObservationFile": "docs/check-law-qavanin-recheck-20261126.json"
+  "latestSupplementalObservationFile": "docs/check-law-qavanin-browser-recheck-20261126.json"
 }

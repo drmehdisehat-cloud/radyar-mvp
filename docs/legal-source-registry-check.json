@@ -11,7 +11,7 @@
   "observations": {
     "consolidatedTextRetrievedAt": "2026-11-19",
     "metadataRecheckedAt": "2026-11-26",
-    "consolidatedTextLatestRecheck": "2026-11-26: official TreeText endpoint returned only a transfer/interstitial page; consolidated law text was not retrieved; raw HTTP bytes and SHA-256 were not captured.",
+    "consolidatedTextLatestRecheck": "2026-11-26: the official consolidated Qavanin TreeText page rendered in browser retrieval (visible lines 42-113); the Attribute page also rendered. Raw HTTP bytes, reproducible SHA-256 and amendment Gazette issue bytes were not captured.",
     "metadataLatestRecheck": "2026-11-26: official consolidated-law Attribute page rendered original-law metadata and latest status label 1403/03/30; raw HTTP bytes and SHA-256 were not captured. The separate 1403 amendment Attribute endpoint still returned a transfer interstitial in the same recheck.",
     "lastStatusLabelObserved": "اصلاحي 1403/03/30",
     "originalGazetteNumberObserved": "9210",
@@ -79,9 +79,10 @@
       "1400/01/29"
     ],
     "consolidatedTextLatestAttemptAt": "2026-11-26",
-    "latestSupplementalRecheck": "docs/check-law-qavanin-recheck-20261126.json",
+    "latestSupplementalRecheck": "docs/check-law-qavanin-browser-recheck-20261126.json",
     "latestStatusLabelObserved": "اصلاحي 1403/03/30",
-    "latestAmendmentTextObservation": "docs/check-law-1372-direct-observation-20261126.json"
+    "latestAmendmentTextObservation": "docs/check-law-1372-direct-observation-20261126.json",
+    "latestBrowserTextObservation": "docs/check-law-qavanin-browser-recheck-20261126.json"
   },
   "publicationDate": null,
   "effectiveFrom": null,
@@ -92,11 +93,11 @@
   "humanReview": null,
   "legalConclusionPermitted": false,
   "evidenceGaps": [
-    "در بازبینی ۲۰۲۶-۱۱-۲۶ متن صفحه رسمی Qavanin برای اصلاحیه ۱۳۷۲ نمایش داده شد، اما بایت خام پاسخ و SHA-256 بازتولیدپذیر ثبت نشد.",
+    "در بازبینی ۲۰۲۶-۱۱-۲۶ متن تجمیعی قانون در صفحه رسمی Qavanin TreeText نمایش داده شد، اما بایت خام پاسخ و SHA-256 بازتولیدپذیر ثبت نشد.",
     "فراداده اختصاصی اصلاحیه ۱۳۷۲ و فایل/شماره روزنامه رسمی آن در این بازبینی دریافت و تأیید نشد.",
     "شماره و فایل روزنامه رسمی شماره ۹۲۱۰ و شماره‌های روزنامه رسمی اصلاحیه‌های بعدی دریافت و هش نشده‌اند.",
     "متن و فراداده رسمی اصلاحیه‌های ۱۳۷۶ و ۱۳۸۲ برای تکمیل زنجیره تنقیح لازم است.",
-    "برای اصلاحیه ۱۴۰۳، متن مستقیم و فراداده اختصاصی در این بازیابی قابل دریافت نبود؛ برچسب آخرین وضعیت در صفحه قانون تجمیعی، به‌تنهایی تاریخ انتشار یا لازم‌الاجراشدن اصلاحیه را اثبات نمی‌کند.",
+    "برچسب اصلاح ماده ۷ به تاریخ ۱۴۰۳/۰۳/۳۰ در متن تجمیعی دیده شد، اما صفحه اختصاصی متن اصلاحیه ۱۴۰۳ در این بازیابی همچنان به صفحه انتقال رسید؛ شماره، تاریخ انتشار و لازم‌الاجراشدن اصلاحیه با روزنامه رسمی اثبات نشده است.",
     "متن تجمیعی جاری و قواعد انتقالی هنوز با سند اولیه و بازبینی انسانی تأیید نشده‌اند.",
     "نسخه معتبر متن در تاریخ هر رویداد هنوز با سند اولیه و بازبینی انسانی تأیید نشده است.",
     "بازبین حقوقی مستقل و تاریخ بررسی ثبت نشده است."
