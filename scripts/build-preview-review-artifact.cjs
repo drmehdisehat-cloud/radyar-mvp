@@ -7,12 +7,33 @@ const { execFileSync } = require('node:child_process');
 const root = path.resolve(__dirname, '..');
 const outputArg = process.argv[2];
 function fail(message) { throw new Error(message); }
+function rejectSymlinkPathComponents(target, label) {
+  if (typeof target !== 'string' || !path.isAbsolute(target) || path.resolve(target) !== target) fail(label + '_path_must_be_absolute_canonical');
+  const rootPath = path.parse(target).root;
+  let current = rootPath;
+  for (const part of target.slice(rootPath.length).split(path.sep).filter(Boolean)) {
+    current = path.join(current, part);
+    const stat = fs.lstatSync(current);
+    if (stat.isSymbolicLink()) fail(label + '_path_contains_symlink');
+    if (!stat.isDirectory()) fail(label + '_path_component_not_directory');
+  }
+  if (fs.realpathSync(target) !== target) fail(label + '_path_not_canonical');
+}
 if (!outputArg || !path.isAbsolute(outputArg) || path.resolve(outputArg) !== outputArg) fail('output_directory_must_be_absolute_canonical');
-fs.mkdirSync(outputArg, { recursive: true });
-const output = fs.realpathSync(outputArg);
-const relative = path.relative(root, output);
+const outputParent = path.dirname(outputArg);
+rejectSymlinkPathComponents(outputParent, 'output_parent');
+const relative = path.relative(root, outputArg);
 if (relative === '' || (!relative.startsWith('..' + path.sep) && relative !== '..' && !path.isAbsolute(relative))) fail('output_must_be_outside_git_checkout');
-if (fs.existsSync(path.join(output, 'index.html')) || fs.existsSync(path.join(output, 'INTEGRITY.json'))) fail('output_must_be_empty');
+try {
+  fs.lstatSync(outputArg);
+  fail('output_directory_must_not_exist');
+} catch (error) {
+  if (error.message === 'output_directory_must_not_exist') throw error;
+  if (error.code !== 'ENOENT') throw error;
+}
+fs.mkdirSync(outputArg, { mode: 0o700 });
+const output = fs.realpathSync(outputArg);
+if (output !== outputArg) fail('output_path_must_be_canonical');
 const source = path.join(root, 'dadyar-preview', 'index.html');
 const sourceStat = fs.lstatSync(source);
 if (!sourceStat.isFile() || sourceStat.isSymbolicLink()) fail('preview_source_must_be_regular_file');
