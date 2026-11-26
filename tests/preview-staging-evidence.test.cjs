@@ -167,6 +167,12 @@ test('secret-bearing evidence fields are rejected', async t => {
   f.resign();
   await assert.rejects(() => verifyEvidence(f.evidence, f.options), /sensitive_field_forbidden/);
 });
+test('unknown evidence fields are rejected before any attestation is trusted', async t => {
+  const f = makeFixture(); t.after(f.cleanup);
+  f.payload.operatorNote = 'synthetic-only';
+  f.resign();
+  await assert.rejects(() => verifyEvidence(f.evidence, f.options), /payload_fields_mismatch/);
+});
 test('review artifact cannot claim deployment readiness', async t => {
   const f = makeFixture(); t.after(f.cleanup);
   const integrityPath = path.join(f.destination, 'INTEGRITY.json');
