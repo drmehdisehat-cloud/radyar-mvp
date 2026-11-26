@@ -10,7 +10,7 @@ const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'
 const scriptMatches = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)];
 const script = scriptMatches.length === 1 ? scriptMatches[0][2] : '';
 const scriptTag = scriptMatches.length === 1 ? scriptMatches[0][0] : '';
-const style = html.match(/<style>([\\s\\S]*?)<\\/style>/i)?.[1] || '';
+const style = html.match(/<style>([\s\S]*?)<\/style>/i)?.[1] || '';
 const csp = html.match(/<meta\s+http-equiv="Content-Security-Policy"\s+content="([^"]+)"/i)?.[1] || '';
 
 test('public preview remains a self-contained offline document', () => {
@@ -65,7 +65,7 @@ test('cheque-only preview excludes unrelated calculators and unverified owner-su
   assert.doesNotMatch(html, /delay-damages-calculator|delay-principal|delay-due-month|delay-payment-month|delay-calculate|delay-result|delay-index-list/i);
   assert.doesNotMatch(html, /محاسبه آزمایشی خسارت تأخیر تأدیه ۱۴۰۵/);
   assert.doesNotMatch(html, /data-indexes=/i);
-  assert.doesNotMatch(html, /2654\\.9|2880\\.4|3092\\.3|3205\\.1|3333\\.9|3452\\.1|3611\\.1/);
+  for (const value of ['2654.9','2880.4','3092.3','3205.1','3333.9','3452.1','3611.1']) assert.equal(html.includes(value), false, `unverified index ${value} must not ship in the cheque preview`);
 });
 
 test('inline CSP hashes exactly match the preview script and style bytes', () => {
