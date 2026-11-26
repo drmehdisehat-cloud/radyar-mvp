@@ -12,6 +12,7 @@ const MAX_KEYS = 8;
 const LABEL_FORBIDDEN = /[\u0000-\u001f\u007f-\u009f\u00ad\u061c\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff]/u;
 const KID_PATTERN = /^[A-Za-z0-9._-]{1,128}$/;
 const TOKEN_PATTERN = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/;
+const JTI_PATTERN = /^[A-Za-z0-9_-]{22,128}$/;
 
 function authenticationFailure() {
   const error = new Error('reviewer_access_token_invalid');
@@ -75,6 +76,8 @@ function createOidcReviewerAuthenticator(options = {}) {
     audience,
     reviewIssuer,
     keys,
+    isSessionActive,
+    sessionStatusTimeoutMs = 1000,
     now = Date.now,
     maxTokenAgeSeconds = 600,
     clockSkewSeconds = 30
@@ -87,6 +90,12 @@ function createOidcReviewerAuthenticator(options = {}) {
     throw new TypeError('Between one and eight owner-pinned OIDC RSA public keys are required.');
   }
   if (typeof now !== 'function') throw new TypeError('The OIDC clock must be a function.');
+  if (typeof isSessionActive !== 'function') {
+    throw new TypeError('A trusted server-side session status callback is required.');
+  }
+  if (!Number.isSafeInteger(sessionStatusTimeoutMs) || sessionStatusTimeoutMs < 10 || sessionStatusTimeoutMs > 5000) {
+    throw new TypeError('sessionStatusTimeoutMs must be an integer from 10 through 5000.');
+  }
   if (!Number.isSafeInteger(maxTokenAgeSeconds) || maxTokenAgeSeconds < 60 || maxTokenAgeSeconds > 900) {
     throw new TypeError('maxTokenAgeSeconds must be an integer between 60 and 900.');
   }
@@ -163,7 +172,11 @@ function createOidcReviewerAuthenticator(options = {}) {
       const tokenAudience = claims.aud;
       const audienceMatches = tokenAudience === audience ||
         (Array.isArray(tokenAudience) && tokenAudience.length === 1 && tokenAudience[0] === audience);
-      if (claims.iss !== pinnedIssuer || !audienceMatches || !isSafeLabel(claims.sub)) {
+      const rolesValid = Array.isArray(claims.roles) && claims.roles.length === 1 &&
+        claims.roles[0] === 'preview-reviewer';
+      if (claims.iss !== pinnedIssuer || !audienceMatches || !isSafeLabel(claims.sub) ||
+          !JTI_PATTERN.test(claims.jti || '') || claims.reviewer_independent !== true ||
+          !rolesValid) {
         throw authenticationFailure();
       }
 
@@ -179,19 +192,45 @@ function createOidcReviewerAuthenticator(options = {}) {
       }
       if (claims.nbf !== undefined &&
           (!Number.isSafeInteger(claims.nbf) || claims.nbf > currentSeconds + skew ||
-           claims.nbf > claims.exp)) {
+           claims.nbf >= claims.exp)) {
         throw authenticationFailure();
       }
 
-      const roles = Array.isArray(claims.roles) && claims.roles.length <= 16 &&
-        claims.roles.every(isSafeLabel) ? [...claims.roles] : [];
+      // Short expiry is not immediate revocation. Check the trusted owner-side
+      // session registry on every request and fail closed on false, timeout or outage.
+      const controller = new AbortController();
+      let timeout;
+      let sessionActive;
+      try {
+        const statusPromise = Promise.resolve().then(() => isSessionActive(Object.freeze({
+          issuer: pinnedIssuer,
+          subject: claims.sub,
+          tokenId: claims.jti,
+          issuedAt: claims.iat,
+          expiresAt: claims.exp,
+          signal: controller.signal
+        })));
+        const timeoutPromise = new Promise((_, reject) => {
+          timeout = setTimeout(() => {
+            controller.abort();
+            reject(authenticationFailure());
+          }, sessionStatusTimeoutMs);
+        });
+        sessionActive = await Promise.race([statusPromise, timeoutPromise]);
+      } catch {
+        throw authenticationFailure();
+      } finally {
+        if (timeout) clearTimeout(timeout);
+      }
+      if (sessionActive !== true) throw authenticationFailure();
+
       return Object.freeze({
         authenticated: true,
         issuer: reviewIssuer,
         identityIssuer: pinnedIssuer,
         subject: claims.sub,
-        independent: claims.independent === true,
-        roles: Object.freeze(roles)
+        independent: true,
+        roles: Object.freeze([...claims.roles])
       });
     } catch {
       throw authenticationFailure();

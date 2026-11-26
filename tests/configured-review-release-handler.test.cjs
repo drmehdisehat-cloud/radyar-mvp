@@ -79,7 +79,8 @@ function fixture(t) {
     }],
     now: () => now,
     maxTokenAgeSeconds: 600,
-    clockSkewSeconds: 30
+    clockSkewSeconds: 30,
+    isSessionActive: async () => true
   };
   const claims = {
     iss: ISSUER,
@@ -88,8 +89,9 @@ function fixture(t) {
     iat: Math.floor(now / 1000) - 30,
     exp: Math.floor(now / 1000) + 300,
     nbf: Math.floor(now / 1000) - 30,
+    jti: crypto.randomBytes(32).toString('base64url'),
     roles: ['preview-reviewer'],
-    independent: true
+    reviewer_independent: true
   };
   const makeToken = patch => signJwt({
     alg: 'RS256',
@@ -197,7 +199,7 @@ test('authenticated but non-independent or incorrectly assigned users cannot rel
     });
     assert.equal(wrongRole.status, 403);
     const notIndependent = await send(f.port, {
-      token: f.makeToken({ independent: false }), envelope: f.attestation
+      token: f.makeToken({ reviewer_independent: false }), envelope: f.attestation
     });
     assert.equal(notIndependent.status, 403);
     assert.equal(f.reportLoads(), 0);
