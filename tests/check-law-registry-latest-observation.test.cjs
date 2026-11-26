@@ -14,7 +14,7 @@ test('canonical registry keeps consolidated-law metadata recheck separate from t
   assert.equal(registry.observations.consolidatedTextLatestAttemptAt, metadataRecheck.observedAt);
   assert.equal(registry.observations.latestSupplementalRecheck, 'docs/check-law-qavanin-browser-recheck-20261126.json');
   assert.equal(registry.observations.latestAmendmentTextObservation, 'docs/check-law-1372-direct-observation-20261126.json');
-  assert.match(registry.observations.consolidatedTextLatestRecheck, /TreeText page rendered/);
+  assert.match(registry.observations.consolidatedTextLatestRecheck, /both rendered in browser retrieval/);
   assert.match(registry.observations.metadataLatestRecheck, /raw HTTP bytes and SHA-256 were not captured/);
   assert.equal(metadataRecheck.status, 'official-metadata-rendered-only');
   assert.equal(metadataRecheck.sources.consolidatedChequeLaw.textPageRendered, false);
