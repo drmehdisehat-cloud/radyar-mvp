@@ -640,6 +640,7 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
       '  focusEvidence.checked = false; focusEvidence.dispatchEvent(new Event("change", { bubbles: true }));',
       '  const focusReturnedToGenerateAfterInvalidation = document.activeElement.id === "generate" && document.getElementById("result").hidden && download.disabled;',
       '  focusEvidence.checked = true; focusEvidence.dispatchEvent(new Event("change", { bubbles: true }));',
+      '  question.value = "چک صیادی و گواهی عدم پرداخت"; question.dispatchEvent(new Event("input", { bubbles: true }));',
       '  document.getElementById("generate").click();',
       '  const chequeOnlyExportEligible = exportEligible;',
       '  const reviewer = document.getElementById("reviewer-name");',
