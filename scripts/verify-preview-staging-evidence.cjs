@@ -213,6 +213,7 @@ async function verifyEvidence(evidence, options) {
   assertExactKeys(probe, ['success', 'query', 'value', 'stagingFingerprint', 'productionFingerprint', 'testedAt'], 'database_probe');
   if (probe.success !== true || probe.query !== 'SELECT 1' || probe.value !== 1) fail('staging_database_probe_failed');
   assertTimestamp(probe.testedAt, 'database_probe');
+  if (Date.parse(probe.testedAt) <= Date.parse(backup.restoreCompletedAt)) fail('database_probe_must_follow_restore_completion');
   if (!isHex(probe.stagingFingerprint, 64) || !isHex(probe.productionFingerprint, 64)) fail('database_fingerprint_invalid');
   if (probe.stagingFingerprint === probe.productionFingerprint) fail('staging_database_matches_production');
 
