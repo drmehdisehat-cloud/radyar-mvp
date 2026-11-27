@@ -80,21 +80,21 @@ test('inline preview logic does not expose browser network APIs or service-worke
 });
 test('offline markup has no inline event handlers, javascript URLs, refresh redirects, srcdoc or inline styles', () => {
   const markup = html
-    .replace(/<script\\b[^>]*>[\\s\\S]*?<\\/script>/gi, '<script></script>')
-    .replace(/<style\\b[^>]*>[\\s\\S]*?<\\/style>/gi, '<style></style>');
-  const tags = [...markup.matchAll(/<([a-z][a-z0-9:-]*)\\b([^>]*)>/gi)];
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '<script></script>')
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '<style></style>');
+  const tags = [...markup.matchAll(/<([a-z][a-z0-9:-]*)\b([^>]*)>/gi)];
   assert.ok(tags.length > 0, 'preview markup must contain parseable HTML elements');
   for (const match of tags) {
     const tagName = match[1].toLowerCase();
     const attributes = match[2];
-    assert.doesNotMatch(attributes, /\\son[a-z][a-z0-9_-]*\\s*=/i, tagName + ' must not contain inline event handlers');
-    assert.doesNotMatch(attributes, /\\bsrcdoc\\s*=/i, tagName + ' must not embed an executable document');
-    assert.doesNotMatch(attributes, /\\bstyle\\s*=/i, tagName + ' must not bypass the pinned stylesheet with inline style');
+    assert.doesNotMatch(attributes, /\son[a-z][a-z0-9_-]*\s*=/i, tagName + ' must not contain inline event handlers');
+    assert.doesNotMatch(attributes, /\bsrcdoc\s*=/i, tagName + ' must not embed an executable document');
+    assert.doesNotMatch(attributes, /\bstyle\s*=/i, tagName + ' must not bypass the pinned stylesheet with inline style');
     assert.doesNotMatch(
       attributes,
-      /\\b(?:href|src|action|formaction|xlink:href)\\s*=\\s*(?:"[^"]*javascript:|'[^']*javascript:|javascript:)/i,
+      /\b(?:href|src|action|formaction|xlink:href)\s*=\s*(?:"[^"]*javascript:|'[^']*javascript:|javascript:)/i,
       tagName + ' must not contain a javascript: URL'
     );
   }
-  assert.doesNotMatch(markup, /<meta\\b[^>]*http-equiv\\s*=\\s*["']?\\s*refresh\\b/i, 'preview must not redirect automatically');
+  assert.doesNotMatch(markup, /<meta\b[^>]*http-equiv\s*=\s*["']?\s*refresh\b/i, 'preview must not redirect automatically');
 });
