@@ -634,6 +634,13 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
       '  question.value = "چک صیادی و گواهی عدم پرداخت";',
       '  question.dispatchEvent(new Event("input", { bubbles: true }));',
       '  document.getElementById("generate").click();',
+      '  const focusMovedToResultAfterGeneration = document.activeElement.id === "result";',
+      '  document.getElementById("review-note").focus();',
+      '  const focusEvidence = document.querySelector("#evidence-list input[type=checkbox]");',
+      '  focusEvidence.checked = false; focusEvidence.dispatchEvent(new Event("change", { bubbles: true }));',
+      '  const focusReturnedToGenerateAfterInvalidation = document.activeElement.id === "generate" && document.getElementById("result").hidden && download.disabled;',
+      '  focusEvidence.checked = true; focusEvidence.dispatchEvent(new Event("change", { bubbles: true }));',
+      '  document.getElementById("generate").click();',
       '  const chequeOnlyExportEligible = exportEligible;',
       '  const reviewer = document.getElementById("reviewer-name");',
       '  reviewer.value = "بازبین آزمون"; reviewer.dispatchEvent(new Event("input", { bubbles: true }));',
@@ -678,7 +685,7 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
       '    maxTouchPoints: navigator.maxTouchPoints, coarsePointer: matchMedia("(pointer: coarse)").matches,',
       '    mobileUserAgent: /iPhone|Mobile/i.test(navigator.userAgent),',
       '    horizontalOverflow: root.scrollWidth > root.clientWidth + 1,',
-      '    initiallyDisabled, blockedBeforeReview, rejectedReviewBlocked, rejectedReviewStatus, enabledAfterReview, disabledAfterExport,',
+      '    initiallyDisabled, blockedBeforeReview, focusMovedToResultAfterGeneration, focusReturnedToGenerateAfterInvalidation, rejectedReviewBlocked, rejectedReviewStatus, enabledAfterReview, disabledAfterExport,',
       '    multiTopicIds, multiTopicInputCleared, multiTopicRawQuestionEchoed, multiTopicExportEligible, multiTopicScopeStatus, chequeOnlyExportEligible, invalidJalaliDateBlocked, leapJalaliDateAccepted,',
       '    sensitiveInputCleared, sensitiveRawQuestionEchoed, sensitiveVisibleReport, sensitiveExportBlocked, sensitiveStatus,',
       '    reviewStatus, visibleReport, resourceRequests, checklistPreservedDraft, reviewDigestValid, reviewDigestMatchesReport, approvedReportSha256',
@@ -701,6 +708,8 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
     assert.equal(snapshot.horizontalOverflow, false);
     assert.equal(snapshot.initiallyDisabled, true);
     assert.equal(snapshot.blockedBeforeReview, true);
+    assert.equal(snapshot.focusMovedToResultAfterGeneration, true, "generated preview should move keyboard focus to the report");
+    assert.equal(snapshot.focusReturnedToGenerateAfterInvalidation, true, "invalidating a draft while focus is inside it must restore focus to the generate control");
     assert.equal(snapshot.enabledAfterReview, true, 'approved local review should enable report download');
     assert.equal(snapshot.reviewDigestValid, true, 'HTTP preview review must produce a SHA-256 report digest');
     assert.equal(snapshot.reviewDigestMatchesReport, true, 'HTTP preview digest must match an independent Web Crypto calculation');
