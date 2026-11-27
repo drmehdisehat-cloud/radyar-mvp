@@ -2,6 +2,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const zlib = require('node:zlib');
 
 function fail(code) { throw new Error(code); }
 function isHex(value, length) { return typeof value === 'string' && new RegExp('^[a-f0-9]{' + length + '}$').test(value); }
@@ -81,15 +82,142 @@ function assertFilePathStillMatches(filePath, label, openedStat, fd) {
   assertNoSymlinkComponents(filePath, label);
 }
 
-function readRegularFileNoFollow(filePath, label, encoding = null) {
+function readRegularFileNoFollow(filePath, label, encoding = null, maxBytes = null) {
   const opened = openRegularFileNoFollow(filePath, label);
   try {
+    if (maxBytes !== null && opened.stat.size > maxBytes) fail(label + '_too_large');
     const bytes = fs.readFileSync(opened.fd);
+    if (maxBytes !== null && bytes.length > maxBytes) fail(label + '_too_large');
     assertFilePathStillMatches(filePath, label, opened.stat, opened.fd);
     return encoding ? bytes.toString(encoding) : bytes;
   } finally {
     fs.closeSync(opened.fd);
   }
+}
+
+
+const MAX_PREVIEW_ARCHIVE_BYTES = 10 * 1024 * 1024;
+const MAX_PREVIEW_MEMBER_BYTES = 2 * 1024 * 1024;
+const CRC32_TABLE = (() => {
+  const table = new Uint32Array(256);
+  for (let n = 0; n < 256; n += 1) {
+    let value = n;
+    for (let bit = 0; bit < 8; bit += 1) value = (value & 1) ? (0xedb88320 ^ (value >>> 1)) : (value >>> 1);
+    table[n] = value >>> 0;
+  }
+  return table;
+})();
+function crc32(bytes) {
+  let value = 0xffffffff;
+  for (const byte of bytes) value = CRC32_TABLE[(value ^ byte) & 0xff] ^ (value >>> 8);
+  return (value ^ 0xffffffff) >>> 0;
+}
+function readPreviewZipMembers(bytes) {
+  if (!Buffer.isBuffer(bytes) || bytes.length < 22 || bytes.length > MAX_PREVIEW_ARCHIVE_BYTES) fail('preview_artifact_zip_size_invalid');
+  let endOffset = -1;
+  const lowerBound = Math.max(0, bytes.length - 22 - 0xffff);
+  for (let offset = bytes.length - 22; offset >= lowerBound; offset -= 1) {
+    if (bytes.readUInt32LE(offset) === 0x06054b50 && offset + 22 + bytes.readUInt16LE(offset + 20) === bytes.length) {
+      endOffset = offset;
+      break;
+    }
+  }
+  if (endOffset < 0) fail('preview_artifact_zip_eocd_missing');
+  const disk = bytes.readUInt16LE(endOffset + 4);
+  const centralDisk = bytes.readUInt16LE(endOffset + 6);
+  const entriesOnDisk = bytes.readUInt16LE(endOffset + 8);
+  const entryCount = bytes.readUInt16LE(endOffset + 10);
+  const centralSize = bytes.readUInt32LE(endOffset + 12);
+  const centralOffset = bytes.readUInt32LE(endOffset + 16);
+  if (disk !== 0 || centralDisk !== 0 || entriesOnDisk !== entryCount ||
+      entryCount < 1 || entryCount > 8 || entryCount === 0xffff ||
+      centralSize === 0xffffffff || centralOffset === 0xffffffff ||
+      centralOffset + centralSize !== endOffset) fail('preview_artifact_zip_layout_unsupported');
+  const allowedNames = ['INTEGRITY.json', 'index.html'];
+  const members = new Map();
+  const ranges = [];
+  let cursor = centralOffset;
+  for (let index = 0; index < entryCount; index += 1) {
+    if (cursor + 46 > endOffset || bytes.readUInt32LE(cursor) !== 0x02014b50) fail('preview_artifact_zip_central_directory_invalid');
+    const madeBy = bytes.readUInt16LE(cursor + 4) >>> 8;
+    const flags = bytes.readUInt16LE(cursor + 8);
+    const method = bytes.readUInt16LE(cursor + 10);
+    const expectedCrc = bytes.readUInt32LE(cursor + 16);
+    const compressedSize = bytes.readUInt32LE(cursor + 20);
+    const uncompressedSize = bytes.readUInt32LE(cursor + 24);
+    const nameLength = bytes.readUInt16LE(cursor + 28);
+    const extraLength = bytes.readUInt16LE(cursor + 30);
+    const commentLength = bytes.readUInt16LE(cursor + 32);
+    const startDisk = bytes.readUInt16LE(cursor + 34);
+    const externalAttributes = bytes.readUInt32LE(cursor + 38);
+    const localOffset = bytes.readUInt32LE(cursor + 42);
+    const recordEnd = cursor + 46 + nameLength + extraLength + commentLength;
+    if (recordEnd > endOffset || nameLength === 0 || startDisk !== 0 ||
+        compressedSize === 0xffffffff || uncompressedSize === 0xffffffff || localOffset === 0xffffffff) {
+      fail('preview_artifact_zip_entry_layout_invalid');
+    }
+    if ((flags & 0x0001) !== 0 || (flags & 0x0040) !== 0 || (flags & 0x2000) !== 0) fail('preview_artifact_zip_encryption_forbidden');
+    if (method !== 0 && method !== 8) fail('preview_artifact_zip_compression_unsupported');
+    if (compressedSize > MAX_PREVIEW_ARCHIVE_BYTES || uncompressedSize > MAX_PREVIEW_MEMBER_BYTES) fail('preview_artifact_member_too_large');
+    const nameBytes = bytes.subarray(cursor + 46, cursor + 46 + nameLength);
+    const name = nameBytes.toString('utf8');
+    if (!Buffer.from(name, 'utf8').equals(nameBytes) || name.includes('/') || name.includes('\\') || name === '.' || name === '..') {
+      fail('preview_artifact_member_path_invalid');
+    }
+    if (members.has(name)) fail('preview_artifact_member_duplicate');
+    if (madeBy === 3) {
+      const unixMode = externalAttributes >>> 16;
+      if ((unixMode & 0o170000) !== 0o100000) fail('preview_artifact_member_not_regular_file');
+    } else if ((externalAttributes & 0x10) !== 0) {
+      fail('preview_artifact_member_not_regular_file');
+    }
+    if (localOffset + 30 > centralOffset || bytes.readUInt32LE(localOffset) !== 0x04034b50) fail('preview_artifact_zip_local_header_invalid');
+    const localFlags = bytes.readUInt16LE(localOffset + 6);
+    const localMethod = bytes.readUInt16LE(localOffset + 8);
+    const localNameLength = bytes.readUInt16LE(localOffset + 26);
+    const localExtraLength = bytes.readUInt16LE(localOffset + 28);
+    const localNameStart = localOffset + 30;
+    const localNameEnd = localNameStart + localNameLength;
+    const dataStart = localNameEnd + localExtraLength;
+    const dataEnd = dataStart + compressedSize;
+    if (localFlags !== flags || localMethod !== method || localNameLength !== nameLength ||
+        localNameEnd > centralOffset || dataStart > centralOffset || dataEnd > centralOffset ||
+        !bytes.subarray(localNameStart, localNameEnd).equals(nameBytes)) fail('preview_artifact_zip_local_header_mismatch');
+    if ((flags & 0x0008) === 0) {
+      if (bytes.readUInt32LE(localOffset + 14) !== expectedCrc ||
+          bytes.readUInt32LE(localOffset + 18) !== compressedSize ||
+          bytes.readUInt32LE(localOffset + 22) !== uncompressedSize) fail('preview_artifact_zip_local_size_mismatch');
+    }
+    let rangeEnd = dataEnd;
+    if ((flags & 0x0008) !== 0) {
+      let descriptor = dataEnd;
+      if (descriptor + 4 <= centralOffset && bytes.readUInt32LE(descriptor) === 0x08074b50) descriptor += 4;
+      if (descriptor + 12 > centralOffset ||
+          bytes.readUInt32LE(descriptor) !== expectedCrc ||
+          bytes.readUInt32LE(descriptor + 4) !== compressedSize ||
+          bytes.readUInt32LE(descriptor + 8) !== uncompressedSize) fail('preview_artifact_zip_data_descriptor_invalid');
+      rangeEnd = descriptor + 12;
+    }
+    ranges.push({ start: localOffset, end: rangeEnd });
+    const compressed = bytes.subarray(dataStart, dataEnd);
+    let content;
+    try {
+      content = method === 0 ? Buffer.from(compressed) : zlib.inflateRawSync(compressed, { maxOutputLength: MAX_PREVIEW_MEMBER_BYTES });
+    } catch {
+      fail('preview_artifact_member_decompression_failed');
+    }
+    if (content.length !== uncompressedSize || crc32(content) !== expectedCrc) fail('preview_artifact_member_crc_or_size_mismatch');
+    members.set(name, content);
+    cursor = recordEnd;
+  }
+  if (cursor !== centralOffset + centralSize) fail('preview_artifact_zip_central_directory_size_mismatch');
+  const actualNames = Array.from(members.keys()).sort();
+  if (JSON.stringify(actualNames) !== JSON.stringify(allowedNames)) fail('preview_artifact_member_set_mismatch');
+  ranges.sort((a, b) => a.start - b.start);
+  for (let index = 1; index < ranges.length; index += 1) {
+    if (ranges[index].start < ranges[index - 1].end) fail('preview_artifact_zip_member_overlap');
+  }
+  return members;
 }
 
 function requireStrictlyWithin(child, parent, code) {
@@ -254,6 +382,12 @@ async function verifyEvidence(evidence, options) {
     if (actualHash !== item.sha256) fail('destination_file_sha256_mismatch:' + item.name);
     fileHashes[item.name] = actualHash;
   }
+  for (const name of expectedNames) {
+    const member = previewMembers.get(name);
+    if (!member || crypto.createHash('sha256').update(member).digest('hex') !== fileHashes[name]) {
+      fail('preview_artifact_member_sha256_mismatch:' + name);
+    }
+  }
 
   let manifest;
   try { manifest = JSON.parse(readRegularFileNoFollow(path.join(destinationRoot, 'INTEGRITY.json'), 'destination_integrity_manifest', 'utf8')); }
@@ -274,6 +408,7 @@ async function verifyEvidence(evidence, options) {
     sourceCommit: payload.sourceCommit,
     backupSha256: archiveHash,
     previewArtifactSha256: previewArtifact.sha256,
+    previewArtifactMembersVerified: true,
     destinationFiles: expectedNames,
     destinationSha256: fileHashes,
     operatorFingerprint,
