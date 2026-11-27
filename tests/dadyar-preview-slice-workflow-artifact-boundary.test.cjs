@@ -6,15 +6,22 @@ const path = require('node:path');
 
 const workflow = fs.readFileSync(path.join(__dirname, '..', '.github', 'workflows', 'dadyar-preview-slice.yml'), 'utf8');
 
-test('review artifact build, upload, download and round-trip verification are push-only', () => {
+test('review artifact is built and browser-tested on every event; upload and round-trip remain push-only', () => {
   const build = workflow.indexOf('- name: Build and verify public-only review artifact');
   const upload = workflow.indexOf('- name: Upload review artifact only; never deploy');
   const download = workflow.indexOf('- name: Download uploaded artifact by exact ID after upload job completes');
   const verify = workflow.indexOf('- name: Verify uploaded artifact bytes and release boundary');
   assert.ok(build >= 0 && upload > build && download > upload && verify > download, 'artifact stages must run in build-upload-download-verify order');
-  for (const position of [build, upload, download, verify]) {
-    const step = workflow.slice(position, workflow.indexOf('\n      - name:', position + 1) < 0 ? workflow.length : workflow.indexOf('\n      - name:', position + 1));
-    assert.ok(step.includes("if: github.event_name == 'push'"), 'every artifact stage must be push-only');
+  const nextStep = position => workflow.indexOf('\n      - name:', position + 1) < 0 ? workflow.length : workflow.indexOf('\n      - name:', position + 1);
+  const buildStep = workflow.slice(build, nextStep(build));
+  const browserStepStart = workflow.indexOf('- name: Exercise the exact packaged artifact in real mobile Chromium');
+  assert.ok(browserStepStart > build && browserStepStart < upload, 'artifact browser test must run after build and before upload');
+  const browserStep = workflow.slice(browserStepStart, nextStep(browserStepStart));
+  assert.equal(buildStep.includes("if: github.event_name == 'push'"), false, 'PRs must build a temporary package for testing');
+  assert.equal(browserStep.includes("if: github.event_name == 'push'"), false, 'PRs must browser-test the temporary package');
+  for (const position of [upload, download, verify]) {
+    const step = workflow.slice(position, nextStep(position));
+    assert.ok(step.includes("if: github.event_name == 'push'"), 'upload and round-trip must remain push-only');
   }
   assert.ok(workflow.includes('id: upload-preview'));
   assert.ok(workflow.includes('uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333'));
@@ -33,9 +40,15 @@ test('review artifact build, upload, download and round-trip verification are pu
   assert.equal(workflow.includes('deploy:'), false);
 });
 
-test('artifact source SHA is the push commit SHA, not a pull-request merge SHA', () => {
+test('artifact manifest binds the exact event checkout SHA; only push artifacts are upload-eligible', () => {
   assert.ok(workflow.includes('DADYAR_PREVIEW_SOURCE_SHA: ${{ github.sha }}'));
   assert.ok(workflow.includes('GITHUB_SHA: ${{ github.sha }}'));
   assert.ok(workflow.includes('name: dadyar-preview-review-${{ github.sha }}'));
   assert.equal(workflow.includes('pull_request.head.sha'), false);
+  const build = workflow.indexOf('- name: Build and verify public-only review artifact');
+  const upload = workflow.indexOf('- name: Upload review artifact only; never deploy');
+  const buildStep = workflow.slice(build, workflow.indexOf('\n      - name:', build + 1));
+  const uploadStep = workflow.slice(upload, workflow.indexOf('\n      - name:', upload + 1));
+  assert.equal(buildStep.includes("if: github.event_name == 'push'"), false);
+  assert.ok(uploadStep.includes("if: github.event_name == 'push'"));
 });
