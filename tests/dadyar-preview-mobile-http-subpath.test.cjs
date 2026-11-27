@@ -148,6 +148,8 @@ test('mobile preview is served at the exact HTTP subpath and accepts real touch 
   assert.equal(await response.text(), sourceText, 'HTTP route must serve the exact reviewed HTML bytes');
 
   const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-mobile-http-'));
+  const downloadDir = path.join(userData, 'downloads');
+  fs.mkdirSync(downloadDir);
   const portFile = path.join(userData, 'DevToolsActivePort');
   const child = spawn(chrome, [
     '--headless=new',
@@ -270,6 +272,95 @@ test('mobile preview is served at the exact HTTP subpath and accepts real touch 
   assert.equal(generated.focusedResult, true, 'focus must move to the generated result for keyboard and screen-reader users');
   assert.equal(generated.reportPresent, true);
   assert.equal(generated.downloadDisabled, true, 'report must remain blocked until the local review flow is completed');
+
+  // Exercise the complete local human-review boundary on the mobile page.
+  // The reviewer identity remains a fixed synthetic label; this is not
+  // authenticated review and must never be represented as release approval.
+  await client.command('Page.setDownloadBehavior', {
+    behavior: 'allow',
+    downloadPath: downloadDir
+  });
+
+  await evaluate(`(() => {
+    const decision = document.getElementById('review-decision');
+    decision.value = 'rejected';
+    decision.dispatchEvent(new Event('change', { bubbles: true }));
+    const note = document.getElementById('review-note');
+    note.value = 'رد نمونه به علت نقص مدرک ساختگی';
+    note.dispatchEvent(new Event('input', { bubbles: true }));
+    return true;
+  })()`);
+  for (const id of ['review-check-facts', 'review-check-conflicts', 'review-check-sources', 'review-check-privacy']) {
+    await tap(id);
+  }
+  await tap('export-ack');
+  const rejectedReady = await evaluate('({recordDisabled:document.getElementById("record-review").disabled,downloadDisabled:document.getElementById("download").disabled})');
+  assert.equal(rejectedReady.recordDisabled, false, 'complete rejected review must be recordable');
+  await tap('record-review');
+
+  let rejectedState = null;
+  const rejectedDeadline = Date.now() + 5000;
+  while (Date.now() < rejectedDeadline) {
+    rejectedState = await evaluate('({status:document.getElementById("review-status").textContent,downloadDisabled:document.getElementById("download").disabled})');
+    if (rejectedState.status.includes('بازبینی رد شد')) break;
+    await delay(50);
+  }
+  assert.ok(rejectedState?.status.includes('بازبینی رد شد'), 'rejected review did not finish');
+  assert.equal(rejectedState.downloadDisabled, true, 'rejected review must never unlock report download');
+
+  await evaluate(`(() => {
+    const decision = document.getElementById('review-decision');
+    decision.value = 'approved';
+    decision.dispatchEvent(new Event('change', { bubbles: true }));
+    const note = document.getElementById('review-note');
+    note.value = 'تأیید نمونه پس از بررسی داده ساختگی';
+    note.dispatchEvent(new Event('input', { bubbles: true }));
+    return true;
+  })()`);
+  await tap('export-ack');
+  const approvedReady = await evaluate('({recordDisabled:document.getElementById("record-review").disabled,downloadDisabled:document.getElementById("download").disabled,reviewer:document.getElementById("reviewer-name").value})');
+  assert.equal(approvedReady.reviewer, 'بازبین آزمون', 'reviewer label must remain synthetic');
+  assert.equal(approvedReady.recordDisabled, false, 'approved review must require the full checklist and local acknowledgement');
+  assert.equal(approvedReady.downloadDisabled, true, 'approval is not complete until the review record is committed');
+  await tap('record-review');
+
+  let approvedState = null;
+  const approvedDeadline = Date.now() + 5000;
+  while (Date.now() < approvedDeadline) {
+    approvedState = await evaluate('({status:document.getElementById("review-status").textContent,downloadDisabled:document.getElementById("download").disabled})');
+    if (approvedState.status.includes('بازبینی انسانی با اظهار بازبین ثبت شد')) break;
+    await delay(50);
+  }
+  assert.ok(approvedState?.status.includes('بازبینی انسانی با اظهار بازبین ثبت شد'), 'approved review did not finish');
+  assert.equal(approvedState.downloadDisabled, false, 'only the exact reviewed report may be downloaded');
+
+  await tap('download');
+  let downloadedPath = '';
+  const downloadDeadline = Date.now() + 7000;
+  while (Date.now() < downloadDeadline) {
+    const names = fs.readdirSync(downloadDir);
+    const candidate = names.find(name => name === 'dadyar-synthetic-cheque.txt');
+    if (candidate && !names.some(name => name.endsWith('.crdownload'))) {
+      downloadedPath = path.join(downloadDir, candidate);
+      break;
+    }
+    await delay(50);
+  }
+  assert.ok(downloadedPath, 'approved synthetic report file was not downloaded');
+  const downloadedReport = fs.readFileSync(downloadedPath, 'utf8');
+  assert.match(downloadedReport, /دادیار \| چک صرفاً فرضی \| نسخه آزمایشی آفلاین/);
+  assert.match(downloadedReport, /ثبت بازبینی انسانی \(اظهار محلی؛ هویت احراز نشده\)/);
+  assert.match(downloadedReport, /نام بازبین: بازبین آزمون/);
+  assert.match(downloadedReport, /نتیجه بازبینی: تأیید محلی برای دریافت گزارش آزمایشی/);
+  assert.match(downloadedReport, /SHA-256 پیش‌نویس بازبینی‌شده: [a-f0-9]{64}/);
+  assert.match(downloadedReport, /یادداشت بازبین: تأیید نمونه پس از بررسی داده ساختگی/);
+  const consumed = await evaluate('({downloadDisabled:document.getElementById("download").disabled,acknowledgementCleared:!document.getElementById("export-ack").checked,checklistCleared:Array.from(document.querySelectorAll("#review-checklist input[type=checkbox]")).every(item=>!item.checked),decisionReset:document.getElementById("review-decision").value==="pending",noteCleared:document.getElementById("review-note").value==="",status:document.getElementById("review-status").textContent})');
+  assert.equal(consumed.downloadDisabled, true, 'a successful download must consume the approval');
+  assert.equal(consumed.acknowledgementCleared, true);
+  assert.equal(consumed.checklistCleared, true);
+  assert.equal(consumed.decisionReset, true);
+  assert.equal(consumed.noteCleared, true);
+  assert.match(consumed.status, /گزارش دریافت شد/);
 
   await tap('reset');
   const reset = await evaluate('({resultHidden:document.getElementById("result").hidden,downloadDisabled:document.getElementById("download").disabled,questionCleared:document.getElementById("free-question").value==="",evidenceCleared:Array.from(document.querySelectorAll("#evidence-list input[type=checkbox]")).every(item=>!item.checked)})');
