@@ -46,3 +46,23 @@ test('privacy scanner catches address-like free text', () => {
 test('privacy scanner does not classify an ordinary legal question as an identifier', () => {
   assert.equal(scan('ماده ۵۲۲ قانون صدور چک و تاریخ واقعه ۱۴۰۵/۰۹/۰۳'), false);
 });
+
+test('privacy scanner catches a mixed Persian and Arabic-Indic 16-digit card number split by invisible marks and separators', () => {
+  const card = '۶۰۳٧۹۹۱۲۳۴۵۶۷۸۹۰';
+  const obfuscated = Array.from(card).map((digit, index) => index % 2 ? digit + '\u2060' : digit).join(' ');
+  assert.equal(scan(obfuscated), true);
+});
+
+test('privacy scanner catches a 10-digit national identifier after Unicode formatting is removed', () => {
+  const nationalId = '۰۰۱۲۳۴۵۶۷۸';
+  const obfuscated = Array.from(nationalId).join('\u200b-');
+  assert.equal(scan(obfuscated), true);
+});
+
+test('reviewer name and note both use the shared sensitive-identifier guard before review recording', () => {
+  const reviewerGuard = scriptMatch[1].match(/^function reviewerDetailsAreSafe\(\) \{[\s\S]*?^\}/m);
+  assert.ok(reviewerGuard, 'reviewer privacy guard must remain explicit');
+  assert.match(reviewerGuard[0], /hasSensitiveIdentifier\(safeReviewText\(reviewerName\.value,80\)\)/);
+  assert.match(reviewerGuard[0], /hasSensitiveIdentifier\(safeReviewText\(reviewNote\.value,300\)\)/);
+  assert.match(scriptMatch[1], /recordReviewButton\.addEventListener\('click',async\(\)=>\{[\s\S]*?if\(!reviewerDetailsAreSafe\(\)\)/);
+});
