@@ -490,7 +490,26 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
     return t.skip('Chromium unavailable locally');
   }
 
-  const preview = path.resolve(__dirname, '../dadyar-preview/index.html');
+  const previewRoot = process.env.DADYAR_PREVIEW_ARTIFACT_DIR
+    ? path.resolve(process.env.DADYAR_PREVIEW_ARTIFACT_DIR)
+    : path.resolve(__dirname, '../dadyar-preview');
+  const preview = path.join(previewRoot, 'index.html');
+  assert.ok(fs.statSync(preview).isFile(), 'preview HTML missing');
+  if (process.env.DADYAR_PREVIEW_ARTIFACT_DIR) {
+    assert.deepEqual(fs.readdirSync(previewRoot).sort(), ['INTEGRITY.json', 'index.html'],
+      'review artifact must contain exactly the two approved files');
+    const manifest = JSON.parse(fs.readFileSync(path.join(previewRoot, 'INTEGRITY.json'), 'utf8'));
+    assert.equal(manifest.route, '/dadyar-preview/');
+    assert.equal(manifest.sourceCommit, process.env.DADYAR_PREVIEW_SOURCE_SHA);
+    assert.equal(manifest.workflowCommit, process.env.DADYAR_PREVIEW_SOURCE_SHA);
+    assert.equal(manifest.release?.status, 'NOT_READY');
+    assert.equal(manifest.release?.reviewerAuthentication, 'not-configured');
+    assert.equal(manifest.release?.backupRestoreVerified, false);
+    assert.equal(manifest.release?.destinationVerified, false);
+    assert.equal(manifest.release?.deploymentAuthorized, false);
+    assert.equal(manifest.release?.apiEnabled, false);
+    assert.equal(manifest.release?.publicAiEnabled, false);
+  }
   const html = fs.readFileSync(preview);
   const metaCsp = html.toString('utf8').match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)"/i)?.[1];
   assert.ok(metaCsp, 'offline preview CSP metadata missing');
