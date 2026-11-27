@@ -44,12 +44,10 @@ jobs:
           test -n "$CHROME_BIN"
           CHROME_BIN="$CHROME_BIN" node --test tests/dadyar-preview-mobile-device-emulation.test.cjs
       - name: Build and verify public-only review artifact
-        if: github.event_name == 'push'
         env:
           GITHUB_SHA: ${{ github.sha }}
         run: node scripts/build-preview-review-artifact.cjs "$RUNNER_TEMP/dadyar-preview-public"
       - name: Exercise the exact packaged artifact in real mobile Chromium
-        if: github.event_name == 'push'
         run: |
           CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium)"
           test -n "$CHROME_BIN"
