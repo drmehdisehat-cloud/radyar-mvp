@@ -177,6 +177,17 @@ async function verifyEvidence(evidence, options) {
   if (payload.schemaVersion !== 1) fail('evidence_schema_version_unsupported');
   if (!isHex(payload.sourceCommit, 40)) fail('source_commit_invalid');
 
+  // Authenticate the canonical payload before opening any evidence-supplied filesystem path.
+  const attestations = evidence.attestations;
+  assertExactKeys(attestations, ['operator', 'reviewer'], 'attestations');
+  assertExactKeys(attestations.operator, ['keyFingerprint', 'signatureBase64'], 'operator_attestation');
+  assertExactKeys(attestations.reviewer, ['keyFingerprint', 'signatureBase64'], 'reviewer_attestation');
+  const signedBytes = Buffer.from(canonicalize(payload), 'utf8');
+  const operatorFingerprint = verifyAttestation('operator', attestations.operator, options.operatorPublicKeyPath, options.operatorFingerprint, signedBytes);
+  const reviewerFingerprint = verifyAttestation('reviewer', attestations.reviewer, options.reviewerPublicKeyPath, options.reviewerFingerprint, signedBytes);
+  if (operatorFingerprint === reviewerFingerprint) fail('operator_and_reviewer_must_be_distinct');
+
+
   const environment = payload.environment || {};
   assertExactKeys(environment, ['kind', 'stagingRoot', 'productionDocumentRoot', 'repositoryRoot'], 'environment');
   const stagingRoot = assertCanonicalExistingPath(environment.stagingRoot, 'staging_root', 'directory');
@@ -253,14 +264,6 @@ async function verifyEvidence(evidence, options) {
   const release = manifest.release || {};
   if (release.status !== 'NOT_READY' || release.apiEnabled !== false || release.publicAiEnabled !== false || release.reviewerAuthentication !== 'not-configured' || release.deploymentAuthorized !== false || release.backupRestoreVerified !== false || release.destinationVerified !== false) fail('review_artifact_release_boundary_invalid');
 
-  const attestations = evidence.attestations;
-  assertExactKeys(attestations, ['operator', 'reviewer'], 'attestations');
-  assertExactKeys(attestations.operator, ['keyFingerprint', 'signatureBase64'], 'operator_attestation');
-  assertExactKeys(attestations.reviewer, ['keyFingerprint', 'signatureBase64'], 'reviewer_attestation');
-  const signedBytes = Buffer.from(canonicalize(payload), 'utf8');
-  const operatorFingerprint = verifyAttestation('operator', attestations.operator, options.operatorPublicKeyPath, options.operatorFingerprint, signedBytes);
-  const reviewerFingerprint = verifyAttestation('reviewer', attestations.reviewer, options.reviewerPublicKeyPath, options.reviewerFingerprint, signedBytes);
-  if (operatorFingerprint === reviewerFingerprint) fail('operator_and_reviewer_must_be_distinct');
 
   return {
     status: 'EVIDENCE_MATCHED_NOT_RELEASE_AUTHORIZED',
