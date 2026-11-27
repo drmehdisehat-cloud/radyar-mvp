@@ -196,6 +196,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     const expression = [
       '(async () => {',
       '  const root = document.documentElement;',
+      '  const checkboxTargetRect = document.querySelector("#evidence-list input[type=checkbox]").getBoundingClientRect();',
       '  const download = document.getElementById("download");',
       '  const initialDisabled = download.disabled;',
       '  for (const [id, value] of [["issue-date","yes"],["certificate","no"],["defense","yes"]]) {',
@@ -312,6 +313,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '    maxTouchPoints: navigator.maxTouchPoints, coarsePointer: matchMedia("(pointer: coarse)").matches,',
       '    mobileUserAgent: /iPhone|Mobile/i.test(navigator.userAgent),',
       '    horizontalOverflow: root.scrollWidth > root.clientWidth + 1,',
+      '    checkboxTargetWidth: checkboxTargetRect.width, checkboxTargetHeight: checkboxTargetRect.height,',
       '    initialDisabled, blockedBeforeAcknowledgement, rejectedReviewKeepsExportBlocked, rejectedReviewStatus, checklistPreservedDraft, checklistPreservedDraftAfterApproval, enabledAfterHumanReview, reviewStatus,',
       '    exportEnabledBeforeDownload, exportedReport, exportedFilename, exportedReportHasReviewDigest, reviewDigestValid, reviewDigestMatchesReport, approvedReportSha256, approvalConsumed, repeatExportBlocked,',
       '    reviewerResetAfterDownload, reapprovalBlockedWithoutFreshDetails, postDownloadReviewStatus,',
@@ -342,6 +344,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.equal(snapshot.coarsePointer, true, 'coarse pointer media query did not activate');
     assert.equal(snapshot.mobileUserAgent, true, 'mobile user agent override did not apply');
     assert.equal(snapshot.horizontalOverflow, false, 'mobile layout has horizontal overflow');
+    assert.ok(snapshot.checkboxTargetWidth >= 24 && snapshot.checkboxTargetHeight >= 24, '390px mobile checkbox target must be at least 24x24 CSS pixels');
     assert.equal(snapshot.initialDisabled, true, 'download was initially enabled');
     assert.equal(snapshot.blockedBeforeAcknowledgement, true, 'report exported before human acknowledgement');
     assert.equal(snapshot.rejectedReviewKeepsExportBlocked, true, 'a rejected human review enabled report download');
@@ -623,6 +626,7 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
     const expression = [
       '(async () => {',
       '  const root = document.documentElement;',
+      '  const checkboxTargetRect = document.querySelector("#evidence-list input[type=checkbox]").getBoundingClientRect();',
       '  const download = document.getElementById("download");',
       '  const initiallyDisabled = download.disabled;',
       '  for (const [id, value] of [["issue-date","yes"],["certificate","no"],["defense","yes"]]) {',
@@ -705,6 +709,7 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
       '    maxTouchPoints: navigator.maxTouchPoints, coarsePointer: matchMedia("(pointer: coarse)").matches,',
       '    mobileUserAgent: /iPhone|Mobile/i.test(navigator.userAgent),',
       '    horizontalOverflow: root.scrollWidth > root.clientWidth + 1,',
+      '    checkboxTargetWidth: checkboxTargetRect.width, checkboxTargetHeight: checkboxTargetRect.height,',
       '    initiallyDisabled, blockedBeforeReview, focusMovedToResultAfterGeneration, focusReturnedToGenerateAfterInvalidation, rejectedReviewBlocked, rejectedReviewStatus, enabledAfterReview, disabledAfterExport,',
       '    multiTopicIds, multiTopicInputCleared, multiTopicRawQuestionEchoed, multiTopicExportEligible, multiTopicScopeStatus, chequeOnlyExportEligible, invalidJalaliDateBlocked, leapJalaliDateAccepted,',
       '    sensitiveInputCleared, sensitiveRawQuestionEchoed, sensitiveVisibleReport, sensitiveExportBlocked, sensitiveStatus,',
@@ -726,6 +731,7 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
     assert.equal(snapshot.coarsePointer, true);
     assert.equal(snapshot.mobileUserAgent, true);
     assert.equal(snapshot.horizontalOverflow, false);
+    assert.ok(snapshot.checkboxTargetWidth >= 24 && snapshot.checkboxTargetHeight >= 24, 'HTTP mobile checkbox target must be at least 24x24 CSS pixels');
     assert.equal(snapshot.initiallyDisabled, true);
     assert.equal(snapshot.blockedBeforeReview, true);
     assert.equal(snapshot.focusMovedToResultAfterGeneration, true, "generated preview should move keyboard focus to the report");
