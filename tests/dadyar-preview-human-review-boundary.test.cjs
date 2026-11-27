@@ -6,18 +6,18 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
-const script = html.match(/<script>([\\s\\S]*?)<\\/script>/)?.[1];
+const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 
 assert.ok(script, 'preview browser logic must be present');
 
 test('the preview identifies its review step as local and unauthenticated', () => {
-  assert.match(html, /بازبینی محلی توسط انسان \\(بدون احراز هویت\\)/);
+  assert.match(html, /بازبینی محلی توسط انسان \(بدون احراز هویت\)/);
   assert.match(html, /ثبت بازبینی در این صفحه محلی است و هویت بازبین احراز نمی‌شود/);
   assert.match(html, /این اظهار به معنای تأیید قانونی، اصالت مدارک یا بررسی مستقل متخصص نیست و هویت، سمت یا استقلال مرا احراز نمی‌کند/);
 });
 
 test('the reviewer field is a synthetic label, not a real identity claim', () => {
-  const reviewerTag = html.match(/<input\\b[^>]*id="reviewer-name"[^>]*>/)?.[0] || '';
+  const reviewerTag = html.match(/<input\b[^>]*id="reviewer-name"[^>]*>/)?.[0] || '';
   assert.ok(reviewerTag, 'reviewer label input must exist');
   assert.match(reviewerTag, /readonly/);
   assert.match(reviewerTag, /value="بازبین آزمون"/);
