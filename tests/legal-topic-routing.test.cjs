@@ -52,7 +52,7 @@ test('unmatched free text remains unclassified instead of forcing a category', (
 
 test('offline preview taxonomy exactly matches the private assistant backend taxonomy', () => {
   const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
-  const script = html.match(/<script>([\s\\S]*?)<\/script>/)?.[1] || '';
+  const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1] || '';
   assert.ok(script, 'offline preview inline script must exist');
   const start = script.indexOf('const topicHints =');
   const open = script.indexOf('[', start);
