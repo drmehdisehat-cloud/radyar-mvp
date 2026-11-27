@@ -112,6 +112,24 @@ test('signed restore and staging evidence passes only for isolated, hash-matched
   assert.deepEqual(result.destinationFiles, ['INTEGRITY.json', 'index.html']);
   assert.notEqual(result.operatorFingerprint, result.reviewerFingerprint);
 });
+test('database probe before restore completion is rejected', async t => {
+  const f = makeFixture(); t.after(f.cleanup);
+  f.payload.databaseProbe.testedAt = '2026-11-26T08:59:59Z';
+  f.resign();
+  await assert.rejects(
+    () => verifyEvidence(f.evidence, f.options),
+    /database_probe_must_follow_restore_completion/
+  );
+});
+test('database probe at the same instant as restore completion is rejected', async t => {
+  const f = makeFixture(); t.after(f.cleanup);
+  f.payload.databaseProbe.testedAt = f.payload.backup.restoreCompletedAt;
+  f.resign();
+  await assert.rejects(
+    () => verifyEvidence(f.evidence, f.options),
+    /database_probe_must_follow_restore_completion/
+  );
+});
 test('tampered backup archive is rejected', async t => {
   const f = makeFixture(); t.after(f.cleanup);
   fs.appendFileSync(f.backupPath, 'tamper');
