@@ -197,3 +197,27 @@ test('privacy scanner removes Unicode default-ignorable code points before match
   }
   assert.equal(hasSensitiveIdentifier('پرسش ساختگی درباره چک تضمینی و اجاره'), false);
 });
+
+
+test('privacy scanner blocks mixed-script and Unicode-obfuscated contact details', () => {
+  const { hasSensitiveIdentifier } = classifier();
+  const probes = [
+    'شماره همراه: ۰۹۱۲-٣٤٥٦٧٨٩',
+    'کد ملی: ۱۲۳۴-۵۶۷-۸۹۰',
+    'ایمیل: mehdi' + String.fromCodePoint(0x2062) + '.sehat@example.com',
+    'پیوند: https://mehdisehat' + String.fromCodePoint(0x2062) + '.ir/test',
+    'نشانی: خیابان آزادی پلاک ۱۲'
+  ];
+  for (const probe of probes) {
+    assert.equal(
+      hasSensitiveIdentifier(probe),
+      true,
+      'obfuscated contact detail must be rejected: ' + probe
+    );
+  }
+  assert.equal(
+    hasSensitiveIdentifier('چک ساختگی با گواهی عدم پرداخت نمونه'),
+    false,
+    'synthetic legal wording must remain usable'
+  );
+});
