@@ -54,7 +54,7 @@ test('artifact manifest binds the exact event checkout SHA; only push artifacts 
 });
 
 test('push artifact trigger is limited to the isolated review branch and read-only workflow capabilities', () => {
-  const trigger = workflow.slice(0, workflow.indexOf('\\npermissions:'));
+  const trigger = workflow.slice(0, workflow.indexOf('\npermissions:'));
   assert.equal(trigger, [
     'name: Dadyar isolated preview slice',
     'on:',
@@ -64,21 +64,21 @@ test('push artifact trigger is limited to the isolated review branch and read-on
     '  pull_request:',
     '    branches:',
     '      - main'
-  ].join('\\n'), 'only the dedicated review branch may create a push artifact; PR checks target main');
+  ].join('\n'), 'only the dedicated review branch may create a push artifact; PR checks target main');
 
   assert.equal(workflow.includes('workflow_dispatch:'), false, 'manual dispatch is not part of the reviewed release path');
   assert.equal(workflow.includes('schedule:'), false, 'scheduled execution must not create public artifacts');
   assert.equal(workflow.includes('repository_dispatch:'), false);
   assert.equal(workflow.includes('workflow_run:'), false);
   assert.equal(workflow.includes('workflow_call:'), false);
-  assert.ok(workflow.includes('permissions:\\n  contents: read\\n  actions: read'));
-  assert.equal(/\\$\\{\\{\\s*secrets\\./i.test(workflow), false, 'the offline preview workflow must not consume repository secrets');
-  assert.equal(/^\\s*environment\\s*:/im.test(workflow), false, 'the review workflow must not bind a deployment environment');
-  assert.equal(/^\\s*deploy(?:ment)?\\s*:/im.test(workflow), false, 'the review workflow must not define a deployment job');
+  assert.ok(workflow.includes('permissions:\n  contents: read\n  actions: read'));
+  assert.equal(/\$\{\{\s*secrets\./i.test(workflow), false, 'the offline preview workflow must not consume repository secrets');
+  assert.equal(/^\s*environment\s*:/im.test(workflow), false, 'the review workflow must not bind a deployment environment');
+  assert.equal(/^\s*deploy(?:ment)?\s*:/im.test(workflow), false, 'the review workflow must not define a deployment job');
 
-  const actionLines = workflow.split('\\n').filter(line => /^\\s*uses:\\s/.test(line));
+  const actionLines = workflow.split('\n').filter(line => /^\s*uses:\s/.test(line));
   assert.ok(actionLines.length >= 3, 'expected the pinned checkout, setup-node, upload and download actions');
   for (const line of actionLines) {
-    assert.match(line.trim(), /^uses:\\s+[^@\\s]+@[a-f0-9]{40}$/, 'every third-party action must be pinned to a full commit SHA');
+    assert.match(line.trim(), /^uses:\s+[^@\s]+@[a-f0-9]{40}$/, 'every third-party action must be pinned to a full commit SHA');
   }
 });
