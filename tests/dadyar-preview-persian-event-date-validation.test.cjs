@@ -7,16 +7,16 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
-const script = html.match(/<script>([\\s\\S]*?)<\\/script>/)?.[1];
+const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 assert.ok(script, 'offline preview inline script must exist');
 
 function parseDate() {
   const start = script.indexOf('function parseSyntheticEventDateInput(value){');
-  const end = script.indexOf('\\nupdateFreeQuestionCounter();', start);
+  const end = script.indexOf('\nupdateFreeQuestionCounter();', start);
   assert.ok(start >= 0 && end > start, 'Persian event-date parser boundary must remain explicit');
   const sandbox = {};
   vm.runInNewContext(
-    script.slice(start, end) + '\\nglobalThis.__parse = parseSyntheticEventDateInput;',
+    script.slice(start, end) + '\nglobalThis.__parse = parseSyntheticEventDateInput;',
     sandbox,
     { timeout: 1000 }
   );
