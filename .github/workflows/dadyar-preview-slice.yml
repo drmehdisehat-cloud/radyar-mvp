@@ -48,6 +48,15 @@ jobs:
         env:
           GITHUB_SHA: ${{ github.sha }}
         run: node scripts/build-preview-review-artifact.cjs "$RUNNER_TEMP/dadyar-preview-public"
+      - name: Exercise the exact packaged artifact in real mobile Chromium
+        if: github.event_name == 'push'
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium)"
+          test -n "$CHROME_BIN"
+          CHROME_BIN="$CHROME_BIN" \
+          DADYAR_PREVIEW_ARTIFACT_DIR="$RUNNER_TEMP/dadyar-preview-public" \
+          DADYAR_PREVIEW_SOURCE_SHA="$DADYAR_PREVIEW_SOURCE_SHA" \
+          node --test tests/dadyar-preview-mobile-device-emulation.test.cjs
       - name: Upload review artifact only; never deploy
         if: github.event_name == 'push'
         id: upload-preview
