@@ -14,7 +14,7 @@ function inlineBlocks(tag) {
 }
 
 function cspContent() {
-  const match = html.match(/<meta\\s+http-equiv="Content-Security-Policy"\\s+content="([^"]+)"/i);
+  const match = html.match(/<meta\s+http-equiv="Content-Security-Policy"\s+content="([^"]+)"/i);
   assert.ok(match, 'offline preview must declare a restrictive Content Security Policy');
   return match[1];
 }
@@ -62,11 +62,11 @@ test('the only inline script and style are pinned to their exact SHA-256 CSP has
 });
 
 test('offline preview contains no external resource attributes, forms, frames or CSS imports', () => {
-  assert.doesNotMatch(html, /\\b(?:src|href|action|formaction|poster)\\s*=\\s*["'](?:https?:)?\\/\\//i);
-  assert.doesNotMatch(html, /<\\s*(?:form|iframe|frame|object|embed)\\b/i);
-  const styles = inlineBlocks('style').join('\\n');
-  assert.doesNotMatch(styles, /@import\\b|url\\s*\\(\\s*["']?(?:https?:)?\\/\\//i);
-  assert.doesNotMatch(styles, /@font-face\\b/i);
+  assert.doesNotMatch(html, /\b(?:src|href|action|formaction|poster)\s*=\s*["'](?:https?:)?\/\//i);
+  assert.doesNotMatch(html, /<\s*(?:form|iframe|frame|object|embed)\b/i);
+  const styles = inlineBlocks('style').join('\n');
+  assert.doesNotMatch(styles, /@import\b|url\s*\(\s*["']?(?:https?:)?\/\//i);
+  assert.doesNotMatch(styles, /@font-face\b/i);
 });
 
 test('inline preview logic does not expose browser network APIs or service-worker entry points', () => {
@@ -74,7 +74,7 @@ test('inline preview logic does not expose browser network APIs or service-worke
   assert.equal(scripts.length, 1);
   assert.doesNotMatch(
     scripts[0],
-    /\\bfetch\\s*\\(|\\bXMLHttpRequest\\b|\\bWebSocket\\b|\\bEventSource\\b|\\bsendBeacon\\b|navigator\\s*\\.\\s*serviceWorker|\\bimportScripts\\s*\\(/i
+    /\bfetch\s*\(|\bXMLHttpRequest\b|\bWebSocket\b|\bEventSource\b|\bsendBeacon\b|navigator\s*\.\s*serviceWorker|\bimportScripts\s*\(/i
   );
-  assert.doesNotMatch(scripts[0], /https?:\\/\\/|\\/api\\//i);
+  assert.doesNotMatch(scripts[0], /https?:\/\/|\/api\//i);
 });
