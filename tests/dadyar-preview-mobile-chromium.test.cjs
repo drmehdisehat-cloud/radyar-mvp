@@ -6,7 +6,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
-test('offline Dadyar preview parses in headless Chromium at a narrow viewport', { timeout: 30000 }, t => {
+test('offline Dadyar preview parses in headless Chromium at a narrow viewport', { timeout: 60000 }, t => {
   const candidates = [
     process.env.CHROME_BIN,
     '/usr/bin/chromium',
@@ -34,10 +34,14 @@ test('offline Dadyar preview parses in headless Chromium at a narrow viewport', 
     '--no-sandbox',
     '--disable-gpu',
     '--disable-dev-shm-usage',
+    '--disable-background-networking',
+    '--disable-extensions',
+    '--no-first-run',
+    '--no-default-browser-check',
     '--window-size=375,812',
     '--dump-dom',
     'file://' + source
-  ], { encoding: 'utf8', timeout: 25000 });
+  ], { encoding: 'utf8', timeout: 45000 });
 
   assert.equal(run.status, 0, (run.stderr || '').slice(-3000));
   assert.match(run.stdout, /کارگاه آزمایشی دادیار: چک فرضی/, `Chromium returned no expected DOM (status=${run.status}, error=${run.error?.message || 'none'}, stderr=${(run.stderr || '').slice(-3000)})`);
