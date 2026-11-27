@@ -5,9 +5,82 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const zlib = require('node:zlib');
 const { verifyEvidence, publicKeyFingerprint } = require('../scripts/verify-preview-staging-evidence.cjs');
 const { signPayload, readPrivateKeyFile } = require('../scripts/sign-preview-staging-evidence.cjs');
 function hash(bytes) { return crypto.createHash('sha256').update(bytes).digest('hex'); }
+
+function crc32(bytes) {
+  let value = 0xffffffff;
+  for (const byte of bytes) {
+    value ^= byte;
+    for (let bit = 0; bit < 8; bit += 1) value = (value & 1) ? (0xedb88320 ^ (value >>> 1)) : (value >>> 1);
+  }
+  return (value ^ 0xffffffff) >>> 0;
+}
+function makeZip(entries, options = {}) {
+  const localRecords = [];
+  const centralRecords = [];
+  let localOffset = 0;
+  for (const entry of entries) {
+    const name = Buffer.from(entry.name, 'utf8');
+    const content = Buffer.from(entry.bytes);
+    const compressed = zlib.deflateRawSync(content);
+    const checksum = crc32(content);
+    const descriptor = options.dataDescriptor === true;
+    const flags = 0x0800 | (descriptor ? 0x0008 : 0);
+    const local = Buffer.alloc(30);
+    local.writeUInt32LE(0x04034b50, 0);
+    local.writeUInt16LE(20, 4);
+    local.writeUInt16LE(flags, 6);
+    local.writeUInt16LE(8, 8);
+    local.writeUInt32LE(descriptor ? 0 : checksum, 14);
+    local.writeUInt32LE(descriptor ? 0 : compressed.length, 18);
+    local.writeUInt32LE(descriptor ? 0 : content.length, 22);
+    local.writeUInt16LE(name.length, 26);
+    local.writeUInt16LE(0, 28);
+    let record = Buffer.concat([local, name, compressed]);
+    if (descriptor) {
+      const dataDescriptor = Buffer.alloc(16);
+      dataDescriptor.writeUInt32LE(0x08074b50, 0);
+      dataDescriptor.writeUInt32LE(checksum, 4);
+      dataDescriptor.writeUInt32LE(compressed.length, 8);
+      dataDescriptor.writeUInt32LE(content.length, 12);
+      record = Buffer.concat([record, dataDescriptor]);
+    }
+    localRecords.push(record);
+    const central = Buffer.alloc(46);
+    central.writeUInt32LE(0x02014b50, 0);
+    central.writeUInt16LE(0x0314, 4);
+    central.writeUInt16LE(20, 6);
+    central.writeUInt16LE(flags, 8);
+    central.writeUInt16LE(8, 10);
+    central.writeUInt32LE(checksum, 16);
+    central.writeUInt32LE(compressed.length, 20);
+    central.writeUInt32LE(content.length, 24);
+    central.writeUInt16LE(name.length, 28);
+    central.writeUInt16LE(0, 30);
+    central.writeUInt16LE(0, 32);
+    central.writeUInt16LE(0, 34);
+    central.writeUInt16LE(0, 36);
+    central.writeUInt32LE((((entry.mode || 0o100644) & 0xffff) * 0x10000) >>> 0, 38);
+    central.writeUInt32LE(localOffset, 42);
+    centralRecords.push(Buffer.concat([central, name]));
+    localOffset += record.length;
+  }
+  const centralBytes = Buffer.concat(centralRecords);
+  const end = Buffer.alloc(22);
+  end.writeUInt32LE(0x06054b50, 0);
+  end.writeUInt16LE(0, 4);
+  end.writeUInt16LE(0, 6);
+  end.writeUInt16LE(entries.length, 8);
+  end.writeUInt16LE(entries.length, 10);
+  end.writeUInt32LE(centralBytes.length, 12);
+  end.writeUInt32LE(localOffset, 16);
+  end.writeUInt16LE(0, 20);
+  return Buffer.concat([...localRecords, centralBytes, end]);
+}
+
 function makeFixture() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-restore-evidence-'));
   const production = path.join(root, 'production');
@@ -47,6 +120,10 @@ function makeFixture() {
     }
   };
   fs.writeFileSync(integrityPath, JSON.stringify(integrity, null, 2) + '\n');
+  fs.writeFileSync(artifactPath, makeZip([
+    { name: 'index.html', bytes: fs.readFileSync(htmlPath) },
+    { name: 'INTEGRITY.json', bytes: fs.readFileSync(integrityPath) }
+  ], { dataDescriptor: true }));
   const operator = crypto.generateKeyPairSync('ed25519');
   const reviewer = crypto.generateKeyPairSync('ed25519');
   const operatorPrivate = operator.privateKey.export({ type: 'pkcs8', format: 'pem' });
@@ -108,10 +185,57 @@ test('signed restore and staging evidence passes only for isolated, hash-matched
   assert.equal(result.signerIdentityIndependentlyVerified, false);
   assert.equal(result.restoreOperationIndependentlyVerified, false);
   assert.equal(result.deploymentAuthorized, false);
+  assert.equal(result.previewArtifactMembersVerified, true);
   assert.equal(result.sourceCommit, 'a'.repeat(40));
   assert.deepEqual(result.destinationFiles, ['INTEGRITY.json', 'index.html']);
   assert.notEqual(result.operatorFingerprint, result.reviewerFingerprint);
 });
+
+test('preview artifact ZIP members must be byte-identical to the isolated destination', async t => {
+  const f = makeFixture(); t.after(f.cleanup);
+  const result = await verifyEvidence(f.evidence, f.options);
+  assert.equal(result.previewArtifactMembersVerified, true);
+  assert.equal(result.destinationSha256['index.html'], hash(fs.readFileSync(f.htmlPath)));
+});
+test('preview artifact ZIP with different HTML is rejected even when its archive hash is signed', async t => {
+  const f = makeFixture(); t.after(f.cleanup);
+  const alteredHtml = Buffer.from(fs.readFileSync(f.htmlPath).toString('utf8') + '<!-- different package -->');
+  const zip = makeZip([
+    { name: 'index.html', bytes: alteredHtml },
+    { name: 'INTEGRITY.json', bytes: fs.readFileSync(path.join(f.destination, 'INTEGRITY.json')) }
+  ]);
+  fs.writeFileSync(f.artifactPath, zip);
+  f.payload.previewArtifact.sha256 = hash(zip);
+  f.resign();
+  await assert.rejects(
+    () => verifyEvidence(f.evidence, f.options),
+    /preview_artifact_member_sha256_mismatch:index\.html/
+  );
+});
+test('preview artifact ZIP rejects an unexpected member', async t => {
+  const f = makeFixture(); t.after(f.cleanup);
+  const zip = makeZip([
+    { name: 'index.html', bytes: fs.readFileSync(f.htmlPath) },
+    { name: 'INTEGRITY.json', bytes: fs.readFileSync(path.join(f.destination, 'INTEGRITY.json')) },
+    { name: 'notes.txt', bytes: Buffer.from('synthetic') }
+  ]);
+  fs.writeFileSync(f.artifactPath, zip);
+  f.payload.previewArtifact.sha256 = hash(zip);
+  f.resign();
+  await assert.rejects(() => verifyEvidence(f.evidence, f.options), /preview_artifact_member_set_mismatch/);
+});
+test('preview artifact ZIP rejects a symlink member', async t => {
+  const f = makeFixture(); t.after(f.cleanup);
+  const zip = makeZip([
+    { name: 'index.html', bytes: fs.readFileSync(f.htmlPath), mode: 0o120777 },
+    { name: 'INTEGRITY.json', bytes: fs.readFileSync(path.join(f.destination, 'INTEGRITY.json')) }
+  ]);
+  fs.writeFileSync(f.artifactPath, zip);
+  f.payload.previewArtifact.sha256 = hash(zip);
+  f.resign();
+  await assert.rejects(() => verifyEvidence(f.evidence, f.options), /preview_artifact_member_not_regular_file/);
+});
+
 test('database probe before restore completion is rejected', async t => {
   const f = makeFixture(); t.after(f.cleanup);
   f.payload.databaseProbe.testedAt = '2026-11-26T08:59:59Z';
