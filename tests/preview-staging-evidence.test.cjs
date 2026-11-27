@@ -321,3 +321,17 @@ test('preview evidence signer rejects group-readable or world-readable private k
   fs.chmodSync(keyPath, 0o644);
   assert.throws(() => readPrivateKeyFile(keyPath), /private_key_file_permissions_too_open/);
 });
+
+
+test('IranHost Complete label and backup size metadata cannot substitute for isolated restore evidence', async t => {
+  const f = makeFixture(); t.after(f.cleanup);
+  // Provider-side status and byte count are metadata only. They must not be
+  // accepted as proof in the signed evidence payload or bypass restore checks.
+  f.payload.backup.status = 'Complete';
+  f.payload.backup.sizeBytes = 140.38 * 1024 * 1024;
+  f.resign();
+  await assert.rejects(
+    () => verifyEvidence(f.evidence, f.options),
+    /backup_fields_mismatch/
+  );
+});
