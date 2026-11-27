@@ -221,3 +221,13 @@ test('privacy scanner blocks mixed-script and Unicode-obfuscated contact details
     'synthetic legal wording must remain usable'
   );
 });
+
+test('diacritics, ZWNJ and mixed Persian/Arabic numerals keep the multi-topic cheque guard closed', () => {
+  const { classify, isChequeOnlyScope } = classifier();
+  const question = 'چَکِ تضمینی\u200c و ماده ٥٢٢';
+  const matches = classify(question);
+  const ids = Array.from(matches, item => item.id);
+  assert.ok(ids.includes('instruments'), 'Arabic/Persian mixed-script cheque phrase must remain detectable');
+  assert.ok(ids.includes('civil-procedure'), 'Arabic-Indic article numeral must remain detectable');
+  assert.equal(isChequeOnlyScope(matches), false, 'a multi-topic question must not pass the cheque-only report gate');
+});
