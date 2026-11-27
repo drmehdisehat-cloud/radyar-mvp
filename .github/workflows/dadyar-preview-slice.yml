@@ -38,11 +38,11 @@ jobs:
           CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium)"
           test -n "$CHROME_BIN"
           CHROME_BIN="$CHROME_BIN" node --test tests/dadyar-preview-mobile-chromium.test.cjs
-      - name: Run real Chromium mobile device emulation and exact HTTP subpath test
+      - name: Run real Chromium mobile device emulation and real HTTP subpath touch test
         run: |
           CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium)"
           test -n "$CHROME_BIN"
-          CHROME_BIN="$CHROME_BIN" node --test tests/dadyar-preview-mobile-device-emulation.test.cjs
+          CHROME_BIN="$CHROME_BIN" node --test tests/dadyar-preview-mobile-device-emulation.test.cjs tests/dadyar-preview-mobile-http-subpath.test.cjs
       - name: Build and verify public-only review artifact
         env:
           GITHUB_SHA: ${{ github.sha }}
