@@ -104,15 +104,15 @@ test('free-question generation delegates to the hardened shared privacy scanner'
 test('downloaded report preserves the unauthenticated local-review disclaimer and untrusted device timestamp', () => {
   const start = script.indexOf("document.getElementById('download').addEventListener('click',()=>{");
   assert.ok(start >= 0, 'download handler is required');
-  const end = script.indexOf("\\n});", start);
+  const end = script.indexOf('\n});', start);
   assert.ok(end > start, 'download handler boundary is required');
   const handler = script.slice(start, end);
 
-  assert.match(handler, /ثبت بازبینی انسانی \\(اظهار محلی؛ هویت احراز نشده\\)/);
+  assert.match(handler, /ثبت بازبینی انسانی \(اظهار محلی؛ هویت احراز نشده\)/);
   assert.match(handler, /مبنای ساعت دستگاه؛ نمایش UTC؛ قابل راستی‌آزمایی مستقل نیست/);
   assert.match(handler, /این اظهار محلی است و تأیید حقوقی یا احراز هویت محسوب نمی‌شود/);
-  assert.match(handler, /reviewRecord\\.reportSnapshot!==report/);
+  assert.match(handler, /reviewRecord\.reportSnapshot!==report/);
   assert.match(handler, /reviewRecord=null/);
-  assert.match(handler, /exportAck\\.checked=false/);
-  assert.match(handler, /reviewChecklistItems\\.forEach/);
+  assert.match(handler, /exportAck\.checked=false/);
+  assert.match(handler, /reviewChecklistItems\.forEach/);
 });
