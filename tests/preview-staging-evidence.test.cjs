@@ -376,6 +376,12 @@ test('pull_request merge-SHA artifact is not eligible for staging', async t => {
   manifest.workflowCommit = 'b'.repeat(40);
   fs.writeFileSync(integrityPath, JSON.stringify(manifest, null, 2) + '\n');
   f.payload.destination.files.find(item => item.name === 'INTEGRITY.json').sha256 = hash(fs.readFileSync(integrityPath));
+  const updatedArtifact = makeZip([
+    { name: 'index.html', bytes: fs.readFileSync(f.htmlPath) },
+    { name: 'INTEGRITY.json', bytes: fs.readFileSync(integrityPath) }
+  ]);
+  fs.writeFileSync(f.artifactPath, updatedArtifact);
+  f.payload.previewArtifact.sha256 = hash(updatedArtifact);
   f.resign();
   await assert.rejects(() => verifyEvidence(f.evidence, f.options), /destination_manifest_source_commit_mismatch/);
 });
@@ -386,6 +392,12 @@ test('review artifact cannot claim deployment readiness', async t => {
   manifest.release.deploymentAuthorized = true;
   fs.writeFileSync(integrityPath, JSON.stringify(manifest, null, 2) + '\n');
   f.payload.destination.files.find(item => item.name === 'INTEGRITY.json').sha256 = hash(fs.readFileSync(integrityPath));
+  const updatedArtifact = makeZip([
+    { name: 'index.html', bytes: fs.readFileSync(f.htmlPath) },
+    { name: 'INTEGRITY.json', bytes: fs.readFileSync(integrityPath) }
+  ]);
+  fs.writeFileSync(f.artifactPath, updatedArtifact);
+  f.payload.previewArtifact.sha256 = hash(updatedArtifact);
   f.resign();
   await assert.rejects(() => verifyEvidence(f.evidence, f.options), /review_artifact_release_boundary_invalid/);
 });
