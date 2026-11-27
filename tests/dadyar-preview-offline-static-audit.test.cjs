@@ -14,7 +14,7 @@ function inlineBlocks(tag) {
 }
 
 function cspContent() {
-  const match = html.match(/<meta\\s+http-equiv=["']Content-Security-Policy["']\\s+content=["']([^"']+)["']/i);
+  const match = html.match(/<meta\\s+http-equiv="Content-Security-Policy"\\s+content="([^"]+)"/i);
   assert.ok(match, 'offline preview must declare a restrictive Content Security Policy');
   return match[1];
 }
@@ -38,7 +38,10 @@ test('offline preview CSP denies network, forms, frames, workers and unapproved 
   ]) {
     assert.ok(csp.split(';').some(part => part.trim() === directive), 'missing CSP directive: ' + directive);
   }
-  assert.doesNotMatch(csp, /unsafe-inline|unsafe-eval|https?:|\\*\\s*(?:;|$)/i);
+  assert.equal(csp.includes('unsafe-inline'), false);
+  assert.equal(csp.includes('unsafe-eval'), false);
+  assert.equal(csp.includes('*'), false);
+  assert.doesNotMatch(csp, /https?:/i);
 });
 
 test('the only inline script and style are pinned to their exact SHA-256 CSP hashes', () => {
@@ -53,8 +56,9 @@ test('the only inline script and style are pinned to their exact SHA-256 CSP has
   assert.ok(styleDirective, 'style-src must be explicit');
   assert.ok(scriptDirective.includes(sha256Directive(scripts[0])), 'script-src hash must match the exact inline script bytes');
   assert.ok(styleDirective.includes(sha256Directive(styles[0])), 'style-src hash must match the exact inline style bytes');
-  assert.doesNotMatch(scriptDirective, /unsafe-inline|unsafe-eval/);
-  assert.doesNotMatch(styleDirective, /unsafe-inline/);
+  assert.equal(scriptDirective.includes('unsafe-inline'), false);
+  assert.equal(scriptDirective.includes('unsafe-eval'), false);
+  assert.equal(styleDirective.includes('unsafe-inline'), false);
 });
 
 test('offline preview contains no external resource attributes, forms, frames or CSS imports', () => {
