@@ -346,7 +346,10 @@ async function verifyEvidence(evidence, options) {
   assertExactKeys(previewArtifact, ['archivePath', 'sha256'], 'preview_artifact');
   const artifactPath = assertCanonicalExistingPath(previewArtifact.archivePath, 'preview_artifact', 'file');
   if (overlaps(artifactPath, stagingRoot) || overlaps(artifactPath, productionRoot) || overlaps(artifactPath, repositoryRoot)) fail('preview_artifact_inside_protected_path');
-  if (!isHex(previewArtifact.sha256, 64) || await sha256File(artifactPath, 'preview_artifact') !== previewArtifact.sha256) fail('preview_artifact_sha256_mismatch');
+  const artifactBytes = readRegularFileNoFollow(artifactPath, 'preview_artifact', null, MAX_PREVIEW_ARCHIVE_BYTES);
+  const artifactHash = crypto.createHash('sha256').update(artifactBytes).digest('hex');
+  if (!isHex(previewArtifact.sha256, 64) || artifactHash !== previewArtifact.sha256) fail('preview_artifact_sha256_mismatch');
+  const previewMembers = readPreviewZipMembers(artifactBytes);
 
   const probe = payload.databaseProbe || {};
   assertExactKeys(probe, ['success', 'query', 'value', 'stagingFingerprint', 'productionFingerprint', 'testedAt'], 'database_probe');
