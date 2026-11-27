@@ -130,6 +130,14 @@ test('database probe at the same instant as restore completion is rejected', asy
     /database_probe_must_follow_restore_completion/
   );
 });
+test('invalid attestation is rejected before any evidence-supplied path is opened', async t => {
+  const f = makeFixture(); t.after(f.cleanup);
+  f.payload.backup.archivePath = path.join(f.root, 'missing-backup.tar');
+  await assert.rejects(
+    () => verifyEvidence(f.evidence, f.options),
+    /operator_signature_invalid/
+  );
+});
 test('tampered backup archive is rejected', async t => {
   const f = makeFixture(); t.after(f.cleanup);
   fs.appendFileSync(f.backupPath, 'tamper');
