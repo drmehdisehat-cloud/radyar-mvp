@@ -47,7 +47,7 @@
 - payload.environment: شامل kind برابر isolated-staging و مسیرهای canonical محیط staging، Document Root تولید و checkout
 - payload.backup: مسیر و SHA-256 آرشیو واقعی، مسیر restore root، مسیر و SHA-256 sentinel، restoreExitCode برابر صفر و restoreCompletedAt با timezone
 - payload.previewArtifact: مسیر آرشیو دانلودشده و SHA-256 آن
-- payload.databaseProbe: success برابر true، query برابر SELECT 1، value برابر ۱، دو fingerprint متفاوت و testedAt دارای timezone
+- payload.databaseProbe: success برابر true، query برابر SELECT 1، value برابر ۱، دو fingerprint متفاوت و testedAt دارای timezone؛ زمان آزمون باید اکیداً بعد از backup.restoreCompletedAt باشد. آزمون هم‌زمان یا زودتر از پایان Restore رد می‌شود.
 - payload.destination: مسیر پوشه staging و دو عضو دقیق index.html و INTEGRITY.json همراه SHA-256 هر فایل
 - attestations: ابتدا شیء خالی
 
