@@ -160,7 +160,36 @@
             "eventDateVersioningApproved": false,
             "useInLegalAnswers": false,
             "observationFile": "docs/check-law-qavanin-browser-recheck-20261126.json"
-          }
+          },
+          "latestRenderedTextObservation": {
+            "file": "docs/check-law-qavanin-text-only-observation-20261127.json",
+            "observedAt": "2026-11-27",
+            "documentId": "11400475274213876131",
+            "sourceClass": "primary-official-qavanin-browser-rendered-observation",
+            "status": "official-consolidated-text-rendered-unhashed",
+            "directTextUrl": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
+            "textRendered": true,
+            "visibleTextLineRange": [
+              42,
+              118
+            ],
+            "article7AmendmentMarker": "اصلاحي 30ˏ03ˏ1403",
+            "metadataRendered": false,
+            "rawHttpBytesCaptured": false,
+            "rawResponseSha256": null,
+            "officialGazetteIssueBytesRetrieved": false,
+            "primarySourceVerified": false,
+            "humanReviewStatus": "pending",
+            "eventDateVersioningApproved": false,
+            "useInLegalAnswers": false
+          },
+          "lastDirectTextObservationAt": "2026-11-27",
+          "lastDirectTextObservationResult": "browser-rendered-direct-page",
+          "lastDirectTextVisibleLineRange": [
+            42,
+            118
+          ],
+          "latestRenderedTextObservationFile": "docs/check-law-qavanin-text-only-observation-20261127.json"
         },
         {
           "url": "https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689",
@@ -1457,6 +1486,27 @@
           "humanReviewStatus": "pending",
           "eventDateVersioningApproved": false,
           "useInLegalAnswers": false
+        },
+        {
+          "file": "docs/check-law-qavanin-text-only-observation-20261127.json",
+          "observedAt": "2026-11-27",
+          "documentId": "11400475274213876131",
+          "sourceClass": "primary-official-qavanin-browser-rendered-text-only-observation",
+          "consolidatedTextRendered": true,
+          "consolidatedMetadataRendered": false,
+          "metadataRetrievalResult": "timeout",
+          "visibleTextLineRange": [
+            42,
+            118
+          ],
+          "article7AmendmentMarker": "اصلاحي 30ˏ03ˏ1403",
+          "rawHttpResponseBytesCaptured": false,
+          "rawResponseSha256": null,
+          "officialGazetteIssueBytesRetrieved": false,
+          "primarySourceVerified": false,
+          "humanReviewStatus": "pending",
+          "eventDateVersioningApproved": false,
+          "useInLegalAnswers": false
         }
       ],
       "latestConsolidatedObservation": {
@@ -1520,6 +1570,28 @@
         "eventDateVersioningApproved": false,
         "useInLegalAnswers": false,
         "instrumentType": "executive-regulation"
+      },
+      "latestRenderedTextObservation": {
+        "file": "docs/check-law-qavanin-text-only-observation-20261127.json",
+        "observedAt": "2026-11-27",
+        "documentId": "11400475274213876131",
+        "sourceClass": "primary-official-qavanin-browser-rendered-observation",
+        "status": "official-consolidated-text-rendered-unhashed",
+        "directTextUrl": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
+        "textRendered": true,
+        "visibleTextLineRange": [
+          42,
+          118
+        ],
+        "article7AmendmentMarker": "اصلاحي 30ˏ03ˏ1403",
+        "metadataRendered": false,
+        "rawHttpBytesCaptured": false,
+        "rawResponseSha256": null,
+        "officialGazetteIssueBytesRetrieved": false,
+        "primarySourceVerified": false,
+        "humanReviewStatus": "pending",
+        "eventDateVersioningApproved": false,
+        "useInLegalAnswers": false
       }
     },
     {
@@ -1874,5 +1946,7 @@
     }
   ],
   "lastSupplementalObservationAt": "2026-11-26",
-  "latestSupplementalObservationFile": "docs/check-law-qavanin-browser-recheck-20261126.json"
+  "latestSupplementalObservationFile": "docs/check-law-qavanin-browser-recheck-20261126.json",
+  "lastTextOnlyObservationAt": "2026-11-27",
+  "latestTextOnlyObservationFile": "docs/check-law-qavanin-text-only-observation-20261127.json"
 }

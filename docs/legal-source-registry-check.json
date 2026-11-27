@@ -84,7 +84,28 @@
     "latestAmendmentTextObservation": "docs/check-law-1372-direct-observation-20261126.json",
     "latestBrowserTextObservation": "docs/check-law-qavanin-browser-recheck-20261126.json",
     "amendment1403LatestRecheck": "docs/check-law-qavanin-browser-recheck-20261126.json",
-    "regulation1403LatestRecheck": "docs/check-law-qavanin-browser-recheck-20261126.json"
+    "regulation1403LatestRecheck": "docs/check-law-qavanin-browser-recheck-20261126.json",
+    "latestTextOnlyObservationAt": "2026-11-27",
+    "latestTextOnlyObservation": {
+      "file": "docs/check-law-qavanin-text-only-observation-20261127.json",
+      "documentId": "11400475274213876131",
+      "directTextUrl": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
+      "textRendered": true,
+      "visibleTextLineRange": [
+        42,
+        118
+      ],
+      "article7AmendmentMarker": "اصلاحي 30ˏ03ˏ1403",
+      "metadataRendered": false,
+      "metadataRetrievalResult": "timeout",
+      "rawBytesCaptured": false,
+      "sha256": null,
+      "officialGazetteIssueBytesRetrieved": false,
+      "primarySourceVerified": false,
+      "humanReviewStatus": "pending",
+      "eventDateVersioningApproved": false,
+      "legalAnswerUsePermitted": false
+    }
   },
   "publicationDate": null,
   "effectiveFrom": null,
