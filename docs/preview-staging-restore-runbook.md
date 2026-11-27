@@ -32,7 +32,7 @@
 
 ۳. بکاپ واقعی را در همان Sandbox بازیابی کنید. گزارش باید شامل زمان دارای timezone، کد خروج صفر، نتیجه بررسی فایل‌های بازیابی‌شده و یک sentinel در restore root باشد. صرف وجود فایل بکاپ یا برچسب Complete کافی نیست.
 
-۴. فقط پس از پایان Restore، از دیتابیس staging، SELECT 1 اجرا کنید. زمان آزمون باید اکیداً بعد از restoreCompletedAt باشد؛ آزمون هم‌زمان یا زودتر از پایان Restore رد می‌شود. fingerprint محیط staging و تولید را با SHA-256 شناسه غیرمحرمانه host/database-name بسازید؛ مقدار خام نام میزبان یا نام دیتابیس را در evidence ننویسید. دو fingerprint باید متفاوت باشند.
+۴. فقط پس از پایان Restore، از دیتابیس staging، SELECT 1 اجرا کنید. زمان آزمون باید اکیداً بعد از restoreCompletedAt باشد؛ آزمون هم‌زمان یا زودتر از پایان Restore رد می‌شود. هر دو زمان `restoreCompletedAt` و `testedAt` باید timestamp معتبر RFC 3339 با تاریخ تقویمی ممکن و منطقه زمانی صریح و معلوم باشند؛ متن‌های طبیعی، تاریخ ناممکن، offset خارج از محدوده و `-00:00` رد می‌شوند. fingerprint محیط staging و تولید را با SHA-256 شناسه غیرمحرمانه host/database-name بسازید؛ مقدار خام نام میزبان یا نام دیتابیس را در evidence ننویسید. دو fingerprint باید متفاوت باشند.
 
 ۵. Artifact بازبینی را از GitHub دانلود و SHA-256 آرشیو را ثبت کنید. فقط index.html و INTEGRITY.json را در پوشه مستقل staging/public/dadyar-preview/ قرار دهید. هیچ فایل دیگری در آن پوشه نباشد.
 

@@ -497,3 +497,42 @@ test('IranHost Complete label and backup size metadata cannot substitute for iso
     /backup_fields_mismatch/
   );
 });
+
+
+test('restore evidence timestamps require strict RFC3339 rather than Date.parse natural-language input', async t => {
+  const f = makeFixture(); t.after(f.cleanup);
+  f.payload.backup.restoreCompletedAt = 'Nov 26, 2026 09:00:00Z';
+  f.resign();
+  await assert.rejects(() => verifyEvidence(f.evidence, f.options), /backup_restore_invalid_timestamp/);
+});
+
+test('restore evidence timestamps reject impossible calendar dates and out-of-range offsets', async t => {
+  const invalidValues = [
+    '2026-02-30T09:00:00Z',
+    '2026-11-26T09:00:00+25:00',
+    '2026-11-26T09:00:00+03:75',
+    '2026-11-26T09:00:00-00:00'
+  ];
+  for (const value of invalidValues) {
+    const f = makeFixture();
+    try {
+      f.payload.databaseProbe.testedAt = value;
+      f.resign();
+      await assert.rejects(
+        () => verifyEvidence(f.evidence, f.options),
+        /database_probe_invalid_timestamp/,
+        'must reject ' + value
+      );
+    } finally {
+      f.cleanup();
+    }
+  }
+});
+
+test('restore evidence accepts a valid explicit timezone offset and compares its instant', async t => {
+  const f = makeFixture(); t.after(f.cleanup);
+  f.payload.databaseProbe.testedAt = '2026-11-26T12:31:00+03:30';
+  f.resign();
+  const result = await verifyEvidence(f.evidence, f.options);
+  assert.equal(result.status, 'EVIDENCE_MATCHED_NOT_RELEASE_AUTHORIZED');
+});
