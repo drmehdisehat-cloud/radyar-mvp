@@ -5,6 +5,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const net = require('node:net');
 
 function fail(code) { throw new Error(code); }
 function sha256(bytes) { return crypto.createHash('sha256').update(bytes).digest('hex'); }
@@ -144,6 +145,23 @@ async function fetchExact(fetchImpl, url, expected, label) {
   return { bytes, sha256: sha256(bytes), contentType: response.headers.get('content-type') };
 }
 
+
+function assertSafeStagingHostname(hostname, label) {
+  const normalized = hostname.toLowerCase().replace(/\\.$/, '');
+  const ipCandidate = normalized.startsWith('[') && normalized.endsWith(']')
+    ? normalized.slice(1, -1)
+    : normalized;
+  if (net.isIP(ipCandidate)) fail(label + '_ip_literal_forbidden');
+  if (!normalized.includes('.')) fail(label + '_fully_qualified_hostname_required');
+  const localSuffixes = [
+    '.localhost', '.local', '.internal', '.localdomain',
+    '.home.arpa', '.lan', '.home', '.corp', '.intranet'
+  ];
+  if (normalized === 'localhost' || localSuffixes.some(suffix => normalized.endsWith(suffix))) {
+    fail(label + '_local_hostname_forbidden');
+  }
+}
+
 async function probeStaging(urlValue, artifactDirectory, fetchImpl = globalThis.fetch, allowedOriginValue = process.env.DADYAR_PREVIEW_STAGING_ORIGIN) {
   if (typeof fetchImpl !== 'function') fail('fetch_unavailable');
   let url;
@@ -160,6 +178,8 @@ async function probeStaging(urlValue, artifactDirectory, fetchImpl = globalThis.
       allowedOrigin.pathname !== '/' || allowedOrigin.search || allowedOrigin.hash ||
       allowedOrigin.origin !== allowedOriginValue) fail('staging_origin_allowlist_must_be_canonical_https_origin');
   if (url.origin !== allowedOrigin.origin) fail('staging_origin_not_allowlisted');
+  // The probe must target a named, externally managed staging host, never a local service or IP literal.
+  assertSafeStagingHostname(url.hostname, 'staging');
   // Never let a staging probe accidentally target the live production host.
   const normalizedHost = url.hostname.toLowerCase().replace(/\.$/, '');
   if (normalizedHost === 'mehdisehat.ir' || normalizedHost === 'www.mehdisehat.ir') {

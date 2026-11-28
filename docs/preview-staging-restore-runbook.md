@@ -105,3 +105,8 @@ DADYAR_PREVIEW_STAGING_ORIGIN=https://STAGING-HOST node scripts/probe-preview-st
 این probe فقط دو درخواست GET می‌فرستد: مسیر دقیق /dadyar-preview/ و فایل INTEGRITY.json همان پوشه. پاسخ‌ها به‌صورت stream خوانده می‌شوند و سقف بایت هر پاسخ دقیقاً برابر اندازه فایل مورد انتظار از Artifact است؛ پاسخ بزرگ‌تر پیش از بافرشدن کامل لغو و رد می‌شود. درخواست‌ها بدون Cookie/credential، بدون redirect و با cache محلی غیرفعال انجام می‌شوند. اسکریپت پاسخ ۲۰۰، HTTPS، Content-Type، CSP دقیقاً برابر meta سند، Cache-Control: no-store، X-Content-Type-Options: nosniff، Referrer-Policy: no-referrer، X-Robots-Tag، نبود Set-Cookie و برابری بایت‌به‌بایت هر دو فایل با Artifact محلی را بررسی می‌کند. هیچ API، مسیر دیگری یا عملیات نوشتنی فراخوانی نمی‌شود.
 
 این آزمون جایگزین Restore مستقل، کنترل realpath و hard link، احراز هویت بازبین یا مجوز انتشار نیست. خروجی STAGING_HTTPS_PROBE_VERIFIED_NOT_RELEASE_AUTHORIZED صرفاً تطبیق HTTPS و دو فایل را ثابت می‌کند. اگر میزبان هدرهای لازم را ارائه نمی‌کند، مقصد باید تا پیکربندی محدود و آزمون مجدد منتشرنشده باقی بماند.
+
+
+## محدودیت تکمیلی probe مقصد
+
+probe اکنون IP literal، نام تک‌برچسبی و نام‌های محلی متداول مانند `localhost`، پسوندهای `.local`، `.internal` و `.home.arpa` را پیش از شبکه رد می‌کند. این کنترل، DNS rebinding یا نام عمومی‌ای را که به IP خصوصی resolve می‌شود به‌تنهایی خنثی نمی‌کند. probe فقط باید از runner مورد اعتماد مالک اجرا شود و خروجی شبکه آن runner باید به IP/hostname staging مستقل محدود باشد؛ مقصد را از ورودی غیرقابل‌اعتماد نگیرید. این کنترل جایگزین Restore مستقل یا مجوز انتشار نیست.

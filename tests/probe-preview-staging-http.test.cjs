@@ -254,3 +254,27 @@ test('probe cancels oversized response bodies before buffering beyond the review
   );
   assert.equal(calls.length, 1);
 });
+
+
+test('probe rejects IP literals, single-label and local-only hostnames before network access', async t => {
+  const f = fixture(t);
+  const { fetchImpl, calls } = fakeFetch(f);
+  const cases = [
+    ['127.0.0.1', /staging_ip_literal_forbidden/],
+    ['[::1]', /staging_ip_literal_forbidden/],
+    ['localhost', /staging_local_hostname_forbidden/],
+    ['preview.localhost', /staging_local_hostname_forbidden/],
+    ['db.local', /staging_local_hostname_forbidden/],
+    ['metadata.google.internal', /staging_local_hostname_forbidden/],
+    ['preview.lan', /staging_local_hostname_forbidden/],
+    ['staging', /staging_fully_qualified_hostname_required/]
+  ];
+  for (const [host, expected] of cases) {
+    const origin = 'https://' + host;
+    await assert.rejects(
+      () => probeStaging(origin + '/dadyar-preview/', f.root, fetchImpl, origin),
+      expected
+    );
+  }
+  assert.equal(calls.length, 0);
+});
