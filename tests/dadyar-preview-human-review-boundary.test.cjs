@@ -17,15 +17,15 @@ test('the preview identifies its review step as local and unauthenticated', () =
 });
 
 test('the reviewer field is a fixed synthetic label and the UI does not imply an editable identity', () => {
-  const reviewerTag = html.match(/<input\\b[^>]*id="reviewer-name"[^>]*>/)?.[0] || '';
+  const reviewerTag = html.match(/<input[^>]*id="reviewer-name"[^>]*>/)?.[0] || '';
   assert.ok(reviewerTag, 'reviewer label input must exist');
   assert.match(reviewerTag, /readonly/);
   assert.match(reviewerTag, /aria-readonly="true"/);
   assert.match(reviewerTag, /value="بازبین آزمون"/);
-  assert.match(html, /برچسب ثابت بازبین \\(غیرقابل ویرایش؛ فقط داده ساختگی\\)/);
-  assert.match(html, /برچسب ثابت «بازبین آزمون» نمایش داده می‌شود؛ بازبین فقط نتیجه و یادداشت ساختگی را ثبت می‌کند/);
-  assert.match(html, /این برچسب نام یا هویت شخص نیست/);
-  assert.doesNotMatch(html, /بازبین می‌تواند نام، نتیجه و یادداشت خود را ثبت کند/);
+  assert.ok(html.includes("برچسب ثابت بازبین (غیرقابل ویرایش؛ فقط داده ساختگی)"));
+  assert.ok(html.includes("برچسب ثابت «بازبین آزمون» نمایش داده می‌شود؛ بازبین فقط نتیجه و یادداشت ساختگی را ثبت می‌کند."));
+  assert.ok(html.includes("این برچسب نام یا هویت شخص نیست."));
+  assert.ok(!html.includes("بازبین می‌تواند نام، نتیجه و یادداشت خود را ثبت کند."));
 });
 
 test('report download requires an approved decision bound to the exact report digest and full checklist', () => {
