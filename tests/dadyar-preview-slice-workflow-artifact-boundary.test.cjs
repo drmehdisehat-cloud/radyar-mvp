@@ -63,9 +63,11 @@ test('push artifact trigger is limited to the isolated review branch and read-on
     '    branches:',
     '      - dadyar/preview-review-slice-20261126',
     '      - dadyar/preview-slice-squash-20261128',
+    '      - dadyar/preview-draft-invalidation-20261128',
     '  pull_request:',
     '    branches:',
-    '      - main'
+    '      - main',
+    '      - dadyar/preview-slice-squash-20261128'
   ].join('\n'), 'only the dedicated review branch may create a push artifact; PR checks target main');
 
   assert.equal(workflow.includes('workflow_dispatch:'), false, 'manual dispatch is not part of the reviewed release path');

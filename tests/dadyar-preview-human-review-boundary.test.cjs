@@ -28,13 +28,16 @@ test('the reviewer field is a fixed synthetic label and the UI does not imply an
   assert.ok(!html.includes("بازبین می‌تواند نام، نتیجه و یادداشت خود را ثبت کند."));
 });
 
-test('report download requires an approved decision bound to the exact report digest and full checklist', () => {
+test('report download requires a fully matching approved review record', () => {
   for (const required of [
-    "reviewRecord.decision==='approved'",
-    'reviewRecord.reportSnapshot===report',
-    "/^[a-f0-9]{64}$/.test(reviewRecord.reportSha256||'')",
-    'reviewRecord.checklist.length===4',
-    'reviewRecord.checklist.every(item=>item.checked===true)',
+    'function approvedReviewMatches(snapshot,visibleText,candidate)',
+    "candidate.decision==='approved'",
+    'candidate.reviewer===SYNTHETIC_REVIEWER_LABEL',
+    'candidate.reportSnapshot===snapshot',
+    "/^[a-f0-9]{64}$/.test(candidate.reportSha256||'')",
+    'candidate.checklist.length===expectedChecklist.length',
+    'item.checked===true && item.label===expectedChecklist[index].label',
+    'approvedReviewMatches(report,out.textContent,reviewRecord)',
     'downloadButton.disabled=!exportEligible || !exportAck.checked || !approvedReview'
   ]) {
     assert.ok(script.includes(required), 'missing approval gate: ' + required);
@@ -52,7 +55,7 @@ test('rejected, stale or changed review state cannot retain export approval', ()
   ]) {
     assert.ok(script.includes(required), 'missing review invalidation rule: ' + required);
   }
-  assert.match(script, /reviewRecord\.reportSnapshot!==report/);
+  assert.match(script, /candidate\.reportSnapshot===snapshot/);
 });
 
 test('the exported record states local-only review and untrusted device time', () => {

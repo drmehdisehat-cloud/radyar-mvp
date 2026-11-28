@@ -48,13 +48,15 @@ test('free-form Persian question stays local and routes through 27 topic hints',
   assert.equal(new Set(ids).size, 27, 'topic hint IDs must be unique');
 });
 
-test('local report export requires a complete checklist and an approved matching report snapshot', () => {
+test('local report export requires a complete checklist and an exact approved review record', () => {
   assert.match(script, /function reviewChecklistComplete\(\)\s*\{[\s\S]*?reviewChecklistItems\.length===4[\s\S]*?every\(item=>item\.checked===true\)/);
-  assert.match(script, /approvedReview=Boolean\(reviewRecord && reviewRecord\.decision==='approved' && reviewRecord\.reportSnapshot===report[\s\S]*?reviewRecord\.checklist\.length===4[\s\S]*?every\(item=>item\.checked===true\)/);
+  assert.match(script, /function approvedReviewMatches\(snapshot,visibleText,candidate\)/);
+  assert.match(script, /candidate\.decision==='approved'[\s\S]*?candidate\.reportSnapshot===snapshot[\s\S]*?candidate\.checklist\.length===expectedChecklist\.length[\s\S]*?item\.checked===true/);
+  assert.match(script, /const approvedReview=approvedReviewMatches\(report,out\.textContent,reviewRecord\)/);
   assert.match(script, /downloadButton\.disabled=!exportEligible \|\| !exportAck\.checked \|\| !approvedReview/);
   assert.match(script, /recordReviewButton\.disabled=[^;]*!reviewChecklistComplete\(\)[^;]*!exportAck\.checked/);
   assert.match(script, /reviewChecklistItems\.forEach\(item=>item\.addEventListener\('change',\(\)=>invalidateHumanReview/);
-  assert.match(script, /if\(!reviewRecord \|\| reviewRecord\.reportSnapshot!==report\)return/);
+  assert.match(script, /if\(!exportEligible \|\| !exportAck\.checked \|\| !approvedReviewMatches\(snapshot,out\.textContent,candidate\)\)/);
   assert.match(script, /reviewRecord=null;[\s\S]*?exportAck\.checked=false/);
   assert.match(html, /هویت بازبین احراز نمی‌شود/);
   assert.match(html, /ثبت بازبینی در این صفحه محلی است/);
@@ -65,7 +67,7 @@ test('approved local review binds the exact report snapshot with Web Crypto SHA-
   assert.ok(script.includes("crypto.subtle.digest('SHA-256'"));
   assert.ok(script.includes('reviewDigestPending'));
   assert.ok(script.includes('reportSha256'));
-  assert.ok(script.includes('reportSnapshot===report'));
+  assert.ok(script.includes('candidate.reportSnapshot===snapshot'));
   assert.ok(script.includes('SHA-256 پیش‌نویس بازبینی‌شده'));
   assert.ok(script.includes('secure_web_crypto_unavailable'));
   assert.ok(html.includes('اثر انگشت SHA-256'));
@@ -111,7 +113,8 @@ test('downloaded report preserves the unauthenticated local-review disclaimer an
   assert.match(handler, /ثبت بازبینی انسانی \(اظهار محلی؛ هویت احراز نشده\)/);
   assert.match(handler, /مبنای ساعت دستگاه؛ نمایش UTC؛ قابل راستی‌آزمایی مستقل نیست/);
   assert.match(handler, /این اظهار محلی است و تأیید حقوقی یا احراز هویت محسوب نمی‌شود/);
-  assert.match(handler, /reviewRecord\.reportSnapshot!==report/);
+  assert.match(handler, /approvedReviewMatches\(snapshot,out\.textContent,candidate\)/);
+  assert.match(handler, /'SHA-256 پیش‌نویس بازبینی‌شده: '\+candidate\.reportSha256/);
   assert.match(handler, /reviewRecord=null/);
   assert.match(handler, /exportAck\.checked=false/);
   assert.match(handler, /reviewChecklistItems\.forEach/);

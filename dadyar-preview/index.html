@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; media-src 'none'; manifest-src 'none'; worker-src 'none'; child-src 'none'; script-src 'sha256-YSniEvdc9g4GJgNdrSOKLomFuuDFHSvvVm1c+tzutpg='; style-src 'sha256-/6OFHgWVXYqlFrM5eIokLS7Vm0NjfH/wfzh8M+5cFC4='; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; media-src 'none'; manifest-src 'none'; worker-src 'none'; child-src 'none'; script-src 'sha256-E1aodYkgYLgwmLcvvWCKgSUI94tbtLrN2sY5RRytk6E='; style-src 'sha256-/6OFHgWVXYqlFrM5eIokLS7Vm0NjfH/wfzh8M+5cFC4='; form-action 'none'; base-uri 'none'">
 <title>دادیار | پیش‌نمایش آفلاین چک فرضی</title>
 <style>body{font:1rem/1.9 system-ui,sans-serif;background:#f5f6fa;color:#17243b;margin:0}main{max-width:780px;margin:auto;padding:1.2rem}section{background:white;border-radius:16px;padding:1.2rem;margin:1rem 0;box-shadow:0 2px 12px #17243b12}button,select{font:inherit;min-height:44px;max-width:100%;padding:.5rem;border:1px solid #718096;border-radius:8px}input[type=checkbox]{min-width:24px;min-height:24px;vertical-align:middle}button{background:#dcecfb;cursor:pointer}button:focus-visible,select:focus-visible,textarea:focus-visible,input:not([type=checkbox]):focus-visible,input[type=checkbox]:focus-visible{outline:3px solid #2469a8;outline-offset:2px}fieldset{border:1px solid #b4bfd0;border-radius:12px;margin:1rem 0}label{display:block;margin:.6rem 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}small{color:#475569}#result[hidden]{display:none}#free-question,#reviewer-name,#review-note,#event-date{box-sizing:border-box;width:100%;min-height:44px;font:inherit;border:1px solid #718096;border-radius:8px;padding:.5rem}#review-note{min-height:4.5rem}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}</style></head>
 <body><main><h1>کارگاه آزمایشی دادیار: چک فرضی</h1><p role="status">صرفاً داده‌های ازپیش‌ساخته؛ بدون ارسال اطلاعات، هوش مصنوعی یا ذخیره در سرور. پاسخ خودکار حقوقی: ارائه نمی‌شود. اطلاعات واقعی وارد نکنید.</p><p id="preview-release-status" role="alert"><strong>مرز این نسخه:</strong> این پیش‌نمایش آفلاین و غیرعملیاتی است؛ فقط داده ساختگی وارد کنید. ثبت بازبینی در این صفحه محلی است و هویت بازبین احراز نمی‌شود؛ این ثبت به‌تنهایی تأیید حقوقی یا مجوز انتشار ایجاد نمی‌کند.</p>
@@ -591,17 +591,22 @@ function hasSensitiveIdentifier(value) {
   /(?:https?:\/\/|www\.)[^\s<>]+|(?<![\p{L}\p{N}_])(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z]{2,24})(?:\/[^\s<>]*)?/iu.test(normalizedText) ||
   /(?:نشانی|آدرس|خیابان|کوچه|بلوار|بزرگراه|میدان|پلاک|واحد|طبقه|کد[\s\u200c]*پستی|شهرک|روستا|محله)\s*[:：#\-]?\s*[\p{L}\p{N}]/iu.test(normalizedText);
 }
+const SYNTHETIC_REVIEWER_LABEL='بازبین آزمون';
 function reviewerDetailsAreSafe() {
- return !hasSensitiveIdentifier(safeReviewText(reviewerName.value,80)) &&
+ return safeReviewText(reviewerName.value,80)===SYNTHETIC_REVIEWER_LABEL &&
+  !hasSensitiveIdentifier(safeReviewText(reviewerName.value,80)) &&
   !hasSensitiveIdentifier(safeReviewText(reviewNote.value,300));
 }
 function showReviewerPrivacyWarning() {
+ const reviewerLabelChanged=safeReviewText(reviewerName.value,80)!==SYNTHETIC_REVIEWER_LABEL;
  const unsafeName=hasSensitiveIdentifier(safeReviewText(reviewerName.value,80));
  const unsafeNote=hasSensitiveIdentifier(safeReviewText(reviewNote.value,300));
- if(unsafeName || unsafeNote) {
-  if(unsafeName) reviewerName.value='';
+ if(reviewerLabelChanged || unsafeName || unsafeNote) {
+  if(reviewerLabelChanged || unsafeName) reviewerName.value=SYNTHETIC_REVIEWER_LABEL;
   if(unsafeNote) reviewNote.value='';
-  invalidateHumanReview('اطلاعات بازبین احتمالاً شامل شناسه حساس بود؛ فیلد آلوده پاک شد. فقط داده ساختگی وارد کنید.');
+  invalidateHumanReview(reviewerLabelChanged
+   ?'برچسب بازبین در پیش‌نمایش باید ثابت و ساختگی بماند؛ تغییر آن پذیرفته نشد.'
+   :'اطلاعات بازبین احتمالاً شامل شناسه حساس بود؛ فیلد آلوده پاک شد. فقط داده ساختگی وارد کنید.');
   recordReviewButton.disabled=true;
  }
 }
@@ -611,10 +616,29 @@ function safeReviewText(value,max){
   .replace(/[\u0000-\u001f\u007f-\u009f\u061c\u200b\u200e\u200f\u202a-\u202e\u2060\u2066-\u206f\ufeff]/g,'')
   .replace(/\s+/g,' ').trim().slice(0,max);
 }
+function approvedReviewMatches(snapshot,visibleText,candidate){
+ const expectedChecklist=reviewChecklistItems.map(item=>({id:item.id,label:item.closest('label').textContent.trim()}));
+ return Boolean(snapshot && visibleText===snapshot && candidate &&
+  candidate.decision==='approved' &&
+  candidate.reviewer===SYNTHETIC_REVIEWER_LABEL &&
+  candidate.reportSnapshot===snapshot &&
+  /^[a-f0-9]{64}$/.test(candidate.reportSha256||'') &&
+  Array.isArray(candidate.checklist) &&
+  candidate.checklist.length===expectedChecklist.length &&
+  candidate.checklist.every((item,index)=>item && item.id===expectedChecklist[index].id &&
+   item.checked===true && item.label===expectedChecklist[index].label) &&
+  typeof candidate.note==='string' &&
+  safeReviewText(candidate.note,300)===candidate.note &&
+  candidate.note.length>=12 &&
+  !hasSensitiveIdentifier(candidate.note) &&
+  typeof candidate.reviewedAt==='string' &&
+  Number.isFinite(Date.parse(candidate.reviewedAt)) &&
+  new Date(candidate.reviewedAt).toISOString()===candidate.reviewedAt);
+}
 function updateExportPermission(){
- const approvedReview=Boolean(reviewRecord && reviewRecord.decision==='approved' && reviewRecord.reportSnapshot===report && /^[a-f0-9]{64}$/.test(reviewRecord.reportSha256||'') && Array.isArray(reviewRecord.checklist) && reviewRecord.checklist.length===4 && reviewRecord.checklist.every(item=>item.checked===true));
+ const approvedReview=approvedReviewMatches(report,out.textContent,reviewRecord);
  downloadButton.disabled=!exportEligible || !exportAck.checked || !approvedReview;
- recordReviewButton.disabled=reviewDigestPending || !exportEligible || !report || safeReviewText(reviewerName.value,80).length<2 || safeReviewText(reviewNote.value,300).length<12 || !['approved','rejected'].includes(reviewDecision.value) || !reviewerDetailsAreSafe() || !reviewChecklistComplete() || !exportAck.checked || Boolean(reviewRecord);
+ recordReviewButton.disabled=reviewDigestPending || !exportEligible || !report || safeReviewText(reviewerName.value,80).length<2 || safeReviewText(reviewNote.value,300).length<12 || !['approved','rejected'].includes(reviewDecision.value) || !reviewerDetailsAreSafe() || out.textContent!==report || !reviewChecklistComplete() || !exportAck.checked || Boolean(reviewRecord);
 }
 function invalidateHumanReview(message='اطلاعات بازبینی تغییر کرد؛ نتیجه قبلی باطل شد. پس از بررسی دوباره ثبت کنید.'){
  reviewAttempt+=1;reviewDigestPending=false;reviewRecord=null;exportAck.checked=false;reviewStatus.textContent=message;updateExportPermission();
@@ -631,6 +655,7 @@ reviewerName.addEventListener('input',showReviewerPrivacyWarning);
 reviewNote.addEventListener('input',showReviewerPrivacyWarning);
 exportAck.addEventListener('change',showReviewerPrivacyWarning);
 recordReviewButton.addEventListener('click',async()=>{
+ if(out.textContent!==report){invalidateDraft();reviewStatus.textContent='متن قابل مشاهده گزارش با نسخه اصلی تطبیق ندارد؛ پیش‌نویس و بازبینی پاک شد. دوباره پیش‌نویس را بسازید.';return;}
  if(recordReviewButton.disabled)return;
  if(!reviewerDetailsAreSafe()){showReviewerPrivacyWarning();return;}
  const attempt=++reviewAttempt;
@@ -645,7 +670,7 @@ recordReviewButton.addEventListener('click',async()=>{
  try{
   const reportSha256=await sha256Hex(snapshot);
   if(attempt!==reviewAttempt)return;
-  const unchanged=report===snapshot && reviewDecision.value===decision &&
+  const unchanged=report===snapshot && out.textContent===snapshot && reviewDecision.value===decision &&
    safeReviewText(reviewerName.value,80)===reviewer && safeReviewText(reviewNote.value,300)===note &&
    exportAck.checked && reviewChecklistComplete() && reviewerDetailsAreSafe();
   if(!unchanged){invalidateHumanReview('اطلاعات هنگام محاسبه اثرانگشت تغییر کرد؛ تصمیم ثبت نشد. دوباره بازبینی کنید.');return;}
@@ -666,8 +691,15 @@ recordReviewButton.addEventListener('click',async()=>{
 // Invalidate an earlier draft as soon as the hypothetical evidence or role changes.
 // Otherwise the download button could export a different case state than the UI.
 function invalidateDraft(){
+ reviewAttempt+=1;reviewDigestPending=false;
  const focusWasInDraft=box.contains(document.activeElement);
- report=''; internalTopicMatches=[]; topicScopeStatus.textContent=''; out.textContent=''; exportStatus.textContent=''; reviewRecord=null;reviewChecklistItems.forEach(item=>{item.checked=false;});reviewerName.value='بازبین آزمون';reviewDecision.value='pending';reviewNote.value='';reviewStatus.textContent='';document.getElementById('reset-status').textContent=''; box.hidden=true; exportEligible=false; exportAck.checked=false; updateExportPermission();
+ const hadDraft=Boolean(report);
+ const hadReview=Boolean(reviewRecord);
+ report=''; internalTopicMatches=[]; topicScopeStatus.textContent=''; out.textContent=''; exportStatus.textContent=''; reviewRecord=null;reviewChecklistItems.forEach(item=>{item.checked=false;});reviewerName.value=SYNTHETIC_REVIEWER_LABEL;reviewDecision.value='pending';reviewNote.value='';reviewStatus.textContent='';box.hidden=true;exportEligible=false;exportAck.checked=false;updateExportPermission();
+ const resetStatus=document.getElementById('reset-status');
+ resetStatus.textContent=(hadDraft||hadReview)
+  ?'اطلاعات سناریو تغییر کرد؛ پیش‌نویس قبلی و تأیید بازبینی پاک شد. برای دریافت گزارش تازه، دوباره پیش‌نویس را بسازید.'
+  :'';
  // Never strand keyboard focus inside a hidden result after a case-state change.
  if(focusWasInDraft) document.getElementById('generate').focus();
 }
@@ -769,25 +801,31 @@ document.getElementById('generate').addEventListener('click',()=>{
 });
 document.getElementById('download').addEventListener('click',()=>{
  if(!report || downloadButton.disabled)return;
- if(!reviewRecord || reviewRecord.reportSnapshot!==report)return;
+ const snapshot=report;
+ const candidate=reviewRecord;
+ if(out.textContent!==snapshot){invalidateDraft();exportStatus.textContent='متن قابل مشاهده گزارش تغییر کرده است؛ دریافت مسدود شد و باید پیش‌نویس تازه ساخته شود.';return;}
+ if(!exportEligible || !exportAck.checked || !approvedReviewMatches(snapshot,out.textContent,candidate)){
+  invalidateHumanReview('شرایط بازبینی یا چک‌لیست با نسخه فعلی گزارش تطبیق ندارد؛ دریافت مسدود شد. بازبینی را از ابتدا انجام دهید.');
+  return;
+ }
  const reviewText=[
   'ثبت بازبینی انسانی (اظهار محلی؛ هویت احراز نشده)',
-  'نام بازبین: '+reviewRecord.reviewer,
-  'نتیجه بازبینی: '+(reviewRecord.decision==='approved'?'تأیید محلی برای دریافت گزارش آزمایشی':'رد'),
-  'موارد بررسی‌شده:\n'+reviewRecord.checklist.filter(item=>item.checked).map(item=>'• '+item.label).join('\n'),
-  'زمان ثبت بازبینی (مبنای ساعت دستگاه؛ نمایش UTC؛ قابل راستی‌آزمایی مستقل نیست): '+reviewRecord.reviewedAt,
-  'SHA-256 پیش‌نویس بازبینی‌شده: '+reviewRecord.reportSha256,
-  'یادداشت بازبین: '+(reviewRecord.note||'ثبت نشده'),
+  'نام بازبین: '+candidate.reviewer,
+  'نتیجه بازبینی: تأیید محلی برای دریافت گزارش آزمایشی',
+  'موارد بررسی‌شده:\n'+candidate.checklist.filter(item=>item.checked).map(item=>'• '+item.label).join('\n'),
+  'زمان ثبت بازبینی (مبنای ساعت دستگاه؛ نمایش UTC؛ قابل راستی‌آزمایی مستقل نیست): '+candidate.reviewedAt,
+  'SHA-256 پیش‌نویس بازبینی‌شده: '+candidate.reportSha256,
+  'یادداشت بازبین: '+(candidate.note||'ثبت نشده'),
   'محدودیت: این اظهار محلی است و تأیید حقوقی یا احراز هویت محسوب نمی‌شود.'
  ].join('\n');
- const exportText=report+'\n\n'+reviewText;
+ const exportText=snapshot+'\n\n'+reviewText;
  const url=URL.createObjectURL(new Blob(['\uFEFF'+exportText],{type:'text/plain;charset=utf-8'}));
  const a=document.createElement('a');a.href=url;a.download='dadyar-synthetic-cheque.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
  // Consume the approval; a fresh review record is required for another export.
  reviewRecord=null;
  exportAck.checked=false;
  reviewChecklistItems.forEach(item=>{item.checked=false;});
- reviewerName.value='بازبین آزمون';
+ reviewerName.value=SYNTHETIC_REVIEWER_LABEL;
  reviewDecision.value='pending';
  reviewNote.value='';
  updateExportPermission();
