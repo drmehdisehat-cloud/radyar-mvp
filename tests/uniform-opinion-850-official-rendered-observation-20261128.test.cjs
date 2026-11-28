@@ -27,7 +27,7 @@ test('opinion 850 fresh official Qavanin rendering records the holding without t
   assert.equal(observation.verification.officialGazetteIssueBytesRetrieved, false);
   assert.equal(observation.verification.primarySourceVerified, false);
   assert.equal(observation.verification.humanReviewStatus, 'pending');
-  assert.equal(observation.verification.eventDateVersioningApproved, false);
+  assert.equal(observation.eventVersion.eventDateVersioningApproved, false);
   assert.equal(observation.verification.useInLegalAnswers, false);
   assert.equal(observation.verification.legalConclusionPermitted, false);
   assert.equal(directOfficialDocumentUrl(observation.primaryOfficialDocumentUrl, '6755160463259811436'), true);
