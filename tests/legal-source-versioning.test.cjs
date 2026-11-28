@@ -89,6 +89,13 @@ test('uses the new version exactly at an amendment effective-date boundary', () 
   assert.equal(resolve([oldVersion, newVersion], '2024-07-01').source.id, 'cheque-v2');
 });
 
+test('refuses to project a currently known version onto a future event date', () => {
+  const result = resolve([verified()], '2026-11-13', '2026-11-12');
+  assert.equal(result.status, 'invalid_request');
+  assert.equal(result.reason, 'event_date_after_as_of_date');
+  assert.equal(result.legalConclusionPermitted, false);
+});
+
 test('does not select research-only records even when an official-looking URL exists', () => {
   const candidate = verified({
     status: 'research-only',
@@ -172,6 +179,46 @@ test('rejects non-official hosts and portal homepages as direct citations', () =
   assert.equal(validateSourceVersion(homepage, AS_OF).eligible, false);
 });
 
+test('Qavanin source URLs must use the exact direct law-text endpoint, not metadata or redirect paths', () => {
+  for (const officialDocumentUrl of [
+    'https://qavanin.ir/Law/Attribute/?IDS=1001',
+    'https://qavanin.ir/redirect/?IDS=1001',
+    'https://qavanin.ir/Law/TreeText/extra?IDS=1001',
+    'https://qavanin.ir/Law/%54reeText/?IDS=1001',
+    'https://qavanin.ir/Law/../Law/TreeText/?IDS=1001',
+    'https://qavanin.ir/Law/%2e%2e/Law/TreeText/?IDS=1001',
+    'https://qavanin.ir/Law/TreeText/./?IDS=1001',
+    'https://qavanin.ir//Law/TreeText/?IDS=1001',
+    'https://qavanin.ir/Law\\TreeText/?IDS=1001'
+  ]) {
+    assert.equal(validateSourceVersion(verified({ officialDocumentUrl }), AS_OF).eligible, false, officialDocumentUrl);
+  }
+  assert.equal(validateSourceVersion(verified(), AS_OF).eligible, true);
+});
+
+test('rejects normalized and percent-encoded aliases on non-Qavanin official portals', () => {
+  const rejectedUrls = [
+    'https://rrk.ir/Document/../Document/1001',
+    'https://rrk.ir/Document/%2e%2e/Document/1001',
+    'https://rrk.ir/Document/%31%30%30%31',
+    'https://rrk.ir//Document/1001',
+    'https://rrk.ir\\\\Document\\\\1001',
+    'https://cbi.ir/showitem/../showitem/35817.aspx'
+  ];
+  for (const officialDocumentUrl of rejectedUrls) {
+    const documentId = officialDocumentUrl.includes('cbi.ir') ? '35817.aspx' : '1001';
+    assert.equal(
+      validateSourceVersion(verified({ documentId, officialDocumentUrl }), AS_OF).eligible,
+      false,
+      officialDocumentUrl
+    );
+  }
+  assert.equal(validateSourceVersion(verified({
+    documentId: '1001',
+    officialDocumentUrl: 'https://rrk.ir/Document/1001'
+  }), AS_OF).eligible, true);
+});
+
 test('fails closed when two verified versions overlap on the same event date', () => {
   const first = verified({ id: 'v1', effectiveFrom: '2020-01-01', effectiveTo: null });
   const second = verified({ id: 'v2', effectiveFrom: '2024-01-01', effectiveTo: null });
@@ -195,6 +242,29 @@ test('rejects invalid calendar dates and invalid as-of requests', () => {
   assert.equal(resolve([verified()], '2024-02-30').status, 'invalid_request');
 });
 
+test('rejects a publication date later than the recorded source retrieval date', () => {
+  const result = validateSourceVersion(verified({
+    publicationDate: '2026-11-11',
+    retrievedAt: '2026-11-10'
+  }), AS_OF);
+  assert.equal(result.eligible, false);
+  assert.ok(result.issues.includes('publication_after_retrieval'));
+});
+
+test('rejects a human review dated before the exact source retrieval', () => {
+  const result = validateSourceVersion(verified({
+    retrievedAt: '2026-11-10',
+    humanReview: {
+      reviewer: 'بازبین حقوقی آزمایشی',
+      reviewedAt: '2026-11-09',
+      decision: 'approved',
+      reviewedTextSha256: HASH_A
+    }
+  }), AS_OF);
+  assert.equal(result.eligible, false);
+  assert.ok(result.issues.includes('review_before_retrieval'));
+});
+
 test('a rejected human review cannot make a source eligible', () => {
   const result = resolve([verified({
     humanReview: {
@@ -212,4 +282,65 @@ test('returns source_unavailable instead of inventing a version when no record e
   const result = resolve([], '2025-05-10');
   assert.equal(result.status, 'source_unavailable');
   assert.equal(result.reason, 'no_registry_record');
+});
+
+test('rejects prototype-backed registry records without inheriting metadata', () => {
+  const inherited = verified();
+  const record = Object.create(inherited);
+  const result = validateSourceVersion(record, AS_OF);
+  assert.equal(result.eligible, false);
+  assert.ok(result.issues.includes('record_not_plain_object'));
+  assert.equal(resolve([record], '2025-05-10').status, 'source_unavailable');
+  assert.equal(auditVersionRegistry([record], AS_OF).valid, false);
+});
+
+test('rejects accessor-backed record fields without invoking getters', () => {
+  const record = verified();
+  let reads = 0;
+  Object.defineProperty(record, 'topic', {
+    enumerable: true,
+    configurable: true,
+    get() { reads++; return 'instruments'; }
+  });
+  const result = validateSourceVersion(record, AS_OF);
+  assert.equal(reads, 0);
+  assert.equal(result.eligible, false);
+  assert.ok(result.issues.includes('record_accessor_property'));
+});
+
+test('rejects accessor-backed human review metadata without invoking getters', () => {
+  const record = verified();
+  let reads = 0;
+  Object.defineProperty(record.humanReview, 'reviewer', {
+    enumerable: true,
+    configurable: true,
+    get() { reads++; return 'بازبین حقوقی آزمایشی'; }
+  });
+  const result = validateSourceVersion(record, AS_OF);
+  assert.equal(reads, 0);
+  assert.equal(result.eligible, false);
+  assert.ok(result.issues.includes('human_review_accessor_property'));
+});
+
+test('fails closed on uninspectable proxy records in selection and registry audit', () => {
+  const hostile = new Proxy({}, {
+    getPrototypeOf() { throw new Error('synthetic proxy trap'); },
+    ownKeys() { throw new Error('synthetic proxy trap'); }
+  });
+  assert.doesNotThrow(() => resolve([hostile], '2025-05-10'));
+  const selection = resolve([hostile], '2025-05-10');
+  assert.equal(selection.status, 'source_unavailable');
+  assert.ok(selection.rejected[0].reasons.includes('record_uninspectable_object'));
+  const audit = auditVersionRegistry([hostile], AS_OF);
+  assert.equal(audit.valid, false);
+  assert.ok(audit.issues.includes('unknown:record_uninspectable_object'));
+});
+
+test('rejects symbol and non-enumerable metadata keys in registry records', () => {
+  const symbolRecord = verified();
+  symbolRecord[Symbol('hidden')] = 'synthetic';
+  const hiddenRecord = verified();
+  Object.defineProperty(hiddenRecord, 'hidden', { value: 'synthetic', enumerable: false });
+  assert.ok(validateSourceVersion(symbolRecord, AS_OF).issues.includes('record_symbol_key'));
+  assert.ok(validateSourceVersion(hiddenRecord, AS_OF).issues.includes('record_non_enumerable_property'));
 });

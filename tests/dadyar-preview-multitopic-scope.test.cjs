@@ -59,6 +59,21 @@ test('the browser uses internal matches for a neutral scope notice and clears st
   assert.doesNotMatch(html, /topicScopeStatus\.textContent[^;]*(?:family|property|instruments)/);
 });
 
+test('Persian plural and half-space forms retain multi-topic matches', () => {
+  const { classifyQuestion, describeTopicScope } = helpers();
+  const question = 'چک‌های تضمینی و اجاره‌های تجاری چه مدارکی دارند؟';
+  const matches = classifyQuestion(question);
+  assert.deepEqual(Array.from(matches, item => item.id).sort(), ['instruments', 'property']);
+  assert.match(describeTopicScope(matches, question), /چندموضوعی/);
+});
+
+test('attached Persian plural suffixes match without matching longer unrelated words', () => {
+  const { classifyQuestion } = helpers();
+  const matches = classifyQuestion('چکهایی و مهریه‌ها');
+  assert.deepEqual(Array.from(matches, item => item.id).sort(), ['family', 'instruments']);
+  assert.deepEqual(Array.from(classifyQuestion('چکال')), []);
+});
+
 test('the CSP script hash matches the exact inline script bytes', () => {
   const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
   const declared = html.match(/script-src 'sha256-([^']+)'/)?.[1];

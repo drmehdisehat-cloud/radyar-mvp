@@ -1,0 +1,69 @@
+{
+  "schema": "dadyar-public-preview-artifact-review-v1",
+  "observedAt": "2026-11-25",
+  "repository": "drmehdisehat-cloud/radyar-mvp",
+  "branch": "dadyar/ai-chat-private-20261101",
+  "sourceCommit": "a62b9d78f42f8b461beb0256e35a46d29abc430a",
+  "workflow": {
+    "name": "Dadyar public-only preview review artifact",
+    "runId": 45493582975,
+    "jobId": 138798042290,
+    "event": "push",
+    "conclusion": "success",
+    "runUrl": "https://github.com/drmehdisehat-cloud/radyar-mvp/actions/runs/45493582975"
+  },
+  "artifact": {
+    "id": 14968321122,
+    "name": "dadyar-public-preview-review-a62b9d78f42f8b461beb0256e35a46d29abc430a",
+    "sizeBytes": 19727,
+    "createdAt": "2026-11-24T21:42:25Z",
+    "expiresAt": "2026-12-01T21:42:25Z",
+    "url": "https://github.com/drmehdisehat-cloud/radyar-mvp/actions/runs/45493582975/artifacts/14968321122",
+    "archiveSha256": "0ceb95fd84b3ea09d9eeaea97af42babfce3dbc26b95079becf80f707e55db43",
+    "entries": [
+      {
+        "path": "index.html",
+        "sizeBytes": 65821,
+        "sha256": "fb31fa29491d3e087d1700a8a053305f3fce555c28728b6ebe0fba7ef822b327",
+        "gitBlobSha1": "90f7616162591efb9c7f0b059105e09f12873e98"
+      },
+      {
+        "path": "INTEGRITY.json",
+        "sizeBytes": 967,
+        "sha256": "ac676e6e212e147e91dd726f75dfe37fccdb23259e15fe97660e49a2a90f5950"
+      }
+    ],
+    "entryCount": 2
+  },
+  "manifest": {
+    "schema": "dadyar-public-preview-integrity-v1",
+    "sourceCommit": "a62b9d78f42f8b461beb0256e35a46d29abc430a",
+    "workflowCommit": "a62b9d78f42f8b461beb0256e35a46d29abc430a",
+    "sourceBranch": "dadyar/ai-chat-private-20261101",
+    "sourceFile": "public/index.html",
+    "targetSubpath": "/dadyar-preview/",
+    "sha256": "fb31fa29491d3e087d1700a8a053305f3fce555c28728b6ebe0fba7ef822b327",
+    "gitBlobSha1": "90f7616162591efb9c7f0b059105e09f12873e98",
+    "topicHintCount": 27,
+    "apiEnabled": false,
+    "publicAiEnabled": false,
+    "reviewerAuthentication": "not-configured",
+    "backupRestoreVerified": false,
+    "destinationVerified": false,
+    "deploymentAuthorized": false
+  },
+  "verification": {
+    "downloadedFromGitHub": true,
+    "zipListingVerified": true,
+    "archiveSha256Recomputed": true,
+    "htmlSha256Recomputed": true,
+    "integrityManifestSha256Recomputed": true,
+    "manifestMatchesArtifact": true,
+    "htmlMatchesSourceGitBlob": true,
+    "productionHostRequested": false,
+    "restorePerformed": false,
+    "destinationTestPerformed": false
+  },
+  "releaseBoundary": "Integrity evidence only. This review does not prove a backup restore, destination validity, reviewer identity, legal accuracy, or deployment authorization. Do not publish until the independent restore, trusted reviewer authentication, destination validation, security review, and owner authorization gates are satisfied.",
+  "observationTimePrecision": "date-only; exact download timestamp is not asserted"
+}

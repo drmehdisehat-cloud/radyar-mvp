@@ -1,0 +1,83 @@
+{
+  "schema": "dadyar-delay-index-secondary-observations-v1",
+  "observedAt": "2026-11-26",
+  "canonicalDatasetPath": "dadyar-preview/data/delay-damages-index.json",
+  "canonicalDatasetStatus": "transcribed-not-independently-authenticated",
+  "primarySourceVerified": false,
+  "humanReviewStatus": "pending",
+  "useInLegalAnswers": false,
+  "observations": [
+    {
+      "id": "vakilyar-1405-07-30",
+      "publisher": "وکیل‌یار",
+      "url": "https://vakilyar-ai.com/article/late-payment-index-table/",
+      "sourceClass": "secondary-republication",
+      "pageDatePersian": "۱۴۰۵/۰۷/۳۰",
+      "observedAt": "2026-11-26",
+      "claimedLastAvailableMonth": 6,
+      "values": {
+        "1": 2654.9,
+        "2": 2880.4,
+        "3": 3092.3,
+        "4": 3205.1,
+        "5": 3323.9,
+        "6": 3452.1
+      },
+      "unavailableMonths": [
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "discrepancies": [
+        {
+          "month": 5,
+          "ownerImage": 3333.9,
+          "secondary": 3323.9
+        },
+        {
+          "month": 7,
+          "ownerImage": 3611.1,
+          "secondary": "unpublished"
+        }
+      ],
+      "primarySourceVerified": false,
+      "humanReviewStatus": "pending",
+      "useInLegalAnswers": false,
+      "note": "صفحه مدعی اتکا به جدول بانک مرکزی است، اما خود صفحه بازنشر ثانویه است و فایل اولیه بانک مرکزی را در این مشاهده ارائه نمی‌کند."
+    },
+    {
+      "id": "vakilsoal-live-row-1405",
+      "publisher": "وکیل سؤال",
+      "url": "https://vakilsoal.com/%D8%B4%D8%A7%D8%AE%D8%B5-%D9%85%D8%AD%D8%A7%D8%B3%D8%A8%D9%87-%D8%AA%D8%A3%D8%AE%DB%8C%D8%B1-%D8%AA%D8%A3%D8%AF%DB%8C%D9%87-%D8%A8%D8%B1-%D8%A7%D8%B3%D8%A7%D8%B3-%D8%AF%D8%A7%D8%AF%D9%87/",
+      "sourceClass": "secondary-republication",
+      "pageDatePersian": "۱۴۰۳/۱۰/۳۰",
+      "updatedAt": null,
+      "observedAt": "2026-11-26",
+      "values": {
+        "1": 2654.9,
+        "2": 2880.4,
+        "3": 3093.5
+      },
+      "discrepancies": [
+        {
+          "month": 3,
+          "ownerImage": 3092.3,
+          "secondary": 3093.5
+        }
+      ],
+      "primarySourceVerified": false,
+      "humanReviewStatus": "pending",
+      "useInLegalAnswers": false,
+      "note": "ردیف ۱۴۰۵ در صفحه زنده وجود دارد، اما تاریخ به‌روزرسانی آن مشخص نیست؛ مقدار خرداد با تصویر مالک و بازنشر دیگر اختلاف دارد."
+    }
+  ],
+  "officialSourceCheck": {
+    "url": "https://www.cbi.ir/showitem/35817.aspx",
+    "retrievalStatus": "not-accessible-from-current-research-session",
+    "primarySourceVerified": false,
+    "note": "تا دریافت اصل فایل و احراز تعریف سری و سال پایه، این پیوند برای تأیید اعداد جدول پایه ۱۳۹۵ کافی نیست."
+  }
+}

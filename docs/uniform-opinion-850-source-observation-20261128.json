@@ -1,0 +1,74 @@
+{
+  "schema": "dadyar-uniform-opinion-source-observation-v1",
+  "schemaVersion": 1,
+  "topic": "debt",
+  "authorityId": "uniform-opinion-850-1403-05-16",
+  "reportedNumber": 850,
+  "decisionDateJalali": "1403/05/16",
+  "observedAt": "2026-11-28",
+  "status": "official-qavanin-rendered-observation-only",
+  "primarySourceVerified": false,
+  "primaryOfficialDocumentUrl": "https://qavanin.ir/Law/TreeText/?IDS=6755160463259811436",
+  "officialMetadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=6755160463259811436",
+  "sourceClass": "primary-official-qavanin-rendered-page",
+  "textPage": {
+    "rendered": true,
+    "totalLines": 87,
+    "visibleLineRange": [
+      7,
+      64
+    ],
+    "operativeHoldingVisibleAtLine": 63,
+    "bindingClauseVisibleAtLine": 64,
+    "titleShown": "رأی وحدت رویه شماره 850 هیأت عمومی دیوان عالی کشور در خصوص محاسبه خسارت تأخیر تأدیه بر مبنای شاخص سالانه",
+    "decisionDateShown": "1403/05/16",
+    "retrievalFreshness": "The TreeText page was labeled Crawled: today.",
+    "renderedHoldingSummary": "در متن نمایشی، برای دعاوی مشمول ماده ۵۲۲، محاسبه بر پایه نسبت شاخص زمان تأدیه به شاخص زمان سررسید و ضرب در اصل دین توصیف شده و سود مرکب خارج دانسته شده است؛ بند پایانی به لازم‌الاتباع بودن در موارد مشابه طبق ماده ۴۷۱ اشاره می‌کند. این فقط خلاصه مشاهده صفحه است، نه نظر حقوقی تأییدشده."
+  },
+  "metadataPage": {
+    "rendered": true,
+    "totalLines": 60,
+    "visibleLineRange": [
+      7,
+      35
+    ],
+    "decisionDateShown": "1403/05/16",
+    "officialGazetteNumberShown": null,
+    "officialGazettePublicationDateShown": null,
+    "promulgationDateShown": null,
+    "effectiveDateShown": null,
+    "retrievalFreshness": "The Attribute page was labeled Crawled: 2 days ago; treat as potentially cached."
+  },
+  "publicationTransmissionObservation": {
+    "visibleAtTreeTextLine": 42,
+    "numberShown": "9000/6345/110",
+    "dateShownJalali": "1403/05/31",
+    "description": "این شماره و تاریخ به نامه ارسال گزارش به مدیرعامل روزنامه رسمی مربوط است؛ شماره یا تاریخ انتشار شماره روزنامه رسمی نیست."
+  },
+  "eventVersion": {
+    "applicableToEventDate": "not-determined",
+    "effectiveFromJalali": null,
+    "effectiveToJalali": null,
+    "transitionalScope": "not-verified",
+    "eventDateVersioningApproved": false
+  },
+  "verification": {
+    "rawHttpBytesCaptured": false,
+    "rawResponseSha256": null,
+    "officialGazetteIssueBytesRetrieved": false,
+    "primarySourceVerified": false,
+    "humanReviewStatus": "pending",
+    "reviewedTextSha256": null,
+    "useInLegalAnswers": false,
+    "legalConclusionPermitted": false
+  },
+  "openGaps": [
+    "Exact raw HTTP response bytes for TreeText and Attribute have not been captured; no reproducible SHA-256 exists.",
+    "The original Official Gazette issue and its exact issue number/publication date have not been independently retrieved.",
+    "The 1403/05/31 reference is a transmission letter, not verified Gazette issue metadata.",
+    "The effective-from date, binding commencement date and event-date scope remain undetermined.",
+    "An independent qualified legal reviewer must review the exact captured bytes and bind approval to their SHA-256.",
+    "A trusted signed reviewer attestation and event-date version interval have not been created."
+  ],
+  "scope": "Direct official-portal rendering observation only. Not raw-byte authentication, Gazette issue verification, legal review, event-date version approval or permission to use the opinion in legal answers."
+}

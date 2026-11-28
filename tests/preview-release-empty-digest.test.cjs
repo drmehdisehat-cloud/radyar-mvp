@@ -3,7 +3,21 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { decidePreviewRelease } = require('../scripts/decide-preview-release.cjs');
 const EMPTY = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
+const postureObservation = {
+  schema: 'dadyar-github-release-posture-observation-v1',
+  status: 'POSTURE_VERIFIED',
+  repository: 'drmehdisehat-cloud/radyar-mvp',
+  visibility: 'private',
+  branch: 'dadyar/ai-chat-private-20261101',
+  branchProtected: true,
+  headSha: 'f'.repeat(40),
+  blockers: [],
+  deploymentAuthorized: false,
+  observedAt: new Date().toISOString()
+};
 const baseline = {
+  repositoryPostureObservation: postureObservation,
+  expectedSourceCommit: postureObservation.headSha,
   restoreEvidence: {
     restore_proven: true,
     evidence: 'independent-restore-manifest-v1',
@@ -42,7 +56,8 @@ const baseline = {
   zeroApiRequestsVerified: true,
   localHumanReviewAcknowledged: true,
   authenticatedHumanReviewAttested: true,
-  authenticatedRestoreAttestation: true
+  authenticatedRestoreAttestation: true,
+  trustedReviewerAuthenticationAdapterVerified: true
 };
 test('empty deployment artifact cannot count as verified destination', () => {
   for (const hash of [EMPTY, EMPTY.toUpperCase()]) {

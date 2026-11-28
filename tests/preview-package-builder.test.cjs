@@ -32,11 +32,16 @@ test('handoff package is minimal, byte-identical, checksum verified and explicit
     assert.equal(result.release_authorized, false);
     assert.equal(result.api_enabled, false);
     assert.equal(result.source_commit, commit);
-    assert.deepEqual(fs.readdirSync(destination).sort(),
-      ['PREVIEW-METADATA.json', 'README-fa.txt', 'SHA256SUMS', 'index.html']);
-    assert.deepEqual(fs.readFileSync(path.join(destination, 'index.html')), fs.readFileSync(sourcePath));
+    assert.deepEqual(fs.readdirSync(destination).sort(), ['handoff', 'public']);
+    assert.deepEqual(fs.readdirSync(path.join(destination, 'public')), ['index.html']);
+    assert.deepEqual(fs.readdirSync(path.join(destination, 'handoff')).sort(),
+      ['PREVIEW-METADATA.json', 'README-fa.txt', 'SHA256SUMS']);
+    assert.deepEqual(fs.readFileSync(path.join(destination, 'public', 'index.html')), fs.readFileSync(sourcePath));
+    assert.equal(fs.statSync(path.join(destination, 'public')).mode & 0o777, 0o755);
+    assert.equal(fs.statSync(path.join(destination, 'public', 'index.html')).mode & 0o777, 0o644);
+    assert.equal(fs.statSync(path.join(destination, 'handoff')).mode & 0o777, 0o700);
 
-    const metadata = JSON.parse(fs.readFileSync(path.join(destination, 'PREVIEW-METADATA.json'), 'utf8'));
+    const metadata = JSON.parse(fs.readFileSync(path.join(destination, 'handoff', 'PREVIEW-METADATA.json'), 'utf8'));
     assert.equal(metadata.source_commit, commit);
     const sourceBytes = fs.readFileSync(sourcePath);
     assert.equal(metadata.source_file_sha256, hash(sourceBytes));
@@ -44,6 +49,8 @@ test('handoff package is minimal, byte-identical, checksum verified and explicit
     assert.equal(result.source_blob_sha1, metadata.source_file_git_blob_sha1);
     assert.equal(metadata.source_branch, branch);
     assert.equal(metadata.target_subpath, '/dadyar-preview/');
+    assert.equal(metadata.public_payload_path, 'public/index.html');
+    assert.equal(metadata.operator_handoff_path, 'handoff/');
     assert.equal(metadata.delay_damages_calculator, 'offline-only');
     assert.equal(metadata.delay_index_series, 'annual-index-published-monthly');
     assert.equal(metadata.delay_index_base_year, 1395);
@@ -52,17 +59,19 @@ test('handoff package is minimal, byte-identical, checksum verified and explicit
     assert.equal(metadata.delay_index_source_status, 'transcribed-not-independently-authenticated');
     assert.equal(metadata.api_enabled, false);
     assert.equal(metadata.public_ai_enabled, false);
-    assert.equal(metadata.reviewer_authentication, 'not-implemented');
+    assert.equal(metadata.reviewer_authentication, 'not-configured');
     assert.equal(metadata.backup_restore_verified, false);
     assert.equal(metadata.destination_verified, false);
     assert.equal(metadata.deployment_authorized, false);
 
-    const readme = fs.readFileSync(path.join(destination, 'README-fa.txt'), 'utf8');
+    const readme = fs.readFileSync(path.join(destination, 'handoff', 'README-fa.txt'), 'utf8');
     assert.match(readme, /بازیابی بکاپ در محیط مستقل/);
     assert.match(readme, /هویت بازبین احراز نمی‌شود/);
     assert.match(readme, /مجوز استقرار نیست/);
+    assert.match(readme, /فقط public\/index\.html/);
+    assert.match(readme, /handoff\/ را بارگذاری نکنید/);
 
-    const manifest = fs.readFileSync(path.join(destination, 'SHA256SUMS'), 'utf8').trim().split('\n');
+    const manifest = fs.readFileSync(path.join(destination, 'handoff', 'SHA256SUMS'), 'utf8').trim().split('\n');
     assert.equal(manifest.length, 3);
     for (const row of manifest) {
       const match = row.match(/^([a-f0-9]{64})  (.+)$/);
@@ -253,7 +262,7 @@ test('builder records the actual PR head separately from GitHub merge SHA', t =>
     try {
       const destination = path.join(root, 'bundle');
       const result = buildOfflinePreviewPackage(destination, { repoRoot, sourcePath });
-      const metadata = JSON.parse(fs.readFileSync(path.join(destination, 'PREVIEW-METADATA.json'), 'utf8'));
+      const metadata = JSON.parse(fs.readFileSync(path.join(destination, 'handoff', 'PREVIEW-METADATA.json'), 'utf8'));
       assert.equal(result.source_commit, commit);
       assert.equal(result.workflow_commit, mergeSha);
       assert.equal(metadata.source_commit, commit);
@@ -280,7 +289,7 @@ test('builder uses the explicit experimental branch identity on pull-request mer
       const destination = path.join(root, 'bundle');
       const result = buildOfflinePreviewPackage(destination, { repoRoot, sourcePath, commit });
       assert.equal(result.source_commit, commit);
-      const metadata = JSON.parse(fs.readFileSync(path.join(destination, 'PREVIEW-METADATA.json'), 'utf8'));
+      const metadata = JSON.parse(fs.readFileSync(path.join(destination, 'handoff', 'PREVIEW-METADATA.json'), 'utf8'));
       assert.equal(metadata.source_branch, branch);
       assert.equal(metadata.deployment_authorized, false);
     } finally {
@@ -289,5 +298,42 @@ test('builder uses the explicit experimental branch identity on pull-request mer
       if (previousBranch === undefined) delete process.env.DADYAR_PREVIEW_BRANCH;
       else process.env.DADYAR_PREVIEW_BRANCH = previousBranch;
     }
+  });
+});
+
+
+test('builder rejects external SVG image, filter and use references while allowing same-document fragments', t => {
+  withTemp(t, root => {
+    const fakeRoot = path.join(root, 'repo');
+    const previewDir = path.join(fakeRoot, 'dadyar-preview');
+    fs.mkdirSync(previewDir, { recursive: true });
+    const original = fs.readFileSync(sourcePath, 'utf8');
+    const fixtures = [
+      '<svg><image href="https://example.invalid/pixel.svg"></image></svg>',
+      '<svg><image xlink:href="//example.invalid/pixel.svg"></image></svg>',
+      '<svg><feImage href="data:image/png;base64,AAAA"></feImage></svg>',
+      '<svg><use href="icons.svg#mark"></use></svg>',
+      '<svg><use href="#local" xlink:href="https://example.invalid/sprite.svg#remote"></use></svg>'
+    ];
+
+    fixtures.forEach((fixture, index) => {
+      const unsafeSource = path.join(previewDir, 'unsafe-' + index + '.html');
+      fs.writeFileSync(unsafeSource, original.replace('</body>', fixture + '</body>'));
+      const destination = path.join(root, 'unsafe-bundle-' + index);
+      assert.throws(() => buildOfflinePreviewPackage(destination, {
+        repoRoot: fakeRoot, sourcePath: unsafeSource, commit, branch
+      }), /external SVG references/);
+      assert.equal(fs.existsSync(destination), false);
+    });
+
+    const safeSource = path.join(previewDir, 'safe.html');
+    fs.writeFileSync(safeSource, original.replace('</body>',
+      '<svg><symbol id="local-mark"><path d="M0 0h1v1z"></path></symbol><use href="#local-mark"></use></svg></body>'));
+    const safeDestination = path.join(root, 'safe-bundle');
+    const result = buildOfflinePreviewPackage(safeDestination, {
+      repoRoot: fakeRoot, sourcePath: safeSource, commit, branch
+    });
+    assert.equal(result.checksums_verified, true);
+    assert.equal(fs.existsSync(path.join(safeDestination, 'public', 'index.html')), true);
   });
 });

@@ -22,7 +22,10 @@ test('free-question field disables autocomplete and pagehide is wired to the sha
   assert.ok(helperMatch[1].includes('role.selectedIndex=0'));
   assert.ok(helperMatch[1].includes("querySelectorAll('#interview select')"));
   assert.ok(helperMatch[1].includes("querySelectorAll('fieldset input[type=checkbox]')"));
+  assert.ok(script.includes("querySelectorAll('#evidence-list input[type=\"checkbox\"]')"));
+  assert.ok(script.includes("reviewChecklistItems.forEach(item=>item.addEventListener('change',()=>invalidateHumanReview"));
   assert.ok(helperMatch[1].includes("getElementById('delay-principal')"));
+  assert.ok(helperMatch[1].includes("getElementById('event-date')"));
   assert.ok(helperMatch[1].includes("getElementById('delay-result')"));
   assert.ok(helperMatch[1].includes('invalidateDraft();'));
   assert.doesNotMatch(html, /\b(?:localStorage|sessionStorage|indexedDB|caches)\b/i);
@@ -34,14 +37,16 @@ test('pagehide clears free text, role, interview answers and selected evidence, 
   const role = { selectedIndex: 4 };
   const field = { value: 'متن فرضی که هنوز ارسال نشده است' };
   const selects = [{ selectedIndex: 2 }, { selectedIndex: 1 }, { selectedIndex: 2 }];
-  const checkboxes = [{ checked: true }, { checked: true }, { checked: false }, { checked: true }];
+  const checkboxes = [{ checked: true }, { checked: true }, { checked: false }, { checked: true }, { checked: true }, { checked: false }, { checked: true }, { checked: true }];
   const calculatorPrincipal = { value: '987654321' };
+  const eventDate = { value: '1405-09-03' };
   const dueMonth = { value: '2' };
   const paymentMonth = { value: '6' };
   const currency = { selectedIndex: 1 };
   const calculatorResult = { textContent: 'نتیجه محاسبه فرضی' };
   const elements = new Map([
     ['free-question', field],
+    ['event-date', eventDate],
     ['delay-principal', calculatorPrincipal],
     ['delay-due-month', dueMonth],
     ['delay-payment-month', paymentMonth],
@@ -67,6 +72,7 @@ test('pagehide clears free text, role, interview answers and selected evidence, 
   const executable = 'function clearInterviewState(){' + helperMatch[1] + '\n}\n' + pagehideMatch[1];
   vm.runInNewContext(executable, context, { timeout: 1000 });
   assert.equal(field.value, '');
+  assert.equal(eventDate.value, '');
   assert.equal(role.selectedIndex, 0);
   assert.ok(selects.every(control => control.selectedIndex === 0));
   assert.ok(checkboxes.every(control => control.checked === false));

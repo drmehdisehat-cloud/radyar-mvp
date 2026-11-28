@@ -65,7 +65,7 @@ function createBundle(directory) {
     operatorSignature: path.join(directory, 'operator.sig'),
     reviewerSignature: path.join(directory, 'reviewer.sig')
   };
-  fs.writeFileSync(files.manifest, JSON.stringify(manifest));
+  fs.writeFileSync(files.manifest, JSON.stringify(manifest), { mode: 0o600 });
   fs.writeFileSync(files.operatorPublic, operator.publicKey);
   fs.writeFileSync(files.reviewerPublic, reviewer.publicKey);
   fs.writeFileSync(files.operatorSignature, crypto.sign(null, canonical, operator.privateKey));
@@ -191,7 +191,7 @@ test('pinned verifier rejects invalid UTF-8 manifest bytes before signature veri
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-pinned-invalid-utf8-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   const bundle = createBundle(directory);
-  fs.writeFileSync(bundle.files.manifest, Buffer.from([0x7b, 0x22, 0x78, 0x22, 0x3a, 0x22, 0xc3, 0x28, 0x22, 0x7d]));
+  fs.writeFileSync(bundle.files.manifest, Buffer.from([0x7b, 0x22, 0x78, 0x22, 0x3a, 0x22, 0xc3, 0x28, 0x22, 0x7d]), { mode: 0o600 });
   const result = run(argsFor(bundle));
   assert.equal(result.status, 1);
   assert.equal(JSON.parse(result.stdout).error, 'manifest_is_not_valid_utf8');

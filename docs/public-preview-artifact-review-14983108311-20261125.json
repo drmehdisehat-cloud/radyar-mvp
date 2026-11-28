@@ -1,0 +1,98 @@
+{
+  "schema": "dadyar-public-preview-artifact-review-v1",
+  "observedAt": "2026-11-25",
+  "observationTimePrecision": "date-only; artifact creation and expiry timestamps are copied from GitHub metadata",
+  "repository": "drmehdisehat-cloud/radyar-mvp",
+  "branch": "dadyar/ai-chat-private-20261101",
+  "sourceCommit": "2830dbe6800172948d249e0fe5c175896824d4b9",
+  "requiredCi": {
+    "runId": 45528094761,
+    "jobs": [
+      { "id": 138916328623, "name": "verify-existing-frontend", "status": "completed", "conclusion": "success" },
+      { "id": 138916593518, "name": "audit-release-posture-after-ci", "status": "completed", "conclusion": "success" }
+    ],
+    "contractTests": { "passed": 1458, "failed": 0, "skipped": 0 },
+    "browser": {
+      "syntheticCheque": { "passed": 1, "failed": 0, "skipped": 0 },
+      "narrowChromium": { "passed": 1, "failed": 0, "skipped": 0 },
+      "mobileDeviceEmulation": { "passed": 1, "failed": 0, "skipped": 0 },
+      "subpathAndZeroApi": { "passed": 2, "failed": 0, "skipped": 0 },
+      "topicRouting": { "passed": 12, "failed": 0, "skipped": 0 }
+    }
+  },
+  "artifactWorkflow": {
+    "name": "Dadyar public-only preview review artifact",
+    "runId": 45528094737,
+    "jobId": 138916328482,
+    "event": "push",
+    "jobStatus": "completed",
+    "jobConclusion": "success",
+    "runUrl": "https://github.com/drmehdisehat-cloud/radyar-mvp/actions/runs/45528094737"
+  },
+  "artifact": {
+    "id": 14983108311,
+    "name": "dadyar-public-preview-review-2830dbe6800172948d249e0fe5c175896824d4b9",
+    "sizeBytes": 19728,
+    "createdAt": "2026-11-25T01:46:47Z",
+    "expiresAt": "2026-12-02T01:46:45Z",
+    "archiveSha256": "6b3013c1eca25369d41d9271f5df3ca4a8e2d5e6fca2ddc614f44a6066151e40",
+    "entries": [
+      {
+        "path": "index.html",
+        "sizeBytes": 65821,
+        "sha256": "fb31fa29491d3e087d1700a8a053305f3fce555c28728b6ebe0fba7ef822b327",
+        "gitBlobSha1": "90f7616162591efb9c7f0b059105e09f12873e98"
+      },
+      {
+        "path": "INTEGRITY.json",
+        "sizeBytes": 967,
+        "sha256": "eee53a2b1628aacc6466faef4988099d9514f770a582c5826f1ea2b40fc40906"
+      }
+    ],
+    "entryCount": 2
+  },
+  "manifest": {
+    "schema": "dadyar-public-preview-integrity-v1",
+    "sourceCommit": "2830dbe6800172948d249e0fe5c175896824d4b9",
+    "workflowCommit": "2830dbe6800172948d249e0fe5c175896824d4b9",
+    "sourceBranch": "dadyar/ai-chat-private-20261101",
+    "sourceFile": "public/index.html",
+    "targetSubpath": "/dadyar-preview/",
+    "sha256": "fb31fa29491d3e087d1700a8a053305f3fce555c28728b6ebe0fba7ef822b327",
+    "gitBlobSha1": "90f7616162591efb9c7f0b059105e09f12873e98",
+    "topicHintCount": 27,
+    "apiEnabled": false,
+    "publicAiEnabled": false,
+    "reviewerAuthentication": "not-configured",
+    "backupRestoreVerified": false,
+    "destinationVerified": false,
+    "deploymentAuthorized": false
+  },
+  "verification": {
+    "downloadedFromGitHub": true,
+    "zipListingVerified": true,
+    "archiveSha256Recomputed": true,
+    "htmlSha256Recomputed": true,
+    "integrityManifestSha256Recomputed": true,
+    "manifestMatchesArtifact": true,
+    "htmlMatchesSourceGitBlob": true,
+    "productionHostRequested": false,
+    "restorePerformed": false,
+    "destinationTestPerformed": false,
+    "reviewerIdentityVerified": false,
+    "legalAccuracyVerified": false
+  },
+  "releasePosture": {
+    "status": "NOT_READY",
+    "visibility": "public",
+    "branchProtected": false,
+    "blockers": [
+      "repository_must_be_private",
+      "release_branch_protection_disabled",
+      "backup_restore_unverified",
+      "destination_unverified",
+      "reviewer_authentication_not_configured"
+    ]
+  },
+  "releaseBoundary": "This record proves only the downloaded artifact's bytes and CI evidence. It does not prove an isolated backup restore, hosting destination validity, authenticated human reviewer identity, legal accuracy, or deployment authorization. Do not publish until every independent release gate is satisfied."
+}

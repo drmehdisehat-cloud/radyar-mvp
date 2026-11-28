@@ -190,7 +190,7 @@ test('CLI canonicalizes and verifies two detached signatures using only external
     operatorSignature: path.join(directory, 'operator.sig'),
     reviewerSignature: path.join(directory, 'reviewer.sig')
   };
-  fs.writeFileSync(files.manifest, JSON.stringify(manifest));
+  fs.writeFileSync(files.manifest, JSON.stringify(manifest), { mode: 0o600 });
   fs.writeFileSync(files.operatorPublic, proof.operator.publicKey);
   fs.writeFileSync(files.reviewerPublic, proof.reviewer.publicKey);
   fs.writeFileSync(files.operatorSignature, proof.operatorSignature);
@@ -227,8 +227,134 @@ test('CLI rejects invalid UTF-8 manifest bytes instead of replacement decoding',
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-attestation-invalid-utf8-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   const manifest = path.join(directory, 'restore.json');
-  fs.writeFileSync(manifest, Buffer.from([0x7b, 0x22, 0x78, 0x22, 0x3a, 0x22, 0xc3, 0x28, 0x22, 0x7d]));
+  fs.writeFileSync(manifest, Buffer.from([0x7b, 0x22, 0x78, 0x22, 0x3a, 0x22, 0xc3, 0x28, 0x22, 0x7d]), { mode: 0o600 });
   const result = spawnSync(process.execPath, [SCRIPT, '--canonicalize', '--manifest', manifest], { encoding: 'utf8' });
   assert.equal(result.status, 1);
   assert.equal(JSON.parse(result.stdout).error, 'manifest_is_not_valid_utf8');
 });
+
+
+test('external signature evidence enforces owner-only manifests and non-writable public key files', t => {
+  if (process.platform === 'win32') return;
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-attestation-permissions-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const manifest = path.join(directory, 'restore.json');
+  fs.writeFileSync(manifest, Buffer.from('{}'), { mode: 0o600 });
+  fs.chmodSync(manifest, 0o644);
+  assert.throws(() => readExternalFile(manifest, 'manifest', 1024), /manifest_must_be_owner_only/);
+
+  const publicKey = path.join(directory, 'operator.pub.pem');
+  fs.writeFileSync(publicKey, Buffer.from('synthetic public key'), { mode: 0o600 });
+  fs.chmodSync(publicKey, 0o666);
+  assert.throws(
+    () => readExternalFile(publicKey, 'operator_public_key', 1024),
+    /operator_public_key_must_not_be_group_or_world_writable/
+  );
+});
+
+test('signature CLI rejects a group/world-readable manifest on POSIX', t => {
+  if (process.platform === 'win32') return;
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-attestation-cli-permissions-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const manifest = path.join(directory, 'restore.json');
+  fs.writeFileSync(manifest, JSON.stringify(makeManifest()), { mode: 0o600 });
+  fs.chmodSync(manifest, 0o644);
+  const result = spawnSync(process.execPath, [SCRIPT, '--canonicalize', '--manifest', manifest], { encoding: 'utf8' });
+  assert.equal(result.status, 1);
+  assert.equal(JSON.parse(result.stdout).error, 'manifest_must_be_owner_only');
+});
+
+
+test('external evidence reader rejects group/world-writable parent directories', t => {
+  if (process.platform === 'win32') return;
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-attestation-writable-parent-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const file = path.join(directory, 'evidence.bin');
+  fs.writeFileSync(file, Buffer.from('synthetic evidence'), { mode: 0o600 });
+  fs.chmodSync(directory, 0o777);
+  assert.throws(
+    () => readExternalFile(file, 'evidence', 64),
+    /evidence_parent_must_not_be_group_or_world_writable/
+  );
+});
+
+test('external evidence reader rejects setgid evidence parent directories', t => {
+  if (process.platform === 'win32') return;
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-attestation-setgid-parent-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const file = path.join(directory, 'evidence.bin');
+  fs.writeFileSync(file, Buffer.from('synthetic evidence'), { mode: 0o600 });
+  fs.chmodSync(directory, 0o2700);
+  assert.throws(
+    () => readExternalFile(file, 'evidence', 64),
+    /evidence_parent_has_setuid_or_setgid_bits/
+  );
+});
+
+test('external evidence reader detects parent-directory mutation during descriptor read', t => {
+  if (process.platform === 'win32') return;
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-attestation-parent-race-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const file = path.join(directory, 'evidence.bin');
+  fs.writeFileSync(file, Buffer.from('synthetic evidence'), { mode: 0o600 });
+  const originalReadFileSync = fs.readFileSync;
+  let mutated = false;
+  fs.readFileSync = function (target, ...args) {
+    const result = originalReadFileSync.call(this, target, ...args);
+    if (typeof target === 'number' && !mutated) {
+      fs.writeFileSync(path.join(directory, 'concurrent-entry'), 'synthetic mutation');
+      mutated = true;
+    }
+    return result;
+  };
+  try {
+    assert.throws(
+      () => readExternalFile(file, 'evidence', 64),
+      /evidence_parent_directory_changed_during_read/
+    );
+  } finally {
+    fs.readFileSync = originalReadFileSync;
+  }
+  assert.equal(mutated, true);
+});
+
+test('external evidence reader tolerates unrelated entries in a root-owned sticky shared temp parent', t => {
+  if (process.platform === 'win32') return;
+  const shared = fs.realpathSync(os.tmpdir());
+  const sharedStat = fs.lstatSync(shared, { bigint: true });
+  const sharedMode = sharedStat.mode & 0o7777n;
+  if (sharedStat.uid !== 0n || (sharedMode & 0o1000n) === 0n) {
+    t.skip('shared temp parent is not root-owned and sticky');
+    return;
+  }
+
+  const directory = fs.mkdtempSync(path.join(shared, 'dadyar-attestation-sticky-parent-'));
+  fs.chmodSync(directory, 0o700);
+  const file = path.join(directory, 'evidence.bin');
+  const unrelatedEntry = path.join(
+    shared,
+    '.dadyar-sticky-parent-race-' + process.pid + '-' + crypto.randomBytes(8).toString('hex')
+  );
+  const expected = Buffer.from('synthetic evidence under a private descendant');
+  fs.writeFileSync(file, expected, { mode: 0o600 });
+
+  const originalReadFileSync = fs.readFileSync;
+  let mutated = false;
+  fs.readFileSync = function (target, ...args) {
+    const result = originalReadFileSync.call(this, target, ...args);
+    if (typeof target === 'number' && !mutated) {
+      fs.writeFileSync(unrelatedEntry, 'unrelated synthetic temp entry', { mode: 0o600 });
+      mutated = true;
+    }
+    return result;
+  };
+  try {
+    assert.deepEqual(readExternalFile(file, 'evidence', 128), expected);
+    assert.equal(mutated, true);
+  } finally {
+    fs.readFileSync = originalReadFileSync;
+    fs.rmSync(unrelatedEntry, { force: true });
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+

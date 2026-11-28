@@ -19,7 +19,7 @@ function cspHash(source) {
 const metaPolicy = "default-src 'none'; script-src " + cspHash(inlineScript) +
   '; style-src ' + cspHash(inlineStyle) + "; connect-src 'none'; img-src 'none'; font-src 'none'; " +
   "object-src 'none'; frame-src 'none'; media-src 'none'; manifest-src 'none'; worker-src 'none'; " +
-  "child-src 'none'; prefetch-src 'none'; form-action 'none'; base-uri 'none'";
+  "child-src 'none'; form-action 'none'; base-uri 'none'";
 const html = [
   '<!doctype html>',
   '<html lang="fa" dir="rtl"><head>',
@@ -38,6 +38,7 @@ const expectedGitBlobSha1 = gitBlobSha1(body);
 const headers = {
   'content-type': 'text/html; charset=utf-8',
   'cache-control': 'no-store',
+  'strict-transport-security': 'max-age=31536000',
   'content-security-policy': metaPolicy + "; frame-ancestors 'none'",
   'x-content-type-options': 'nosniff',
   'x-frame-options': 'DENY',
@@ -113,6 +114,7 @@ test('accepts the exact reviewed body with offline and indexing protections', ()
   assert.equal(result.connectSrcNone, true);
   assert.equal(result.restrictedPermissionsPolicy, true);
   assert.equal(result.cookiesSet, false);
+  assert.equal(result.hstsProtected, true);
   assert.equal(result.sha256, expectedSha256);
   assert.equal(result.gitBlobSha1, expectedGitBlobSha1);
 });
@@ -136,6 +138,19 @@ test('requires HTML content type, nosniff and no cookies', () => {
   assert.throws(() => verify({ headers: { ...headers, 'set-cookie': ['session=fake'] } }), /static_preview_must_not_set_cookies/);
 });
 
+test('rejects attachment disposition so the preview remains renderable as a page', () => {
+  assert.throws(
+    () => verify({ headers: { ...headers, 'content-disposition': 'attachment; filename="preview.html"' } }),
+    /preview_content_disposition_must_be_inline/
+  );
+  assert.throws(
+    () => verify({ headers: { ...headers, 'content-disposition': ['inline', 'attachment'] } }),
+    /preview_header_ambiguous:content-disposition/
+  );
+  assert.equal(verify({ headers: { ...headers, 'content-disposition': 'inline' } }).renderableInline, true);
+  assert.equal(verify().renderableInline, true);
+});
+
 test('requires noindex, nofollow, no-referrer and a restrictive CSP', () => {
   const withoutRobots = Buffer.from(html.replace('noindex,nofollow,noarchive', 'index,follow'));
   assert.throws(() => verify({ body: withoutRobots }), /preview_must_be_noindex_nofollow/);
@@ -155,6 +170,32 @@ test('requires response-header frame protection; a meta CSP cannot supply frame-
     'content-security-policy': metaPolicy
   };
   assert.throws(() => verify({ headers: withoutFrameAncestors }), /preview_http_csp_missing:frame-ancestors/);
+});
+
+
+test('requires a one-year HSTS policy and rejects ambiguous or malformed directives', () => {
+  const missing = { ...headers };
+  delete missing['strict-transport-security'];
+  assert.throws(() => verify({ headers: missing }), /preview_missing_hsts_header/);
+
+  for (const value of [
+    'max-age=0',
+    'max-age=31535999',
+    'max-age="31536000"',
+    'max-age=31536000; max-age=0',
+    'max-age=31536000; unknown=1',
+    'max-age=31536000; includeSubDomains=1'
+  ]) {
+    assert.throws(
+      () => verify({ headers: { ...headers, 'strict-transport-security': value } }),
+      /preview_hsts_/
+    );
+  }
+
+  const accepted = verify({
+    headers: { ...headers, 'strict-transport-security': 'max-age=31536000; includeSubDomains' }
+  });
+  assert.equal(accepted.hstsProtected, true);
 });
 
 test('requires no-store, X-Frame-Options, CORP and restrictive Permissions-Policy headers', () => {
@@ -228,11 +269,63 @@ test('live probe performs one credential-free GET and validates the returned res
 });
 
 
+test('absolute deadline stops a slow-drip response even when the socket idle timeout never fires', async () => {
+  let drip;
+  let destroyed;
+  const request = (url, options, callback) => {
+    const req = new EventEmitter();
+    req.setTimeout = () => {};
+    req.destroy = error => {
+      destroyed = error;
+      if (drip) clearInterval(drip);
+      req.emit('error', error);
+    };
+    req.end = () => {
+      const response = new EventEmitter();
+      response.statusCode = 200;
+      response.headers = { ...headers };
+      response.destroy = error => response.emit('error', error);
+      callback(response);
+      drip = setInterval(() => response.emit('data', Buffer.from('x')), 5);
+    };
+    return req;
+  };
+
+  await assert.rejects(
+    fetchPreview(
+      'https://mehdisehat.ir/dadyar-preview/',
+      expectedSha256,
+      expectedGitBlobSha1,
+      { timeoutMs: 35, request }
+    ),
+    /preview_request_deadline_exceeded/
+  );
+  assert.equal(destroyed && destroyed.message, 'preview_request_deadline_exceeded');
+});
+
+test('rejects invalid or unbounded HTTP probe deadlines before making a request', () => {
+  const request = () => {
+    throw new Error('request_must_not_be_called');
+  };
+  for (const timeoutMs of [0, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY, 120001]) {
+    assert.throws(
+      () => fetchPreview(
+        'https://mehdisehat.ir/dadyar-preview/',
+        expectedSha256,
+        expectedGitBlobSha1,
+        { timeoutMs, request }
+      ),
+      /preview_timeout_invalid/
+    );
+  }
+});
+
 test('rejects duplicate security response headers instead of coalescing them', () => {
   const cases = [
     ['content-type', ['text/html; charset=utf-8', 'text/plain']],
     ['x-content-type-options', ['nosniff', '']],
     ['cache-control', ['no-store', 'public, max-age=3600']],
+    ['strict-transport-security', ['max-age=31536000', 'max-age=0']],
     ['x-frame-options', ['DENY', 'SAMEORIGIN']],
     ['cross-origin-resource-policy', ['same-origin', 'cross-origin']],
     ['referrer-policy', ['no-referrer', 'unsafe-url']],
@@ -282,7 +375,7 @@ test('rejects a permissive single Referrer-Policy header despite a restrictive m
 });
 const noNetworkCspDirectives = [
   'img-src', 'font-src', 'object-src', 'frame-src', 'media-src',
-  'manifest-src', 'worker-src', 'child-src', 'prefetch-src', 'base-uri'
+  'manifest-src', 'worker-src', 'child-src', 'base-uri'
 ];
 
 test('requires explicit no-network resource directives in both HTTP and meta CSP policies', () => {

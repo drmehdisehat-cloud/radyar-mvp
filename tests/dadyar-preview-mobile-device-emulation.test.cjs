@@ -211,12 +211,16 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  const note = document.getElementById("review-note");',
       '  decision.value = "rejected"; decision.dispatchEvent(new Event("change", { bubbles: true }));',
       '  note.value = "بازبینی رد شده برای آزمون"; note.dispatchEvent(new Event("input", { bubbles: true }));',
+      '  for (const id of ["review-check-facts","review-check-conflicts","review-check-sources","review-check-privacy"]) { const item = document.getElementById(id); item.checked = true; item.dispatchEvent(new Event("change", { bubbles: true })); }',
+      '  const checklistPreservedDraft = !document.getElementById("result").hidden && document.getElementById("report").textContent.length > 0 && exportEligible;',
       '  document.getElementById("export-ack").click();',
       '  document.getElementById("record-review").click();',
       '  const rejectedReviewKeepsExportBlocked = download.disabled;',
       '  const rejectedReviewStatus = document.getElementById("review-status").textContent;',
       '  decision.value = "approved"; decision.dispatchEvent(new Event("change", { bubbles: true }));',
       '  note.value = "بازبینی داده ساختگی"; note.dispatchEvent(new Event("input", { bubbles: true }));',
+      '  for (const id of ["review-check-facts","review-check-conflicts","review-check-sources","review-check-privacy"]) { const item = document.getElementById(id); item.checked = true; item.dispatchEvent(new Event("change", { bubbles: true })); }',
+      '  const checklistPreservedDraftAfterApproval = !document.getElementById("result").hidden && document.getElementById("report").textContent.length > 0 && exportEligible;',
       '  document.getElementById("export-ack").click();',
       '  document.getElementById("record-review").click();',
       '  const enabledAfterHumanReview = !download.disabled',
@@ -235,24 +239,27 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  const reapprovalBlockedWithoutFreshDetails = document.getElementById("record-review").disabled && download.disabled;',
       '  const postDownloadReviewStatus = document.getElementById("review-status").textContent;',
       '  const reportAfterAcknowledgement = document.getElementById("report").textContent;',
+      '  decision.value = "approved"; decision.dispatchEvent(new Event("change", { bubbles: true }));',
+      '  for (const id of ["review-check-facts","review-check-conflicts","review-check-sources","review-check-privacy"]) { const item = document.getElementById(id); item.checked = true; item.dispatchEvent(new Event("change", { bubbles: true })); }',
+      '  document.getElementById("export-ack").click();',
+      '  note.value = "یادداشت ساختگی؛ شماره دفتر ۰۲۱-۱۲۳۴۵۶۷۸"; note.dispatchEvent(new Event("input", { bubbles: true }));',
+      '  const landlineNoteCleared = note.value === "";',
+      '  const landlineNoteWarning = document.getElementById("review-status").textContent;',
+      '  const landlineNoteBlocked = document.getElementById("record-review").disabled && download.disabled;',
       '  const question = document.getElementById("free-question");',
       '  question.value = "پرسش فرضی که هنوز ثبت نشده است";',
+      '  const calculatorRoot = document.getElementById("delay-damages-calculator");',
+      '  const calculatorButton = document.getElementById("delay-calculate");',
+      '  const calculatorInitiallyBlocked = calculatorButton.disabled && document.getElementById("delay-result").textContent.includes("محاسبه مسدود است");',
       '  const calculatorPrincipal = document.getElementById("delay-principal"); calculatorPrincipal.value = "987654321";',
       '  const calculatorDueMonth = document.getElementById("delay-due-month"); calculatorDueMonth.value = "2";',
       '  const calculatorPaymentMonth = document.getElementById("delay-payment-month"); calculatorPaymentMonth.value = "6";',
       '  const calculatorCurrency = document.getElementById("delay-currency"); calculatorCurrency.value = "تومان";',
-      '  document.getElementById("delay-calculate").click();',
-      '  const calculatorOutput = document.getElementById("delay-result").textContent;',
-      '  const formatFa = value => new Intl.NumberFormat("fa-IR", { maximumFractionDigits: 0 }).format(value);',
-      '  const calculatorHadValues = calculatorPrincipal.value === "987654321" && calculatorDueMonth.value === "2" && calculatorPaymentMonth.value === "6" && calculatorCurrency.value === "تومان" && /خسارت محاسباتی/.test(calculatorOutput);',
-      '  const calculatorExactAmounts = calculatorOutput.includes("مبلغ با احتساب شاخص: " + formatFa(1183683336) + " تومان") && calculatorOutput.includes("خسارت محاسباتی: " + formatFa(196029015) + " تومان");',
-      '  const calculatorSourceWarning = calculatorOutput.includes("منبع داده: تصویر مالک؛ تأیید رسمی و حقوقی نشده است.");',
+      '  // Simulate a user editing both visible metadata and the disabled property.',
+      '  calculatorRoot.dataset.sourceStatus = "verified"; calculatorRoot.dataset.legalReviewStatus = "approved"; calculatorButton.disabled = false;',
+      '  calculatorButton.click();',
+      '  const calculatorDomTamperingBlocked = calculatorButton.disabled && document.getElementById("delay-result").textContent.includes("محاسبه مسدود است");',
       '  const calculatorAvailableMonthBounds = document.getElementById("delay-due-month").options.length === 7 && document.getElementById("delay-payment-month").options.length === 7;',
-      '  calculatorDueMonth.value = "8"; document.getElementById("delay-calculate").click();',
-      '  const calculatorUnavailableMonthBlocked = /برای ماه انتخابی شاخص تأییدشده‌ای در داده موجود نیست/.test(document.getElementById("delay-result").textContent);',
-      '  calculatorDueMonth.value = "2"; calculatorPaymentMonth.value = "6"; calculatorPrincipal.value = "-1"; document.getElementById("delay-calculate").click();',
-      '  const calculatorInvalidPrincipalBlocked = /اصل دین باید عدد صحیح مثبت و در محدوده امن باشد/.test(document.getElementById("delay-result").textContent);',
-      '  calculatorPrincipal.value = "987654321";',
       '  window.dispatchEvent(new PageTransitionEvent("pagehide"));',
       '  const pagehideClearedUnsubmittedQuestion = question.value === "";',
       '  const pagehideClearedDraft = document.getElementById("result").hidden && download.disabled;',
@@ -260,7 +267,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  const pagehideClearedSelections = document.getElementById("role").selectedIndex === 0 && Array.from(document.querySelectorAll("#interview select")).every(control => control.selectedIndex === 0) && Array.from(document.querySelectorAll("fieldset input[type=checkbox]")).every(control => !control.checked);',
       '  const pagehideClearedReviewApproval = document.getElementById("review-decision").value === "pending" && !document.getElementById("export-ack").checked && document.getElementById("record-review").disabled;',
       '  const pagehideClearedCalculator = calculatorPrincipal.value === "" && calculatorDueMonth.value === "1" && calculatorPaymentMonth.value === "7" && calculatorCurrency.value === "ریال" && document.getElementById("delay-result").textContent === "برای محاسبه، اصل دین و دو ماه را انتخاب کنید.";',
-      '  const sampleEvidence = document.querySelectorAll("fieldset input[type=checkbox]"); sampleEvidence[0].checked = true; sampleEvidence[2].checked = true;',
+      '  const sampleEvidence = document.querySelectorAll("#evidence-list input[type=checkbox]"); sampleEvidence[0].checked = true; sampleEvidence[2].checked = true;',
       '  for (const [id,value] of [["issue-date","yes"],["certificate","no"],["defense","yes"]]) { const control = document.getElementById(id); control.value = value; control.dispatchEvent(new Event("change", { bubbles: true })); }',
       '  const multiTopicRawQuestion = "چک و مهریه در این مثال چه موضوعاتی هستند؟";',
       '  question.value = multiTopicRawQuestion;',
@@ -273,18 +280,44 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  const multiTopicReport = document.getElementById("report").textContent;',
       '  const multiTopicExportEligible = exportEligible;',
       '  const multiTopicScopeStatus = document.getElementById("topic-scope-status").textContent;',
+      '  const landlineQuestion = "چک فرضی؛ شماره دفتر ۰۲۱-۱۲۳۴۵۶۷۸";',
+      '  question.value = landlineQuestion; question.dispatchEvent(new Event("input", { bubbles: true }));',
+      '  document.getElementById("generate").click();',
+      '  const landlineQuestionCleared = question.value === "";',
+      '  const landlineQuestionBlocked = !exportEligible;',
+      '  const landlineQuestionNotEchoed = !document.getElementById("report").textContent.includes(landlineQuestion) && !document.getElementById("report").textContent.includes("02112345678");',
+      '  const privacyProbe = "چک فرضی برای شخص نمونه الف در نشانی فرضی خیابان آزمایش";',
+      '  question.value = privacyProbe;',
+      '  question.dispatchEvent(new Event("input", { bubbles: true }));',
+      '  document.getElementById("generate").click();',
+      '  const privacyQuestionCleared = question.value === "";',
+      '  const privacyDraft = document.getElementById("report").textContent;',
+      '  const privacyRawAbsentFromDraft = !privacyDraft.includes(privacyProbe) && !privacyDraft.includes("شخص نمونه الف") && !privacyDraft.includes("خیابان آزمایش");',
+      '  const privacyExportEligible = exportEligible;',
+      '  decision.value = "approved"; decision.dispatchEvent(new Event("change", { bubbles: true }));',
+      '  note.value = "بازبینی داده کاملاً ساختگی"; note.dispatchEvent(new Event("input", { bubbles: true }));',
+      '  for (const id of ["review-check-facts","review-check-conflicts","review-check-sources","review-check-privacy"]) { const item = document.getElementById(id); item.checked = true; item.dispatchEvent(new Event("change", { bubbles: true })); }',
+      '  document.getElementById("export-ack").click();',
+      '  document.getElementById("record-review").click();',
+      '  const privacyReviewApproved = !download.disabled;',
+      '  download.click();',
+      '  const privacyBlob = window.__dadyarExportBlob;',
+      '  const privacyExportedText = privacyBlob ? await privacyBlob.text() : "";',
+      '  const privacyRawAbsentFromExport = !privacyExportedText.includes(privacyProbe) && !privacyExportedText.includes("شخص نمونه الف") && !privacyExportedText.includes("خیابان آزمایش");',
       '  const externalResources = performance.getEntriesByType("resource").map(entry => entry.name).filter(url => /^(?:https?|wss?):/i.test(url));',
       '  return {',
       '    width: innerWidth, height: innerHeight, screenWidth: screen.width, devicePixelRatio,',
       '    maxTouchPoints: navigator.maxTouchPoints, coarsePointer: matchMedia("(pointer: coarse)").matches,',
       '    mobileUserAgent: /iPhone|Mobile/i.test(navigator.userAgent),',
       '    horizontalOverflow: root.scrollWidth > root.clientWidth + 1,',
-      '    initialDisabled, blockedBeforeAcknowledgement, rejectedReviewKeepsExportBlocked, rejectedReviewStatus, enabledAfterHumanReview, reviewStatus,',
+      '    initialDisabled, blockedBeforeAcknowledgement, rejectedReviewKeepsExportBlocked, rejectedReviewStatus, checklistPreservedDraft, checklistPreservedDraftAfterApproval, enabledAfterHumanReview, reviewStatus,',
       '    exportEnabledBeforeDownload, exportedReport, exportedFilename, approvalConsumed, repeatExportBlocked,',
       '    reviewerResetAfterDownload, reapprovalBlockedWithoutFreshDetails, postDownloadReviewStatus,',
       '    reportAfterAcknowledgement, staleDraftInvalidated, multiTopicReport, multiTopicIds,',
-      '    pagehideClearedUnsubmittedQuestion, pagehideClearedDraft, pagehideClearedReviewer, pagehideClearedSelections, pagehideClearedReviewApproval, calculatorHadValues, calculatorExactAmounts, calculatorSourceWarning, calculatorAvailableMonthBounds, calculatorUnavailableMonthBlocked, calculatorInvalidPrincipalBlocked, pagehideClearedCalculator,',
+      '    pagehideClearedUnsubmittedQuestion, pagehideClearedDraft, pagehideClearedReviewer, pagehideClearedSelections, pagehideClearedReviewApproval, calculatorInitiallyBlocked, calculatorDomTamperingBlocked, calculatorAvailableMonthBounds, pagehideClearedCalculator,',
       '    multiTopicExportEligible, multiTopicScopeStatus, multiTopicInputCleared, multiTopicRawQuestionEchoed,',
+      '    landlineNoteCleared, landlineNoteWarning, landlineNoteBlocked, landlineQuestionCleared, landlineQuestionBlocked, landlineQuestionNotEchoed,',
+      '    privacyQuestionCleared, privacyRawAbsentFromDraft, privacyExportEligible, privacyReviewApproved, privacyRawAbsentFromExport,',
       '    csp: document.querySelector("meta[http-equiv]")?.content || "",',
       '    externalResources',
       '  };',
@@ -310,13 +343,15 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.equal(snapshot.blockedBeforeAcknowledgement, true, 'report exported before human acknowledgement');
     assert.equal(snapshot.rejectedReviewKeepsExportBlocked, true, 'a rejected human review enabled report download');
     assert.match(snapshot.rejectedReviewStatus, /بازبینی رد شد/);
+    assert.equal(snapshot.checklistPreservedDraft, true, 'review checklist changes must not invalidate the generated draft');
     assert.equal(snapshot.enabledAfterHumanReview, true, 'approved human review did not enable report download');
+    assert.equal(snapshot.checklistPreservedDraftAfterApproval, true, 'approved checklist changes must preserve the generated draft');
     assert.match(snapshot.reviewStatus, /هویت بازبین در این نسخه آفلاین احراز نمی‌شود/);
     assert.equal(snapshot.exportEnabledBeforeDownload, true, 'approved local review did not enable the report download');
     assert.equal(snapshot.exportedFilename, 'dadyar-synthetic-cheque.txt');
     assert.match(snapshot.exportedReport, /ثبت بازبینی انسانی \(اظهار محلی؛ هویت احراز نشده\)/);
     assert.match(snapshot.exportedReport, /نام بازبین: بازبین آزمون/);
-    assert.match(snapshot.exportedReport, /نتیجه بازبینی: تأیید برای دریافت آموزشی/);
+    assert.match(snapshot.exportedReport, /نتیجه بازبینی: تأیید محلی برای دریافت گزارش آزمایشی/);
     assert.match(snapshot.exportedReport, /یادداشت بازبین: بازبینی داده ساختگی/);
     assert.match(snapshot.exportedReport, /این اظهار محلی است و تأیید حقوقی یا احراز هویت محسوب نمی‌شود/);
     assert.equal(snapshot.approvalConsumed, true, 'approval was not consumed after report download');
@@ -331,12 +366,9 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
     assert.equal(snapshot.pagehideClearedReviewer, true, 'pagehide did not reset reviewer metadata to the fixed synthetic label');
     assert.equal(snapshot.pagehideClearedSelections, true, 'pagehide retained role, interview answers, or selected evidence');
     assert.equal(snapshot.pagehideClearedReviewApproval, true, 'pagehide retained a local review approval');
-    assert.equal(snapshot.calculatorHadValues, true, 'calculator fixture did not contain user-entered values before pagehide');
-    assert.equal(snapshot.calculatorExactAmounts, true, 'real mobile calculator output differs from exact scaled-integer expected amounts');
-    assert.equal(snapshot.calculatorSourceWarning, true, 'calculator result omitted the unverified owner-image provenance warning');
+    assert.equal(snapshot.calculatorInitiallyBlocked, true, 'calculator was usable before official-source and legal-review approval');
+    assert.equal(snapshot.calculatorDomTamperingBlocked, true, 'mutable DOM provenance attributes or disabled-property edits unlocked the unverified calculator');
     assert.equal(snapshot.calculatorAvailableMonthBounds, true, 'calculator exposed months without supplied index values');
-    assert.equal(snapshot.calculatorUnavailableMonthBlocked, true, 'calculator did not fail closed for unavailable month 8');
-    assert.equal(snapshot.calculatorInvalidPrincipalBlocked, true, 'calculator accepted a negative principal');
     assert.equal(snapshot.pagehideClearedCalculator, true, 'pagehide retained calculator principal, month, currency, or result');
     assert.ok(snapshot.multiTopicIds.includes('instruments'), 'cheque hint missing from internal multi-topic routing');
     assert.ok(snapshot.multiTopicIds.includes('family'), 'family hint missing from internal multi-topic routing');
@@ -349,6 +381,17 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       'the user must be told that non-cheque topics are not analyzed in this preview');
     assert.match(snapshot.multiTopicScopeStatus, /موضوع دیگر را تحلیل نمی‌کند/,
       'the multi-topic scope limitation must remain explicit');
+    assert.equal(snapshot.landlineNoteCleared, true, 'synthetic Iranian landline number was retained in reviewer notes');
+    assert.match(snapshot.landlineNoteWarning, /شناسه حساس/);
+    assert.equal(snapshot.landlineNoteBlocked, true, 'reviewer approval remained possible after a landline number was detected');
+    assert.equal(snapshot.landlineQuestionCleared, true, 'synthetic landline number remained in the free-text field');
+    assert.equal(snapshot.landlineQuestionBlocked, true, 'free-text landline number did not block report eligibility');
+    assert.equal(snapshot.landlineQuestionNotEchoed, true, 'synthetic landline number leaked into the report');
+    assert.equal(snapshot.privacyQuestionCleared, true, 'free-text field retained the synthetic identifying probe');
+    assert.equal(snapshot.privacyExportEligible, false, 'address-like free text must fail closed before report approval');
+    assert.equal(snapshot.privacyReviewApproved, false, 'address-like free text must not be approved or exported');
+    assert.equal(snapshot.privacyRawAbsentFromDraft, true, 'synthetic name/address text leaked into the visible report');
+    assert.equal(snapshot.privacyRawAbsentFromExport, true, 'synthetic name/address text leaked into the downloaded report');
     assert.doesNotMatch(snapshot.multiTopicReport, /دسته‌بندی داخلی:|برچسب‌های موضوعی پیشنهادی/);
     for (const topicId of snapshot.multiTopicIds) {
       assert.equal(snapshot.multiTopicReport.includes(topicId), false,
@@ -567,7 +610,14 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
       '  question.value = multiTopicRawQuestion;',
       '  question.dispatchEvent(new Event("input", { bubbles: true }));',
       '  const multiTopicIds = classifyQuestion(question.value).map(item => item.id);',
+      '  const eventDate = document.getElementById("event-date");',
+      '  eventDate.value = "1400-12-30"; eventDate.dispatchEvent(new Event("input", { bubbles: true }));',
       '  document.getElementById("generate").click();',
+      '  const invalidJalaliDateBlocked = !exportEligible && download.disabled && document.getElementById("report").textContent.includes("تاریخ واقعه");',
+      '  question.value = multiTopicRawQuestion; question.dispatchEvent(new Event("input", { bubbles: true }));',
+      '  eventDate.value = "1403-12-30"; eventDate.dispatchEvent(new Event("input", { bubbles: true }));',
+      '  document.getElementById("generate").click();',
+      '  const leapJalaliDateAccepted = exportEligible && document.getElementById("report").textContent.includes("۱۴۰۳-۱۲-۳۰");',
       '  const multiTopicInputCleared = question.value === "";',
       '  const multiTopicRawQuestionEchoed = document.getElementById("report").textContent.includes(multiTopicRawQuestion);',
       '  const multiTopicExportEligible = exportEligible;',
@@ -580,9 +630,16 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
       '  const reviewer = document.getElementById("reviewer-name");',
       '  reviewer.value = "بازبین آزمون"; reviewer.dispatchEvent(new Event("input", { bubbles: true }));',
       '  const decision = document.getElementById("review-decision");',
-      '  decision.value = "approved"; decision.dispatchEvent(new Event("change", { bubbles: true }));',
       '  const note = document.getElementById("review-note");',
       '  note.value = "بازبینی داده ساختگی"; note.dispatchEvent(new Event("input", { bubbles: true }));',
+      '  for (const id of ["review-check-facts","review-check-conflicts","review-check-sources","review-check-privacy"]) { const item = document.getElementById(id); item.checked = true; item.dispatchEvent(new Event("change", { bubbles: true })); }',
+      '  const checklistPreservedDraft = !document.getElementById("result").hidden && document.getElementById("report").textContent.length > 0 && exportEligible;',
+      '  decision.value = "rejected"; decision.dispatchEvent(new Event("change", { bubbles: true }));',
+      '  document.getElementById("export-ack").click();',
+      '  document.getElementById("record-review").click();',
+      '  const rejectedReviewBlocked = download.disabled;',
+      '  const rejectedReviewStatus = document.getElementById("review-status").textContent;',
+      '  decision.value = "approved"; decision.dispatchEvent(new Event("change", { bubbles: true }));',
       '  document.getElementById("export-ack").click();',
       '  document.getElementById("record-review").click();',
       '  const enabledAfterReview = !download.disabled;',
@@ -607,10 +664,10 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
       '    maxTouchPoints: navigator.maxTouchPoints, coarsePointer: matchMedia("(pointer: coarse)").matches,',
       '    mobileUserAgent: /iPhone|Mobile/i.test(navigator.userAgent),',
       '    horizontalOverflow: root.scrollWidth > root.clientWidth + 1,',
-      '    initiallyDisabled, blockedBeforeReview, enabledAfterReview, disabledAfterExport,',
-      '    multiTopicIds, multiTopicInputCleared, multiTopicRawQuestionEchoed, multiTopicExportEligible, multiTopicScopeStatus, chequeOnlyExportEligible,',
+      '    initiallyDisabled, blockedBeforeReview, rejectedReviewBlocked, rejectedReviewStatus, enabledAfterReview, disabledAfterExport,',
+      '    multiTopicIds, multiTopicInputCleared, multiTopicRawQuestionEchoed, multiTopicExportEligible, multiTopicScopeStatus, chequeOnlyExportEligible, invalidJalaliDateBlocked, leapJalaliDateAccepted,',
       '    sensitiveInputCleared, sensitiveRawQuestionEchoed, sensitiveVisibleReport, sensitiveExportBlocked, sensitiveStatus,',
-      '    reviewStatus, visibleReport, resourceRequests',
+      '    reviewStatus, visibleReport, resourceRequests, checklistPreservedDraft',
       '  };',
       '})()'
     ].join('\n');
@@ -630,12 +687,17 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
     assert.equal(snapshot.horizontalOverflow, false);
     assert.equal(snapshot.initiallyDisabled, true);
     assert.equal(snapshot.blockedBeforeReview, true);
-    assert.equal(snapshot.enabledAfterReview, true);
+    assert.equal(snapshot.enabledAfterReview, true, 'approved local review should enable report download');
+    assert.equal(snapshot.rejectedReviewBlocked, true, 'a rejected local review must never enable report download');
+    assert.match(snapshot.rejectedReviewStatus, /بازبینی رد شد/);
+    assert.equal(snapshot.checklistPreservedDraft, true, 'review checklist changes must not invalidate the generated HTTP preview draft');
     assert.equal(snapshot.disabledAfterExport, true, 'export must consume the local review acknowledgement');
     assert.ok(snapshot.multiTopicIds.includes('instruments'), 'cheque hint missing from HTTP preview routing');
     assert.ok(snapshot.multiTopicIds.includes('family'), 'family hint missing from HTTP preview routing');
     assert.equal(snapshot.multiTopicInputCleared, true, 'raw multi-topic question remained in the editable field');
     assert.equal(snapshot.multiTopicRawQuestionEchoed, false, 'raw multi-topic question leaked into the report');
+    assert.equal(snapshot.invalidJalaliDateBlocked, true, 'an impossible Jalali date must block the synthetic report on mobile');
+    assert.equal(snapshot.leapJalaliDateAccepted, true, 'a valid Esfand 30 date must pass the ICU calendar check on mobile');
     assert.equal(snapshot.multiTopicExportEligible, true, 'mixed-topic input containing cheque must allow only the synthetic cheque report');
     assert.equal(snapshot.chequeOnlyExportEligible, true, 'a cheque-only question should remain eligible for human review');
     assert.match(snapshot.multiTopicScopeStatus, /چندموضوعی/);
@@ -674,7 +736,7 @@ test('Dadyar mobile preview serves the exact HTTP subpath, downloads only after 
     assert.ok(fs.existsSync(downloadedPath), 'approved synthetic report was not downloaded');
     const downloadedReport = fs.readFileSync(downloadedPath, 'utf8');
     assert.match(downloadedReport, /نام بازبین: بازبین آزمون/);
-    assert.match(downloadedReport, /نتیجه بازبینی: تأیید برای دریافت آموزشی/);
+    assert.match(downloadedReport, /نتیجه بازبینی: تأیید محلی برای دریافت گزارش آزمایشی/);
     assert.match(downloadedReport, /یادداشت بازبین: بازبینی داده ساختگی/);
     assert.match(downloadedReport, /پرسش آزاد با دامنه چک فرضی هم‌راستاست/);
     assert.doesNotMatch(downloadedReport, /پرسش آزاد چندموضوعی تشخیص داده شد/);

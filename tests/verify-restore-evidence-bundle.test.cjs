@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
-const { assertEvidenceFilePermissions, verifyRestoreEvidenceBundle } = require('../scripts/verify-restore-evidence-bundle.cjs');
+const { assertEvidenceFilePermissions, assertEvidenceOutsideCheckout, assertManifestOutsideCheckout, verifyRestoreEvidenceBundle } = require('../scripts/verify-restore-evidence-bundle.cjs');
 
 const SCRIPT = path.join(__dirname, '../scripts/verify-restore-evidence-bundle.cjs');
 const digest = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
@@ -14,11 +14,30 @@ const digest = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 function makeFixture(t) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dadyar-restore-evidence-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const now = Date.now();
+  const restoreCompleted = new Date(now - 120000).toISOString();
+  const reviewed = new Date(now - 60000).toISOString();
+  const restoreTargetId = 'synthetic-isolated-target';
+  const restoreDatabaseName = 'synthetic_restore_db';
+  const restoreDatabaseUser = 'synthetic_restore_user';
+  const databaseProbe = {
+    schema: 'dadyar-isolated-db-probe-v1',
+    probe_ok: true,
+    query: "SELECT DATABASE(), SUBSTRING_INDEX(CURRENT_USER(), '@', 1), 1, VERSION()",
+    database_name: restoreDatabaseName,
+    database_user: restoreDatabaseUser,
+    connection_test_value: 1,
+    server_version: '8.0.36',
+    restore_target_id: restoreTargetId,
+    database_name_separation_verified: true,
+    database_user_separation_verified: true,
+    observed_at_utc: new Date(now - 90000).toISOString()
+  };
   const contents = {
     archive: Buffer.from('synthetic backup archive bytes'),
     restored_marker: Buffer.from('synthetic restored marker'),
     restore_log: Buffer.from('synthetic restore completed; exit=0'),
-    database_probe: Buffer.from('{"synthetic":true,"database_probe_passed":true}')
+    database_probe: Buffer.from(JSON.stringify(databaseProbe))
   };
   const restoreRoot = path.join(directory, 'isolated-restore');
   const productionRoot = path.join(directory, 'production', 'public_html');
@@ -33,7 +52,6 @@ function makeFixture(t) {
   for (const [name, bytes] of Object.entries(contents)) {
     fs.writeFileSync(paths[name], bytes, { mode: 0o600 });
   }
-  const now = Date.now();
   const manifest = {
     evidence: 'independent-restore-manifest-v1',
     restore_proven: true,
@@ -52,19 +70,19 @@ function makeFixture(t) {
     database_probe_passed: true,
     outbound_integrations_disabled: true,
     reviewer_attested: true,
-    restore_target_id: 'synthetic-isolated-target',
+    restore_target_id: restoreTargetId,
     restore_operator: 'Synthetic Operator',
     independent_reviewer: 'Synthetic Reviewer',
-    restore_database_name: 'synthetic_restore_db',
+    restore_database_name: restoreDatabaseName,
     production_database_name: 'synthetic_live_db',
-    restore_database_user: 'synthetic_restore_user',
+    restore_database_user: restoreDatabaseUser,
     production_database_user: 'synthetic_live_user',
     restore_target_path: fs.realpathSync(restoreRoot),
     restore_target_realpath: fs.realpathSync(restoreRoot),
     production_document_root: fs.realpathSync(productionRoot),
     production_document_root_realpath: fs.realpathSync(productionRoot),
-    restore_completed_at: new Date(now - 120000).toISOString(),
-    reviewed_at: new Date(now - 60000).toISOString()
+    restore_completed_at: restoreCompleted,
+    reviewed_at: reviewed
   };
   return { directory, restoreRoot, productionRoot, contents, paths, manifest };
 }
@@ -86,6 +104,7 @@ test('all four external evidence files match the manifest without claiming resto
   assert.equal(result.status, 'EVIDENCE_BYTES_MATCH_MANIFEST_NOT_RESTORE_PROOF');
   assert.equal(result.matched, true);
   assert.deepEqual(Object.keys(result.files).sort(), ['archive', 'database_probe', 'restore_log', 'restored_marker']);
+  assert.equal(result.database_probe_schema_verified, true);
   assert.equal(result.restore_operation_independently_verified, false);
   assert.equal(result.signer_identity_verified, false);
   assert.equal(result.deployment_authorized, false);
@@ -150,6 +169,19 @@ test('rejects a symlinked isolated restore directory', t => {
 });
 
 
+test('resolves a symlinked checkout root before classifying evidence paths', t => {
+  const fixture = makeFixture(t);
+  const checkoutRoot = fs.realpathSync(path.resolve(__dirname, '..'));
+  const checkoutAlias = path.join(fixture.directory, 'checkout-alias');
+  fs.symlinkSync(checkoutRoot, checkoutAlias, 'dir');
+
+  assert.throws(
+    () => assertEvidenceOutsideCheckout(__filename, checkoutAlias, 'archive'),
+    /archive_path_inside_git_checkout/
+  );
+  assert.equal(assertEvidenceOutsideCheckout(fixture.paths.archive, checkoutAlias, 'archive'), true);
+});
+
 test('rejects evidence files inside the Git checkout', t => {
   const fixture = makeFixture(t);
   assert.throws(() => verify(fixture, { archivePath: __filename }), /archive_path_inside_git_checkout/);
@@ -171,6 +203,45 @@ test('rejects evidence files below a group/world-writable parent directory', t =
   fs.chmodSync(evidenceRoot, 0o777);
   assert.throws(() => verify(fixture, { archivePath: unsafeArchive }),
     /archive_parent_must_not_be_group_or_world_writable/);
+});
+
+test('CLI rejects a restore manifest inside the Git checkout before parsing it', t => {
+  const fixture = makeFixture(t);
+  const checkoutRoot = fs.realpathSync(path.resolve(__dirname, '..'));
+  const manifestDirectory = fs.mkdtempSync(path.join(checkoutRoot, '.dadyar-manifest-inside-checkout-'));
+  t.after(() => fs.rmSync(manifestDirectory, { recursive: true, force: true }));
+  const manifestPath = path.join(manifestDirectory, 'manifest.json');
+  fs.writeFileSync(manifestPath, JSON.stringify(fixture.manifest), { mode: 0o600 });
+
+  assert.throws(
+    () => assertManifestOutsideCheckout(manifestPath, checkoutRoot),
+    /manifest_inside_git_checkout/
+  );
+
+  const result = spawnSync(process.execPath, [
+    SCRIPT,
+    '--manifest', manifestPath,
+    '--archive', fixture.paths.archive,
+    '--restored-marker', fixture.paths.restored_marker,
+    '--restore-log', fixture.paths.restore_log,
+    '--database-probe', fixture.paths.database_probe
+  ], { encoding: 'utf8', timeout: 5000 });
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /manifest_inside_git_checkout/);
+  assert.equal(JSON.parse(result.stdout).deployment_authorized, false);
+});
+
+test('rejects an external symlink alias whose real manifest target is inside the Git checkout', t => {
+  const fixture = makeFixture(t);
+  const checkoutRoot = fs.realpathSync(path.resolve(__dirname, '..'));
+  const internalManifestTarget = path.join(checkoutRoot, 'README.md');
+  const externalAlias = path.join(fixture.directory, 'manifest-alias.json');
+  fs.symlinkSync(internalManifestTarget, externalAlias);
+
+  assert.throws(
+    () => assertManifestOutsideCheckout(externalAlias, checkoutRoot),
+    /manifest_inside_git_checkout/
+  );
 });
 
 test('CLI verifies synthetic external evidence and emits non-authorizing status', t => {

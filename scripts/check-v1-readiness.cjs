@@ -119,6 +119,11 @@ try {
     ['privacy', 'Review authentication'],
     ['legal_review', 'Cite authoritative Iranian legal texts'],
     ['owner_approval', 'Obtain explicit owner approval'],
+    ['repository_posture', 'Verify repository privacy and release-branch protection'],
+    ['restore', 'Prove an isolated IranHost backup restore'],
+    ['destination', 'Verify the preview destination outside the production document root and Git checkout'],
+    ['reviewer_auth', 'Integrate and verify a trusted reviewer IdP/session adapter'],
+    ['live_http', 'Verify the live HTTPS preview subpath and security headers'],
   ];
   for (const [id, prefix] of required) {
     if (!gates.some(line => line.slice(6).startsWith(prefix))) {

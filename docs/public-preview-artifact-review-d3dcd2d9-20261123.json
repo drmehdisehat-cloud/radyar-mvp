@@ -1,0 +1,113 @@
+{
+  "schema": "dadyar-public-preview-artifact-review-v1",
+  "verified_at": "2026-11-22T23:36:23Z",
+  "repository": "drmehdisehat-cloud/radyar-mvp",
+  "source": {
+    "branch": "dadyar/ai-chat-private-20261101",
+    "commit": "de0f4f0ab81d097ef46c5eba0c93c2aa5f426bfa",
+    "repository_path": "dadyar-preview/index.html",
+    "artifact_path": "index.html",
+    "bytes": 60839,
+    "sha256": "4c754518e9b345a9be98c134d997a329bbe929105ed8b9c7210ef7636d5b1452",
+    "git_blob_sha1": "a151444524a6ff439bba21ec29564e512c3a8472"
+  },
+  "ci": {
+    "push_run_id": 45079671377,
+    "push_run_url": "https://github.com/drmehdisehat-cloud/radyar-mvp/actions/runs/45079671377",
+    "push_job_id": 137384754307,
+    "push_conclusion": "success",
+    "contract_tests": {
+      "passed": 1279,
+      "failed": 0,
+      "skipped": 0
+    },
+    "browser_tests": {
+      "passed": 19,
+      "failed": 0,
+      "skipped": 0
+    },
+    "artifact_run_id": 45079671340,
+    "artifact_run_url": "https://github.com/drmehdisehat-cloud/radyar-mvp/actions/runs/45079671340",
+    "artifact_job_id": 137384754019,
+    "artifact_conclusion": "success",
+    "artifact_upload_step": "Upload only public HTML and integrity manifest for review (not deployment)"
+  },
+  "artifact": {
+    "id": 14776961466,
+    "name": "dadyar-public-preview-review-de0f4f0ab81d097ef46c5eba0c93c2aa5f426bfa",
+    "downloaded_filename": "dadyar-preview-de0f4f0.zip",
+    "downloaded_bytes": 18026,
+    "downloaded_zip_sha256": "d3dcd2d9582d7962283b61a50b18cdda93cd902d310e87db726d061601b02ab4",
+    "zip_crc_verified": true,
+    "entries": [
+      {
+        "path": "index.html",
+        "bytes": 60839,
+        "sha256": "4c754518e9b345a9be98c134d997a329bbe929105ed8b9c7210ef7636d5b1452",
+        "git_blob_sha1": "a151444524a6ff439bba21ec29564e512c3a8472"
+      },
+      {
+        "path": "INTEGRITY.json",
+        "bytes": 862,
+        "sha256": "a31a9b0513f67f52302f781228b729e607a8ae0628932c9c7710f25a56f291a0"
+      }
+    ],
+    "integrity_manifest": {
+      "schema": "dadyar-public-preview-integrity-v1",
+      "source_commit": "de0f4f0ab81d097ef46c5eba0c93c2aa5f426bfa",
+      "workflow_commit": "de0f4f0ab81d097ef46c5eba0c93c2aa5f426bfa",
+      "source_branch": "dadyar/ai-chat-private-20261101",
+      "source_file": "public/index.html",
+      "target_subpath": "/dadyar-preview/",
+      "sha256": "4c754518e9b345a9be98c134d997a329bbe929105ed8b9c7210ef7636d5b1452",
+      "git_blob_sha1": "a151444524a6ff439bba21ec29564e512c3a8472",
+      "topic_hint_count": 27,
+      "api_enabled": false,
+      "public_ai_enabled": false,
+      "reviewer_authentication": "not-implemented",
+      "backup_restore_verified": false,
+      "destination_verified": false,
+      "deployment_authorized": false
+    }
+  },
+  "verification": {
+    "downloaded_from_artifact_id": 14776961466,
+    "downloaded_zip_sha256_matches_upload_log": true,
+    "archive_entries_exact": true,
+    "zip_crc_and_extraction": true,
+    "manifest_json_parsed": true,
+    "html_sha256_matches_manifest": true,
+    "html_git_blob_matches_manifest": true,
+    "html_git_blob_matches_branch_source": true,
+    "source_and_workflow_commit_match": true,
+    "network_capable_browser_primitives_absent": true,
+    "csp_connect_src_none": true,
+    "local_http_subpath_contract_passed": true,
+    "synthetic_cheque_chromium_passed": true,
+    "mobile_chromium_passed": true,
+    "mobile_device_emulation_passed": true,
+    "local_review_required_before_report_download": true,
+    "local_review_is_not_authentication": true,
+    "browser_external_requests_observed": 0
+  },
+  "release_gates": {
+    "backup_restore_verified": false,
+    "destination_verified": false,
+    "reviewer_authentication": "not-implemented",
+    "repository_private": false,
+    "branch_protection_enabled": false,
+    "legal_sources_approved": 0,
+    "human_legal_reviews_approved": 0,
+    "deployment_authorized": false,
+    "api_enabled": false,
+    "public_ai_enabled": false
+  },
+  "limitations": [
+    "This record verifies only the downloaded GitHub Actions review artifact and its byte integrity.",
+    "The browser review step is a local self-attestation; it does not authenticate the reviewer or create an independent server-side approval.",
+    "The artifact does not prove a real backup restore, hosting destination validity, legal accuracy, or deployment authorization.",
+    "The source artifact is pinned to commit de0f4f0ab81d097ef46c5eba0c93c2aa5f426bfa and is not a package for later commits.",
+    "The live URL https://mehdisehat.ir/dadyar-preview/ was not reachable from the independent web check in this run; no live deployment is claimed.",
+    "Do not upload this artifact to the live site before the isolated restore, destination validation, security review and owner authorization gates pass."
+  ]
+}

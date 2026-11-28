@@ -1,6 +1,8 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const { TOPIC_HINTS, normalizeTopicText, classifyLegalTopics } = require('../backend/legal-topic-routing.cjs');
 
 test('the private assistant uses exactly 27 internal legal-domain hint groups', () => {
@@ -26,6 +28,39 @@ test('Arabic and Persian letter variants normalize consistently', () => {
   assert.ok(classifyLegalTopics('چك ساختگی').includes('instruments'));
 });
 
+test('Persian, Arabic-Indic and ASCII legal numerals normalize and route identically', () => {
+  const variants = ['ماده ۵۲۲', 'ماده ٥٢٢', 'ماده 522'];
+  const normalized = variants.map(normalizeTopicText);
+  assert.ok(normalized.every(value => value === normalized[0]));
+  const results = variants.map(classifyLegalTopics);
+  assert.deepEqual(results[1], results[0]);
+  assert.deepEqual(results[2], results[0]);
+  assert.ok(results[0].includes('civil-procedure'));
+});
+
+test('Arabic-Indic article digits preserve multi-topic routing across the 27-domain hints', () => {
+  const topics = classifyLegalTopics('ماده ٥٢٢، چك صیادی و اجاره');
+  assert.ok(topics.includes('civil-procedure'));
+  assert.ok(topics.includes('instruments'));
+  assert.ok(topics.includes('property'));
+});
+
 test('unmatched free text remains unclassified instead of forcing a category', () => {
   assert.deepEqual(classifyLegalTopics('پرسش ساختگی با واژه‌های نامرتبط و بی‌سرنخ'), []);
+});
+
+
+test('offline preview taxonomy exactly matches the private assistant backend taxonomy', () => {
+  const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
+  const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1] || '';
+  assert.ok(script, 'offline preview inline script must exist');
+  const start = script.indexOf('const topicHints =');
+  const open = script.indexOf('[', start);
+  const end = script.indexOf('\n];', open);
+  assert.ok(start >= 0 && open > start && end > open, 'preview topic hint array boundary must remain explicit');
+  const previewHints = JSON.parse(script.slice(open, end + 2));
+  const backendHints = JSON.parse(JSON.stringify(TOPIC_HINTS));
+  assert.deepEqual(previewHints, backendHints,
+    'offline preview and private backend must share the exact ordered 27-domain IDs and keywords');
+  assert.equal(previewHints.length, 27);
 });

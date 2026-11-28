@@ -14,7 +14,7 @@ Use `backend/legal-source-versioning.cjs` to resolve a record by:
 A selectable record must have all of the following:
 
 1. A direct HTTPS document URL on the explicit official-host allowlist, not a portal homepage.
-2. A document ID that exactly matches one canonical selector. For Qavanin, the entire query string must be exactly `?IDS=<documentId>`; no extra parameters, fragments or trailing query delimiters are accepted. Other allowlisted portals must place the ID in exactly one path segment and have no query string until a portal-specific URL pattern is independently reviewed.
+2. A document ID that exactly matches one canonical selector. For Qavanin, the path must be exactly `/Law/TreeText/` and the entire query string must be exactly `?IDS=<documentId>`; metadata, redirect, path aliases, extra parameters, fragments and trailing query delimiters are rejected. Other allowlisted portals must place the ID in exactly one path segment and have no query string until a portal-specific URL pattern is independently reviewed.
 3. Publication date, effective-from date, optional exclusive effective-to date, and retrieval date.
 4. SHA-256 of the exact retrieved legal text.
 5. A non-placeholder human reviewer, an approved decision, a review date, and a reviewed-text SHA-256 equal to the stored text SHA-256.
@@ -40,3 +40,13 @@ The metadata page was observed again on 2026-11-10, but the consolidated-text pa
 `tests/legal-source-versioning.test.cjs` uses synthetic statute records only. It covers amendment boundaries, event-date selection, missing and research-only sources, URL/document-ID binding, hash-to-review binding, future observations, overlapping versions, duplicate IDs, and rejected human review.
 
 Do not copy real client facts, raw legal documents, private hosting evidence, credentials, or API keys into the registry or tests. Keep source text in a controlled evidence store; commit only approved public metadata and hashes after independent review.
+
+
+## ترتیب زمانی شواهد
+
+برای هر نسخه‌ای که قرار است به‌عنوان منبع بررسی‌شده انتخاب شود، تاریخ انتشار رسمی نباید بعد از تاریخ دریافت متن باشد (`publicationDate <= retrievedAt`). تاریخ بازبینی نیز نباید پیش از دریافت همان نسخه باشد (`reviewedAt >= retrievedAt`). تاریخ اثر (`effectiveFrom`) جداگانه نگهداری می‌شود و ممکن است طبق حکم صریح سند با تاریخ انتشار یکسان نباشد؛ این کنترل صرفاً ترتیب زمانی مشاهده و بازبینی را می‌سنجد و درباره اثر عطف‌به‌ماسبق نتیجه‌گیری نمی‌کند.
+
+
+## Strict registry input boundary
+
+Registry entries are accepted only as plain data objects (ordinary or null prototype). Symbol keys, non-enumerable fields, accessor properties, prototype-backed records, and objects that cannot be inspected safely are rejected. The validator snapshots own data-property values before reading them; it does not invoke getters. Nested human-review metadata uses the same rule. This is a structural input-safety boundary, not proof that the source or reviewer is authentic.
