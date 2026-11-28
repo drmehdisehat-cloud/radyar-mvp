@@ -100,7 +100,7 @@ EVIDENCE_MATCHED_NOT_RELEASE_AUTHORIZED فقط یعنی شواهد امضاشد�
 DADYAR_PREVIEW_STAGING_ORIGIN=https://STAGING-HOST node scripts/probe-preview-staging-http.cjs https://STAGING-HOST/dadyar-preview/ /absolute/path/to/dadyar-preview-artifact
 ```
 
-پیش از اجرا، مقدار `DADYAR_PREVIEW_STAGING_ORIGIN` باید دقیقاً origin مجاز staging و بدون مسیر باشد؛ اسکریپت بدون این allowlist یا برای origin متفاوت، پیش از هر درخواست شبکه متوقف می‌شود. این مانع از هدف‌گیری تصادفی میزبان دیگری یا production می‌شود.
+پیش از اجرا، مقدار `DADYAR_PREVIEW_STAGING_ORIGIN` باید دقیقاً origin مجاز staging و بدون مسیر باشد؛ اسکریپت بدون این allowlist یا برای origin متفاوت، پیش از هر درخواست شبکه متوقف می‌شود. میزبان‌های زنده `mehdisehat.ir` و `www.mehdisehat.ir` نیز صریحاً ممنوع‌اند؛ از یک hostname مستقل staging استفاده کنید. این مانع از هدف‌گیری تصادفی میزبان دیگری یا production می‌شود.
 
 این probe فقط دو درخواست GET می‌فرستد: مسیر دقیق /dadyar-preview/ و فایل INTEGRITY.json همان پوشه. درخواست‌ها بدون Cookie/credential، بدون redirect و با cache محلی غیرفعال انجام می‌شوند. اسکریپت پاسخ ۲۰۰، HTTPS، Content-Type، CSP دقیقاً برابر meta سند، Cache-Control: no-store، X-Content-Type-Options: nosniff، Referrer-Policy: no-referrer، X-Robots-Tag، نبود Set-Cookie و برابری بایت‌به‌بایت هر دو فایل با Artifact محلی را بررسی می‌کند. هیچ API، مسیر دیگری یا عملیات نوشتنی فراخوانی نمی‌شود.
 
