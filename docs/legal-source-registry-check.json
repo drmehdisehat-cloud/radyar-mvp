@@ -12,7 +12,7 @@
     "consolidatedTextRetrievedAt": "2026-11-19",
     "metadataRecheckedAt": "2026-11-26",
     "consolidatedTextLatestRecheck": "2026-11-26: official consolidated cheque-law TreeText and the separate 1403 executive-regulation TreeText both rendered in browser retrieval; the 1403 schedule row for Article 7 is visible at lines 787-793. Attribute metadata shows Gazette 23097, publication 1403/04/23, promulgation 1403/04/04 and effective date 1403/05/08. Raw bytes, SHA-256, Gazette scan/PDF bytes and human review remain missing.",
-    "metadataLatestRecheck": "2026-11-26: official consolidated-law Attribute page rendered original-law metadata and latest status label 1403/03/30; raw HTTP bytes and SHA-256 were not captured. The separate 1403 amendment Attribute endpoint still returned a transfer interstitial in the same recheck.",
+    "metadataLatestRecheck": "2026-11-28: the consolidated cheque-law Attribute page did not render in the direct recheck, while its TreeText page rendered and showed the Article 7 amendment marker. The separate 1403 executive-regulation Attribute page rendered and displayed Gazette 23097, publication 1403/04/23, promulgation 1403/04/04, effective date 1403/05/08 and last status 1403/08/27; its TreeText page remained a transfer interstitial and its image page was shell-only. No raw HTTP bytes, reproducible SHA-256, official Gazette PDF bytes, event-date version approval or independent human review were obtained.",
     "lastStatusLabelObserved": "اصلاحي 1403/03/30",
     "originalGazetteNumberObserved": "9210",
     "originalGazetteDateObserved": "1355/05/19",
@@ -105,6 +105,27 @@
       "humanReviewStatus": "pending",
       "eventDateVersioningApproved": false,
       "legalAnswerUsePermitted": false
+    },
+    "regulation1403LatestMetadataObservationAt": "2026-11-28",
+    "regulation1403LatestMetadataObservation": {
+      "file": "docs/check-law-qavanin-direct-observation-20261128.json",
+      "documentId": "634882870797924421",
+      "metadataPageRendered": true,
+      "officialGazetteNumberShown": "23097",
+      "officialGazettePublicationDateShown": "1403/04/23",
+      "promulgationDateShown": "1403/04/04",
+      "effectiveDateShown": "1403/05/08",
+      "lastStatusShown": "1403/08/27",
+      "textPageRendered": false,
+      "textPageResult": "transfer-interstitial",
+      "imagePageShellOnly": true,
+      "officialGazettePdfBytesRetrieved": false,
+      "rawHttpResponseBytesCaptured": false,
+      "rawResponseSha256": null,
+      "primarySourceVerified": false,
+      "humanReviewStatus": "pending",
+      "eventDateVersioningApproved": false,
+      "useInLegalAnswers": false
     }
   },
   "publicationDate": null,
@@ -123,9 +144,10 @@
     "متن و فراداده مصوبه ۱۴۰۳/۰۳/۳۰ در Qavanin نمایش داده شد و ردیف ماده ۷ قابل مشاهده است؛ شماره روزنامه رسمی ۲۳۰۹۷ و تاریخ انتشار ۱۴۰۳/۰۴/۲۳ و اجرا ۱۴۰۳/۰۵/۰۸ در Attribute دیده می‌شود، اما بایت خام، SHA-256 بازتولیدپذیر و فایل تصویر/PDF روزنامه رسمی دریافت نشده و بازبینی انسانی مستقل باقی است.",
     "متن تجمیعی جاری و قواعد انتقالی هنوز با سند اولیه و بازبینی انسانی تأیید نشده‌اند.",
     "نسخه معتبر متن در تاریخ هر رویداد هنوز با سند اولیه و بازبینی انسانی تأیید نشده است.",
-    "بازبین حقوقی مستقل و تاریخ بررسی ثبت نشده است."
+    "بازبین حقوقی مستقل و تاریخ بررسی ثبت نشده است.",
+    "در مشاهده مستقیم ۲۰۲۶-۱۱-۲۸، فراداده مقرره ۱۴۰۳ شامل روزنامه رسمی ۲۳۰۹۷ و تاریخ اجرا ۱۴۰۳/۰۵/۰۸ در صفحه Attribute دیده شد، اما صفحه متن و فایل واقعی PDF/تصویر روزنامه رسمی دریافت نشد؛ بایت خام، SHA-256 بازتولیدپذیر و بازبینی انسانی مستقل همچنان موجود نیست."
   ],
-  "scope": "این رکورد فقط سرنخ پژوهشی و فراداده مشاهده‌شده است. متن صفحه رسمی Qavanin برای اصلاحیه ۱۳۷۲ در ۲۰۲۶-۱۱-۲۶ نمایش داده شد، اما بایت خام/هش، فراداده اختصاصی و نسخه روزنامه رسمی دریافت نشد. متن تجمیعی جاری و زنجیره کامل اصلاحات نیز تأیید نشده‌اند. این مشاهده به‌تنهایی اصالت فایل، لازم‌الاجراشدن، یا نسخه معتبر در تاریخ واقعه را اثبات نمی‌کند و نباید در پاسخ حقوقی به‌عنوان منبع تأییدشده استفاده شود.",
+  "scope": "این رکورد فقط سرنخ پژوهشی و فراداده مشاهده‌شده است. در مشاهده مستقیم ۲۰۲۶-۱۱-۲۸ صفحه TreeText قانون صدور چک و نشان اصلاح ماده ۷ در مرورگر نمایش داده شد، اما صفحه Attribute همان قانون در آن نوبت نمایش داده نشد. برای مقرره جداگانه ۱۴۰۳، صفحه Attribute فراداده روزنامه رسمی را نمایش داد، ولی صفحه TreeText همچنان interstitial و صفحه تصویر فقط پوسته بود. بایت خام، SHA-256 بازتولیدپذیر، فایل واقعی روزنامه رسمی و بازبینی انسانی مستقل موجود نیست؛ بنابراین این مشاهده اصالت سند، لازم‌الاجراشدن یا نسخه معتبر در تاریخ واقعه را اثبات نمی‌کند و برای پاسخ حقوقی مجاز نیست.",
   "lastDirectObservationAt": "2026-11-28",
   "latestDirectObservationFile": "docs/check-law-qavanin-direct-observation-20261128.json",
   "latestDirectObservation": {

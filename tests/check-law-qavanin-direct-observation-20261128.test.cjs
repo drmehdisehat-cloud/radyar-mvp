@@ -70,3 +70,34 @@ test('both direct-page observations remain research-only until bytes, hashes, Ga
   assert.equal(canonical.releaseSourceEligible, false);
   assert.equal(canonical.legalConclusionPermitted, false);
 });
+
+test('canonical registry records the latest 2026-11-28 regulation metadata observation without authorizing legal answers', () => {
+  const latest = canonical.observations.regulation1403LatestMetadataObservation;
+  const source = regulation.metadataPage;
+  assert.equal(canonical.observations.regulation1403LatestMetadataObservationAt, observation.observedAt);
+  assert.equal(latest.file, 'docs/check-law-qavanin-direct-observation-20261128.json');
+  assert.equal(latest.documentId, regulation.documentId);
+  assert.equal(latest.metadataPageRendered, true);
+  assert.equal(latest.officialGazetteNumberShown, source.officialGazetteNumberShown);
+  assert.equal(latest.officialGazettePublicationDateShown, source.officialGazettePublicationDateShown);
+  assert.equal(latest.promulgationDateShown, source.promulgationDateShown);
+  assert.equal(latest.effectiveDateShown, source.effectiveDateShown);
+  assert.equal(latest.lastStatusShown, source.lastStatusShown);
+  assert.equal(latest.textPageRendered, false);
+  assert.equal(latest.imagePageShellOnly, true);
+  assert.equal(latest.officialGazettePdfBytesRetrieved, false);
+  assert.equal(latest.rawHttpResponseBytesCaptured, false);
+  assert.equal(latest.rawResponseSha256, null);
+  assert.equal(latest.primarySourceVerified, false);
+  assert.equal(latest.humanReviewStatus, 'pending');
+  assert.equal(latest.eventDateVersioningApproved, false);
+  assert.equal(latest.useInLegalAnswers, false);
+  assert.match(canonical.observations.metadataLatestRecheck, /2026-11-28/);
+  assert.match(canonical.observations.metadataLatestRecheck, /Attribute page rendered/);
+  assert.match(canonical.observations.metadataLatestRecheck, /TreeText page remained a transfer interstitial/);
+  assert.equal(canonical.status, 'research-only');
+  assert.equal(canonical.releaseSourceEligible, false);
+  assert.equal(canonical.legalConclusionPermitted, false);
+  assert.equal(canonical.textSha256, null);
+  assert.equal(canonical.humanReview, null);
+});
