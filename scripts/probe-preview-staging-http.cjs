@@ -84,7 +84,7 @@ function validateLocalArtifact(directoryArg) {
 function requireHeaders(response, expected, label) {
   if (response.status !== 200) fail(label + '_http_status_not_200:' + response.status);
   if (response.redirected === true) fail(label + '_redirect_forbidden');
-  if (response.url && response.url !== expected.url) fail(label + '_final_url_mismatch');
+  if (typeof response.url !== 'string' || response.url !== expected.url) fail(label + '_final_url_missing_or_mismatch');
   if (response.headers.get('set-cookie')) fail(label + '_set_cookie_forbidden');
 
   const contentType = (response.headers.get('content-type') || '').toLowerCase();
@@ -120,7 +120,7 @@ async function fetchExact(fetchImpl, url, expected, label) {
   return { bytes, sha256: sha256(bytes), contentType: response.headers.get('content-type') };
 }
 
-async function probeStaging(urlValue, artifactDirectory, fetchImpl = globalThis.fetch) {
+async function probeStaging(urlValue, artifactDirectory, fetchImpl = globalThis.fetch, allowedOriginValue = process.env.DADYAR_PREVIEW_STAGING_ORIGIN) {
   if (typeof fetchImpl !== 'function') fail('fetch_unavailable');
   let url;
   try { url = new URL(urlValue); }
@@ -128,6 +128,14 @@ async function probeStaging(urlValue, artifactDirectory, fetchImpl = globalThis.
   if (url.protocol !== 'https:') fail('staging_url_must_use_https');
   if (url.username || url.password || url.search || url.hash) fail('staging_url_credentials_query_or_fragment_forbidden');
   if (url.pathname !== '/dadyar-preview/') fail('staging_route_must_be_exact_dadyar_preview_path');
+  if (typeof allowedOriginValue !== 'string' || !allowedOriginValue) fail('staging_origin_allowlist_required');
+  let allowedOrigin;
+  try { allowedOrigin = new URL(allowedOriginValue); }
+  catch { fail('staging_origin_allowlist_invalid'); }
+  if (allowedOrigin.protocol !== 'https:' || allowedOrigin.username || allowedOrigin.password ||
+      allowedOrigin.pathname !== '/' || allowedOrigin.search || allowedOrigin.hash ||
+      allowedOrigin.origin !== allowedOriginValue) fail('staging_origin_allowlist_must_be_canonical_https_origin');
+  if (url.origin !== allowedOrigin.origin) fail('staging_origin_not_allowlisted');
 
   const artifact = validateLocalArtifact(artifactDirectory);
   const htmlResult = await fetchExact(fetchImpl, url.toString(), {
@@ -173,7 +181,7 @@ async function probeStaging(urlValue, artifactDirectory, fetchImpl = globalThis.
 
 async function main() {
   const args = process.argv.slice(2);
-  if (args.length !== 2) fail('usage: node scripts/probe-preview-staging-http.cjs https://staging.example/dadyar-preview/ /absolute/path/to/artifact');
+  if (args.length !== 2) fail('usage: DADYAR_PREVIEW_STAGING_ORIGIN=https://staging.example node scripts/probe-preview-staging-http.cjs https://staging.example/dadyar-preview/ /absolute/path/to/artifact');
   const result = await probeStaging(args[0], args[1]);
   process.stdout.write(JSON.stringify(result, null, 2) + '\n');
 }
