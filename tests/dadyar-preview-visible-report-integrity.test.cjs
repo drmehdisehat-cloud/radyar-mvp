@@ -61,7 +61,7 @@ test('approved review must match the fixed synthetic reviewer, exact checklist a
     })),
     SYNTHETIC_REVIEWER_LABEL: 'بازبین آزمون',
     safeReviewText: (value,max) => String(value || '').normalize('NFC').replace(/\s+/g,' ').trim().slice(0,max),
-    hasSensitiveIdentifier: value => /\d{10,}/.test(String(value || ''))
+    hasSensitiveIdentifier: value => /\p{Nd}{10,}/u.test(String(value || ''))
   };
   const helper = extractFunction('function approvedReviewMatches(');
   vm.runInNewContext(helper + '\nglobalThis.__matches=approvedReviewMatches;', sandbox, { timeout: 1000 });
