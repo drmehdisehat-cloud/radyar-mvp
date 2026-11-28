@@ -234,6 +234,7 @@ test('Dadyar preview uses real Chromium mobile device emulation and preserves of
       '  const reviewStatus = document.getElementById("review-status").textContent;',
       '  const exportEnabledBeforeDownload = !download.disabled;',
       '  download.click();',
+      '  for (let i=0;i<100 && !window.__dadyarExportBlob;i++) await new Promise(resolve=>setTimeout(resolve,10));',
       '  const exportBlob = window.__dadyarExportBlob;',
       '  const exportedReport = exportBlob ? await exportBlob.text() : "";',
       '  const exportedReportHasReviewDigest = exportedReport.includes("SHA-256 پیش‌نویس بازبینی‌شده: " + approvedReportSha256);',
