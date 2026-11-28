@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-11-27T02:34:03Z",
+  "repository": "drmehdisehat-cloud/radyar-mvp",
+  "branch": "dadyar/preview-review-slice-20261126",
+  "sourceCommit": "8d81e7386a75bcab77d323f36a9d9db2eb5d92d1",
+  "workflowCommit": "8d81e7386a75bcab77d323f36a9d9db2eb5d92d1",
+  "ci": {
+    "pushRunId": 45923772579,
+    "pushConclusion": "success",
+    "pullRequestRunId": 45923778493,
+    "pullRequestConclusion": "success",
+    "testCounts": {
+      "contractAndSecurity": 60,
+      "narrowChromium": 1,
+      "mobileAndHttp": 2,
+      "total": 63,
+      "failed": 0,
+      "skipped": 0
+    },
+    "roundTripJob": "roundtrip-verify",
+    "roundTripConclusion": "success",
+    "roundTripStatus": "UPLOADED_ARTIFACT_ROUND_TRIP_VERIFIED",
+    "pullRequestArtifactBuild": "skipped-by-event-guard"
+  },
+  "artifact": {
+    "id": 15165353768,
+    "name": "dadyar-preview-review-8d81e7386a75bcab77d323f36a9d9db2eb5d92d1",
+    "zipBytes": 17569,
+    "zipSha256": "63d74e56b41dfdd54bdb175b74c3a77bbb43ebbdc49290f926fc4f7b47a75d7f",
+    "files": [
+      "INTEGRITY.json",
+      "index.html"
+    ],
+    "integrityJsonBytes": 1150,
+    "integrityJsonSha256": "97f2b57ce3abc29f93bc74ea0aa2f39d56faeb921ea6b87fce6d1090d520230d",
+    "htmlBytes": 57321,
+    "htmlSha256": "9f58e64a4b309ff8687655c369595f248f6d89349c1bf0fb96011e11b8286455",
+    "sourceGitBlobSha1": "fe319c0d3ec9a4f2eb16cc5f7623a3f4339dfbfa",
+    "workflowGitBlobSha1": "fe319c0d3ec9a4f2eb16cc5f7623a3f4339dfbfa",
+    "route": "/dadyar-preview/"
+  },
+  "release": {
+    "status": "NOT_READY",
+    "backupRestoreVerified": false,
+    "destinationVerified": false,
+    "reviewerIdentityConfigured": false,
+    "deploymentAuthorized": false,
+    "apiEnabled": false,
+    "publicAiEnabled": false
+  },
+  "limitations": [
+    "The dependent round-trip job downloaded the exact uploaded artifact ID and matched its SHA-256 digest; this is not a hosting deployment.",
+    "A real backup restore in an isolated IranHost sandbox has not been evidenced.",
+    "The hosting destination and its HTTPS route have not been validated.",
+    "The preview review acknowledgement is local and does not authenticate reviewer identity.",
+    "The artifact manifest explicitly keeps release status NOT_READY and all deployment/API flags false."
+  ]
+}
