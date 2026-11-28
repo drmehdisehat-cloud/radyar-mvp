@@ -13,7 +13,7 @@ assert.ok(script, 'offline preview browser script must exist');
 function extractFunction(signature) {
   const start = script.indexOf(signature);
   assert.ok(start >= 0, 'missing function: ' + signature);
-  const end = script.indexOf('\n}', start);
+  const end = script.indexOf('// Clear unsubmitted free text', start);
   assert.ok(end > start, 'function boundary missing: ' + signature);
   return script.slice(start, end + 2);
 }
