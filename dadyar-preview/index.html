@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; media-src 'none'; manifest-src 'none'; worker-src 'none'; child-src 'none'; script-src 'sha256-x9iWGFPWtJv2uo5Uj/iTjoSqzykmq3sRLhf5aq+lFG0='; style-src 'sha256-/6OFHgWVXYqlFrM5eIokLS7Vm0NjfH/wfzh8M+5cFC4='; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; media-src 'none'; manifest-src 'none'; worker-src 'none'; child-src 'none'; script-src 'sha256-JytiR2a3Q49JbxwBgOgRDooqNoAct9QOKq2vpQiAq9I='; style-src 'sha256-/6OFHgWVXYqlFrM5eIokLS7Vm0NjfH/wfzh8M+5cFC4='; form-action 'none'; base-uri 'none'">
 <title>دادیار | پیش‌نمایش آفلاین چک فرضی</title>
 <style>body{font:1rem/1.9 system-ui,sans-serif;background:#f5f6fa;color:#17243b;margin:0}main{max-width:780px;margin:auto;padding:1.2rem}section{background:white;border-radius:16px;padding:1.2rem;margin:1rem 0;box-shadow:0 2px 12px #17243b12}button,select{font:inherit;min-height:44px;max-width:100%;padding:.5rem;border:1px solid #718096;border-radius:8px}input[type=checkbox]{min-width:24px;min-height:24px;vertical-align:middle}button{background:#dcecfb;cursor:pointer}button:focus-visible,select:focus-visible,textarea:focus-visible,input:not([type=checkbox]):focus-visible,input[type=checkbox]:focus-visible{outline:3px solid #2469a8;outline-offset:2px}fieldset{border:1px solid #b4bfd0;border-radius:12px;margin:1rem 0}label{display:block;margin:.6rem 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}small{color:#475569}#result[hidden]{display:none}#free-question,#reviewer-name,#review-note,#event-date{box-sizing:border-box;width:100%;min-height:44px;font:inherit;border:1px solid #718096;border-radius:8px;padding:.5rem}#review-note{min-height:4.5rem}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}</style></head>
 <body><main><h1>کارگاه آزمایشی دادیار: چک فرضی</h1><p role="status">صرفاً داده‌های ازپیش‌ساخته؛ بدون ارسال اطلاعات، هوش مصنوعی یا ذخیره در سرور. پاسخ خودکار حقوقی: ارائه نمی‌شود. اطلاعات واقعی وارد نکنید.</p><p id="preview-release-status" role="alert"><strong>مرز این نسخه:</strong> این پیش‌نمایش آفلاین و غیرعملیاتی است؛ فقط داده ساختگی وارد کنید. ثبت بازبینی در این صفحه محلی است و هویت بازبین احراز نمی‌شود؛ این ثبت به‌تنهایی تأیید حقوقی یا مجوز انتشار ایجاد نمی‌کند.</p>
@@ -591,17 +591,22 @@ function hasSensitiveIdentifier(value) {
   /(?:https?:\/\/|www\.)[^\s<>]+|(?<![\p{L}\p{N}_])(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z]{2,24})(?:\/[^\s<>]*)?/iu.test(normalizedText) ||
   /(?:نشانی|آدرس|خیابان|کوچه|بلوار|بزرگراه|میدان|پلاک|واحد|طبقه|کد[\s\u200c]*پستی|شهرک|روستا|محله)\s*[:：#\-]?\s*[\p{L}\p{N}]/iu.test(normalizedText);
 }
+const SYNTHETIC_REVIEWER_LABEL='بازبین آزمون';
 function reviewerDetailsAreSafe() {
- return !hasSensitiveIdentifier(safeReviewText(reviewerName.value,80)) &&
+ return safeReviewText(reviewerName.value,80)===SYNTHETIC_REVIEWER_LABEL &&
+  !hasSensitiveIdentifier(safeReviewText(reviewerName.value,80)) &&
   !hasSensitiveIdentifier(safeReviewText(reviewNote.value,300));
 }
 function showReviewerPrivacyWarning() {
+ const reviewerLabelChanged=safeReviewText(reviewerName.value,80)!==SYNTHETIC_REVIEWER_LABEL;
  const unsafeName=hasSensitiveIdentifier(safeReviewText(reviewerName.value,80));
  const unsafeNote=hasSensitiveIdentifier(safeReviewText(reviewNote.value,300));
- if(unsafeName || unsafeNote) {
-  if(unsafeName) reviewerName.value='';
+ if(reviewerLabelChanged || unsafeName || unsafeNote) {
+  if(reviewerLabelChanged || unsafeName) reviewerName.value=SYNTHETIC_REVIEWER_LABEL;
   if(unsafeNote) reviewNote.value='';
-  invalidateHumanReview('اطلاعات بازبین احتمالاً شامل شناسه حساس بود؛ فیلد آلوده پاک شد. فقط داده ساختگی وارد کنید.');
+  invalidateHumanReview(reviewerLabelChanged
+   ?'برچسب بازبین در پیش‌نمایش باید ثابت و ساختگی بماند؛ تغییر آن پذیرفته نشد.'
+   :'اطلاعات بازبین احتمالاً شامل شناسه حساس بود؛ فیلد آلوده پاک شد. فقط داده ساختگی وارد کنید.');
   recordReviewButton.disabled=true;
  }
 }
