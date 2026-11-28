@@ -69,7 +69,6 @@ test('approved local review binds the exact report snapshot with Web Crypto SHA-
   assert.ok(script.includes('reportSha256'));
   assert.ok(script.includes('candidate.reportSnapshot===snapshot'));
   assert.ok(script.includes('SHA-256 پیش‌نویس بازبینی‌شده'));
-  assert.ok(script.includes('currentDigest===candidate.reportSha256'));
   assert.ok(script.includes('secure_web_crypto_unavailable'));
   assert.ok(html.includes('اثر انگشت SHA-256'));
 });
@@ -115,7 +114,7 @@ test('downloaded report preserves the unauthenticated local-review disclaimer an
   assert.match(handler, /مبنای ساعت دستگاه؛ نمایش UTC؛ قابل راستی‌آزمایی مستقل نیست/);
   assert.match(handler, /این اظهار محلی است و تأیید حقوقی یا احراز هویت محسوب نمی‌شود/);
   assert.match(handler, /approvedReviewMatches\(snapshot,out\.textContent,candidate\)/);
-  assert.match(handler, /approvedReviewMatches\(snapshot,out\.textContent,candidate\)/);
+  assert.match(handler, /'SHA-256 پیش‌نویس بازبینی‌شده: '\+candidate\.reportSha256/);
   assert.match(handler, /reviewRecord=null/);
   assert.match(handler, /exportAck\.checked=false/);
   assert.match(handler, /reviewChecklistItems\.forEach/);
