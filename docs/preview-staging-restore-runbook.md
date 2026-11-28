@@ -110,3 +110,13 @@ DADYAR_PREVIEW_STAGING_ORIGIN=https://STAGING-HOST node scripts/probe-preview-st
 ## محدودیت تکمیلی probe مقصد
 
 probe اکنون IP literal، نام تک‌برچسبی و نام‌های محلی متداول مانند `localhost`، پسوندهای `.local`، `.internal` و `.home.arpa` را پیش از شبکه رد می‌کند. این کنترل، DNS rebinding یا نام عمومی‌ای را که به IP خصوصی resolve می‌شود به‌تنهایی خنثی نمی‌کند. probe فقط باید از runner مورد اعتماد مالک اجرا شود و خروجی شبکه آن runner باید به IP/hostname staging مستقل محدود باشد؛ مقصد را از ورودی غیرقابل‌اعتماد نگیرید. این کنترل جایگزین Restore مستقل یا مجوز انتشار نیست.
+
+
+## جلوگیری از DNS rebinding و SSRF در probe مقصد
+
+- probe مقصد، نام میزبان staging را فقط یک بار با DNS سیستم به رکوردهای A/AAAA تبدیل می‌کند.
+- اگر حتی یکی از پاسخ‌ها loopback، خصوصی، link-local، carrier-grade NAT، multicast، documentation/reserved یا IPv6 غیرجهانی باشد، probe پیش از هر اتصال متوقف می‌شود.
+- نخستین IP عمومیِ تأییدشده برای هر دو GET به‌صورت pinned به ماژول HTTPS داده می‌شود؛ lookup سفارشی اجازه resolve مجدد نام دیگری را نمی‌دهد و SNI/اعتبارسنجی گواهی TLS همچنان بر اساس hostname اصلی انجام می‌شود.
+- پاسخ redirect پذیرفته نمی‌شود و هیچ Cookie یا credential ارسال نمی‌شود.
+- این کنترل جایگزین firewall نیست. runner یا محیط اپراتور باید egress را نیز به IP staging مجاز محدود کند؛ از اجرای probe در runner دارای دسترسی شبکه‌ای به سرویس‌های داخلی/تولید خودداری شود.
+- DNS و TLS فقط مقصد HTTPS را بررسی می‌کنند؛ Restore مستقل، احراز هویت بازبین و مجوز انتشار همچنان جداگانه لازم‌اند.

@@ -5,7 +5,9 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const { probeStaging } = require('../scripts/probe-preview-staging-http.cjs');
+const { EventEmitter } = require('node:events');
+const { Readable } = require('node:stream');
+const { probeStaging, resolvePublicStagingAddresses, createPinnedLookup } = require('../scripts/probe-preview-staging-http.cjs');
 
 const sha256 = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 const csp = "default-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; media-src 'none'; manifest-src 'none'; worker-src 'none'; child-src 'none'; script-src 'sha256-example'; style-src 'sha256-example'; form-action 'none'; base-uri 'none'";
@@ -279,4 +281,125 @@ test('probe rejects IP literals, single-label and local-only hostnames before ne
     );
   }
   assert.equal(calls.length, 0);
+});
+
+
+test('staging DNS rejects loopback, private, link-local, documentation, multicast and non-global IPv6 answers', async () => {
+  const blocked = [
+    ['127.0.0.1', 4], ['10.0.0.1', 4], ['172.16.0.1', 4], ['192.168.1.1', 4],
+    ['169.254.169.254', 4], ['100.64.0.1', 4], ['192.0.2.10', 4],
+    ['198.51.100.7', 4], ['203.0.113.9', 4], ['224.0.0.1', 4],
+    ['240.0.0.1', 4], ['::1', 6], ['fc00::1', 6], ['fe80::1', 6],
+    ['ff02::1', 6], ['2001:db8::1', 6], ['::ffff:127.0.0.1', 6]
+  ];
+  for (const [address, family] of blocked) {
+    await assert.rejects(
+      () => resolvePublicStagingAddresses('staging.example', async () => [{ address, family }]),
+      /staging_dns_non_public_address/
+    );
+  }
+  await assert.rejects(
+    () => resolvePublicStagingAddresses('staging.example', async () => [
+      { address: '1.1.1.1', family: 4 },
+      { address: '169.254.169.254', family: 4 }
+    ]),
+    /staging_dns_non_public_address/
+  );
+});
+
+test('staging DNS accepts public addresses and the pinned lookup never re-resolves another host', async () => {
+  const addresses = await resolvePublicStagingAddresses('staging.example', async () => [
+    { address: '1.1.1.1', family: 4 },
+    { address: '2606:4700:4700::1111', family: 6 }
+  ]);
+  assert.deepEqual(addresses, [
+    { address: '1.1.1.1', family: 4 },
+    { address: '2606:4700:4700::1111', family: 6 }
+  ]);
+  const lookup = createPinnedLookup('staging.example', '1.1.1.1');
+  const resolved = await new Promise((resolve, reject) => {
+    lookup('staging.example', { all: true }, (error, records) => error ? reject(error) : resolve(records));
+  });
+  assert.deepEqual(resolved, [{ address: '1.1.1.1', family: 4 }]);
+  await assert.rejects(
+    () => new Promise((resolve, reject) => {
+      lookup('other.example', { all: true }, error => error ? reject(error) : resolve());
+    }),
+    /staging_dns_host_mismatch/
+  );
+});
+
+test('default staging probe pins both HTTPS GETs to one public DNS answer and prevents rebinding', async t => {
+  const f = fixture(t);
+  let dnsCalls = 0;
+  const pinnedAddresses = [];
+  const requestOptions = [];
+  const lookup = async () => {
+    dnsCalls += 1;
+    return dnsCalls === 1
+      ? [{ address: '1.1.1.1', family: 4 }]
+      : [{ address: '169.254.169.254', family: 4 }];
+  };
+  const requestImpl = (urlValue, options) => {
+    requestOptions.push(options);
+    options.lookup(new URL(urlValue).hostname, { all: true }, (error, records) => {
+      if (error) throw error;
+      pinnedAddresses.push(records[0].address);
+    });
+    const request = new EventEmitter();
+    request.setTimeout = () => {};
+    request.destroy = error => request.emit('error', error);
+    request.end = () => {
+      const isIntegrity = new URL(urlValue).pathname.endsWith('/INTEGRITY.json');
+      const body = isIntegrity ? f.integrity : f.html;
+      const response = Readable.from([body]);
+      response.statusCode = 200;
+      response.headers = {
+        'content-type': isIntegrity ? 'application/json; charset=utf-8' : 'text/html; charset=utf-8',
+        'cache-control': 'no-store',
+        'x-content-type-options': 'nosniff',
+        'referrer-policy': 'no-referrer',
+        'x-robots-tag': 'noindex, nofollow, noarchive',
+        ...(isIntegrity ? {} : { 'content-security-policy': csp })
+      };
+      request.emit('response', response);
+    };
+    return request;
+  };
+  const result = await probeStaging(
+    'https://staging.example/dadyar-preview/',
+    f.root,
+    undefined,
+    'https://staging.example',
+    lookup,
+    requestImpl
+  );
+  assert.equal(dnsCalls, 1, 'system DNS must be consulted exactly once');
+  assert.deepEqual(pinnedAddresses, ['1.1.1.1', '1.1.1.1']);
+  assert.equal(requestOptions.length, 2);
+  for (const options of requestOptions) {
+    assert.equal(options.servername, 'staging.example');
+    assert.equal(options.rejectUnauthorized, true);
+    assert.equal(options.agent, false);
+  }
+  assert.equal(result.networkTargetPinned, true);
+  assert.equal(result.pinnedAddressFamily, 4);
+  assert.equal(result.dnsAddressCount, 1);
+});
+
+test('default staging probe rejects a private DNS answer before opening any HTTPS request', async t => {
+  const f = fixture(t);
+  let requests = 0;
+  await assert.rejects(
+    () => probeStaging(
+      'https://staging.example/dadyar-preview/',
+      f.root,
+      undefined,
+      'https://staging.example',
+      async () => [{ address: '10.10.0.5', family: 4 }],
+      () => { requests += 1; throw new Error('network_must_not_start'); }
+    ),
+    /staging_dns_non_public_address/
+  );
+  assert.equal(requests, 0);
 });

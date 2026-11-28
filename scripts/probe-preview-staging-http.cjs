@@ -6,6 +6,33 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const net = require('node:net');
+const dns = require('node:dns').promises;
+const https = require('node:https');
+const { Readable } = require('node:stream');
+
+const nonPublicIPv4 = new net.BlockList();
+for (const [network, prefix] of [
+  ['0.0.0.0', 8], ['10.0.0.0', 8], ['100.64.0.0', 10], ['127.0.0.0', 8],
+  ['169.254.0.0', 16], ['172.16.0.0', 12], ['192.0.0.0', 24], ['192.0.2.0', 24],
+  ['192.88.99.0', 24], ['192.168.0.0', 16], ['198.18.0.0', 15],
+  ['198.51.100.0', 24], ['203.0.113.0', 24], ['224.0.0.0', 4], ['240.0.0.0', 4]
+]) nonPublicIPv4.addSubnet(network, prefix, 'ipv4');
+
+const globalIPv6 = new net.BlockList();
+globalIPv6.addSubnet('2000::', 3, 'ipv6');
+const nonPublicIPv6 = new net.BlockList();
+for (const [network, prefix] of [
+  ['::', 128], ['::1', 128], ['::ffff:0:0', 96], ['2001::', 23],
+  ['2001:db8::', 32], ['2002::', 16], ['3fff::', 20], ['fc00::', 7],
+  ['fe80::', 10], ['ff00::', 8]
+]) nonPublicIPv6.addSubnet(network, prefix, 'ipv6');
+
+function isPublicAddress(address) {
+  const family = net.isIP(address);
+  if (family === 4) return !nonPublicIPv4.check(address, 'ipv4');
+  if (family === 6) return globalIPv6.check(address, 'ipv6') && !nonPublicIPv6.check(address, 'ipv6');
+  return false;
+}
 
 function fail(code) { throw new Error(code); }
 function sha256(bytes) { return crypto.createHash('sha256').update(bytes).digest('hex'); }
@@ -160,11 +187,102 @@ function assertSafeStagingHostname(hostname, label) {
   if (normalized === 'localhost' || localSuffixes.some(suffix => normalized.endsWith(suffix))) {
     fail(label + '_local_hostname_forbidden');
   }
+  if (lowered.endsWith('.')) fail(label + '_trailing_dot_hostname_forbidden');
   if (!normalized.includes('.')) fail(label + '_fully_qualified_hostname_required');
 }
 
-async function probeStaging(urlValue, artifactDirectory, fetchImpl = globalThis.fetch, allowedOriginValue = process.env.DADYAR_PREVIEW_STAGING_ORIGIN) {
-  if (typeof fetchImpl !== 'function') fail('fetch_unavailable');
+async function resolvePublicStagingAddresses(hostname, lookup = dns.lookup) {
+  let records;
+  try {
+    records = await lookup(hostname, { all: true, verbatim: true });
+  } catch {
+    fail('staging_dns_lookup_failed');
+  }
+  if (!Array.isArray(records) || records.length === 0) fail('staging_dns_no_addresses');
+  const unique = new Map();
+  for (const record of records) {
+    if (!record || typeof record.address !== 'string') fail('staging_dns_record_invalid');
+    const family = net.isIP(record.address);
+    if (!family || !isPublicAddress(record.address)) fail('staging_dns_non_public_address');
+    if (record.family !== undefined && record.family !== family) fail('staging_dns_family_mismatch');
+    unique.set(record.address, { address: record.address, family });
+  }
+  return Array.from(unique.values());
+}
+
+function createPinnedLookup(hostname, address) {
+  const expectedHostname = hostname.toLowerCase();
+  const family = net.isIP(address);
+  if (!family || !isPublicAddress(address)) fail('staging_pinned_address_not_public');
+  return (requestedHostname, options, callback) => {
+    if (typeof options === 'function') {
+      callback = options;
+      options = {};
+    }
+    if (typeof callback !== 'function') throw new TypeError('staging_dns_callback_required');
+    const requested = String(requestedHostname).toLowerCase().replace(/\\.$/, '');
+    if (requested !== expectedHostname) return callback(new Error('staging_dns_host_mismatch'));
+    if (options && typeof options === 'object' && options.family && options.family !== family) {
+      const error = new Error('staging_dns_family_mismatch');
+      error.code = 'EAI_ADDRFAMILY';
+      return callback(error);
+    }
+    const entry = { address, family };
+    if (options && typeof options === 'object' && options.all) return callback(null, [entry]);
+    return callback(null, address, family);
+  };
+}
+
+function createPinnedHttpsFetch(hostname, address, requestImpl = https.request) {
+  const normalizedHost = hostname.toLowerCase();
+  const lookup = createPinnedLookup(normalizedHost, address);
+  return async (urlValue, options = {}) => {
+    const url = new URL(urlValue);
+    if (url.protocol !== 'https:' || url.hostname.toLowerCase() !== normalizedHost) {
+      fail('staging_pinned_fetch_origin_mismatch');
+    }
+    if (options.method && options.method !== 'GET') fail('staging_pinned_fetch_method_forbidden');
+    return new Promise((resolve, reject) => {
+      const request = requestImpl(url, {
+        method: 'GET',
+        headers: options.headers || {},
+        agent: false,
+        servername: normalizedHost,
+        rejectUnauthorized: true,
+        lookup
+      });
+      request.once('response', incoming => {
+        try {
+          const headers = new Headers();
+          for (const [name, value] of Object.entries(incoming.headers || {})) {
+            if (value === undefined) continue;
+            if (Array.isArray(value)) {
+              for (const item of value) headers.append(name, String(item));
+            } else {
+              headers.set(name, String(value));
+            }
+          }
+          const response = new Response(Readable.toWeb(incoming), {
+            status: Number(incoming.statusCode || 0),
+            headers
+          });
+          Object.defineProperty(response, 'url', { value: url.href });
+          resolve(response);
+        } catch (error) {
+          if (typeof incoming.destroy === 'function') incoming.destroy();
+          reject(error);
+        }
+      });
+      request.once('error', reject);
+      if (typeof request.setTimeout === 'function') {
+        request.setTimeout(15000, () => request.destroy(new Error('staging_request_timeout')));
+      }
+      request.end();
+    });
+  };
+}
+
+async function probeStaging(urlValue, artifactDirectory, fetchImpl, allowedOriginValue = process.env.DADYAR_PREVIEW_STAGING_ORIGIN, lookupImpl = dns.lookup, requestImpl = https.request) {
   let url;
   try { url = new URL(urlValue); }
   catch { fail('staging_url_invalid'); }
@@ -188,6 +306,16 @@ async function probeStaging(urlValue, artifactDirectory, fetchImpl = globalThis.
   }
 
   const artifact = validateLocalArtifact(artifactDirectory);
+  let pinnedAddress = null;
+  let dnsAddressCount = 0;
+  if (fetchImpl === undefined || fetchImpl === null) {
+    const addresses = await resolvePublicStagingAddresses(url.hostname, lookupImpl);
+    pinnedAddress = addresses[0];
+    dnsAddressCount = addresses.length;
+    fetchImpl = createPinnedHttpsFetch(url.hostname, pinnedAddress.address, requestImpl);
+  }
+  if (typeof fetchImpl !== 'function') fail('fetch_unavailable');
+
   const htmlResult = await fetchExact(fetchImpl, url.toString(), {
     bytes: artifact.html,
     contentType: 'text/html',
@@ -205,6 +333,9 @@ async function probeStaging(urlValue, artifactDirectory, fetchImpl = globalThis.
     status: 'STAGING_HTTPS_PROBE_VERIFIED_NOT_RELEASE_AUTHORIZED',
     origin: url.origin,
     route: url.pathname,
+    networkTargetPinned: Boolean(pinnedAddress),
+    pinnedAddressFamily: pinnedAddress ? pinnedAddress.family : null,
+    dnsAddressCount,
     sourceCommit: artifact.manifest.sourceCommit,
     htmlSha256: htmlResult.sha256,
     integritySha256: integrityResult.sha256,
@@ -243,4 +374,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { probeStaging, validateLocalArtifact };
+module.exports = { probeStaging, validateLocalArtifact, resolvePublicStagingAddresses, createPinnedLookup, createPinnedHttpsFetch };
