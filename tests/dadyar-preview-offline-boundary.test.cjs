@@ -53,7 +53,7 @@ test('local report export requires a complete checklist and an exact approved re
   assert.match(script, /function approvedReviewMatches\(snapshot,visibleText,candidate\)/);
   assert.match(script, /candidate\.decision==='approved'[\s\S]*?candidate\.reportSnapshot===snapshot[\s\S]*?candidate\.checklist\.length===expectedChecklist\.length[\s\S]*?item\.checked===true/);
   assert.match(script, /const approvedReview=approvedReviewMatches\(report,out\.textContent,reviewRecord\)/);
-  assert.match(script, /downloadButton\.disabled=!exportEligible \|\| !exportAck\.checked \|\| !approvedReview \|\| downloadDigestPending/);
+  assert.match(script, /downloadButton\.disabled=!exportEligible \|\| !exportAck\.checked \|\| !approvedReview/);
   assert.match(script, /recordReviewButton\.disabled=[^;]*!reviewChecklistComplete\(\)[^;]*!exportAck\.checked/);
   assert.match(script, /reviewChecklistItems\.forEach\(item=>item\.addEventListener\('change',\(\)=>invalidateHumanReview/);
   assert.match(script, /if\(!exportEligible \|\| !exportAck\.checked \|\| !approvedReviewMatches\(snapshot,out\.textContent,candidate\)\)/);
@@ -69,9 +69,7 @@ test('approved local review binds the exact report snapshot with Web Crypto SHA-
   assert.ok(script.includes('reportSha256'));
   assert.ok(script.includes('candidate.reportSnapshot===snapshot'));
   assert.ok(script.includes('SHA-256 پیش‌نویس بازبینی‌شده'));
-  assert.ok(script.includes('const currentDigest=await sha256Hex(snapshot)'));
   assert.ok(script.includes('currentDigest===candidate.reportSha256'));
-  assert.ok(script.includes('downloadDigestPending'));
   assert.ok(script.includes('secure_web_crypto_unavailable'));
   assert.ok(html.includes('اثر انگشت SHA-256'));
 });
@@ -107,7 +105,7 @@ test('free-question generation delegates to the hardened shared privacy scanner'
 
 
 test('downloaded report preserves the unauthenticated local-review disclaimer and untrusted device timestamp', () => {
-  const start = script.indexOf("document.getElementById('download').addEventListener('click',async()=>{");
+  const start = script.indexOf("document.getElementById('download').addEventListener('click',()=>{");
   assert.ok(start >= 0, 'download handler is required');
   const end = script.indexOf('\n});', start);
   assert.ok(end > start, 'download handler boundary is required');
@@ -117,7 +115,7 @@ test('downloaded report preserves the unauthenticated local-review disclaimer an
   assert.match(handler, /مبنای ساعت دستگاه؛ نمایش UTC؛ قابل راستی‌آزمایی مستقل نیست/);
   assert.match(handler, /این اظهار محلی است و تأیید حقوقی یا احراز هویت محسوب نمی‌شود/);
   assert.match(handler, /approvedReviewMatches\(snapshot,out\.textContent,candidate\)/);
-  assert.match(handler, /currentDigest===candidate\.reportSha256/);
+  assert.match(handler, /approvedReviewMatches\(snapshot,out\.textContent,candidate\)/);
   assert.match(handler, /reviewRecord=null/);
   assert.match(handler, /exportAck\.checked=false/);
   assert.match(handler, /reviewChecklistItems\.forEach/);

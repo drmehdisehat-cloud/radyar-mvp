@@ -88,20 +88,21 @@ test('approved review must match the fixed synthetic reviewer, exact checklist a
   assert.equal(sandbox.__matches(snapshot,'متن قابل مشاهده متفاوت',candidate), false);
 });
 
-test('download recomputes the approved report digest and rechecks state after the async hash', () => {
-  assert.ok(script.includes("document.getElementById('download').addEventListener('click',async()=>{"));
-  assert.ok(script.includes('const currentDigest=await sha256Hex(snapshot)'));
-  assert.ok(script.includes('attempt===reviewAttempt && report===snapshot && out.textContent===snapshot'));
-  assert.ok(script.includes('reviewRecord===candidate && exportAck.checked && exportEligible'));
-  assert.ok(script.includes('currentDigest===candidate.reportSha256'));
-  assert.ok(script.indexOf('const currentDigest=await sha256Hex(snapshot)') < script.indexOf('URL.createObjectURL(new Blob'));
+test('download validates the exact approved snapshot synchronously before creating the file', () => {
+  const start = script.indexOf("document.getElementById('download').addEventListener('click',()=>{");
+  const end = script.indexOf('\\n});', start);
+  assert.ok(start >= 0 && end > start, 'synchronous download handler must exist');
+  const handler = script.slice(start, end);
+  assert.ok(handler.includes('approvedReviewMatches(snapshot,out.textContent,candidate)'));
+  assert.ok(handler.includes('candidate.reportSnapshot===snapshot') === false, 'snapshot matching is enforced by the shared validator');
+  assert.ok(handler.indexOf('approvedReviewMatches(snapshot,out.textContent,candidate)') < handler.indexOf('URL.createObjectURL(new Blob'));
+  assert.equal(handler.includes('await '), false, 'download must remain in the user-activation task');
 });
 
 test('download rechecks the visible report and clears the draft if it changed after approval', () => {
-  assert.ok(script.includes("document.getElementById('download').addEventListener('click',async()=>{"));
-  assert.ok(script.includes('if(!report || downloadDigestPending)return;'));
+  assert.ok(script.includes("document.getElementById('download').addEventListener('click',()=>{"));
+  assert.ok(script.includes('if(!report || downloadButton.disabled)return;'));
   assert.ok(script.includes('const snapshot=report;'));
   assert.ok(script.includes('const candidate=reviewRecord;'));
-  assert.ok(script.includes('const attempt=reviewAttempt;'));
   assert.ok(script.includes('if(out.textContent!==snapshot){invalidateDraft();'));
 });

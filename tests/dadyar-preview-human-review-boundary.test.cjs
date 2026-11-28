@@ -38,7 +38,7 @@ test('report download requires a fully matching approved review record', () => {
     'candidate.checklist.length===expectedChecklist.length',
     'item.checked===true && item.label===expectedChecklist[index].label',
     'approvedReviewMatches(report,out.textContent,reviewRecord)',
-    'downloadButton.disabled=!exportEligible || !exportAck.checked || !approvedReview || downloadDigestPending'
+    'downloadButton.disabled=!exportEligible || !exportAck.checked || !approvedReview'
   ]) {
     assert.ok(script.includes(required), 'missing approval gate: ' + required);
   }
@@ -69,7 +69,7 @@ test('the exported record states local-only review and untrusted device time', (
 });
 
 test('successful export consumes the local approval and requires a fresh review', () => {
-  const downloadHandler = script.slice(script.indexOf("document.getElementById('download').addEventListener('click',async()=>{"));
+  const downloadHandler = script.slice(script.indexOf("document.getElementById('download').addEventListener('click',()=>{"));
   assert.ok(downloadHandler.length > 0, 'download handler must exist');
   for (const required of [
     'reviewRecord=null',
