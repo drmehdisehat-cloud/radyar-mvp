@@ -265,6 +265,8 @@ test('probe rejects IP literals, single-label and local-only hostnames before ne
     ['localhost', /staging_local_hostname_forbidden/],
     ['preview.localhost', /staging_local_hostname_forbidden/],
     ['db.local', /staging_local_hostname_forbidden/],
+    ['db.local.', /staging_local_hostname_forbidden/],
+    ['metadata.google.internal.', /staging_local_hostname_forbidden/],
     ['metadata.google.internal', /staging_local_hostname_forbidden/],
     ['preview.lan', /staging_local_hostname_forbidden/],
     ['staging', /staging_fully_qualified_hostname_required/]

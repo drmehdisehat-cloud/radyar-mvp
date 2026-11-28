@@ -147,7 +147,8 @@ async function fetchExact(fetchImpl, url, expected, label) {
 
 
 function assertSafeStagingHostname(hostname, label) {
-  const normalized = hostname.toLowerCase().replace(/\\.$/, '');
+  const lowered = hostname.toLowerCase();
+  const normalized = lowered.endsWith('.') ? lowered.slice(0, -1) : lowered;
   const ipCandidate = normalized.startsWith('[') && normalized.endsWith(']')
     ? normalized.slice(1, -1)
     : normalized;
