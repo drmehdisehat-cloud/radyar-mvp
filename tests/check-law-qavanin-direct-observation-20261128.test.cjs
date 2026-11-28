@@ -22,6 +22,13 @@ test('records the 2026-11-28 direct official Qavanin page observations and exact
   assert.equal(law.textPage.rendered, true);
   assert.deepEqual(law.textPage.visibleLineRange, [7, 90]);
   assert.equal(law.textPage.article7Amendment.marker, 'اصلاحي 30ˏ03ˏ1403');
+  assert.equal(law.latestWebRetrieval.observedAt, '2026-11-28');
+  assert.deepEqual(law.latestWebRetrieval.article7.visibleLines, [83, 84, 85, 86]);
+  assert.equal(law.latestWebRetrieval.article7.amendmentMarker, 'اصلاحي 30ˏ03ˏ1403');
+  assert.equal(law.latestWebRetrieval.rawHttpResponseBytesCaptured, false);
+  assert.equal(law.latestWebRetrieval.primarySourceVerified, false);
+  assert.equal(law.latestWebRetrieval.humanReviewStatus, 'pending');
+  assert.equal(law.latestWebRetrieval.useInLegalAnswers, false);
   assert.equal(law.metadataPage.rendered, false);
   assert.equal(law.imagePage.rendered, false);
   assert.equal(regulation.directUrls.metadata, 'https://qavanin.ir/Law/Attribute/?IDS=634882870797924421');
