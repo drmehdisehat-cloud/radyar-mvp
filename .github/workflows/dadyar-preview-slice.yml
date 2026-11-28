@@ -1,0 +1,100 @@
+name: Dadyar isolated preview slice
+on:
+  push:
+    branches:
+      - dadyar/preview-review-slice-20261126
+      - dadyar/preview-slice-squash-20261128
+  pull_request:
+    branches:
+      - main
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: dadyar-preview-slice-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify-and-package:
+    runs-on: ubuntu-latest
+    env:
+      DADYAR_PREVIEW_SOURCE_SHA: ${{ github.sha }}
+    outputs:
+      artifact-id: ${{ steps.upload-preview.outputs.artifact-id }}
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact reviewed source
+        uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Set up Node.js 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Run offline boundary, 27-domain routing, date and restore-evidence tests
+        run: node --test tests/iranhost-owner-action-request.test.cjs tests/dadyar-preview-human-review-boundary.test.cjs tests/dadyar-preview-persian-event-date-validation.test.cjs tests/dadyar-preview-sensitive-input-privacy.test.cjs tests/dadyar-preview-offline-boundary.test.cjs tests/dadyar-preview-offline-static-audit.test.cjs tests/dadyar-preview-27-domain-routing.test.cjs tests/build-preview-review-artifact.test.cjs tests/preview-staging-evidence.test.cjs tests/dadyar-preview-slice-workflow-artifact-boundary.test.cjs tests/verify-uploaded-preview-artifact.test.cjs tests/probe-preview-staging-http.test.cjs tests/preview-artifact-readback-15155845693.test.cjs tests/preview-artifact-readback-15165353768.test.cjs tests/preview-artifact-readback-15170875065.test.cjs tests/preview-artifact-readback-15181034202.test.cjs
+      - name: Run narrow viewport Chromium smoke test
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium)"
+          test -n "$CHROME_BIN"
+          CHROME_BIN="$CHROME_BIN" node --test tests/dadyar-preview-mobile-chromium.test.cjs
+      - name: Run real Chromium mobile device emulation and real HTTP subpath touch test
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium)"
+          test -n "$CHROME_BIN"
+          CHROME_BIN="$CHROME_BIN" node --test tests/dadyar-preview-mobile-device-emulation.test.cjs tests/dadyar-preview-mobile-http-subpath.test.cjs
+      - name: Build and verify public-only review artifact
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+        run: node scripts/build-preview-review-artifact.cjs "$RUNNER_TEMP/dadyar-preview-public"
+      - name: Exercise the exact packaged artifact in real mobile Chromium
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium)"
+          test -n "$CHROME_BIN"
+          CHROME_BIN="$CHROME_BIN" \
+          DADYAR_PREVIEW_ARTIFACT_DIR="$RUNNER_TEMP/dadyar-preview-public" \
+          DADYAR_PREVIEW_SOURCE_SHA="$DADYAR_PREVIEW_SOURCE_SHA" \
+          node --test tests/dadyar-preview-mobile-device-emulation.test.cjs
+      - name: Upload review artifact only; never deploy
+        if: github.event_name == 'push'
+        id: upload-preview
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: dadyar-preview-review-${{ github.sha }}
+          path: ${{ runner.temp }}/dadyar-preview-public/
+          if-no-files-found: error
+          retention-days: 7
+
+  roundtrip-verify:
+    if: github.event_name == 'push'
+    needs: verify-and-package
+    runs-on: ubuntu-latest
+    env:
+      DADYAR_PREVIEW_SOURCE_SHA: ${{ github.sha }}
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact reviewed source
+        uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Set up Node.js 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Download uploaded artifact by exact ID after upload job completes
+        if: github.event_name == 'push'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          artifact-ids: ${{ needs.verify-and-package.outputs.artifact-id }}
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.run_id }}
+          path: ${{ runner.temp }}/dadyar-preview-roundtrip/
+      - name: Verify uploaded artifact bytes and release boundary
+        if: github.event_name == 'push'
+        env:
+          DADYAR_PREVIEW_SOURCE_SHA: ${{ github.sha }}
+        run: node scripts/verify-uploaded-preview-artifact.cjs "$RUNNER_TEMP/dadyar-preview-roundtrip"
