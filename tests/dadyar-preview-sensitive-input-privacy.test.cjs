@@ -71,7 +71,7 @@ test('privacy scanner blocks context-labeled bank accounts and Iranian landlines
   const blocked = [
     'شماره حساب: ۱۲۳۴۵۶۷۸۹۰۱۲۳۴',
     'شماره حساب بانکی: ۱۲۳۴-۵۶۷۸-۹۰۱۲-۳۴',
-    'شماره حساب بانکی: ۱۲۳۴\\u200b۵۶۷۸\\u2060۹۰۱۲۳۴',
+    'شماره حساب بانکی: ۱۲۳۴' + String.fromCodePoint(0x200b) + '۵۶۷۸' + String.fromCodePoint(0x2060) + '۹۰۱۲۳۴',
     'Account number: 12345678901234',
     'تلفن ثابت منزل: ۰۲۱-۱۲۳۴۵۶۷۸',
     'کد پستی: ۱۲۳۴۵۶۷۸۹۰'
