@@ -125,5 +125,31 @@
     "نسخه معتبر متن در تاریخ هر رویداد هنوز با سند اولیه و بازبینی انسانی تأیید نشده است.",
     "بازبین حقوقی مستقل و تاریخ بررسی ثبت نشده است."
   ],
-  "scope": "این رکورد فقط سرنخ پژوهشی و فراداده مشاهده‌شده است. متن صفحه رسمی Qavanin برای اصلاحیه ۱۳۷۲ در ۲۰۲۶-۱۱-۲۶ نمایش داده شد، اما بایت خام/هش، فراداده اختصاصی و نسخه روزنامه رسمی دریافت نشد. متن تجمیعی جاری و زنجیره کامل اصلاحات نیز تأیید نشده‌اند. این مشاهده به‌تنهایی اصالت فایل، لازم‌الاجراشدن، یا نسخه معتبر در تاریخ واقعه را اثبات نمی‌کند و نباید در پاسخ حقوقی به‌عنوان منبع تأییدشده استفاده شود."
+  "scope": "این رکورد فقط سرنخ پژوهشی و فراداده مشاهده‌شده است. متن صفحه رسمی Qavanin برای اصلاحیه ۱۳۷۲ در ۲۰۲۶-۱۱-۲۶ نمایش داده شد، اما بایت خام/هش، فراداده اختصاصی و نسخه روزنامه رسمی دریافت نشد. متن تجمیعی جاری و زنجیره کامل اصلاحات نیز تأیید نشده‌اند. این مشاهده به‌تنهایی اصالت فایل، لازم‌الاجراشدن، یا نسخه معتبر در تاریخ واقعه را اثبات نمی‌کند و نباید در پاسخ حقوقی به‌عنوان منبع تأییدشده استفاده شود.",
+  "lastDirectObservationAt": "2026-11-28",
+  "latestDirectObservationFile": "docs/check-law-qavanin-direct-observation-20261128.json",
+  "latestDirectObservation": {
+    "observedAt": "2026-11-28",
+    "chequeLaw": {
+      "textPageRendered": true,
+      "article7AmendmentMarker": "اصلاحي 30ˏ03ˏ1403",
+      "metadataPageRendered": false,
+      "rawHttpResponseBytesCaptured": false,
+      "rawResponseSha256": null
+    },
+    "regulation1403": {
+      "metadataPageRendered": true,
+      "officialGazetteNumberShown": "23097",
+      "officialGazettePublicationDateShown": "1403/04/23",
+      "effectiveDateShown": "1403/05/08",
+      "textPageRendered": false,
+      "imagePageShellOnly": true,
+      "officialGazettePdfBytesRetrieved": false
+    },
+    "primarySourceVerified": false,
+    "humanReviewStatus": "pending",
+    "eventDateVersioningApproved": false,
+    "legalAnswerUsePermitted": false,
+    "observationFile": "docs/check-law-qavanin-direct-observation-20261128.json"
+  }
 }
