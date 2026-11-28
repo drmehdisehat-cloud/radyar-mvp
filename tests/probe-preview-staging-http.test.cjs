@@ -169,6 +169,23 @@ test('probe rejects missing no-store and security headers', async t => {
   await assert.rejects(() => probeStaging('https://staging.example/dadyar-preview/', f.root, weakFetch, 'https://staging.example'), /preview_html_nosniff_missing/);
 });
 
+test('probe rejects MIME types that merely share an expected prefix', async t => {
+  const f = fixture(t);
+  for (const contentType of [
+    'text/html-evil; charset=utf-8',
+    'text/htmlx',
+    'application/jsonp; charset=utf-8',
+    'text/html, application/json'
+  ]) {
+    const { fetchImpl, calls } = fakeFetch(f, { headers: { 'content-type': contentType } });
+    await assert.rejects(
+      () => probeStaging('https://staging.example/dadyar-preview/', f.root, fetchImpl, 'https://staging.example'),
+      /preview_html_content_type_mismatch/
+    );
+    assert.equal(calls.length, 1);
+  }
+});
+
 test('probe rejects a CSP that differs from the reviewed local HTML', async t => {
   const f = fixture(t);
   const { fetchImpl } = fakeFetch(f, { headers: { 'content-security-policy': "default-src 'self'" } });
