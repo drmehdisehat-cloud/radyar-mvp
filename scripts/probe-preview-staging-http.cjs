@@ -153,7 +153,6 @@ function assertSafeStagingHostname(hostname, label) {
     ? normalized.slice(1, -1)
     : normalized;
   if (net.isIP(ipCandidate)) fail(label + '_ip_literal_forbidden');
-  if (!normalized.includes('.')) fail(label + '_fully_qualified_hostname_required');
   const localSuffixes = [
     '.localhost', '.local', '.internal', '.localdomain',
     '.home.arpa', '.lan', '.home', '.corp', '.intranet'
@@ -161,6 +160,7 @@ function assertSafeStagingHostname(hostname, label) {
   if (normalized === 'localhost' || localSuffixes.some(suffix => normalized.endsWith(suffix))) {
     fail(label + '_local_hostname_forbidden');
   }
+  if (!normalized.includes('.')) fail(label + '_fully_qualified_hostname_required');
 }
 
 async function probeStaging(urlValue, artifactDirectory, fetchImpl = globalThis.fetch, allowedOriginValue = process.env.DADYAR_PREVIEW_STAGING_ORIGIN) {
