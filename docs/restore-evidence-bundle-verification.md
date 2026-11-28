@@ -31,6 +31,8 @@ node scripts/verify-restore-evidence-bundle.cjs --manifest /secure/restore.json 
 
 برای ساخت فایل‌های manifest، آرشیو، گزارش و probe، پیش از ایجاد آن‌ها `umask 077` را در همان نشست اپراتور اعمال کنید تا مجوز مالک‌محور از ابتدا برقرار باشد. فایل نشانگر را فقط در صورت نیاز سرویس وب Sandbox خواندنی کنید و هرگز مجوز نوشتن گروهی یا عمومی ندهید.
 
+در `preview-release-preflight.cjs` تمام رکوردهای JSON شامل manifest، destination evidence، review attestation و trust store در POSIX باید متعلق به root یا کاربر سرویس و فقط در دسترس مالک باشند (معمولاً `0600` یا `0400`؛ بدون بیت ویژه). خواننده امضا نیز manifest را owner-only می‌خواهد و برای فایل‌های کلید عمومی و امضا، مالکیت root/کاربر سرویس و نبود بیت ویژه یا نوشتن گروهی/عمومی را کنترل می‌کند. در صورت رد مجوز، فایل را در پوشه امن خارج از checkout دوباره تولید کنید؛ مجوز verifier را سست نکنید.
+
 
 ## اجرای probe فقط‌خواندنی دیتابیس Sandbox
 

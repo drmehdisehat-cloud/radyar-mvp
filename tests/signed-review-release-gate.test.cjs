@@ -87,15 +87,55 @@ function gate(f, overrides = {}) {
 const request = Object.freeze({ method: 'POST', url: '/api/dadyar/review-report' });
 const call = (release, envelope) => release({ request, envelope });
 
-test('returns only the exact server-loaded report after authenticated independent review and one-shot consumption', async t => {
+test('returns only the exact server-loaded report and rejects replays before another report-store read', async t => {
   const f = fixture(t);
-  const release = gate(f);
+  let loads = 0;
+  const release = gate(f, {
+    loadReviewedReport: async () => { loads += 1; return f.reportBytes; }
+  });
   const result = await call(release, f.attestation);
   assert.deepEqual(result.reportBytes, f.reportBytes);
+  assert.equal(loads, 1);
   assert.equal(fs.readdirSync(f.ledgerDirectory).length, 2);
   await assert.rejects(() => call(release, f.attestation),
     error => error.code === 'REVIEW_ATTESTATION_REJECTED');
+  assert.equal(loads, 1);
   assert.equal(fs.readdirSync(f.ledgerDirectory).length, 2);
+
+  // The persistent ledger must also stop a replay after the gate is reconstructed.
+  let restartedLoads = 0;
+  const restarted = gate(f, {
+    loadReviewedReport: async () => { restartedLoads += 1; return f.reportBytes; }
+  });
+  await assert.rejects(() => call(restarted, f.attestation),
+    error => error.code === 'REVIEW_ATTESTATION_REJECTED');
+  assert.equal(restartedLoads, 0);
+});
+
+test('concurrent duplicate requests do not fan out report-store reads', async t => {
+  const f = fixture(t);
+  let loads = 0;
+  let signalEntered;
+  let finishStorage;
+  const entered = new Promise(resolve => { signalEntered = resolve; });
+  const storage = new Promise(resolve => { finishStorage = resolve; });
+  const release = gate(f, {
+    loadReviewedReport: async () => {
+      loads += 1;
+      signalEntered();
+      return storage;
+    }
+  });
+
+  const first = call(release, f.attestation);
+  await entered;
+  await assert.rejects(() => call(release, f.attestation),
+    error => error.code === 'REVIEW_ATTESTATION_REJECTED');
+  assert.equal(loads, 1);
+  finishStorage(f.reportBytes);
+  const result = await first;
+  assert.deepEqual(result.reportBytes, f.reportBytes);
+  assert.equal(loads, 1);
 });
 
 test('requires an authenticated reviewer before reading report storage', async t => {
@@ -129,6 +169,26 @@ test('requires the identity adapter to attest reviewer independence and role', a
   assert.deepEqual(fs.readdirSync(f.ledgerDirectory), []);
 });
 
+test('rejects reviewer principals with extra or duplicate roles before reading report storage', async t => {
+  for (const roles of [
+    ['preview-reviewer', 'admin'],
+    ['preview-reviewer', 'legal-reviewer'],
+    ['preview-reviewer', 'preview-reviewer'],
+    ['admin', 'preview-reviewer']
+  ]) {
+    const f = fixture(t);
+    f.principal = { ...f.principal, roles };
+    let loads = 0;
+    const release = gate(f, {
+      loadReviewedReport: async () => { loads += 1; return f.reportBytes; }
+    });
+    await assert.rejects(() => call(release, f.attestation),
+      error => error.code === 'REVIEW_ATTESTATION_REJECTED');
+    assert.equal(loads, 0);
+    assert.deepEqual(fs.readdirSync(f.ledgerDirectory), []);
+  }
+});
+
 test('rejects a forged signature and a review bound to a different source commit', async t => {
   const f = fixture(t);
   const release = gate(f);
@@ -143,19 +203,30 @@ test('rejects a forged signature and a review bound to a different source commit
 
 test('does not consume a review nonce when report storage is unavailable or has the wrong digest', async t => {
   const f = fixture(t);
-  const unavailable = gate(f, {
-    loadReviewedReport: async () => { throw new Error('synthetic storage outage'); }
+  let failStorage = true;
+  let loads = 0;
+  const release = gate(f, {
+    loadReviewedReport: async () => {
+      loads += 1;
+      if (failStorage) throw new Error('synthetic storage outage');
+      return f.reportBytes;
+    }
   });
-  await assert.rejects(() => call(unavailable, f.attestation),
+  await assert.rejects(() => call(release, f.attestation),
     error => error.code === 'REVIEW_RELEASE_UNAVAILABLE');
   assert.deepEqual(fs.readdirSync(f.ledgerDirectory), []);
+  failStorage = false;
+  const retry = await call(release, f.attestation);
+  assert.deepEqual(retry.reportBytes, f.reportBytes);
+  assert.equal(loads, 2);
 
-  const mismatched = gate(f, {
+  const mismatched = fixture(t);
+  const wrongDigest = gate(mismatched, {
     loadReviewedReport: async () => Buffer.from('tampered synthetic report')
   });
-  await assert.rejects(() => call(mismatched, f.attestation),
+  await assert.rejects(() => call(wrongDigest, mismatched.attestation),
     error => error.code === 'REVIEW_RELEASE_UNAVAILABLE');
-  assert.deepEqual(fs.readdirSync(f.ledgerDirectory), []);
+  assert.deepEqual(fs.readdirSync(mismatched.ledgerDirectory), []);
 });
 
 test('pins a private trust-store snapshot at construction', async t => {
@@ -185,4 +256,26 @@ test('rejects a non-canonical or incomplete composition at construction', t => {
     ledgerDirectory: f.ledgerDirectory,
     loadReviewedReport: async () => f.reportBytes
   }), /source commit SHA/);
+});
+
+test('fails closed when the trusted identity adapter throws or returns no principal', async t => {
+  for (const authenticateReviewer of [
+    async () => { throw new Error('synthetic identity-provider outage'); },
+    async () => null
+  ]) {
+    const f = fixture(t);
+    let loads = 0;
+    const release = gate(f, {
+      authenticateReviewer,
+      loadReviewedReport: async () => {
+        loads += 1;
+        return f.reportBytes;
+      }
+    });
+
+    await assert.rejects(() => call(release, f.attestation),
+      error => error.code === 'AUTHENTICATED_REVIEWER_REQUIRED');
+    assert.equal(loads, 0);
+    assert.deepEqual(fs.readdirSync(f.ledgerDirectory), []);
+  }
 });

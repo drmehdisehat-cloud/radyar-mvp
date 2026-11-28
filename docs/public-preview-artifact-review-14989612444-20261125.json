@@ -1,0 +1,183 @@
+{
+  "schema": "dadyar-public-preview-artifact-review-v1",
+  "observedAt": "2026-11-25T08:09:59+03:30",
+  "repository": "drmehdisehat-cloud/radyar-mvp",
+  "branch": "dadyar/ai-chat-private-20261101",
+  "sourceCommit": "29907ca51a04f9991db53d6d5f5c0d54aac29dfa",
+  "commitSignature": {
+    "verified": false,
+    "reason": "unsigned"
+  },
+  "main": {
+    "sha": "d3f02e3b0d4cd3f5d40aabc63bd5d3d93d792318",
+    "aheadBy": 1833,
+    "behindBy": 0
+  },
+  "historicalAnchor": {
+    "correctionCommit": "4d4f7530c47f438a1d89e18afef246cec026391f",
+    "workflowRunId": 42206234440,
+    "workflowConclusion": "success",
+    "workflowHeadSha": "4d4f7530c47f438a1d89e18afef246cec026391f"
+  },
+  "requiredCi": {
+    "runId": 45542107758,
+    "jobs": [
+      {
+        "id": 138962933492,
+        "name": "verify-existing-frontend",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 138963197010,
+        "name": "audit-release-posture-after-ci",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ],
+    "contractTests": {
+      "passed": 1468,
+      "failed": 0,
+      "skipped": 0
+    },
+    "browser": {
+      "persianInterviewAndPrivacyReset": {
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0
+      },
+      "syntheticCheque": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      },
+      "narrowChromium": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      },
+      "mobileDeviceEmulation": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      },
+      "mobileSubpathReviewAndZeroApi": {
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0
+      },
+      "topicRouting": {
+        "passed": 12,
+        "failed": 0,
+        "skipped": 0
+      }
+    }
+  },
+  "artifactWorkflow": {
+    "name": "Dadyar public-only preview review artifact",
+    "runId": 45542107878,
+    "jobId": 138962952358,
+    "event": "push",
+    "jobStatus": "completed",
+    "jobConclusion": "success",
+    "runUrl": "https://github.com/drmehdisehat-cloud/radyar-mvp/actions/runs/45542107878"
+  },
+  "artifact": {
+    "id": 14989612444,
+    "name": "dadyar-public-preview-review-29907ca51a04f9991db53d6d5f5c0d54aac29dfa",
+    "sizeBytes": 19727,
+    "createdAt": "2026-11-25T03:46:23Z",
+    "expiresAt": "2026-12-02T03:46:22Z",
+    "archiveSha256": "d036f8f962c1499041b0ce97177c4b338f292ba716f163164b794b7e23a24690",
+    "entries": [
+      {
+        "path": "index.html",
+        "sizeBytes": 65821,
+        "sha256": "fb31fa29491d3e087d1700a8a053305f3fce555c28728b6ebe0fba7ef822b327",
+        "gitBlobSha1": "90f7616162591efb9c7f0b059105e09f12873e98"
+      },
+      {
+        "path": "INTEGRITY.json",
+        "sizeBytes": 967,
+        "sha256": "26d3d2eafd640ea3ac10ef208383dad62d689a5557cc0fe9e532a9e6777e32cd"
+      }
+    ],
+    "entryCount": 2
+  },
+  "manifest": {
+    "schema": "dadyar-public-preview-integrity-v1",
+    "sourceCommit": "29907ca51a04f9991db53d6d5f5c0d54aac29dfa",
+    "workflowCommit": "29907ca51a04f9991db53d6d5f5c0d54aac29dfa",
+    "sourceBranch": "dadyar/ai-chat-private-20261101",
+    "sourceFile": "public/index.html",
+    "targetSubpath": "/dadyar-preview/",
+    "sha256": "fb31fa29491d3e087d1700a8a053305f3fce555c28728b6ebe0fba7ef822b327",
+    "gitBlobSha1": "90f7616162591efb9c7f0b059105e09f12873e98",
+    "topicHintCount": 27,
+    "apiEnabled": false,
+    "publicAiEnabled": false,
+    "reviewerAuthentication": "not-configured",
+    "backupRestoreVerified": false,
+    "destinationVerified": false,
+    "deploymentAuthorized": false
+  },
+  "verification": {
+    "downloadedFromGitHub": true,
+    "zipListingVerified": true,
+    "archiveSha256Recomputed": true,
+    "htmlSha256Recomputed": true,
+    "integrityManifestSha256Recomputed": true,
+    "manifestMatchesArtifact": true,
+    "htmlMatchesSourceGitBlob": true,
+    "productionHostRequested": false,
+    "restorePerformed": false,
+    "destinationTestPerformed": false,
+    "reviewerIdentityVerified": false,
+    "legalAccuracyVerified": false
+  },
+  "repositoryPosture": {
+    "status": "NOT_READY",
+    "visibility": "public",
+    "branchProtected": false,
+    "auditBlockers": [
+      "repository_must_be_private",
+      "release_branch_protection_disabled"
+    ],
+    "rulesets": []
+  },
+  "pullRequests": [
+    {
+      "number": 8,
+      "state": "open",
+      "draft": true,
+      "headSha": "29907ca51a04f9991db53d6d5f5c0d54aac29dfa",
+      "changedFiles": 412,
+      "submittedReviews": 0
+    },
+    {
+      "number": 9,
+      "state": "open",
+      "draft": true,
+      "headSha": "27ef3b565641139b4641658c8a97445a26446ae2",
+      "changedFiles": 19,
+      "submittedReviews": 0
+    },
+    {
+      "number": 16,
+      "state": "open",
+      "draft": true,
+      "headSha": "29907ca51a04f9991db53d6d5f5c0d54aac29dfa",
+      "changedFiles": 222,
+      "submittedReviews": 0
+    },
+    {
+      "number": 17,
+      "state": "open",
+      "draft": true,
+      "headSha": "29907ca51a04f9991db53d6d5f5c0d54aac29dfa",
+      "changedFiles": 220,
+      "submittedReviews": 0
+    }
+  ],
+  "releaseBoundary": "This record proves only the downloaded artifact bytes and exact-head CI observations. It does not prove isolated backup restoration, destination validity, authenticated reviewer identity, legal accuracy, or deployment authorization. Do not publish until every independent release gate is satisfied."
+}

@@ -9,6 +9,15 @@ const {
 
 function fixture() {
   const { publicKey, privateKey } = crypto.generateKeyPairSync('ed25519');
+  const restoreSignerPublicKeys = Array.from(
+    { length: 2 },
+    () => crypto.generateKeyPairSync('ed25519').publicKey
+  );
+  const restoreSignerFingerprints = restoreSignerPublicKeys.map(key =>
+    crypto.createHash('sha256')
+      .update(key.export({ type: 'spki', format: 'der' }))
+      .digest('hex')
+  );
   const now = Date.now();
   const payload = {
     schema: 'dadyar-human-review-attestation-v2',
@@ -38,7 +47,10 @@ function fixture() {
     payload,
     signature: crypto.sign(null, Buffer.from(canonicalizePayload(payload)), privateKey).toString('base64url')
   };
-  return { payload, trustStore, attestation, privateKey, now };
+  return {
+    payload, trustStore, attestation, privateKey, now,
+    restoreSignerPublicKeys, restoreSignerFingerprints
+  };
 }
 
 function resign(f, patch) {
@@ -56,6 +68,7 @@ function verify(f, overrides = {}) {
     expectedSourceCommit: f.payload.source_commit,
     expectedSourceBlobSha1: f.payload.source_blob_sha1,
     expectedArtifactSha256: f.payload.artifact_sha256,
+    forbiddenPublicKeySha256s: f.restoreSignerFingerprints,
     now: f.now,
     ...overrides
   });
@@ -109,6 +122,67 @@ test('rejects a reviewer who is absent, inactive, or lacks the preview-reviewer 
   f.trustStore.reviewers[0].roles = ['preview-reviewer'];
   f.attestation = resign(f, { subject: 'unlisted-reviewer' });
   assert.equal(verify(f).reason, 'reviewer_not_trusted');
+});
+
+test('rejects the same Ed25519 public key registered under two reviewer identities', () => {
+  const f = fixture();
+  f.trustStore.reviewers.push({
+    subject: 'synthetic-reviewer-02',
+    roles: ['observer'],
+    active: false,
+    public_key_pem: f.trustStore.reviewers[0].public_key_pem
+  });
+  assert.equal(verify(f).reason, 'duplicate_trust_store_public_key');
+});
+
+test('rejects a human-review key reused by either restore signer', () => {
+  const f = fixture();
+  const key = crypto.createPublicKey(f.trustStore.reviewers[0].public_key_pem);
+  const fingerprint = crypto.createHash('sha256')
+    .update(key.export({ type: 'spki', format: 'der' }))
+    .digest('hex');
+  for (let index = 0; index < 2; index++) {
+    const pins = [...f.restoreSignerFingerprints];
+    pins[index] = fingerprint;
+    assert.equal(
+      verify(f, { forbiddenPublicKeySha256s: pins }).reason,
+      'reviewer_key_reused_across_restore_signers'
+    );
+  }
+});
+
+test('allows standalone signature verification when no Restore context is supplied', () => {
+  const f = fixture();
+  assert.equal(verify(f, { forbiddenPublicKeySha256s: [] }).verified, true);
+});
+
+test('rejects a restore signer key even when aliased under an inactive reviewer record', () => {
+  const f = fixture();
+  f.trustStore.reviewers.push({
+    subject: 'synthetic-inactive-reviewer',
+    roles: ['observer'],
+    active: false,
+    public_key_pem: f.restoreSignerPublicKeys[1].export({ type: 'spki', format: 'pem' })
+  });
+  assert.equal(
+    verify(f).reason,
+    'reviewer_key_reused_across_restore_signers'
+  );
+});
+
+test('rejects malformed or duplicate cross-domain key fingerprint pins', () => {
+  const f = fixture();
+  for (const values of [
+    ['not-a-fingerprint', f.restoreSignerFingerprints[1]],
+    ['0'.repeat(64), f.restoreSignerFingerprints[1]],
+    [f.restoreSignerFingerprints[0], f.restoreSignerFingerprints[0].toUpperCase()],
+    'a'.repeat(64)
+  ]) {
+    assert.equal(
+      verify(f, { forbiddenPublicKeySha256s: values }).reason,
+      'invalid_forbidden_key_fingerprints'
+    );
+  }
 });
 
 test('rejects an issuer mismatch and non-approved decision', () => {

@@ -42,7 +42,7 @@ test('committed evidence stays research-only with concrete gaps for every instru
     '../docs/check-amendment-effective-date-matrix.json'), 'utf8'));
   const report = audit(matrix);
   assert.equal(report.status, 'RESEARCH_ONLY');
-  assert.deepEqual(report.instruments.map(item => item.label), ['1397', '1400', '1403']);
+  assert.deepEqual(report.instruments.map(item => item.label), ['1372', '1397', '1400', '1403']);
   for (const item of report.instruments) {
     assert.ok(item.missingEvidence.includes('primary_official_gazette'), item.label);
     assert.ok(item.missingEvidence.includes('verified_effective_date'), item.label);

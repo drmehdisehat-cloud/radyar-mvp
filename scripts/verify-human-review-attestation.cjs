@@ -66,6 +66,7 @@ function verifyHumanReviewAttestation({
   expectedSourceCommit,
   expectedSourceBlobSha1,
   expectedArtifactSha256,
+  forbiddenPublicKeySha256s = [],
   now = Date.now()
 } = {}) {
   const fail = reason => ({ verified: false, reason });
@@ -78,6 +79,20 @@ function verifyHumanReviewAttestation({
       trustStore.reviewers.length < 1 || trustStore.reviewers.length > 100) {
     return fail('invalid_trust_store');
   }
+  // Standalone signature checks may omit Restore context. The release preflight
+  // supplies both independently verified Restore signer pins before authorizing
+  // a preview review, and this verifier rejects any reviewer-key collision.
+  if (!Array.isArray(forbiddenPublicKeySha256s) ||
+      forbiddenPublicKeySha256s.length > 16 ||
+      forbiddenPublicKeySha256s.some(value =>
+        typeof value !== 'string' || !SHA256.test(value) || /^0{64}$/i.test(value)
+      ) ||
+      new Set(forbiddenPublicKeySha256s.map(value => value.toLowerCase())).size !== forbiddenPublicKeySha256s.length) {
+    return fail('invalid_forbidden_key_fingerprints');
+  }
+  const forbiddenKeyFingerprints = new Set(
+    forbiddenPublicKeySha256s.map(value => value.toLowerCase())
+  );
 
   const p = attestation.payload;
   if (p.schema !== 'dadyar-human-review-attestation-v2' ||
@@ -112,7 +127,9 @@ function verifyHumanReviewAttestation({
   }
 
   const subjects = new Set();
+  const publicKeyFingerprints = new Set();
   let selected = null;
+  let selectedPublicKey = null;
   for (const reviewer of trustStore.reviewers) {
     if (!exactKeys(reviewer, REVIEWER_KEYS) ||
         !isSafeIdentityLabel(reviewer.subject) ||
@@ -125,23 +142,47 @@ function verifyHumanReviewAttestation({
     }
     if (subjects.has(reviewer.subject)) return fail('duplicate_trust_store_subject');
     subjects.add(reviewer.subject);
-    if (reviewer.subject === p.subject) selected = reviewer;
+
+    // A single Ed25519 private key must not be registered under multiple
+    // reviewer identities. Otherwise aliases could make one key appear to be
+    // multiple independent people in the owner-managed trust registry.
+    let reviewerKey;
+    try {
+      reviewerKey = crypto.createPublicKey(reviewer.public_key_pem);
+    } catch {
+      return fail(reviewer.subject === p.subject
+        ? 'invalid_reviewer_public_key'
+        : 'invalid_trust_store_reviewer_public_key');
+    }
+    if (reviewerKey.asymmetricKeyType !== 'ed25519') {
+      return fail(reviewer.subject === p.subject
+        ? 'reviewer_key_must_be_ed25519'
+        : 'invalid_trust_store_reviewer_public_key');
+    }
+    if (reviewerKey.export({ type: 'spki', format: 'pem' }) !== reviewer.public_key_pem) {
+      return fail(reviewer.subject === p.subject
+        ? 'reviewer_public_key_not_canonical_spki'
+        : 'invalid_trust_store_reviewer_public_key');
+    }
+    const fingerprint = crypto.createHash('sha256')
+      .update(reviewerKey.export({ type: 'spki', format: 'der' }))
+      .digest('hex');
+    if (forbiddenKeyFingerprints.has(fingerprint)) {
+      return fail('reviewer_key_reused_across_restore_signers');
+    }
+    if (publicKeyFingerprints.has(fingerprint)) {
+      return fail('duplicate_trust_store_public_key');
+    }
+    publicKeyFingerprints.add(fingerprint);
+
+    if (reviewer.subject === p.subject) {
+      selected = reviewer;
+      selectedPublicKey = reviewerKey;
+    }
   }
   if (!selected || selected.active !== true) return fail('reviewer_not_trusted');
   if (!selected.roles.includes('preview-reviewer')) return fail('reviewer_not_authorized');
-
-  let publicKey;
-  try {
-    publicKey = crypto.createPublicKey(selected.public_key_pem);
-  } catch {
-    return fail('invalid_reviewer_public_key');
-  }
-  if (publicKey.asymmetricKeyType !== 'ed25519') return fail('reviewer_key_must_be_ed25519');
-  // Node's PEM parser may ignore trailing blocks or text. Require the exact
-  // canonical SPKI encoding so a pinned trust-store entry has one key value.
-  if (publicKey.export({ type: 'spki', format: 'pem' }) !== selected.public_key_pem) {
-    return fail('reviewer_public_key_not_canonical_spki');
-  }
+  const publicKey = selectedPublicKey;
 
   const signature = decodeCanonicalBase64url(attestation.signature, 64, SIGNATURE);
   if (!signature) return fail('invalid_signature_encoding');

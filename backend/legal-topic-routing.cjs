@@ -17,7 +17,9 @@ const TOPIC_HINTS = [
       "وجه التزام",
       "مطالبه وجه",
       "استرداد ثمن",
-      "دارا شدن بلاجهت"
+      "دارا شدن بلاجهت",
+      "خسارت تأخیر تأدیه",
+      "خسارت تاخیر تادیه"
     ]
   },
   {
@@ -106,7 +108,10 @@ const TOPIC_HINTS = [
       "اعاده دادرسی",
       "داوری",
       "دادگاه صلح",
-      "شورای حل اختلاف"
+      "شورای حل اختلاف",
+      "ماده ۵۲۲",
+      "ماده 522",
+      "آیین دادرسی مدنی"
     ]
   },
   {
@@ -396,6 +401,11 @@ const TOPIC_HINTS = [
 function normalizeTopicText(value) {
   return String(value || '').normalize('NFKC')
     .replace(/[يى]/g, 'ی').replace(/ك/g, 'ک')
+    // Treat Persian, Arabic-Indic and ASCII digits as the same legal numeral.
+    .replace(/[۰-۹٠-٩]/g, digit => {
+      const code = digit.charCodeAt(0);
+      return String(code - (code >= 0x6f0 && code <= 0x6f9 ? 0x6f0 : 0x660));
+    })
     .replace(/\p{M}/gu, '')
     .replace(/[^\p{L}\p{N}]+/gu, ' ').replace(/\s+/gu, ' ').trim();
 }
@@ -403,8 +413,10 @@ function normalizeTopicText(value) {
 function classifyLegalTopics(text) {
   const normalized = ' ' + normalizeTopicText(text) + ' ';
   return TOPIC_HINTS.flatMap(domain => {
-    const matches = domain.keywords.filter(keyword =>
-      normalized.includes(' ' + normalizeTopicText(keyword) + ' ')
+    // Alias spellings such as Persian and ASCII Article 522 count once.
+    const keywords = [...new Set(domain.keywords.map(normalizeTopicText))];
+    const matches = keywords.filter(keyword =>
+      normalized.includes(' ' + keyword + ' ')
     );
     return matches.length ? [{ id: domain.id, count: matches.length }] : [];
   }).sort((a, b) => b.count - a.count).map(item => item.id);

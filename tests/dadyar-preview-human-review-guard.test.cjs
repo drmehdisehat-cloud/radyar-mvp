@@ -38,7 +38,8 @@ function harness() {
         for (const callback of handlers.get(id + ':click') || []) callback({ type: 'click', target: this });
       },
       focus() {},
-      contains() { return false; }
+      contains() { return false; },
+      closest() { return { textContent: id }; }
     };
     return element;
   }
@@ -83,13 +84,18 @@ function harness() {
     return element;
   });
 
+  const reviewChecklistItems = ['review-check-facts','review-check-conflicts','review-check-sources','review-check-privacy'].map(id => makeElement(id));
+
   const document = {
     activeElement: null,
     getElementById: get,
     querySelectorAll(selector) {
       if (selector === '#interview select') return selects;
-      if (selector === 'fieldset input[type=checkbox]') return evidence;
-      if (selector === 'fieldset input[type=checkbox]:checked') return evidence.filter(item => item.checked);
+      if (selector === '#review-checklist input[type="checkbox"]') return reviewChecklistItems;
+      if (selector === '#evidence-list input[type="checkbox"]') return evidence;
+      if (selector === '#evidence-list input[type="checkbox"]:checked') return evidence.filter(item => item.checked);
+      if (selector === 'fieldset input[type=checkbox]') return [...evidence, ...reviewChecklistItems];
+      if (selector === 'fieldset input[type=checkbox]:checked') return [...evidence, ...reviewChecklistItems].filter(item => item.checked);
       throw new Error('Unexpected selector in preview test: ' + selector);
     },
     createElement(tag) {
@@ -118,6 +124,7 @@ function harness() {
     get,
     selects,
     evidence,
+    reviewChecklistItems,
     get exportedBlob() { return exportedBlob; },
     get exportedFilename() { return exportedFilename; },
     clearExport() { exportedBlob = null; exportedFilename = ''; }
@@ -148,6 +155,10 @@ function fillReview(h, decision = 'approved') {
   const note = h.get('review-note');
   note.value = 'بازبینی سناریوی ساختگی و تعارض مدارک نمونه';
   note.dispatchEvent({ type: 'input' });
+  for (const item of h.reviewChecklistItems) {
+    item.checked = true;
+    item.dispatchEvent({ type: 'change' });
+  }
 
   const acknowledgement = h.get('export-ack');
   acknowledgement.checked = true;
@@ -207,7 +218,7 @@ test('editing reviewer details after approval invalidates export and requires a 
   const report = await h.exportedBlob.text();
   assert.match(report, /ثبت بازبینی انسانی \(اظهار محلی؛ هویت احراز نشده\)/);
   assert.match(report, /نام بازبین: بازبین آزمون/);
-  assert.match(report, /نتیجه بازبینی: تأیید برای دریافت آموزشی/);
+  assert.match(report, /نتیجه بازبینی: تأیید محلی برای دریافت گزارش آزمایشی/);
   assert.match(report, /محدودیت: این اظهار محلی است و تأیید حقوقی یا احراز هویت محسوب نمی‌شود/);
   assert.equal(h.get('download').disabled, true, 'approval must be consumed after one export');
   assert.equal(h.get('export-ack').checked, false);

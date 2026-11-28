@@ -44,7 +44,7 @@ function audit(matrix) {
       typeof primaryUrl === 'string' &&
       /^https:\/\/qavanin\.ir\/Law\/TreeText\/\?IDS=[1-9]\d*$/i.test(primaryUrl) &&
       observation && observation.url === primaryUrl &&
-      observation.sourceType === 'official-qavanin-portal-consolidated-text' &&
+      ['official-qavanin-portal-consolidated-text', 'official-qavanin-portal-amendment-text'].includes(observation.sourceType) &&
       observedDateValid;
     if (item.independentPrimaryAmendmentTextVerified !== true && !candidatePrimaryEvidence) {
       gaps.push('independent_primary_instrument');

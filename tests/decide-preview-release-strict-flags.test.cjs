@@ -32,18 +32,33 @@ const restoreEvidence = {
   restore_completed_at: '2026-11-09T12:00:00.000Z',
   reviewed_at: '2026-11-09T13:00:00.000Z'
 };
+const postureObservation = {
+  schema: 'dadyar-github-release-posture-observation-v1',
+  status: 'POSTURE_VERIFIED',
+  repository: 'drmehdisehat-cloud/radyar-mvp',
+  visibility: 'private',
+  branch: 'dadyar/ai-chat-private-20261101',
+  branchProtected: true,
+  headSha: 'f'.repeat(40),
+  blockers: [],
+  deploymentAuthorized: false,
+  observedAt: new Date().toISOString()
+};
 const valid = {
   restoreEvidence,
+  repositoryPostureObservation: postureObservation,
+  expectedSourceCommit: postureObservation.headSha,
   destinationEvidence: { matched: true, source_blob_sha1: '1'.repeat(40), expected_source_blob_sha1: '1'.repeat(40), source_sha256: sha, destination_sha256: sha, destination_realpath: '/srv/isolated-staging/dadyar-preview/index.html', production_document_root_realpath: '/home/site/public_html', git_checkout_realpath: '/srv/radyar-checkout', destination_outside_document_root: true, destination_outside_git_checkout: true },
   isolatedRestoreVerified: true,
   mobileBrowserVerified: true,
   zeroApiRequestsVerified: true,
   localHumanReviewAcknowledged: true,
   authenticatedHumanReviewAttested: true,
-  authenticatedRestoreAttestation: true
+  authenticatedRestoreAttestation: true,
+  trustedReviewerAuthenticationAdapterVerified: true
 };
 test('every release evidence flag must be literal boolean true', () => {
-  for (const key of ['isolatedRestoreVerified', 'mobileBrowserVerified', 'zeroApiRequestsVerified', 'localHumanReviewAcknowledged', 'authenticatedHumanReviewAttested', 'authenticatedRestoreAttestation']) {
+  for (const key of ['isolatedRestoreVerified', 'mobileBrowserVerified', 'zeroApiRequestsVerified', 'localHumanReviewAcknowledged', 'authenticatedHumanReviewAttested', 'authenticatedRestoreAttestation', 'trustedReviewerAuthenticationAdapterVerified']) {
     for (const invalid of ['true', 1, {}, null, undefined]) {
       const result = decidePreviewRelease({ ...valid, [key]: invalid });
       assert.equal(result.status, 'NOT_READY', key + ': ' + String(invalid));
@@ -138,5 +153,22 @@ test('restore attestation requires canonical realpaths and rejects symlink-like 
     const result = decidePreviewRelease({ ...valid, restoreEvidence });
     assert.equal(result.status, 'NOT_READY');
     assert.ok(result.blockers.includes('independent restore attestation incomplete or unverified'));
+  }
+});
+
+test('stale, public, unprotected or wrong-head posture observations fail closed', () => {
+  const invalid = [
+    { ...postureObservation, visibility: 'public' },
+    { ...postureObservation, branchProtected: false },
+    { ...postureObservation, headSha: 'e'.repeat(40) },
+    { ...postureObservation, observedAt: new Date(Date.now() - 16 * 60 * 1000).toISOString() },
+    { ...postureObservation, blockers: ['release_branch_protection_disabled'] }
+  ];
+  for (const repositoryPostureObservation of invalid) {
+    const result = decidePreviewRelease({ ...valid, repositoryPostureObservation });
+    assert.equal(result.status, 'NOT_READY');
+    assert.ok(result.blockers.includes(
+      'repository privacy and release-branch protection observation is missing, stale, or mismatched'
+    ));
   }
 });

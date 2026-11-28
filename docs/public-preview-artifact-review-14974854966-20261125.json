@@ -1,0 +1,70 @@
+{
+  "schema": "dadyar-public-preview-artifact-review-v1",
+  "observedAt": "2026-11-25",
+  "observationTimePrecision": "date-only; archive digests were recomputed after download",
+  "repository": "drmehdisehat-cloud/radyar-mvp",
+  "branch": "dadyar/ai-chat-private-20261101",
+  "sourceCommit": "c513f91333d89e14b24c1aee853fe1264e6789ee",
+  "repositorySourcePath": "dadyar-preview/index.html",
+  "workflow": {
+    "name": "Dadyar public-only preview review artifact",
+    "runId": 45512137352,
+    "jobId": 138862269961,
+    "event": "push",
+    "conclusion": "success",
+    "runUrl": "https://github.com/drmehdisehat-cloud/radyar-mvp/actions/runs/45512137352"
+  },
+  "artifact": {
+    "id": 14974854966,
+    "name": "dadyar-public-preview-review-c513f91333d89e14b24c1aee853fe1264e6789ee",
+    "sizeBytes": 19727,
+    "createdAt": "2026-11-24T23:43:15Z",
+    "expiresAt": "2026-12-01T23:43:13Z",
+    "url": "https://github.com/drmehdisehat-cloud/radyar-mvp/actions/runs/45512137352/artifacts/14974854966",
+    "archiveSha256": "15d8fa85ac4ada8b5f2c1da9a8b7714da3d97be9669ef21de1667def167f7b30",
+    "entries": [
+      {
+        "path": "index.html",
+        "sizeBytes": 65821,
+        "sha256": "fb31fa29491d3e087d1700a8a053305f3fce555c28728b6ebe0fba7ef822b327",
+        "gitBlobSha1": "90f7616162591efb9c7f0b059105e09f12873e98"
+      },
+      {
+        "path": "INTEGRITY.json",
+        "sizeBytes": 967,
+        "sha256": "941e0274c911b74ee130c535a07f9811b5c4f5ed9d0fb97974ee8d3a7baed8e3"
+      }
+    ],
+    "entryCount": 2
+  },
+  "manifest": {
+    "schema": "dadyar-public-preview-integrity-v1",
+    "sourceCommit": "c513f91333d89e14b24c1aee853fe1264e6789ee",
+    "workflowCommit": "c513f91333d89e14b24c1aee853fe1264e6789ee",
+    "sourceBranch": "dadyar/ai-chat-private-20261101",
+    "sourceFile": "public/index.html",
+    "targetSubpath": "/dadyar-preview/",
+    "sha256": "fb31fa29491d3e087d1700a8a053305f3fce555c28728b6ebe0fba7ef822b327",
+    "gitBlobSha1": "90f7616162591efb9c7f0b059105e09f12873e98",
+    "topicHintCount": 27,
+    "apiEnabled": false,
+    "publicAiEnabled": false,
+    "reviewerAuthentication": "not-configured",
+    "backupRestoreVerified": false,
+    "destinationVerified": false,
+    "deploymentAuthorized": false
+  },
+  "verification": {
+    "downloadedFromGitHub": true,
+    "zipListingVerified": true,
+    "archiveSha256Recomputed": true,
+    "htmlSha256Recomputed": true,
+    "integrityManifestSha256Recomputed": true,
+    "manifestMatchesArtifact": true,
+    "htmlMatchesRepositorySourceGitBlob": true,
+    "productionHostRequested": false,
+    "restorePerformed": false,
+    "destinationTestPerformed": false
+  },
+  "releaseBoundary": "This record proves only that the current branch artifact was downloaded and its ZIP entries, digests, manifest, and source Git blob were checked. It does not prove an isolated backup restore, destination validity, authenticated reviewer identity, legal accuracy, or deployment authorization. Do not publish until every independent release gate is satisfied."
+}

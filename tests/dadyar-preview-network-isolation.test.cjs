@@ -18,7 +18,13 @@ const forbiddenNetworkPatterns = [
   /\bimportScripts\s*\(/i,
   /\bWebTransport\b/i,
   /\bSharedWorker\b/i,
-  /\bserviceWorker\b/i
+  /\bserviceWorker\b/i,
+  // WebRTC can create peer-to-peer network paths not expressed as fetch/XHR.
+  /\bRTCPeerConnection\b/i,
+  /\bwebkitRTCPeerConnection\b/i,
+  /\bRTCDataChannel\b/i,
+  // Device APIs can expose hardware or external communication channels.
+  /\bnavigator\s*\.\s*(?:bluetooth|usb|serial|hid)\b/i
 ];
 const forbiddenStoragePatterns = [
   /\blocalStorage\b/i,
@@ -56,7 +62,14 @@ test('network guard detects every forbidden API in a synthetic probe', () => {
     'importScripts("/worker.js")',
     'new WebTransport("https://example.invalid")',
     'new SharedWorker("/shared.js")',
-    'navigator.serviceWorker.register("/sw.js")'
+    'navigator.serviceWorker.register("/sw.js")',
+    'new RTCPeerConnection({ iceServers: [{ urls: "stun:example.invalid" }] })',
+    'new webkitRTCPeerConnection()',
+    'new RTCDataChannel()',
+    'navigator.bluetooth.requestDevice({ acceptAllDevices: true })',
+    'navigator.usb.requestDevice({ filters: [] })',
+    'navigator.serial.requestPort()',
+    'navigator.hid.requestDevice({ filters: [] })'
   ].join('; ');
   for (const pattern of forbiddenNetworkPatterns) {
     assert.match(fixture, pattern, 'detector failed to recognize forbidden API: ' + pattern);
@@ -66,6 +79,21 @@ test('network guard detects every forbidden API in a synthetic probe', () => {
 test('offline preview does not persist questions or review data in browser storage', () => {
   for (const pattern of forbiddenStoragePatterns) {
     assert.doesNotMatch(executable, pattern, 'persistent browser storage found: ' + pattern);
+  }
+});
+
+test('network guard detects WebRTC peer connections and hardware communication APIs', () => {
+  const fixture = [
+    'new RTCPeerConnection({ iceServers: [{ urls: "stun:example.invalid" }] })',
+    'new webkitRTCPeerConnection()',
+    'new RTCDataChannel()',
+    'navigator.bluetooth.requestDevice({ acceptAllDevices: true })',
+    'navigator.usb.requestDevice({ filters: [] })',
+    'navigator.serial.requestPort()',
+    'navigator.hid.requestDevice({ filters: [] })'
+  ].join('; ');
+  for (const pattern of forbiddenNetworkPatterns.slice(-4)) {
+    assert.match(fixture, pattern, 'network capability detector missed: ' + pattern);
   }
 });
 

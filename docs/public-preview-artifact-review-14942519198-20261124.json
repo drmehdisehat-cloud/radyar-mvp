@@ -1,0 +1,87 @@
+{
+  "schema": "dadyar-public-preview-artifact-review-v1",
+  "observed_on": "2026-11-24",
+  "repository": "drmehdisehat-cloud/radyar-mvp",
+  "source": {
+    "branch": "dadyar/ai-chat-private-20261101",
+    "commit": "4b0b88862d6a7d3a8aa4182d94f451a896fad926",
+    "path": "dadyar-preview/index.html",
+    "sha256": "fb31fa29491d3e087d1700a8a053305f3fce555c28728b6ebe0fba7ef822b327",
+    "git_blob_sha1": "90f7616162591efb9c7f0b059105e09f12873e98",
+    "topic_hint_count": 27
+  },
+  "workflow": {
+    "required_ci_run_id": 45440511457,
+    "required_ci_url": "https://github.com/drmehdisehat-cloud/radyar-mvp/actions/runs/45440511457",
+    "required_ci_conclusion": "success",
+    "contract_tests": {
+      "passed": 1427,
+      "failed": 0,
+      "skipped": 0
+    },
+    "artifact_run_id": 45440511566,
+    "artifact_run_url": "https://github.com/drmehdisehat-cloud/radyar-mvp/actions/runs/45440511566",
+    "artifact_job_id": 138610012947,
+    "artifact_job_conclusion": "success"
+  },
+  "artifact": {
+    "id": 14942519198,
+    "name": "dadyar-public-preview-review-4b0b88862d6a7d3a8aa4182d94f451a896fad926",
+    "created_at": "2026-11-24T16:45:42Z",
+    "expires_at": "2026-12-01T16:45:41Z",
+    "size_bytes": 19728,
+    "github_digest_sha256": "4fe2c44b0dc96a3ed2e0d6690581e955e98a8b006553367b1339f5802017daab",
+    "downloaded_zip_sha256": "4fe2c44b0dc96a3ed2e0d6690581e955e98a8b006553367b1339f5802017daab",
+    "files": [
+      {
+        "path": "index.html",
+        "size_bytes": 65821,
+        "sha256": "fb31fa29491d3e087d1700a8a053305f3fce555c28728b6ebe0fba7ef822b327",
+        "git_blob_sha1": "90f7616162591efb9c7f0b059105e09f12873e98"
+      },
+      {
+        "path": "INTEGRITY.json",
+        "size_bytes": 967,
+        "sha256": "a286d6385307117eff34cfea7a381d0c282c43be1a5e5c20812dc5208dfd8701"
+      }
+    ],
+    "manifest": {
+      "target_subpath": "/dadyar-preview/",
+      "source_commit": "4b0b88862d6a7d3a8aa4182d94f451a896fad926",
+      "api_enabled": false,
+      "public_ai_enabled": false,
+      "reviewer_authentication": "not-configured",
+      "backup_restore_verified": false,
+      "destination_verified": false,
+      "deployment_authorized": false
+    }
+  },
+  "verification": {
+    "downloaded": true,
+    "zip_integrity_test": "passed",
+    "exact_root_file_set": [
+      "INTEGRITY.json",
+      "index.html"
+    ],
+    "github_digest_matches_downloaded_zip": true,
+    "html_sha256_matches_manifest": true,
+    "html_git_blob_matches_source_commit": true,
+    "scope": "archive structure, downloaded ZIP digest, embedded manifest digest, and source-byte binding only",
+    "not_proven": [
+      "live HTTPS destination",
+      "destination filesystem identity",
+      "backup restoration",
+      "reviewer identity",
+      "legal accuracy",
+      "deployment authorization"
+    ]
+  },
+  "release_boundary": {
+    "api_enabled": false,
+    "public_ai_enabled": false,
+    "reviewer_authentication": "not-configured",
+    "backup_restore_verified": false,
+    "destination_verified": false,
+    "deployment_authorized": false
+  }
+}

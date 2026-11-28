@@ -36,6 +36,35 @@ function isInside(parent, target) {
   return relative === '' || (!relative.startsWith('..' + path.sep) && relative !== '..' && !path.isAbsolute(relative));
 }
 
+// Restore manifests can contain backup IDs, database names and private host paths.
+// Keep them outside the Git checkout, just like the raw evidence files.
+function assertManifestOutsideCheckout(manifestPath, checkoutRoot = fs.realpathSync(REPO_ROOT)) {
+  if (typeof manifestPath !== 'string' || !path.isAbsolute(manifestPath) ||
+      path.resolve(manifestPath) !== manifestPath) {
+    throw new Error('manifest_path_must_be_absolute_canonical');
+  }
+  if (typeof checkoutRoot !== 'string' || !path.isAbsolute(checkoutRoot) ||
+      path.resolve(checkoutRoot) !== checkoutRoot) {
+    throw new Error('checkout_root_must_be_absolute_canonical');
+  }
+
+  // Do not trust lexical separation alone: an absolute path outside the checkout
+  // may be a symlink alias to a manifest inside it. Resolve the existing file
+  // before applying the boundary check so every caller gets the same protection.
+  const realCheckoutRoot = fs.realpathSync(checkoutRoot);
+  if (realCheckoutRoot !== checkoutRoot) {
+    throw new Error('checkout_root_must_be_canonical');
+  }
+  const realManifestPath = fs.realpathSync(manifestPath);
+  if (isInside(realCheckoutRoot, realManifestPath)) {
+    throw new Error('manifest_inside_git_checkout');
+  }
+  if (realManifestPath !== manifestPath) {
+    throw new Error('manifest_path_must_be_canonical');
+  }
+  return true;
+}
+
 function assertCanonicalDirectory(directory, label) {
   if (typeof directory !== 'string' || !path.isAbsolute(directory) || path.resolve(directory) !== directory) {
     throw new Error(label + '_path_must_be_absolute_canonical');
@@ -107,6 +136,27 @@ function assertEvidenceFilePermissions(stat, label, ownerOnly = false) {
   if (ownerOnly && (stat.mode & 0o077n) !== 0n) throw new Error(label + '_must_be_owner_only');
 }
 
+function assertEvidenceOutsideCheckout(filePath, checkoutRoot = REPO_ROOT, label = 'evidence') {
+  if (typeof filePath !== 'string' || !path.isAbsolute(filePath) || path.resolve(filePath) !== filePath) {
+    throw new Error(label + '_path_must_be_absolute_canonical');
+  }
+  if (typeof checkoutRoot !== 'string' || !path.isAbsolute(checkoutRoot) || path.resolve(checkoutRoot) !== checkoutRoot) {
+    throw new Error('checkout_root_must_be_absolute_canonical');
+  }
+
+  // Resolve the checkout root before comparing it with the already-canonical
+  // evidence path. A checkout reached through a symlink must not make files
+  // inside the real Git tree appear external.
+  const realCheckoutRoot = fs.realpathSync(checkoutRoot);
+  if (!fs.statSync(realCheckoutRoot).isDirectory()) throw new Error('checkout_root_must_be_directory');
+  const realFilePath = fs.realpathSync(filePath);
+  if (realFilePath !== filePath) throw new Error(label + '_path_is_not_canonical');
+  if (isInside(realCheckoutRoot, realFilePath)) {
+    throw new Error(label + '_path_inside_git_checkout');
+  }
+  return true;
+}
+
 function hashExternalEvidenceFile(file, label, maxBytes) {
   if (typeof file !== 'string' || !path.isAbsolute(file) || path.resolve(file) !== file) {
     throw new Error(label + '_path_must_be_absolute_canonical');
@@ -119,7 +169,7 @@ function hashExternalEvidenceFile(file, label, maxBytes) {
   if (!filePathStat.isFile()) throw new Error(label + '_must_be_regular_file');
   const real = fs.realpathSync(file);
   if (real !== file || path.dirname(real) !== canonicalParent) throw new Error(label + '_path_is_not_canonical');
-  if (isInside(REPO_ROOT, real)) throw new Error(label + '_path_inside_git_checkout');
+  assertEvidenceOutsideCheckout(real, REPO_ROOT, label);
   if (!Number.isInteger(fs.constants.O_NOFOLLOW)) throw new Error(label + '_nofollow_open_unavailable');
 
   const flags = fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | (fs.constants.O_NONBLOCK || 0);
@@ -337,6 +387,7 @@ function main(argv) {
     if (path.resolve(manifestPath) !== manifestPath || fs.realpathSync(manifestPath) !== manifestPath) {
       throw new Error('manifest_path_must_be_canonical');
     }
+    assertManifestOutsideCheckout(manifestPath, fs.realpathSync(REPO_ROOT));
     const manifestParent = assertCanonicalDirectory(path.dirname(manifestPath), 'manifest_parent');
     const manifestParentBefore = fs.statSync(manifestParent, { bigint: true });
     const manifestStat = fs.lstatSync(manifestPath, { bigint: true });
@@ -374,4 +425,4 @@ function main(argv) {
 }
 
 if (require.main === module) process.exitCode = main(process.argv.slice(2));
-module.exports = { LIMITS, assertEvidenceFilePermissions, hashExternalEvidenceFile, verifyRestoreEvidenceBundle, parseArgs, main };
+module.exports = { LIMITS, assertEvidenceFilePermissions, assertEvidenceOutsideCheckout, assertManifestOutsideCheckout, hashExternalEvidenceFile, verifyRestoreEvidenceBundle, parseArgs, main };

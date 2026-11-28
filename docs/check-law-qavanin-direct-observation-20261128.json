@@ -1,0 +1,176 @@
+{
+  "schema": "dadyar-qavanin-direct-observation-v1",
+  "observedAt": "2026-11-28",
+  "observationMethod": "direct browser-rendered retrieval of official Qavanin pages",
+  "scope": "Page-rendering and metadata observations only. No raw HTTP document bytes or Gazette file bytes were captured.",
+  "records": [
+    {
+      "id": "check-issuance-law",
+      "titleShown": "قانون صدور چك",
+      "sourceClass": "primary-official-qavanin-page-observation",
+      "documentId": "11400475274213876131",
+      "directUrls": {
+        "text": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
+        "metadata": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
+        "image": "https://qavanin.ir/Law/ImageText/?IDS=11400475274213876131"
+      },
+      "textPage": {
+        "attempted": true,
+        "rendered": true,
+        "visibleLineRange": [
+          7,
+          90
+        ],
+        "originalAdoptionDateShown": "1355/04/16",
+        "article7Amendment": {
+          "line": 83,
+          "marker": "اصلاحي 30ˏ03ˏ1403"
+        },
+        "article7BandsInRials": [
+          "کمتر از 780000000",
+          "780000000 تا 3900000000",
+          "بیشتر از 3900000000"
+        ],
+        "retrievalFreshness": "The retrieval page was labeled Crawled: today."
+      },
+      "metadataPage": {
+        "attempted": true,
+        "rendered": false,
+        "result": "transfer-interstitial",
+        "visibleLineRange": [
+          0,
+          6
+        ]
+      },
+      "imagePage": {
+        "attempted": true,
+        "rendered": false,
+        "result": "transfer-interstitial",
+        "visibleLineRange": [
+          0,
+          6
+        ],
+        "officialGazetteImageBytesRetrieved": false,
+        "officialGazettePdfBytesRetrieved": false
+      },
+      "evidence": {
+        "rawHttpResponseBytesCaptured": false,
+        "rawResponseSha256": null,
+        "officialGazetteIssueBytesRetrieved": false,
+        "primarySourceVerified": false,
+        "eventDateVersioningApproved": false
+      },
+      "humanReviewStatus": "pending",
+      "useInLegalAnswers": false,
+      "decision": "research-only",
+      "latestWebRetrieval": {
+        "observedAt": "2026-11-28",
+        "retrievalMethod": "independent browser-rendered retrieval of official Qavanin TreeText page",
+        "directUrl": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
+        "pageTotalLines": 159,
+        "visibleLineRange": [
+          7,
+          118
+        ],
+        "titleShown": "قانون صدور چك",
+        "originalAdoptionDateShown": "1355/04/16",
+        "consolidatedAmendmentsShown": true,
+        "article7": {
+          "visibleLines": [
+            83,
+            84,
+            85,
+            86
+          ],
+          "amendmentMarker": "اصلاحي 30ˏ03ˏ1403",
+          "thresholdBandsRials": [
+            "کمتر از 780/000/000",
+            "780/000/000 تا 3/900/000/000",
+            "بیشتر از 3/900/000/000"
+          ]
+        },
+        "metadataPageRechecked": false,
+        "imagePageRechecked": false,
+        "rawHttpResponseBytesCaptured": false,
+        "rawResponseSha256": null,
+        "officialGazetteIssueBytesRetrieved": false,
+        "primarySourceVerified": false,
+        "humanReviewStatus": "pending",
+        "eventDateVersioningApproved": false,
+        "useInLegalAnswers": false,
+        "note": "Rendered official consolidated page only. The visible amendment marker and threshold table do not prove the amendment Gazette issue, its effective date, raw document identity or the valid version for a specific event date."
+      }
+    },
+    {
+      "id": "cheque-amount-regulation-1403",
+      "titleShown": "اصلاح ميزان مبالغ مربوط به جرائم و تخلفات مندرج در قوانين مختلف",
+      "sourceClass": "primary-official-qavanin-metadata-page-observation",
+      "documentId": "634882870797924421",
+      "directUrls": {
+        "text": "https://qavanin.ir/Law/TreeText/?IDS=634882870797924421",
+        "metadata": "https://qavanin.ir/Law/Attribute/?IDS=634882870797924421",
+        "image": "https://qavanin.ir/Law/ImageText/?IDS=634882870797924421"
+      },
+      "textPage": {
+        "attempted": true,
+        "rendered": false,
+        "result": "transfer-interstitial",
+        "visibleLineRange": [
+          0,
+          6
+        ]
+      },
+      "metadataPage": {
+        "attempted": true,
+        "rendered": true,
+        "visibleLineRange": [
+          7,
+          34
+        ],
+        "retrievalFreshness": "The retrieval page was labeled Crawled: yesterday; treat as potentially cached.",
+        "instrumentTitleShown": "اصلاح ميزان مبالغ مربوط به جرائم و تخلفات مندرج در قوانين مختلف",
+        "instrumentTypeShown": "مقرره",
+        "approvingAuthorityShown": "هيات وزيران",
+        "approvalDateShown": "1403/03/30",
+        "notificationNumberShown": "56261/ت62298هـ",
+        "officialGazetteNumberShown": "23097",
+        "officialGazettePublicationDateShown": "1403/04/23",
+        "promulgationDateShown": "1403/04/04",
+        "effectiveDateShown": "1403/05/08",
+        "lastStatusShown": "1403/08/27"
+      },
+      "imagePage": {
+        "attempted": true,
+        "rendered": true,
+        "shellOnly": true,
+        "visibleLineRange": [
+          7,
+          22
+        ],
+        "allImagesButtonVisible": true,
+        "pdfButtonVisible": true,
+        "pageImagesRetrieved": false,
+        "officialGazettePdfBytesRetrieved": false,
+        "retrievalFreshness": "The retrieval page was labeled Crawled: yesterday; no actual page image or PDF bytes were downloaded."
+      },
+      "evidence": {
+        "rawHttpResponseBytesCaptured": false,
+        "rawResponseSha256": null,
+        "officialGazetteIssueBytesRetrieved": false,
+        "primarySourceVerified": false,
+        "eventDateVersioningApproved": false
+      },
+      "humanReviewStatus": "pending",
+      "useInLegalAnswers": false,
+      "decision": "research-only"
+    }
+  ],
+  "releaseDecision": {
+    "status": "research-only",
+    "primarySourceVerified": false,
+    "humanReviewApproved": false,
+    "eventDateVersioningApproved": false,
+    "legalAnswerUsePermitted": false,
+    "reason": "The official Qavanin consolidated text and opinion 850 pages rendered in independent browser retrieval on 2026-11-28, but raw document bytes, reproducible hashes, Gazette issue files, complete event-date versions and independent human review are still missing."
+  }
+}

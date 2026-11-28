@@ -91,6 +91,7 @@ test('editing review metadata clears prior approval and requires fresh explicit 
     recordReviewButton: { disabled: false },
     downloadButton: { disabled: false },
     reviewStatus: { textContent: '' },
+    reviewChecklistComplete: () => true,
     safeReviewText: (value, max) => String(value || '').slice(0, max)
   };
   vm.runInNewContext(privacyDetector + '\n' + reviewerSafety + '\n' + permission + '\n' + invalidator + '\ninvalidateHumanReview();', state);
@@ -146,4 +147,13 @@ test('offline preview contains no browser network, worker, storage or form-submi
   assert.doesNotMatch(html, /@import\s+url\s*\(|url\s*\(\s*['"]?\s*(?:https?:|\/\/)/i);
   assert.match(html, /connect-src 'none'/);
   assert.match(html, /form-action 'none'/);
+});
+
+
+test('approval wording explicitly limits the decision to a local test report', () => {
+  const approvedOption = html.match(/<option value="approved">([^<]+)<\/option>/);
+  assert.ok(approvedOption, 'approved review option must exist');
+  assert.match(approvedOption[1], /تأیید محلی برای دریافت گزارش آزمایشی/);
+  assert.match(html, /ثبت بازبینی در این صفحه محلی است و هویت بازبین احراز نمی‌شود/);
+  assert.match(html, /این اظهار به معنای تأیید قانونی/);
 });

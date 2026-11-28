@@ -1,0 +1,140 @@
+{
+  "schema": "dadyar-public-preview-artifact-review-v1",
+  "observed_on": "2026-11-24",
+  "repository": "drmehdisehat-cloud/radyar-mvp",
+  "source": {
+    "branch": "dadyar/ai-chat-private-20261101",
+    "commit": "e0ad617c108df2eb233b6ce7e55e940264c4a878",
+    "path": "public/index.html",
+    "sha256": "fb31fa29491d3e087d1700a8a053305f3fce555c28728b6ebe0fba7ef822b327",
+    "git_blob_sha1": "90f7616162591efb9c7f0b059105e09f12873e98",
+    "topic_hint_count": 27
+  },
+  "workflow": {
+    "required_ci_run_id": 45462192070,
+    "required_ci_url": "https://github.com/drmehdisehat-cloud/radyar-mvp/actions/runs/45462192070",
+    "required_ci_conclusion": "success",
+    "contract_tests": {
+      "passed": 1434,
+      "failed": 0,
+      "skipped": 0
+    },
+    "browser_tests": {
+      "real_browser_smoke": {
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0
+      },
+      "check_intake_browser": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      },
+      "synthetic_cheque_chromium": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      },
+      "narrow_viewport_chromium": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      },
+      "mobile_device_and_http": {
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0
+      },
+      "topic_routing": {
+        "passed": 12,
+        "failed": 0,
+        "skipped": 0
+      },
+      "total": {
+        "passed": 19,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    "artifact_run_id": 45462192243,
+    "artifact_run_url": "https://github.com/drmehdisehat-cloud/radyar-mvp/actions/runs/45462192243",
+    "artifact_job_id": 138687535354,
+    "artifact_job_conclusion": "success"
+  },
+  "artifact": {
+    "id": 14954570490,
+    "name": "dadyar-public-preview-review-e0ad617c108df2eb233b6ce7e55e940264c4a878",
+    "created_at": "2026-11-24T18:42:58Z",
+    "expires_at": "2026-12-01T18:42:56Z",
+    "size_bytes": 19727,
+    "github_digest_sha256": "0b6c41252a56923d471ec3a01f1356babc3c070c06c44fe07becaa373575f101",
+    "downloaded_zip_sha256": "0b6c41252a56923d471ec3a01f1356babc3c070c06c44fe07becaa373575f101",
+    "files": [
+      {
+        "path": "index.html",
+        "size_bytes": 65821,
+        "sha256": "fb31fa29491d3e087d1700a8a053305f3fce555c28728b6ebe0fba7ef822b327",
+        "git_blob_sha1": "90f7616162591efb9c7f0b059105e09f12873e98"
+      },
+      {
+        "path": "INTEGRITY.json",
+        "size_bytes": 967,
+        "sha256": "7ae8bf283cba3c244737dbd9a19d219fa49a331270022bdb764c3408625dd251"
+      }
+    ],
+    "manifest": {
+      "target_subpath": "/dadyar-preview/",
+      "source_commit": "e0ad617c108df2eb233b6ce7e55e940264c4a878",
+      "api_enabled": false,
+      "public_ai_enabled": false,
+      "reviewer_authentication": "not-configured",
+      "backup_restore_verified": false,
+      "destination_verified": false,
+      "deployment_authorized": false
+    }
+  },
+  "verification": {
+    "downloaded": true,
+    "zip_integrity_test": "passed",
+    "exact_root_file_set": [
+      "INTEGRITY.json",
+      "index.html"
+    ],
+    "github_digest_matches_downloaded_zip": true,
+    "html_sha256_matches_manifest": true,
+    "html_git_blob_matches_source_commit": true,
+    "scope": "Downloaded archive structure, GitHub digest, manifest digest and source-byte binding only.",
+    "not_proven": [
+      "live HTTPS destination",
+      "destination filesystem identity",
+      "backup restoration",
+      "reviewer identity",
+      "legal accuracy",
+      "deployment authorization"
+    ]
+  },
+  "repository_posture": {
+    "visibility": "public",
+    "branch_protected": false,
+    "audit_run_id": 45462192070,
+    "status": "NOT_READY",
+    "blockers": [
+      "repository_must_be_private",
+      "release_branch_protection_disabled"
+    ]
+  },
+  "historical_reference": {
+    "commit": "4d4f7530c47f438a1d89e18afef246cec026391f",
+    "workflow_run_id": 42206234440,
+    "workflow_conclusion": "success"
+  },
+  "release_boundary": {
+    "api_enabled": false,
+    "public_ai_enabled": false,
+    "reviewer_authentication": "not-configured",
+    "backup_restore_verified": false,
+    "destination_verified": false,
+    "deployment_authorized": false,
+    "production_changes_made": false
+  }
+}
