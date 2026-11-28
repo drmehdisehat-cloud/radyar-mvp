@@ -66,3 +66,19 @@ test('reviewer name and note both use the shared sensitive-identifier guard befo
   assert.match(reviewerGuard[0], /hasSensitiveIdentifier\(safeReviewText\(reviewNote\.value,300\)\)/);
   assert.match(scriptMatch[1], /recordReviewButton\.addEventListener\('click',async\(\)=>\{[\s\S]*?if\(!reviewerDetailsAreSafe\(\)\)/);
 });
+
+test('privacy scanner blocks context-labeled bank accounts and Iranian landlines without blocking unlabeled case references', () => {
+  const blocked = [
+    'شماره حساب: ۱۲۳۴۵۶۷۸۹۰۱۲۳۴',
+    'شماره حساب بانکی: ۱۲۳۴-۵۶۷۸-۹۰۱۲-۳۴',
+    'شماره حساب بانکی: ۱۲۳۴\\u200b۵۶۷۸\\u2060۹۰۱۲۳۴',
+    'Account number: 12345678901234',
+    'تلفن ثابت منزل: ۰۲۱-۱۲۳۴۵۶۷۸',
+    'کد پستی: ۱۲۳۴۵۶۷۸۹۰'
+  ];
+  for (const probe of blocked) {
+    assert.equal(scan(probe), true, 'labeled contact/bank data must be rejected: ' + probe);
+  }
+  assert.equal(scan('شماره پرونده: ۱۲۳۴۵۶۷۸۹۰۱۲۳۴'), false);
+  assert.equal(scan('مبلغ فرضی ۱۲۳۴۵۶۷۸۹۰۱۲۳۴ ریال در دعوای چک'), false);
+});
