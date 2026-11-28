@@ -12,6 +12,11 @@ function containsObviousIdentifier(text) {
     .replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u2069\uFEFF]/g, '');
   if (/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(normalized)) return true;
   if (/(?:\+?98|0098|0)[\s().-]*9(?:[\s().-]*\d){9}(?!\d)/.test(normalized)) return true;
+  // Context-labeled Iranian landlines, postal codes and bank-account numbers.
+  // Labels keep ordinary dates, amounts and unclassified case numbers usable.
+  if (/(?:تلفن\s*(?:ثابت\s*(?:منزل)?|منزل)|شماره\s*(?:تلفن\s*)?(?:ثابت\s*(?:منزل)?|منزل)|landline|home\s*phone)\s*[:：]?\s*(?:(?:\+?98|0098)[ \t().-]*|0)[ \t().-]*\d{2,3}[ \t().-]*\d{7,8}(?!\d)/iu.test(normalized)) return true;
+  if (/(?:کد\s*پستی|postal\s*code|zip\s*code)\s*[:：]?\s*(?:\d[ \t-]*){9}\d(?!\d)/iu.test(normalized)) return true;
+  if (/(?:شماره\s*حساب|account\s*(?:number|no\.?))\s*[:：]?\s*(?:\d[ \t-]*){7,23}\d(?!\d)/iu.test(normalized)) return true;
   if (/\bIR(?:[\s-]*\d){24}(?!\d)/i.test(normalized)) return true;
   // Only match card-like groups, avoiding dates and ordinary monetary amounts.
   if (/(?:^|\D)(?:\d{4}[ -]){3}\d{4}(?!\d)/.test(normalized)) return true;
