@@ -91,3 +91,43 @@ test('invisible Unicode controls cannot hide identifiers from input and output g
     }), error => error.message === 'unsafe_provider_output');
   }
 });
+
+test('synthetic chat rejects labeled Iranian landline, postal-code and bank-account details', () => {
+  const samples = [
+    'تلفن ثابت منزل: ۰۲۱-۱۲۳۴۵۶۷۸',
+    'شماره تلفن ثابت: +98 21 12345678',
+    'کد پستی: ۱۲۳۴۵۶۷۸۹۰',
+    'postal code: 1234567890',
+    'شماره حساب: ۱۲۳۴۵۶۷۸۹۰۱۲۳۴'
+  ];
+  for (const text of samples) {
+    assert.equal(containsObviousIdentifier(text), true, text);
+    assert.equal(validateChat(payload(text)), false, text);
+  }
+});
+
+test('labeled contact and account details are rejected before any provider request', async () => {
+  for (const text of [
+    'تلفن ثابت منزل: ۰۲۱-۱۲۳۴۵۶۷۸',
+    'کد پستی: ۱۲۳۴۵۶۷۸۹۰',
+    'شماره حساب: ۱۲۳۴۵۶۷۸۹۰۱۲۳۴'
+  ]) {
+    let calls = 0;
+    await assert.rejects(answerChat(payload(text), {
+      apiKey: 'synthetic-test-only',
+      fetchImpl: async () => { calls++; throw new Error('provider must not be called'); }
+    }), /invalid_chat/);
+    assert.equal(calls, 0, text);
+  }
+});
+
+test('ordinary court locations, event dates, amounts and unlabeled case numbers remain accepted', () => {
+  for (const text of [
+    'پرونده فرضی در دادگاه حقوقی تهران با تاریخ ۱۴۰۵/۰۸/۲۸ و مبلغ ۱۰۰ میلیون تومان است.',
+    'شماره پرونده فرضی ۱۲۳۴۵۶۷۸۹۰ است؛ نشانی یا اطلاعات تماس ارائه نشده است.',
+    'در مثال ساختگی، کد پستی یا شماره حساب لازم نیست.'
+  ]) {
+    assert.equal(containsObviousIdentifier(text), false, text);
+    assert.equal(validateChat(payload(text)), true, text);
+  }
+});
