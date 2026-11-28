@@ -172,3 +172,23 @@ test('privacy scanner removes Unicode default-ignorable code points before match
   }
   assert.equal(hasSensitiveIdentifier('پرسش ساختگی درباره چک تضمینی و اجاره'), false);
 });
+
+test('privacy scanner rejects synthetic email, URL, domain and labeled-address inputs before they can enter preview reports', () => {
+  const { hasSensitiveIdentifier } = classifier();
+  const invisible = String.fromCodePoint(0x2062);
+  const probes = [
+    'ایمیل ساختگی: preview-user@exa' + invisible + 'mple.invalid',
+    'پیوند ساختگی: https://exa' + invisible + 'mple.invalid/case/demo',
+    'دامنه ساختگی: example.invalid',
+    'نشانی ساختگی: آدرس: خیابان نمونه پلاک ۱۲'
+  ];
+  for (const probe of probes) {
+    assert.equal(hasSensitiveIdentifier(probe), true,
+      'synthetic contact/location detail was not rejected: ' + probe);
+  }
+  assert.equal(
+    hasSensitiveIdentifier('پرسش ساختگی درباره چک تضمینی، اجاره و مهلت اعتراض'),
+    false,
+    'ordinary synthetic legal wording must remain usable'
+  );
+});
