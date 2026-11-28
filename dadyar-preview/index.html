@@ -573,6 +573,7 @@ function reviewChecklistComplete(){
 let exportEligible=false;
 let reviewRecord=null;
 let reviewDigestPending=false;
+let downloadDigestPending=false;
 let reviewAttempt=0;
 async function sha256Hex(value){
  if(!globalThis.crypto || !globalThis.crypto.subtle || typeof TextEncoder!=='function') throw new Error('secure_web_crypto_unavailable');
@@ -616,14 +617,32 @@ function safeReviewText(value,max){
   .replace(/[\u0000-\u001f\u007f-\u009f\u061c\u200b\u200e\u200f\u202a-\u202e\u2060\u2066-\u206f\ufeff]/g,'')
   .replace(/\s+/g,' ').trim().slice(0,max);
 }
+function approvedReviewMatches(snapshot,visibleText,candidate){
+ const expectedChecklist=reviewChecklistItems.map(item=>({id:item.id,label:item.closest('label').textContent.trim()}));
+ return Boolean(snapshot && visibleText===snapshot && candidate &&
+  candidate.decision==='approved' &&
+  candidate.reviewer===SYNTHETIC_REVIEWER_LABEL &&
+  candidate.reportSnapshot===snapshot &&
+  /^[a-f0-9]{64}$/.test(candidate.reportSha256||'') &&
+  Array.isArray(candidate.checklist) &&
+  candidate.checklist.length===expectedChecklist.length &&
+  candidate.checklist.every((item,index)=>item && item.id===expectedChecklist[index].id &&
+   item.checked===true && item.label===expectedChecklist[index].label) &&
+  typeof candidate.note==='string' &&
+  safeReviewText(candidate.note,300)===candidate.note &&
+  candidate.note.length>=12 &&
+  !hasSensitiveIdentifier(candidate.note) &&
+  typeof candidate.reviewedAt==='string' &&
+  Number.isFinite(Date.parse(candidate.reviewedAt)) &&
+  new Date(candidate.reviewedAt).toISOString()===candidate.reviewedAt);
+}
 function updateExportPermission(){
- const displayedReportMatches=Boolean(report && out.textContent===report);
- const approvedReview=Boolean(reviewRecord && reviewRecord.decision==='approved' && reviewRecord.reportSnapshot===report && /^[a-f0-9]{64}$/.test(reviewRecord.reportSha256||'') && Array.isArray(reviewRecord.checklist) && reviewRecord.checklist.length===4 && reviewRecord.checklist.every(item=>item.checked===true) && displayedReportMatches);
- downloadButton.disabled=!exportEligible || !exportAck.checked || !approvedReview;
- recordReviewButton.disabled=reviewDigestPending || !exportEligible || !report || safeReviewText(reviewerName.value,80).length<2 || safeReviewText(reviewNote.value,300).length<12 || !['approved','rejected'].includes(reviewDecision.value) || !reviewerDetailsAreSafe() || !displayedReportMatches || !reviewChecklistComplete() || !exportAck.checked || Boolean(reviewRecord);
+ const approvedReview=approvedReviewMatches(report,out.textContent,reviewRecord);
+ downloadButton.disabled=!exportEligible || !exportAck.checked || !approvedReview || downloadDigestPending;
+ recordReviewButton.disabled=reviewDigestPending || downloadDigestPending || !exportEligible || !report || safeReviewText(reviewerName.value,80).length<2 || safeReviewText(reviewNote.value,300).length<12 || !['approved','rejected'].includes(reviewDecision.value) || !reviewerDetailsAreSafe() || out.textContent!==report || !reviewChecklistComplete() || !exportAck.checked || Boolean(reviewRecord);
 }
 function invalidateHumanReview(message='اطلاعات بازبینی تغییر کرد؛ نتیجه قبلی باطل شد. پس از بررسی دوباره ثبت کنید.'){
- reviewAttempt+=1;reviewDigestPending=false;reviewRecord=null;exportAck.checked=false;reviewStatus.textContent=message;updateExportPermission();
+ reviewAttempt+=1;reviewDigestPending=false;downloadDigestPending=false;reviewRecord=null;exportAck.checked=false;reviewStatus.textContent=message;updateExportPermission();
 }
 exportAck.addEventListener('change',()=>{
  if(!exportAck.checked) invalidateHumanReview('تأیید بازبینی برداشته شد؛ برای دریافت باید بازبینی تازه ثبت شود.');
@@ -673,10 +692,11 @@ recordReviewButton.addEventListener('click',async()=>{
 // Invalidate an earlier draft as soon as the hypothetical evidence or role changes.
 // Otherwise the download button could export a different case state than the UI.
 function invalidateDraft(){
+ reviewAttempt+=1;reviewDigestPending=false;downloadDigestPending=false;
  const focusWasInDraft=box.contains(document.activeElement);
  const hadDraft=Boolean(report);
  const hadReview=Boolean(reviewRecord);
- report=''; internalTopicMatches=[]; topicScopeStatus.textContent=''; out.textContent=''; exportStatus.textContent=''; reviewRecord=null;reviewChecklistItems.forEach(item=>{item.checked=false;});reviewerName.value='بازبین آزمون';reviewDecision.value='pending';reviewNote.value='';reviewStatus.textContent='';box.hidden=true;exportEligible=false;exportAck.checked=false;updateExportPermission();
+ report=''; internalTopicMatches=[]; topicScopeStatus.textContent=''; out.textContent=''; exportStatus.textContent=''; reviewRecord=null;reviewChecklistItems.forEach(item=>{item.checked=false;});reviewerName.value=SYNTHETIC_REVIEWER_LABEL;reviewDecision.value='pending';reviewNote.value='';reviewStatus.textContent='';box.hidden=true;exportEligible=false;exportAck.checked=false;updateExportPermission();
  const resetStatus=document.getElementById('reset-status');
  resetStatus.textContent=(hadDraft||hadReview)
   ?'اطلاعات سناریو تغییر کرد؛ پیش‌نویس قبلی و تأیید بازبینی پاک شد. برای دریافت گزارش تازه، دوباره پیش‌نویس را بسازید.'
@@ -780,28 +800,54 @@ document.getElementById('generate').addEventListener('click',()=>{
  exportStatus.textContent=freeQuestionHasSensitiveIdentifier?'دریافت گزارش غیرفعال است: شناسه حساس احتمالی در پرسش آزاد وجود دارد؛ آن را حذف کنید.':questionOutsideChequeScope?'دریافت گزارش غیرفعال است: پرسش آزاد چندموضوعی، نامرتبط یا نامشخص است؛ این پیش‌نمایش فقط گزارش چک فرضی را پوشش می‌دهد.':evidence.length===0?'دریافت گزارش غیرفعال است: هیچ مدرک فرضی انتخاب نشده است. دست‌کم یک مدرک نمونه انتخاب کنید و پیش‌نویس را دوباره بسازید.':!evidence.some(e=>e.description==='تصویر چک نمونه با شماره ساختگی')?'دریافت گزارش غیرفعال است: تصویر چک نمونه انتخاب نشده است. برای ادامه، مدرک چک فرضی را انتخاب کنید.':conflicts.length>0?'دریافت گزارش به علت تناقض اطلاعات غیرفعال است. پاسخ‌ها یا مدارک فرضی را اصلاح و پیش‌نویس را دوباره تولید کنید.':unresolved.length>0?'دریافت گزارش تا پاسخ‌گویی به '+unresolved.length+' پرسش نامعلوم غیرفعال است؛ پیش‌نویس برای بررسی روی صفحه باقی می‌ماند.':'برای دریافت پیش‌نویس فرضی، ابتدا تأیید بازبینی انسانی را علامت بزنید.';
  box.hidden=false;box.focus();
 });
-document.getElementById('download').addEventListener('click',()=>{
- if(!report || downloadButton.disabled)return;
- if(out.textContent!==report){invalidateDraft();exportStatus.textContent='متن قابل مشاهده گزارش تغییر کرده است؛ دریافت مسدود شد و باید پیش‌نویس تازه ساخته شود.';return;}
- if(!reviewRecord || reviewRecord.reportSnapshot!==report)return;
+document.getElementById('download').addEventListener('click',async()=>{
+ if(!report || downloadDigestPending)return;
+ const snapshot=report;
+ const candidate=reviewRecord;
+ const attempt=reviewAttempt;
+ if(out.textContent!==snapshot){invalidateDraft();exportStatus.textContent='متن قابل مشاهده گزارش تغییر کرده است؛ دریافت مسدود شد و باید پیش‌نویس تازه ساخته شود.';return;}
+ if(!exportEligible || !exportAck.checked || !approvedReviewMatches(snapshot,out.textContent,candidate)){
+  invalidateHumanReview('شرایط بازبینی یا چک‌لیست با نسخه فعلی گزارش تطبیق ندارد؛ دریافت مسدود شد. بازبینی را از ابتدا انجام دهید.');
+  return;
+ }
+ downloadDigestPending=true;
+ downloadButton.disabled=true;
+ exportStatus.textContent='در حال محاسبه دوباره SHA-256 گزارش پیش از دریافت…';
+ try{
+  const currentDigest=await sha256Hex(snapshot);
+  const unchanged=attempt===reviewAttempt && report===snapshot && out.textContent===snapshot &&
+   reviewRecord===candidate && exportAck.checked && exportEligible &&
+   approvedReviewMatches(snapshot,out.textContent,candidate) &&
+   currentDigest===candidate.reportSha256;
+  if(!unchanged){
+   downloadDigestPending=false;
+   invalidateHumanReview('گزارش یا بازبینی هنگام کنترل نهایی تغییر کرد؛ دریافت مسدود شد. دوباره بازبینی کنید.');
+   return;
+  }
+ }catch(error){
+  downloadDigestPending=false;
+  invalidateHumanReview('محاسبه مجدد SHA-256 ممکن نشد؛ دریافت گزارش به‌صورت ایمن متوقف شد.');
+  return;
+ }
  const reviewText=[
   'ثبت بازبینی انسانی (اظهار محلی؛ هویت احراز نشده)',
-  'نام بازبین: '+reviewRecord.reviewer,
-  'نتیجه بازبینی: '+(reviewRecord.decision==='approved'?'تأیید محلی برای دریافت گزارش آزمایشی':'رد'),
-  'موارد بررسی‌شده:\n'+reviewRecord.checklist.filter(item=>item.checked).map(item=>'• '+item.label).join('\n'),
-  'زمان ثبت بازبینی (مبنای ساعت دستگاه؛ نمایش UTC؛ قابل راستی‌آزمایی مستقل نیست): '+reviewRecord.reviewedAt,
-  'SHA-256 پیش‌نویس بازبینی‌شده: '+reviewRecord.reportSha256,
-  'یادداشت بازبین: '+(reviewRecord.note||'ثبت نشده'),
+  'نام بازبین: '+candidate.reviewer,
+  'نتیجه بازبینی: تأیید محلی برای دریافت گزارش آزمایشی',
+  'موارد بررسی‌شده:\\n'+candidate.checklist.filter(item=>item.checked).map(item=>'• '+item.label).join('\\n'),
+  'زمان ثبت بازبینی (مبنای ساعت دستگاه؛ نمایش UTC؛ قابل راستی‌آزمایی مستقل نیست): '+candidate.reviewedAt,
+  'SHA-256 پیش‌نویس بازبینی‌شده: '+candidate.reportSha256,
+  'یادداشت بازبین: '+(candidate.note||'ثبت نشده'),
   'محدودیت: این اظهار محلی است و تأیید حقوقی یا احراز هویت محسوب نمی‌شود.'
- ].join('\n');
- const exportText=report+'\n\n'+reviewText;
- const url=URL.createObjectURL(new Blob(['\uFEFF'+exportText],{type:'text/plain;charset=utf-8'}));
+ ].join('\\n');
+ const exportText=snapshot+'\\n\\n'+reviewText;
+ const url=URL.createObjectURL(new Blob(['\\uFEFF'+exportText],{type:'text/plain;charset=utf-8'}));
  const a=document.createElement('a');a.href=url;a.download='dadyar-synthetic-cheque.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
  // Consume the approval; a fresh review record is required for another export.
+ downloadDigestPending=false;
  reviewRecord=null;
  exportAck.checked=false;
  reviewChecklistItems.forEach(item=>{item.checked=false;});
- reviewerName.value='بازبین آزمون';
+ reviewerName.value=SYNTHETIC_REVIEWER_LABEL;
  reviewDecision.value='pending';
  reviewNote.value='';
  updateExportPermission();

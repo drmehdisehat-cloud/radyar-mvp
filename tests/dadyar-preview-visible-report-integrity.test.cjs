@@ -51,6 +51,50 @@ test('review registration checks the exact visible report before and after async
   assert.match(script, /const unchanged=report===snapshot && out\.textContent===snapshot/);
 });
 
+test('approved review must match the fixed synthetic reviewer, exact checklist and current report', () => {
+  const sandbox = {
+    reviewChecklistItems: ['review-check-facts','review-check-conflicts','review-check-sources','review-check-privacy'].map((id,index)=>({
+      id,
+      closest: () => ({ textContent: ['facts','conflicts','sources','privacy'][index] })
+    })),
+    SYNTHETIC_REVIEWER_LABEL: 'بازبین آزمون',
+    safeReviewText: (value,max) => String(value || '').normalize('NFC').replace(/\\s+/g,' ').trim().slice(0,max),
+    hasSensitiveIdentifier: value => /\\d{10,}/.test(String(value || ''))
+  };
+  const helper = extractFunction('function approvedReviewMatches(');
+  vm.runInNewContext(helper + '\\nglobalThis.__matches=approvedReviewMatches;', sandbox, { timeout: 1000 });
+  const snapshot = 'گزارش کاملاً ساختگی';
+  const candidate = {
+    reviewer: 'بازبین آزمون',
+    decision: 'approved',
+    reportSnapshot: snapshot,
+    reportSha256: 'a'.repeat(64),
+    reviewedAt: '2026-11-28T15:00:00.000Z',
+    note: 'یادداشت ساختگی برای آزمون',
+    checklist: ['review-check-facts','review-check-conflicts','review-check-sources','review-check-privacy'].map((id,index)=>({
+      id, checked: true, label: ['facts','conflicts','sources','privacy'][index]
+    }))
+  };
+  assert.equal(sandbox.__matches(snapshot,snapshot,candidate), true);
+  assert.equal(sandbox.__matches(snapshot,snapshot,{...candidate,decision:'rejected'}), false);
+  assert.equal(sandbox.__matches(snapshot,snapshot,{...candidate,reviewer:'نام دیگر'}), false);
+  assert.equal(sandbox.__matches(snapshot,snapshot,{...candidate,reportSnapshot:'گزارش دیگر'}), false);
+  assert.equal(sandbox.__matches(snapshot,snapshot,{...candidate,reportSha256:'not-a-hash'}), false);
+  assert.equal(sandbox.__matches(snapshot,snapshot,{...candidate,checklist:candidate.checklist.slice(1)}), false);
+  assert.equal(sandbox.__matches(snapshot,snapshot,{...candidate,checklist:candidate.checklist.map((item,index)=>index===1?{...item,id:'review-check-facts'}:item)}), false);
+  assert.equal(sandbox.__matches(snapshot,snapshot,{...candidate,note:'شماره ۱۲۳۴۵۶۷۸۹۰'}), false);
+  assert.equal(sandbox.__matches(snapshot,'متن قابل مشاهده متفاوت',candidate), false);
+});
+
+test('download recomputes the approved report digest and rechecks state after the async hash', () => {
+  assert.match(script, /document\\.getElementById\\('download'\\)\\.addEventListener\\('click',async\\(\\)=>\\{/);
+  assert.match(script, /const currentDigest=await sha256Hex\\(snapshot\\)/);
+  assert.match(script, /attempt===reviewAttempt && report===snapshot && out\\.textContent===snapshot/);
+  assert.match(script, /reviewRecord===candidate && exportAck\\.checked && exportEligible/);
+  assert.match(script, /currentDigest===candidate\\.reportSha256/);
+  assert.ok(script.indexOf('const currentDigest=await sha256Hex(snapshot)') < script.indexOf('URL.createObjectURL(new Blob'));
+});
+
 test('download rechecks the visible report and clears the draft if it changed after approval', () => {
-  assert.match(script, /document\.getElementById\('download'\)\.addEventListener\('click',\(\)=>\{\s*if\(!report \|\| downloadButton\.disabled\)return;\s*if\(out\.textContent!==report\)\{invalidateDraft\(\);/);
+  assert.match(script, /document\\.getElementById\\('download'\\)\\.addEventListener\\('click',async\\(\\)=>\\{\\s*if\\(!report \\|\\| downloadDigestPending\\)return;\\s*const snapshot=report;\\s*const candidate=reviewRecord;\\s*const attempt=reviewAttempt;\\s*if\\(out\\.textContent!==snapshot\\)\\{invalidateDraft\\(\\);/);
 });
