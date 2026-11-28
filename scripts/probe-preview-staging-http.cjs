@@ -106,6 +106,29 @@ function requireHeaders(response, expected, label) {
   }
 }
 
+async function readBodyBounded(response, maxBytes, label) {
+  if (!response.body || typeof response.body.getReader !== 'function') fail(label + '_body_stream_unavailable');
+  const reader = response.body.getReader();
+  const chunks = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = Buffer.from(value);
+      total += chunk.length;
+      if (total > maxBytes) {
+        try { await reader.cancel(); } catch {}
+        fail(label + '_body_too_large');
+      }
+      chunks.push(chunk);
+    }
+  } finally {
+    try { reader.releaseLock(); } catch {}
+  }
+  return Buffer.concat(chunks, total);
+}
+
 async function fetchExact(fetchImpl, url, expected, label) {
   const response = await fetchImpl(url, {
     method: 'GET',
@@ -115,7 +138,7 @@ async function fetchExact(fetchImpl, url, expected, label) {
     headers: { Accept: expected.accept }
   });
   requireHeaders(response, { ...expected, url }, label);
-  const bytes = Buffer.from(await response.arrayBuffer());
+  const bytes = await readBodyBounded(response, expected.bytes.length, label);
   if (!bytes.equals(expected.bytes)) fail(label + '_body_bytes_mismatch');
   return { bytes, sha256: sha256(bytes), contentType: response.headers.get('content-type') };
 }
