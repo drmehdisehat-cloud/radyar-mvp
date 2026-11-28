@@ -33,6 +33,8 @@ test('a changed visible report disables review and export even when a prior appr
     downloadButton: { disabled: false },
     recordReviewButton: { disabled: false },
     reviewDigestPending: false,
+    downloadDigestPending: false,
+    approvedReviewMatches: (snapshot, visibleText, record) => Boolean(snapshot && visibleText === snapshot && record && record.decision === 'approved'),
     reviewerName: { value: 'بازبین آزمون' },
     reviewNote: { value: 'یادداشت ساختگی برای آزمون' },
     reviewDecision: { value: 'approved' },
@@ -58,11 +60,11 @@ test('approved review must match the fixed synthetic reviewer, exact checklist a
       closest: () => ({ textContent: ['facts','conflicts','sources','privacy'][index] })
     })),
     SYNTHETIC_REVIEWER_LABEL: 'بازبین آزمون',
-    safeReviewText: (value,max) => String(value || '').normalize('NFC').replace(/\\s+/g,' ').trim().slice(0,max),
-    hasSensitiveIdentifier: value => /\\d{10,}/.test(String(value || ''))
+    safeReviewText: (value,max) => String(value || '').normalize('NFC').replace(/\s+/g,' ').trim().slice(0,max),
+    hasSensitiveIdentifier: value => /\d{10,}/.test(String(value || ''))
   };
   const helper = extractFunction('function approvedReviewMatches(');
-  vm.runInNewContext(helper + '\\nglobalThis.__matches=approvedReviewMatches;', sandbox, { timeout: 1000 });
+  vm.runInNewContext(helper + '\nglobalThis.__matches=approvedReviewMatches;', sandbox, { timeout: 1000 });
   const snapshot = 'گزارش کاملاً ساختگی';
   const candidate = {
     reviewer: 'بازبین آزمون',
@@ -87,14 +89,19 @@ test('approved review must match the fixed synthetic reviewer, exact checklist a
 });
 
 test('download recomputes the approved report digest and rechecks state after the async hash', () => {
-  assert.match(script, /document\\.getElementById\\('download'\\)\\.addEventListener\\('click',async\\(\\)=>\\{/);
-  assert.match(script, /const currentDigest=await sha256Hex\\(snapshot\\)/);
-  assert.match(script, /attempt===reviewAttempt && report===snapshot && out\\.textContent===snapshot/);
-  assert.match(script, /reviewRecord===candidate && exportAck\\.checked && exportEligible/);
-  assert.match(script, /currentDigest===candidate\\.reportSha256/);
+  assert.ok(script.includes("document.getElementById('download').addEventListener('click',async()=>{"));
+  assert.ok(script.includes('const currentDigest=await sha256Hex(snapshot)'));
+  assert.ok(script.includes('attempt===reviewAttempt && report===snapshot && out.textContent===snapshot'));
+  assert.ok(script.includes('reviewRecord===candidate && exportAck.checked && exportEligible'));
+  assert.ok(script.includes('currentDigest===candidate.reportSha256'));
   assert.ok(script.indexOf('const currentDigest=await sha256Hex(snapshot)') < script.indexOf('URL.createObjectURL(new Blob'));
 });
 
 test('download rechecks the visible report and clears the draft if it changed after approval', () => {
-  assert.match(script, /document\\.getElementById\\('download'\\)\\.addEventListener\\('click',async\\(\\)=>\\{\\s*if\\(!report \\|\\| downloadDigestPending\\)return;\\s*const snapshot=report;\\s*const candidate=reviewRecord;\\s*const attempt=reviewAttempt;\\s*if\\(out\\.textContent!==snapshot\\)\\{invalidateDraft\\(\\);/);
+  assert.ok(script.includes("document.getElementById('download').addEventListener('click',async()=>{"));
+  assert.ok(script.includes('if(!report || downloadDigestPending)return;'));
+  assert.ok(script.includes('const snapshot=report;'));
+  assert.ok(script.includes('const candidate=reviewRecord;'));
+  assert.ok(script.includes('const attempt=reviewAttempt;'));
+  assert.ok(script.includes('if(out.textContent!==snapshot){invalidateDraft();'));
 });
