@@ -297,13 +297,13 @@ async function probeStaging(urlValue, artifactDirectory, fetchImpl, allowedOrigi
       allowedOrigin.pathname !== '/' || allowedOrigin.search || allowedOrigin.hash ||
       allowedOrigin.origin !== allowedOriginValue) fail('staging_origin_allowlist_must_be_canonical_https_origin');
   if (url.origin !== allowedOrigin.origin) fail('staging_origin_not_allowlisted');
-  // The probe must target a named, externally managed staging host, never a local service or IP literal.
-  assertSafeStagingHostname(url.hostname, 'staging');
-  // Never let a staging probe accidentally target the live production host.
+  // Never let a staging probe accidentally target the live production host, including its DNS trailing-dot form.
   const normalizedHost = url.hostname.toLowerCase().replace(/\.$/, '');
   if (normalizedHost === 'mehdisehat.ir' || normalizedHost === 'www.mehdisehat.ir') {
     fail('staging_production_origin_forbidden');
   }
+  // The probe must target a named, externally managed staging host, never a local service or IP literal.
+  assertSafeStagingHostname(url.hostname, 'staging');
 
   const artifact = validateLocalArtifact(artifactDirectory);
   let pinnedAddress = null;
