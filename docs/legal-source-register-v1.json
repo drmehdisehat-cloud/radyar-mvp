@@ -189,7 +189,68 @@
             42,
             118
           ],
-          "latestRenderedTextObservationFile": "docs/check-law-qavanin-text-only-observation-20261127.json"
+          "latestRenderedTextObservationFile": "docs/check-law-qavanin-text-only-observation-20261127.json",
+          "latestDirectObservationFile": "docs/check-law-qavanin-direct-observation-20261128.json",
+          "latestDirectObservation": {
+            "id": "check-issuance-law",
+            "titleShown": "قانون صدور چك",
+            "sourceClass": "primary-official-qavanin-page-observation",
+            "documentId": "11400475274213876131",
+            "directUrls": {
+              "text": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
+              "metadata": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
+              "image": "https://qavanin.ir/Law/ImageText/?IDS=11400475274213876131"
+            },
+            "textPage": {
+              "attempted": true,
+              "rendered": true,
+              "visibleLineRange": [
+                7,
+                90
+              ],
+              "originalAdoptionDateShown": "1355/04/16",
+              "article7Amendment": {
+                "line": 83,
+                "marker": "اصلاحي 30ˏ03ˏ1403"
+              },
+              "article7BandsInRials": [
+                "کمتر از 780000000",
+                "780000000 تا 3900000000",
+                "بیشتر از 3900000000"
+              ],
+              "retrievalFreshness": "The retrieval page was labeled Crawled: today."
+            },
+            "metadataPage": {
+              "attempted": true,
+              "rendered": false,
+              "result": "transfer-interstitial",
+              "visibleLineRange": [
+                0,
+                6
+              ]
+            },
+            "imagePage": {
+              "attempted": true,
+              "rendered": false,
+              "result": "transfer-interstitial",
+              "visibleLineRange": [
+                0,
+                6
+              ],
+              "officialGazetteImageBytesRetrieved": false,
+              "officialGazettePdfBytesRetrieved": false
+            },
+            "evidence": {
+              "rawHttpResponseBytesCaptured": false,
+              "rawResponseSha256": null,
+              "officialGazetteIssueBytesRetrieved": false,
+              "primarySourceVerified": false,
+              "eventDateVersioningApproved": false
+            },
+            "humanReviewStatus": "pending",
+            "useInLegalAnswers": false,
+            "decision": "research-only"
+          }
         },
         {
           "url": "https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689",
@@ -477,6 +538,70 @@
             "useInLegalAnswers": false,
             "observationFile": "docs/check-law-qavanin-browser-recheck-20261126.json",
             "instrumentType": "executive-regulation"
+          },
+          "latestDirectObservationFile": "docs/check-law-qavanin-direct-observation-20261128.json",
+          "latestDirectObservation": {
+            "id": "cheque-amount-regulation-1403",
+            "titleShown": "اصلاح ميزان مبالغ مربوط به جرائم و تخلفات مندرج در قوانين مختلف",
+            "sourceClass": "primary-official-qavanin-metadata-page-observation",
+            "documentId": "634882870797924421",
+            "directUrls": {
+              "text": "https://qavanin.ir/Law/TreeText/?IDS=634882870797924421",
+              "metadata": "https://qavanin.ir/Law/Attribute/?IDS=634882870797924421",
+              "image": "https://qavanin.ir/Law/ImageText/?IDS=634882870797924421"
+            },
+            "textPage": {
+              "attempted": true,
+              "rendered": false,
+              "result": "transfer-interstitial",
+              "visibleLineRange": [
+                0,
+                6
+              ]
+            },
+            "metadataPage": {
+              "attempted": true,
+              "rendered": true,
+              "visibleLineRange": [
+                7,
+                34
+              ],
+              "retrievalFreshness": "The retrieval page was labeled Crawled: yesterday; treat as potentially cached.",
+              "instrumentTitleShown": "اصلاح ميزان مبالغ مربوط به جرائم و تخلفات مندرج در قوانين مختلف",
+              "instrumentTypeShown": "مقرره",
+              "approvingAuthorityShown": "هيات وزيران",
+              "approvalDateShown": "1403/03/30",
+              "notificationNumberShown": "56261/ت62298هـ",
+              "officialGazetteNumberShown": "23097",
+              "officialGazettePublicationDateShown": "1403/04/23",
+              "promulgationDateShown": "1403/04/04",
+              "effectiveDateShown": "1403/05/08",
+              "lastStatusShown": "1403/08/27"
+            },
+            "imagePage": {
+              "attempted": true,
+              "rendered": true,
+              "shellOnly": true,
+              "visibleLineRange": [
+                7,
+                22
+              ],
+              "allImagesButtonVisible": true,
+              "pdfButtonVisible": true,
+              "pageImagesRetrieved": false,
+              "officialGazettePdfBytesRetrieved": false,
+              "retrievalFreshness": "The retrieval page was labeled Crawled: yesterday; no actual page image or PDF bytes were downloaded."
+            },
+            "evidence": {
+              "rawHttpResponseBytesCaptured": false,
+              "rawResponseSha256": null,
+              "officialGazetteIssueBytesRetrieved": false,
+              "primarySourceVerified": false,
+              "eventDateVersioningApproved": false
+            },
+            "humanReviewStatus": "pending",
+            "useInLegalAnswers": false,
+            "decision": "research-only"
           }
         },
         {
@@ -1592,6 +1717,25 @@
         "humanReviewStatus": "pending",
         "eventDateVersioningApproved": false,
         "useInLegalAnswers": false
+      },
+      "latestDirectObservationFile": "docs/check-law-qavanin-direct-observation-20261128.json",
+      "latestDirectObservation": {
+        "observedAt": "2026-11-28",
+        "textPageRendered": true,
+        "visibleLineRange": [
+          7,
+          90
+        ],
+        "article7AmendmentMarker": "اصلاحي 30ˏ03ˏ1403",
+        "metadataPageRendered": false,
+        "imagePageRendered": false,
+        "rawHttpResponseBytesCaptured": false,
+        "rawResponseSha256": null,
+        "primarySourceVerified": false,
+        "humanReviewStatus": "pending",
+        "eventDateVersioningApproved": false,
+        "useInLegalAnswers": false,
+        "observationFile": "docs/check-law-qavanin-direct-observation-20261128.json"
       }
     },
     {
@@ -1948,5 +2092,7 @@
   "lastSupplementalObservationAt": "2026-11-26",
   "latestSupplementalObservationFile": "docs/check-law-qavanin-browser-recheck-20261126.json",
   "lastTextOnlyObservationAt": "2026-11-27",
-  "latestTextOnlyObservationFile": "docs/check-law-qavanin-text-only-observation-20261127.json"
+  "latestTextOnlyObservationFile": "docs/check-law-qavanin-text-only-observation-20261127.json",
+  "lastDirectObservationAt": "2026-11-28",
+  "latestDirectObservationFile": "docs/check-law-qavanin-direct-observation-20261128.json"
 }
