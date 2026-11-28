@@ -136,6 +136,11 @@ async function probeStaging(urlValue, artifactDirectory, fetchImpl = globalThis.
       allowedOrigin.pathname !== '/' || allowedOrigin.search || allowedOrigin.hash ||
       allowedOrigin.origin !== allowedOriginValue) fail('staging_origin_allowlist_must_be_canonical_https_origin');
   if (url.origin !== allowedOrigin.origin) fail('staging_origin_not_allowlisted');
+  // Never let a staging probe accidentally target the live production host.
+  const normalizedHost = url.hostname.toLowerCase().replace(/\.$/, '');
+  if (normalizedHost === 'mehdisehat.ir' || normalizedHost === 'www.mehdisehat.ir') {
+    fail('staging_production_origin_forbidden');
+  }
 
   const artifact = validateLocalArtifact(artifactDirectory);
   const htmlResult = await fetchExact(fetchImpl, url.toString(), {
