@@ -225,3 +225,15 @@ test('probe rejects hard-linked artifact members before any network request', as
   await assert.rejects(() => probeStaging('https://staging.example/dadyar-preview/', f.root, fetchImpl, 'https://staging.example'), /artifact_hardlink_forbidden:index\.html/);
   assert.equal(calls.length, 0);
 });
+
+test('probe cancels oversized response bodies before buffering beyond the reviewed artifact size', async t => {
+  const f = fixture(t);
+  const { fetchImpl, calls } = fakeFetch(f, {
+    bodyFor: ({ isIntegrity, body }) => isIntegrity ? body : Buffer.concat([body, Buffer.alloc(1024 * 1024)])
+  });
+  await assert.rejects(
+    () => probeStaging('https://staging.example/dadyar-preview/', f.root, fetchImpl, 'https://staging.example'),
+    /preview_html_body_too_large/
+  );
+  assert.equal(calls.length, 1);
+});
