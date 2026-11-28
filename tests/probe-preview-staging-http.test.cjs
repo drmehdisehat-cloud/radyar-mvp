@@ -56,10 +56,12 @@ function fakeFetch(f, overrides = {}) {
       ...(isIntegrity ? {} : { 'content-security-policy': csp }),
       ...(overrides.headers || {})
     };
-    return new Response(overrides.bodyFor ? overrides.bodyFor({ url, isIntegrity, body }) : body, {
+    const response = new Response(overrides.bodyFor ? overrides.bodyFor({ url, isIntegrity, body }) : body, {
       status: overrides.status ?? 200,
       headers
     });
+    Object.defineProperty(response, 'url', { value: overrides.responseUrl ?? String(url) });
+    return response;
   };
   return { fetchImpl, calls };
 }
@@ -67,7 +69,7 @@ function fakeFetch(f, overrides = {}) {
 test('read-only staging probe verifies exact HTTPS HTML and integrity bytes with required response headers', async t => {
   const f = fixture(t);
   const { fetchImpl, calls } = fakeFetch(f);
-  const result = await probeStaging('https://staging.example/dadyar-preview/', f.root, fetchImpl);
+  const result = await probeStaging('https://staging.example/dadyar-preview/', f.root, fetchImpl, 'https://staging.example');
   assert.equal(result.status, 'STAGING_HTTPS_PROBE_VERIFIED_NOT_RELEASE_AUTHORIZED');
   assert.equal(result.sourceCommit, 'a'.repeat(40));
   assert.equal(result.htmlSha256, sha256(f.html));
@@ -97,31 +99,67 @@ test('probe refuses HTTP, query strings, credentials and any path other than the
     'https://staging.example/dadyar-preview/?x=1',
     'https://staging.example/other/'
   ]) {
-    await assert.rejects(() => probeStaging(url, f.root, fetchImpl));
+    await assert.rejects(() => probeStaging(url, f.root, fetchImpl, 'https://staging.example'));
   }
   assert.equal(calls.length, 0);
+});
+
+test('probe requires an explicit canonical staging-origin allowlist before network access', async t => {
+  const f = fixture(t);
+  const { fetchImpl, calls } = fakeFetch(f);
+  await assert.rejects(
+    () => probeStaging('https://staging.example/dadyar-preview/', f.root, fetchImpl, null),
+    /staging_origin_allowlist_required/
+  );
+  await assert.rejects(
+    () => probeStaging('https://staging.example/dadyar-preview/', f.root, fetchImpl, 'http://staging.example'),
+    /staging_origin_allowlist_must_be_canonical_https_origin/
+  );
+  await assert.rejects(
+    () => probeStaging('https://staging.example/dadyar-preview/', f.root, fetchImpl, 'https://other.example'),
+    /staging_origin_not_allowlisted/
+  );
+  await assert.rejects(
+    () => probeStaging('https://staging.example/dadyar-preview/', f.root, fetchImpl, 'https://staging.example/preview'),
+    /staging_origin_allowlist_must_be_canonical_https_origin/
+  );
+  assert.equal(calls.length, 0);
+});
+
+test('probe rejects missing or mismatched final response URLs', async t => {
+  const f = fixture(t);
+  const missing = fakeFetch(f, { responseUrl: '' });
+  await assert.rejects(
+    () => probeStaging('https://staging.example/dadyar-preview/', f.root, missing.fetchImpl, 'https://staging.example'),
+    /preview_html_final_url_missing_or_mismatch/
+  );
+  const mismatched = fakeFetch(f, { responseUrl: 'https://other.example/dadyar-preview/' });
+  await assert.rejects(
+    () => probeStaging('https://staging.example/dadyar-preview/', f.root, mismatched.fetchImpl, 'https://staging.example'),
+    /preview_html_final_url_missing_or_mismatch/
+  );
 });
 
 test('probe rejects redirects and non-200 responses', async t => {
   const f = fixture(t);
   const redirect = fakeFetch(f, { status: 302 });
-  await assert.rejects(() => probeStaging('https://staging.example/dadyar-preview/', f.root, redirect.fetchImpl), /preview_html_http_status_not_200:302/);
+  await assert.rejects(() => probeStaging('https://staging.example/dadyar-preview/', f.root, redirect.fetchImpl, 'https://staging.example'), /preview_html_http_status_not_200:302/);
   const missing = fakeFetch(f, { status: 404 });
-  await assert.rejects(() => probeStaging('https://staging.example/dadyar-preview/', f.root, missing.fetchImpl), /preview_html_http_status_not_200:404/);
+  await assert.rejects(() => probeStaging('https://staging.example/dadyar-preview/', f.root, missing.fetchImpl, 'https://staging.example'), /preview_html_http_status_not_200:404/);
 });
 
 test('probe rejects missing no-store and security headers', async t => {
   const f = fixture(t);
   const { fetchImpl } = fakeFetch(f, { headers: { 'cache-control': 'public, max-age=3600' } });
-  await assert.rejects(() => probeStaging('https://staging.example/dadyar-preview/', f.root, fetchImpl), /preview_html_cache_control_no_store_missing/);
+  await assert.rejects(() => probeStaging('https://staging.example/dadyar-preview/', f.root, fetchImpl, 'https://staging.example'), /preview_html_cache_control_no_store_missing/);
   const { fetchImpl: weakFetch } = fakeFetch(f, { headers: { 'x-content-type-options': 'sniff' } });
-  await assert.rejects(() => probeStaging('https://staging.example/dadyar-preview/', f.root, weakFetch), /preview_html_nosniff_missing/);
+  await assert.rejects(() => probeStaging('https://staging.example/dadyar-preview/', f.root, weakFetch, 'https://staging.example'), /preview_html_nosniff_missing/);
 });
 
 test('probe rejects a CSP that differs from the reviewed local HTML', async t => {
   const f = fixture(t);
   const { fetchImpl } = fakeFetch(f, { headers: { 'content-security-policy': "default-src 'self'" } });
-  await assert.rejects(() => probeStaging('https://staging.example/dadyar-preview/', f.root, fetchImpl), /preview_html_content_security_policy_mismatch/);
+  await assert.rejects(() => probeStaging('https://staging.example/dadyar-preview/', f.root, fetchImpl, 'https://staging.example'), /preview_html_content_security_policy_mismatch/);
 });
 
 test('probe rejects changed remote HTML and integrity bytes', async t => {
@@ -129,16 +167,16 @@ test('probe rejects changed remote HTML and integrity bytes', async t => {
   const { fetchImpl } = fakeFetch(f, {
     bodyFor: ({ isIntegrity, body }) => isIntegrity ? body : Buffer.concat([body, Buffer.from('tampered')])
   });
-  await assert.rejects(() => probeStaging('https://staging.example/dadyar-preview/', f.root, fetchImpl), /preview_html_body_bytes_mismatch/);
+  await assert.rejects(() => probeStaging('https://staging.example/dadyar-preview/', f.root, fetchImpl, 'https://staging.example'), /preview_html_body_bytes_mismatch/);
 });
 
 test('probe rejects cookies and unexpected local files', async t => {
   const f = fixture(t);
   const { fetchImpl } = fakeFetch(f, { headers: { 'set-cookie': 'session=unexpected' } });
-  await assert.rejects(() => probeStaging('https://staging.example/dadyar-preview/', f.root, fetchImpl), /preview_html_set_cookie_forbidden/);
+  await assert.rejects(() => probeStaging('https://staging.example/dadyar-preview/', f.root, fetchImpl, 'https://staging.example'), /preview_html_set_cookie_forbidden/);
   fs.writeFileSync(path.join(f.root, 'backup.zip'), 'synthetic');
   const { fetchImpl: cleanFetch, calls } = fakeFetch(f);
-  await assert.rejects(() => probeStaging('https://staging.example/dadyar-preview/', f.root, cleanFetch), /artifact_file_set_mismatch/);
+  await assert.rejects(() => probeStaging('https://staging.example/dadyar-preview/', f.root, cleanFetch, 'https://staging.example'), /artifact_file_set_mismatch/);
   assert.equal(calls.length, 0);
 });
 
@@ -148,7 +186,7 @@ test('probe rejects a manifest that attempts to authorize API, public AI or depl
   manifest.release.apiEnabled = true;
   fs.writeFileSync(path.join(f.root, 'INTEGRITY.json'), JSON.stringify(manifest, null, 2) + '\n');
   const { fetchImpl, calls } = fakeFetch(f);
-  await assert.rejects(() => probeStaging('https://staging.example/dadyar-preview/', f.root, fetchImpl), /artifact_release_boundary_mismatch/);
+  await assert.rejects(() => probeStaging('https://staging.example/dadyar-preview/', f.root, fetchImpl, 'https://staging.example'), /artifact_release_boundary_mismatch/);
   assert.equal(calls.length, 0);
 });
 
@@ -161,7 +199,7 @@ test('probe rejects symlinked artifact members', async t => {
   fs.unlinkSync(htmlPath);
   fs.symlinkSync(external, htmlPath);
   const { fetchImpl, calls } = fakeFetch(f);
-  await assert.rejects(() => probeStaging('https://staging.example/dadyar-preview/', f.root, fetchImpl), /artifact_index\.html_symlink_forbidden/);
+  await assert.rejects(() => probeStaging('https://staging.example/dadyar-preview/', f.root, fetchImpl, 'https://staging.example'), /artifact_index\.html_symlink_forbidden/);
   assert.equal(calls.length, 0);
 });
 test('probe rejects hard-linked artifact members before any network request', async t => {
@@ -171,6 +209,6 @@ test('probe rejects hard-linked artifact members before any network request', as
   t.after(() => fs.rmSync(external, { force: true }));
   fs.linkSync(htmlPath, external);
   const { fetchImpl, calls } = fakeFetch(f);
-  await assert.rejects(() => probeStaging('https://staging.example/dadyar-preview/', f.root, fetchImpl), /artifact_hardlink_forbidden:index\.html/);
+  await assert.rejects(() => probeStaging('https://staging.example/dadyar-preview/', f.root, fetchImpl, 'https://staging.example'), /artifact_hardlink_forbidden:index\.html/);
   assert.equal(calls.length, 0);
 });
