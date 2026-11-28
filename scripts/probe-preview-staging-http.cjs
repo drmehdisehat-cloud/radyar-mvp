@@ -220,7 +220,7 @@ function createPinnedLookup(hostname, address) {
       options = {};
     }
     if (typeof callback !== 'function') throw new TypeError('staging_dns_callback_required');
-    const requested = String(requestedHostname).toLowerCase().replace(/\\.$/, '');
+    const requested = String(requestedHostname).toLowerCase();
     if (requested !== expectedHostname) return callback(new Error('staging_dns_host_mismatch'));
     if (options && typeof options === 'object' && options.family && options.family !== family) {
       const error = new Error('staging_dns_family_mismatch');
