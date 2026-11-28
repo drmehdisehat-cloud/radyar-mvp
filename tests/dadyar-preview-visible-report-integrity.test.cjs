@@ -7,13 +7,13 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const html = fs.readFileSync(path.join(__dirname, '../dadyar-preview/index.html'), 'utf8');
-const script = html.match(/<script>([\\s\\S]*?)<\\/script>/)?.[1];
+const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 assert.ok(script, 'offline preview browser script must exist');
 
 function extractFunction(signature) {
   const start = script.indexOf(signature);
   assert.ok(start >= 0, 'missing function: ' + signature);
-  const end = script.indexOf('\\n}', start);
+  const end = script.indexOf('\n}', start);
   assert.ok(end > start, 'function boundary missing: ' + signature);
   return script.slice(start, end + 2);
 }
@@ -41,16 +41,16 @@ test('a changed visible report disables review and export even when a prior appr
     reviewChecklistComplete: () => true
   };
 
-  vm.runInNewContext(extractFunction('function updateExportPermission()') + '\\nupdateExportPermission();', sandbox, { timeout: 1000 });
+  vm.runInNewContext(extractFunction('function updateExportPermission()') + '\nupdateExportPermission();', sandbox, { timeout: 1000 });
   assert.equal(sandbox.downloadButton.disabled, true, 'a mismatched visible report must never be downloadable');
   assert.equal(sandbox.recordReviewButton.disabled, true, 'a mismatched visible report must never be approved');
 });
 
 test('review registration checks the exact visible report before and after asynchronous hashing', () => {
-  assert.match(script, /recordReviewButton\\.addEventListener\\('click',async\\(\\)=>\\{\\s*if\\(out\\.textContent!==report\\)\\{invalidateDraft\\(\\);/);
-  assert.match(script, /const unchanged=report===snapshot && out\\.textContent===snapshot/);
+  assert.match(script, /recordReviewButton\.addEventListener\('click',async\(\)=>\{\s*if\(out\.textContent!==report\)\{invalidateDraft\(\);/);
+  assert.match(script, /const unchanged=report===snapshot && out\.textContent===snapshot/);
 });
 
 test('download rechecks the visible report and clears the draft if it changed after approval', () => {
-  assert.match(script, /document\\.getElementById\\('download'\\)\\.addEventListener\\('click',\\(\\)=>\\{\\s*if\\(!report \\|\\| downloadButton\\.disabled\\)return;\\s*if\\(out\\.textContent!==report\\)\\{invalidateDraft\\(\\);/);
+  assert.match(script, /document\.getElementById\('download'\)\.addEventListener\('click',\(\)=>\{\s*if\(!report \|\| downloadButton\.disabled\)return;\s*if\(out\.textContent!==report\)\{invalidateDraft\(\);/);
 });
