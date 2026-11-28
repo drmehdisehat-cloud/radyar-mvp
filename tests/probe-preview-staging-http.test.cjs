@@ -178,7 +178,7 @@ test('probe rejects a CSP that differs from the reviewed local HTML', async t =>
 test('probe rejects changed remote HTML and integrity bytes', async t => {
   const f = fixture(t);
   const { fetchImpl } = fakeFetch(f, {
-    bodyFor: ({ isIntegrity, body }) => isIntegrity ? body : Buffer.concat([body, Buffer.from('tampered')])
+    bodyFor: ({ isIntegrity, body }) => { if (isIntegrity) return body; const changed = Buffer.from(body); changed[0] ^= 1; return changed; }
   });
   await assert.rejects(() => probeStaging('https://staging.example/dadyar-preview/', f.root, fetchImpl, 'https://staging.example'), /preview_html_body_bytes_mismatch/);
 });
