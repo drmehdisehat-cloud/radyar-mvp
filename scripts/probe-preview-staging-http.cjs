@@ -88,7 +88,8 @@ function requireHeaders(response, expected, label) {
   if (response.headers.get('set-cookie')) fail(label + '_set_cookie_forbidden');
 
   const contentType = (response.headers.get('content-type') || '').toLowerCase();
-  if (!contentType.startsWith(expected.contentType)) fail(label + '_content_type_mismatch');
+  const mediaType = contentType.split(';', 1)[0].trim();
+  if (mediaType !== expected.contentType) fail(label + '_content_type_mismatch');
   const cacheControl = (response.headers.get('cache-control') || '').toLowerCase();
   if (!cacheControl.split(',').map(value => value.trim()).includes('no-store')) fail(label + '_cache_control_no_store_missing');
   if ((response.headers.get('x-content-type-options') || '').toLowerCase() !== 'nosniff') {
