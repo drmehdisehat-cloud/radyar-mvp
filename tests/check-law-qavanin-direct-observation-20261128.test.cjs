@@ -55,6 +55,9 @@ test('both direct-page observations remain research-only until bytes, hashes, Ga
   assert.equal(regulationCandidate.latestDirectObservationFile, 'docs/check-law-qavanin-direct-observation-20261128.json');
   assert.equal(lawCandidate.primarySourceVerified, false);
   assert.equal(regulationCandidate.primarySourceVerified, false);
+  assert.equal(regulationCandidate.humanReviewStatus, 'pending');
+  assert.equal(regulationCandidate.eventDateVersioningApproved, false);
+  assert.equal(regulationCandidate.useInLegalAnswers, false);
   assert.equal(canonical.latestDirectObservationFile, 'docs/check-law-qavanin-direct-observation-20261128.json');
   assert.equal(canonical.status, 'research-only');
   assert.equal(canonical.releaseSourceEligible, false);
