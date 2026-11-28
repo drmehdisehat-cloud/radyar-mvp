@@ -62,7 +62,44 @@
       },
       "humanReviewStatus": "pending",
       "useInLegalAnswers": false,
-      "decision": "research-only"
+      "decision": "research-only",
+      "latestWebRetrieval": {
+        "observedAt": "2026-11-28",
+        "retrievalMethod": "independent browser-rendered retrieval of official Qavanin TreeText page",
+        "directUrl": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
+        "pageTotalLines": 159,
+        "visibleLineRange": [
+          7,
+          118
+        ],
+        "titleShown": "قانون صدور چك",
+        "originalAdoptionDateShown": "1355/04/16",
+        "consolidatedAmendmentsShown": true,
+        "article7": {
+          "visibleLines": [
+            83,
+            84,
+            85,
+            86
+          ],
+          "amendmentMarker": "اصلاحي 30ˏ03ˏ1403",
+          "thresholdBandsRials": [
+            "کمتر از 780/000/000",
+            "780/000/000 تا 3/900/000/000",
+            "بیشتر از 3/900/000/000"
+          ]
+        },
+        "metadataPageRechecked": false,
+        "imagePageRechecked": false,
+        "rawHttpResponseBytesCaptured": false,
+        "rawResponseSha256": null,
+        "officialGazetteIssueBytesRetrieved": false,
+        "primarySourceVerified": false,
+        "humanReviewStatus": "pending",
+        "eventDateVersioningApproved": false,
+        "useInLegalAnswers": false,
+        "note": "Rendered official consolidated page only. The visible amendment marker and threshold table do not prove the amendment Gazette issue, its effective date, raw document identity or the valid version for a specific event date."
+      }
     },
     {
       "id": "cheque-amount-regulation-1403",
@@ -134,6 +171,6 @@
     "humanReviewApproved": false,
     "eventDateVersioningApproved": false,
     "legalAnswerUsePermitted": false,
-    "reason": "The official portal pages provide useful direct-page observations and metadata, but raw document bytes, reproducible hashes, official Gazette issue files, approved event-date versions and independent human review are still missing."
+    "reason": "The official Qavanin consolidated text and opinion 850 pages rendered in independent browser retrieval on 2026-11-28, but raw document bytes, reproducible hashes, Gazette issue files, complete event-date versions and independent human review are still missing."
   }
 }
