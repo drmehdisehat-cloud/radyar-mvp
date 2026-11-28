@@ -126,6 +126,19 @@ test('probe requires an explicit canonical staging-origin allowlist before netwo
   assert.equal(calls.length, 0);
 });
 
+test('probe refuses the live apex and www production hosts before network access', async t => {
+  const f = fixture(t);
+  const { fetchImpl, calls } = fakeFetch(f);
+  for (const host of ['mehdisehat.ir', 'www.mehdisehat.ir', 'mehdisehat.ir.']) {
+    const origin = 'https://' + host;
+    await assert.rejects(
+      () => probeStaging(origin + '/dadyar-preview/', f.root, fetchImpl, origin),
+      /staging_production_origin_forbidden/
+    );
+  }
+  assert.equal(calls.length, 0);
+});
+
 test('probe rejects missing or mismatched final response URLs', async t => {
   const f = fixture(t);
   const missing = fakeFetch(f, { responseUrl: '' });
