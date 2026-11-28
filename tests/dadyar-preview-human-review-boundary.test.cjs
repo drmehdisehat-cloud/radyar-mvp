@@ -16,12 +16,16 @@ test('the preview identifies its review step as local and unauthenticated', () =
   assert.match(html, /این اظهار به معنای تأیید قانونی، اصالت مدارک یا بررسی مستقل متخصص نیست و هویت، سمت یا استقلال مرا احراز نمی‌کند/);
 });
 
-test('the reviewer field is a synthetic label, not a real identity claim', () => {
-  const reviewerTag = html.match(/<input\b[^>]*id="reviewer-name"[^>]*>/)?.[0] || '';
+test('the reviewer field is a fixed synthetic label and the UI does not imply an editable identity', () => {
+  const reviewerTag = html.match(/<input\\b[^>]*id="reviewer-name"[^>]*>/)?.[0] || '';
   assert.ok(reviewerTag, 'reviewer label input must exist');
   assert.match(reviewerTag, /readonly/);
+  assert.match(reviewerTag, /aria-readonly="true"/);
   assert.match(reviewerTag, /value="بازبین آزمون"/);
-  assert.match(html, /نام واقعی وارد نکنید/);
+  assert.match(html, /برچسب ثابت بازبین \\(غیرقابل ویرایش؛ فقط داده ساختگی\\)/);
+  assert.match(html, /برچسب ثابت «بازبین آزمون» نمایش داده می‌شود؛ بازبین فقط نتیجه و یادداشت ساختگی را ثبت می‌کند/);
+  assert.match(html, /این برچسب نام یا هویت شخص نیست/);
+  assert.doesNotMatch(html, /بازبین می‌تواند نام، نتیجه و یادداشت خود را ثبت کند/);
 });
 
 test('report download requires an approved decision bound to the exact report digest and full checklist', () => {
