@@ -1,0 +1,42 @@
+{
+  "schema": "dadyar-qavanin-text-only-observation-v1",
+  "observedAt": "2026-11-27",
+  "status": "official-consolidated-text-rendered-unhashed",
+  "sourceScope": "current consolidated cheque-law TreeText page only; no separate metadata page or Gazette issue was retrieved in this observation",
+  "source": {
+    "sourceClass": "primary-official-qavanin",
+    "documentId": "11400475274213876131",
+    "titleShown": "قانون صدور چك با اصلاحات و الحاقات بعدی",
+    "directTextUrl": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
+    "directMetadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
+    "textPageAttempted": true,
+    "textPageRendered": true,
+    "textPageResult": "browser-rendered-direct-page",
+    "visibleLineRange": [
+      42,
+      118
+    ],
+    "originalAdoptionDateShown": "1355/04/16",
+    "visibleArticle7Amendment": {
+      "article": "7",
+      "marker": "اصلاحي 30ˏ03ˏ1403",
+      "line": 83
+    },
+    "metadataPageAttempted": true,
+    "metadataPageRendered": false,
+    "metadataRetrievalResult": "timeout",
+    "rawHttpResponseBytesCaptured": false,
+    "rawResponseSha256": null,
+    "officialGazetteIssueBytesRetrieved": false,
+    "primarySourceVerified": false,
+    "humanReviewStatus": "pending",
+    "eventDateVersioningApproved": false,
+    "legalAnswerUsePermitted": false
+  },
+  "decision": {
+    "registerStatus": "research-only",
+    "releaseSourceEligible": false,
+    "legalConclusionPermitted": false,
+    "reason": "The official Qavanin consolidated text page rendered on 2026-11-27 and visibly labels Article 7 as amended 1403/03/30. The separate Attribute page timed out in this retrieval. No raw HTTP bytes, reproducible SHA-256, Gazette issue bytes, event-date version approval or independent human review are available; this observation must not authorize legal-answer use."
+  }
+}

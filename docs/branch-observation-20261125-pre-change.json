@@ -1,0 +1,150 @@
+{
+  "schema": "dadyar-branch-observation-v1",
+  "observedAt": "2026-11-25T17:06:26+03:30",
+  "observationStage": "pre-change",
+  "repository": "drmehdisehat-cloud/radyar-mvp",
+  "branch": "dadyar/ai-chat-private-20261101",
+  "sourceCommit": "e033f644cdda3672242b8557f53d84f9264656da",
+  "comparison": {
+    "baseBranch": "main",
+    "baseCommit": "d3f02e3b0d4cd3f5d40aabc63bd5d3d93d792318",
+    "status": "ahead",
+    "aheadBy": 1851,
+    "behindBy": 0,
+    "comparedToPreviousReportedHead": {
+      "previousHead": "db66fed3764f46942421e91c9a706833fff37ba3",
+      "aheadBy": 2,
+      "behindBy": 0
+    }
+  },
+  "historicalAnchor": {
+    "correctionCommit": "4d4f7530c47f438a1d89e18afef246cec026391f",
+    "workflowRunId": 42206234440,
+    "workflowConclusion": "success",
+    "workflowHeadSha": "4d4f7530c47f438a1d89e18afef246cec026391f",
+    "job": "verify-existing-frontend",
+    "allListedStepsSucceeded": true
+  },
+  "exactHeadCi": {
+    "sourceCommit": "e033f644cdda3672242b8557f53d84f9264656da",
+    "associatedPullRequestRuns": [
+      {
+        "runId": 45616440649,
+        "jobId": 139212943516,
+        "sourceCommit": "e033f644cdda3672242b8557f53d84f9264656da",
+        "workflowCommit": "dd535144159d0752056c7556f7a50b3613f0e2a6",
+        "event": "pull_request",
+        "conclusion": "success",
+        "contractTests": { "passed": 1505, "failed": 0, "skipped": 0 },
+        "browserTests": { "passed": 19, "failed": 0, "skipped": 0 },
+        "releasePostureJob": "skipped"
+      },
+      {
+        "runId": 45616441070,
+        "jobId": 139212942707,
+        "sourceCommit": "e033f644cdda3672242b8557f53d84f9264656da",
+        "workflowCommit": "fece0b750df9dcc1dc08deeb6ba77329ca5b73dc",
+        "event": "pull_request",
+        "conclusion": "success",
+        "contractTests": { "passed": 1505, "failed": 0, "skipped": 0 },
+        "browserTests": { "passed": 19, "failed": 0, "skipped": 0 },
+        "releasePostureJob": "skipped"
+      },
+      {
+        "runId": 45616440617,
+        "jobId": 139212942569,
+        "sourceCommit": "e033f644cdda3672242b8557f53d84f9264656da",
+        "workflowCommit": "3f4f50139f102fa45fe27530d961a4efe2a1409e",
+        "event": "pull_request",
+        "conclusion": "success",
+        "contractTests": { "passed": 1505, "failed": 0, "skipped": 0 },
+        "browserTests": { "passed": 19, "failed": 0, "skipped": 0 },
+        "releasePostureJob": "skipped"
+      }
+    ],
+    "pushCiOnExactHeadVerified": false,
+    "combinedCommitStatuses": [],
+    "note": "The three PR-triggered jobs are associated with this source SHA and their logs print this exact source_commit. Their workflow merge commits differ. The GitHub Actions connector returns PR-triggered runs only for this lookup; no push-triggered CI result is asserted here."
+  },
+  "preview": {
+    "targetSubpath": "/dadyar-preview/",
+    "topicHintCount": 27,
+    "syntheticChequeBrowserTestsPassed": true,
+    "mobileViewportTestsPassed": true,
+    "remoteRequests": [],
+    "apiEnabled": false,
+    "publicAiEnabled": false,
+    "reviewerAuthentication": "not-configured",
+    "localReviewOnly": true
+  },
+  "previousArtifact": {
+    "artifactId": 15010460344,
+    "runId": 45588159102,
+    "sourceCommit": "eb321c9c146ea3e429567da7abe1242d038a9905",
+    "artifactCurrentAtCapture": true,
+    "staleForObservedHead": true,
+    "archiveSha256": "75fbbc89729cebf61fb7ee029117a5055333dfec11607817a4d11b72a8480477",
+    "htmlSha256": "fb31fa29491d3e087d1700a8a053305f3fce555c28728b6ebe0fba7ef822b327",
+    "manifestSha256": "d66c4a22e3a5c6288d97820eae1b681a64dbee869b4c4a7f2f1669a6d0f73d3e",
+    "mustNotBePresentedAsCurrentBuild": true
+  },
+  "repositoryPosture": {
+    "visibility": "public",
+    "visibilityReadAt": "2026-11-25T17:06:26+03:30",
+    "branchProtected": false,
+    "branchProtectionObservedAt": "2026-11-23",
+    "branchProtectionReadAtThisRun": false,
+    "blockers": [
+      "repository_must_be_private",
+      "release_branch_protection_disabled"
+    ]
+  },
+  "pullRequests": {
+    "openCount": 26,
+    "reviewedKeyPullRequests": [8, 16, 17, 21, 29, 30, 31, 32],
+    "keyPullRequestsDraft": true,
+    "submittedReviewsForThoseKeyPullRequests": 0
+  },
+  "restore": {
+    "backupRestoreVerified": false,
+    "destinationVerified": false,
+    "independentRestoreManifestAvailable": false,
+    "cPanelOrSolidCPInteractiveSessionAvailable": false,
+    "requiredOwnerAction": "Obtain written confirmation from IranHost of this account's control panel and backup format; provision an isolated sandbox outside the production document root with a separate database/user; perform a real restore; capture canonical realpaths, archive and restored-marker SHA-256, restore log digest and database probe; obtain two independent owner-pinned Ed25519 attestations."
+  },
+  "legalSources": {
+    "chequeAmendment1372": {
+      "officialPortalRenderedObservation": true,
+      "rawHttpBytesCaptured": false,
+      "officialGazetteIssueBytesRetrieved": false,
+      "primarySourceVerified": false,
+      "humanReviewStatus": "pending",
+      "eventDateVersioningApproved": false,
+      "legalAnswerUsePermitted": false
+    },
+    "regulation1403": {
+      "metadataRendered": true,
+      "textPageResult": "timeout",
+      "primarySourceVerified": false,
+      "humanReviewStatus": "pending",
+      "legalAnswerUsePermitted": false
+    },
+    "uniformOpinion850": {
+      "officialPortalRenderedObservation": true,
+      "rawHttpBytesCaptured": false,
+      "primarySourceVerified": false,
+      "humanReviewStatus": "pending",
+      "eventDateVersioningApproved": false,
+      "legalAnswerUsePermitted": false
+    }
+  },
+  "release": {
+    "status": "NOT_READY",
+    "backupRestoreVerified": false,
+    "destinationVerified": false,
+    "reviewerAuthenticationVerified": false,
+    "legalAccuracyVerified": false,
+    "deploymentAuthorized": false,
+    "mainDnsProductionFilesAndProductionDatabaseChanged": false
+  }
+}

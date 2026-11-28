@@ -25,6 +25,11 @@ function fixture(complete) {
     'Review authentication, data retention, privacy notice, and handling of sensitive case data.',
     'Cite authoritative Iranian legal texts with effective/review dates and human legal review.',
     'Obtain explicit owner approval and backup before touching main or live deployment.',
+    'Verify repository privacy and release-branch protection.',
+    'Prove an isolated IranHost backup restore with separate database and signed evidence.',
+    'Verify the preview destination outside the production document root and Git checkout.',
+    'Integrate and verify a trusted reviewer IdP/session adapter.',
+    'Verify the live HTTPS preview subpath and security headers.',
   ];
   fs.writeFileSync(path.join(dir, 'docs/V1-RELEASE-GATES.md'),
     requiredGateLabels.map(label => '- [' + (complete ? 'x' : ' ') + '] ' + label).join('\n') + '\n');
@@ -41,7 +46,7 @@ test('audit mode reports blockers without breaking development CI', () => {
     const audit = JSON.parse(result.stdout);
     assert.equal(audit.status, 'NOT_READY');
     assert.equal(audit.sourceCoverage, '0/6');
-    assert.equal(audit.uncheckedGates, 7);
+    assert.equal(audit.uncheckedGates, 12);
     assert.equal(audit.issues.filter(x => x.startsWith('missing_legal_source:')).length, 6);
     assert.equal(run(dir, true).status, 1, 'release enforcement must fail closed');
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
@@ -134,4 +139,21 @@ test('placeholder reviewer labels cannot pass the human legal-review gate', () =
         x.startsWith('missing_human_legal_review:')).length, 6);
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
   }
+});
+
+test('removing repository privacy and branch protection gate cannot make release appear ready', () => {
+  const dir = fixture(true);
+  try {
+    const file = path.join(dir, 'docs/V1-RELEASE-GATES.md');
+    const original = fs.readFileSync(file, 'utf8');
+    const filtered = original.split(/\\r?\\n/).filter(line =>
+      !line.includes('Verify repository privacy and release-branch protection')).join('\\n');
+    assert.notEqual(filtered, original);
+    fs.writeFileSync(file, filtered);
+    const result = run(dir, true);
+    assert.equal(result.status, 1, 'missing repository posture gate must block release');
+    const audit = JSON.parse(result.stdout);
+    assert.equal(audit.status, 'NOT_READY');
+    assert.ok(audit.issues.includes('missing_required_release_gate:repository_posture'));
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });

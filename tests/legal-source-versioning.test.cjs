@@ -1,0 +1,346 @@
+'use strict';
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const {
+  validateSourceVersion,
+  resolveLegalVersion,
+  auditVersionRegistry
+} = require('../backend/legal-source-versioning.cjs');
+
+const AS_OF = '2026-11-12';
+const HASH_A = 'a'.repeat(64);
+const HASH_B = 'b'.repeat(64);
+
+function verified(overrides = {}) {
+  const textSha256 = overrides.textSha256 || HASH_A;
+  return {
+    id: 'cheque-v1',
+    topic: 'instruments',
+    instrumentId: 'synthetic-statute-01',
+    instrumentType: 'law',
+    title: 'قانون فرضی برای آزمون نسخه‌بندی',
+    documentId: '1001',
+    officialDocumentUrl: 'https://qavanin.ir/Law/TreeText/?IDS=1001',
+    status: 'verified',
+    publicationDate: '2024-01-10',
+    effectiveFrom: '2024-02-01',
+    effectiveTo: null,
+    retrievedAt: '2026-11-10',
+    textSha256,
+    releaseSourceEligible: true,
+    humanReview: {
+      reviewer: 'بازبین حقوقی آزمایشی',
+      reviewedAt: '2026-11-11',
+      decision: 'approved',
+      reviewedTextSha256: textSha256
+    },
+    ...overrides
+  };
+}
+
+function resolve(records, eventDate, asOfDate = AS_OF) {
+  return resolveLegalVersion(records, {
+    topic: 'instruments',
+    instrumentId: 'synthetic-statute-01',
+    instrumentType: 'law',
+    eventDate,
+    asOfDate
+  });
+}
+
+test('selects the single reviewed version that was effective on the event date', () => {
+  const result = resolve([verified()], '2025-05-10');
+  assert.equal(result.status, 'verified_version_selected');
+  assert.equal(result.source.effectiveFrom, '2024-02-01');
+  assert.equal(result.sourceSelectionOnly, true);
+  assert.equal(result.legalConclusionPermitted, false);
+});
+
+test('uses the new version exactly at an amendment effective-date boundary', () => {
+  const oldVersion = verified({
+    id: 'cheque-v1',
+    effectiveFrom: '2020-01-01',
+    effectiveTo: '2024-07-01',
+    publicationDate: '2019-12-01',
+    retrievedAt: '2026-11-10',
+    humanReview: {
+      reviewer: 'بازبین حقوقی اول',
+      reviewedAt: '2026-11-11',
+      decision: 'approved',
+      reviewedTextSha256: HASH_A
+    }
+  });
+  const newVersion = verified({
+    id: 'cheque-v2',
+    effectiveFrom: '2024-07-01',
+    effectiveTo: null,
+    publicationDate: '2024-06-15',
+    textSha256: HASH_B,
+    documentId: '1002',
+    officialDocumentUrl: 'https://qavanin.ir/Law/TreeText/?IDS=1002',
+    humanReview: {
+      reviewer: 'بازبین حقوقی دوم',
+      reviewedAt: '2026-11-11',
+      decision: 'approved',
+      reviewedTextSha256: HASH_B
+    }
+  });
+  assert.equal(resolve([oldVersion, newVersion], '2024-06-30').source.id, 'cheque-v1');
+  assert.equal(resolve([oldVersion, newVersion], '2024-07-01').source.id, 'cheque-v2');
+});
+
+test('refuses to project a currently known version onto a future event date', () => {
+  const result = resolve([verified()], '2026-11-13', '2026-11-12');
+  assert.equal(result.status, 'invalid_request');
+  assert.equal(result.reason, 'event_date_after_as_of_date');
+  assert.equal(result.legalConclusionPermitted, false);
+});
+
+test('does not select research-only records even when an official-looking URL exists', () => {
+  const candidate = verified({
+    status: 'research-only',
+    releaseSourceEligible: false,
+    effectiveFrom: null,
+    effectiveTo: null,
+    publicationDate: null,
+    textSha256: null,
+    humanReview: null
+  });
+  const result = resolve([candidate], '2025-05-10');
+  assert.equal(result.status, 'source_unavailable');
+  assert.equal(result.legalConclusionPermitted, false);
+  assert.ok(result.rejected.some(item => item.reasons.includes('research_only')));
+});
+
+test('rejects a review bound to a different text hash', () => {
+  const result = resolve([verified({
+    humanReview: {
+      reviewer: 'بازبین حقوقی آزمایشی',
+      reviewedAt: '2026-11-11',
+      decision: 'approved',
+      reviewedTextSha256: HASH_B
+    }
+  })], '2025-05-10');
+  assert.equal(result.status, 'source_unavailable');
+  assert.ok(result.rejected.some(item => item.reasons.includes('reviewed_text_hash_mismatch')));
+});
+
+test('rejects future retrieval and review observations relative to the requested as-of date', () => {
+  const result = resolve([verified({
+    retrievedAt: '2026-11-13',
+    humanReview: {
+      reviewer: 'بازبین حقوقی آزمایشی',
+      reviewedAt: '2026-11-13',
+      decision: 'approved',
+      reviewedTextSha256: HASH_A
+    }
+  })], '2025-05-10', '2026-11-12');
+  assert.equal(result.status, 'source_unavailable');
+  assert.ok(result.rejected[0].reasons.includes('future_retrievedAt'));
+  assert.ok(result.rejected[0].reasons.includes('future_reviewed_at'));
+});
+
+test('rejects a document identifier that does not match the official URL', () => {
+  const mismatched = verified({ documentId: '9999' });
+  assert.equal(validateSourceVersion(mismatched, AS_OF).eligible, false);
+  assert.ok(validateSourceVersion(mismatched, AS_OF).issues.includes('not_a_direct_allowlisted_official_document_url'));
+});
+
+test('matches document identifiers as exact path or query values, not substrings', () => {
+  const exactPath = verified({
+    documentId: '1001',
+    officialDocumentUrl: 'https://rrk.ir/notice/1001'
+  });
+  const substringPath = verified({
+    documentId: '1001',
+    officialDocumentUrl: 'https://rrk.ir/notice/10010'
+  });
+  assert.equal(validateSourceVersion(exactPath, AS_OF).eligible, true);
+  assert.equal(validateSourceVersion(substringPath, AS_OF).eligible, false);
+});
+
+test('accepts canonical Central Bank document paths and rejects query variants', () => {
+  const direct = verified({
+    documentId: '35817.aspx',
+    officialDocumentUrl: 'https://cbi.ir/showitem/35817.aspx'
+  });
+  const queryVariant = verified({
+    documentId: '35817.aspx',
+    officialDocumentUrl: 'https://cbi.ir/showitem/35817.aspx?download=1'
+  });
+  assert.equal(validateSourceVersion(direct, AS_OF).eligible, true);
+  assert.equal(validateSourceVersion(queryVariant, AS_OF).eligible, false);
+});
+
+test('rejects non-official hosts and portal homepages as direct citations', () => {
+  const unofficial = verified({ officialDocumentUrl: 'https://example.com/law/1001' });
+  const homepage = verified({ officialDocumentUrl: 'https://qavanin.ir/' });
+  assert.equal(validateSourceVersion(unofficial, AS_OF).eligible, false);
+  assert.equal(validateSourceVersion(homepage, AS_OF).eligible, false);
+});
+
+test('Qavanin source URLs must use the exact direct law-text endpoint, not metadata or redirect paths', () => {
+  for (const officialDocumentUrl of [
+    'https://qavanin.ir/Law/Attribute/?IDS=1001',
+    'https://qavanin.ir/redirect/?IDS=1001',
+    'https://qavanin.ir/Law/TreeText/extra?IDS=1001',
+    'https://qavanin.ir/Law/%54reeText/?IDS=1001',
+    'https://qavanin.ir/Law/../Law/TreeText/?IDS=1001',
+    'https://qavanin.ir/Law/%2e%2e/Law/TreeText/?IDS=1001',
+    'https://qavanin.ir/Law/TreeText/./?IDS=1001',
+    'https://qavanin.ir//Law/TreeText/?IDS=1001',
+    'https://qavanin.ir/Law\\TreeText/?IDS=1001'
+  ]) {
+    assert.equal(validateSourceVersion(verified({ officialDocumentUrl }), AS_OF).eligible, false, officialDocumentUrl);
+  }
+  assert.equal(validateSourceVersion(verified(), AS_OF).eligible, true);
+});
+
+test('rejects normalized and percent-encoded aliases on non-Qavanin official portals', () => {
+  const rejectedUrls = [
+    'https://rrk.ir/Document/../Document/1001',
+    'https://rrk.ir/Document/%2e%2e/Document/1001',
+    'https://rrk.ir/Document/%31%30%30%31',
+    'https://rrk.ir//Document/1001',
+    'https://rrk.ir\\\\Document\\\\1001',
+    'https://cbi.ir/showitem/../showitem/35817.aspx'
+  ];
+  for (const officialDocumentUrl of rejectedUrls) {
+    const documentId = officialDocumentUrl.includes('cbi.ir') ? '35817.aspx' : '1001';
+    assert.equal(
+      validateSourceVersion(verified({ documentId, officialDocumentUrl }), AS_OF).eligible,
+      false,
+      officialDocumentUrl
+    );
+  }
+  assert.equal(validateSourceVersion(verified({
+    documentId: '1001',
+    officialDocumentUrl: 'https://rrk.ir/Document/1001'
+  }), AS_OF).eligible, true);
+});
+
+test('fails closed when two verified versions overlap on the same event date', () => {
+  const first = verified({ id: 'v1', effectiveFrom: '2020-01-01', effectiveTo: null });
+  const second = verified({ id: 'v2', effectiveFrom: '2024-01-01', effectiveTo: null });
+  const result = resolve([first, second], '2025-05-10');
+  assert.equal(result.status, 'ambiguous_version');
+  assert.equal(result.legalConclusionPermitted, false);
+  assert.equal(auditVersionRegistry([first, second], AS_OF).valid, false);
+});
+
+test('registry audit rejects duplicate version identifiers', () => {
+  const first = verified({ id: 'duplicate' });
+  const second = verified({ id: 'duplicate', documentId: '1002', officialDocumentUrl: 'https://qavanin.ir/Law/TreeText/?IDS=1002' });
+  const audit = auditVersionRegistry([first, second], AS_OF);
+  assert.equal(audit.valid, false);
+  assert.ok(audit.issues.includes('duplicate_id:duplicate'));
+});
+
+test('rejects invalid calendar dates and invalid as-of requests', () => {
+  const invalid = verified({ effectiveFrom: '2024-02-30' });
+  assert.equal(validateSourceVersion(invalid, AS_OF).eligible, false);
+  assert.equal(resolve([verified()], '2024-02-30').status, 'invalid_request');
+});
+
+test('rejects a publication date later than the recorded source retrieval date', () => {
+  const result = validateSourceVersion(verified({
+    publicationDate: '2026-11-11',
+    retrievedAt: '2026-11-10'
+  }), AS_OF);
+  assert.equal(result.eligible, false);
+  assert.ok(result.issues.includes('publication_after_retrieval'));
+});
+
+test('rejects a human review dated before the exact source retrieval', () => {
+  const result = validateSourceVersion(verified({
+    retrievedAt: '2026-11-10',
+    humanReview: {
+      reviewer: 'بازبین حقوقی آزمایشی',
+      reviewedAt: '2026-11-09',
+      decision: 'approved',
+      reviewedTextSha256: HASH_A
+    }
+  }), AS_OF);
+  assert.equal(result.eligible, false);
+  assert.ok(result.issues.includes('review_before_retrieval'));
+});
+
+test('a rejected human review cannot make a source eligible', () => {
+  const result = resolve([verified({
+    humanReview: {
+      reviewer: 'بازبین حقوقی آزمایشی',
+      reviewedAt: '2026-11-11',
+      decision: 'rejected',
+      reviewedTextSha256: HASH_A
+    }
+  })], '2025-05-10');
+  assert.equal(result.status, 'source_unavailable');
+  assert.ok(result.rejected[0].reasons.includes('human_review_not_approved'));
+});
+
+test('returns source_unavailable instead of inventing a version when no record exists', () => {
+  const result = resolve([], '2025-05-10');
+  assert.equal(result.status, 'source_unavailable');
+  assert.equal(result.reason, 'no_registry_record');
+});
+
+test('rejects prototype-backed registry records without inheriting metadata', () => {
+  const inherited = verified();
+  const record = Object.create(inherited);
+  const result = validateSourceVersion(record, AS_OF);
+  assert.equal(result.eligible, false);
+  assert.ok(result.issues.includes('record_not_plain_object'));
+  assert.equal(resolve([record], '2025-05-10').status, 'source_unavailable');
+  assert.equal(auditVersionRegistry([record], AS_OF).valid, false);
+});
+
+test('rejects accessor-backed record fields without invoking getters', () => {
+  const record = verified();
+  let reads = 0;
+  Object.defineProperty(record, 'topic', {
+    enumerable: true,
+    configurable: true,
+    get() { reads++; return 'instruments'; }
+  });
+  const result = validateSourceVersion(record, AS_OF);
+  assert.equal(reads, 0);
+  assert.equal(result.eligible, false);
+  assert.ok(result.issues.includes('record_accessor_property'));
+});
+
+test('rejects accessor-backed human review metadata without invoking getters', () => {
+  const record = verified();
+  let reads = 0;
+  Object.defineProperty(record.humanReview, 'reviewer', {
+    enumerable: true,
+    configurable: true,
+    get() { reads++; return 'بازبین حقوقی آزمایشی'; }
+  });
+  const result = validateSourceVersion(record, AS_OF);
+  assert.equal(reads, 0);
+  assert.equal(result.eligible, false);
+  assert.ok(result.issues.includes('human_review_accessor_property'));
+});
+
+test('fails closed on uninspectable proxy records in selection and registry audit', () => {
+  const hostile = new Proxy({}, {
+    getPrototypeOf() { throw new Error('synthetic proxy trap'); },
+    ownKeys() { throw new Error('synthetic proxy trap'); }
+  });
+  assert.doesNotThrow(() => resolve([hostile], '2025-05-10'));
+  const selection = resolve([hostile], '2025-05-10');
+  assert.equal(selection.status, 'source_unavailable');
+  assert.ok(selection.rejected[0].reasons.includes('record_uninspectable_object'));
+  const audit = auditVersionRegistry([hostile], AS_OF);
+  assert.equal(audit.valid, false);
+  assert.ok(audit.issues.includes('unknown:record_uninspectable_object'));
+});
+
+test('rejects symbol and non-enumerable metadata keys in registry records', () => {
+  const symbolRecord = verified();
+  symbolRecord[Symbol('hidden')] = 'synthetic';
+  const hiddenRecord = verified();
+  Object.defineProperty(hiddenRecord, 'hidden', { value: 'synthetic', enumerable: false });
+  assert.ok(validateSourceVersion(symbolRecord, AS_OF).issues.includes('record_symbol_key'));
+  assert.ok(validateSourceVersion(hiddenRecord, AS_OF).issues.includes('record_non_enumerable_property'));
+});

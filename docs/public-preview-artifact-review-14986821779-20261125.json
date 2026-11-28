@@ -1,0 +1,140 @@
+{
+  "schema": "dadyar-public-preview-artifact-review-v1",
+  "observedAt": "2026-11-25",
+  "observationTimePrecision": "date-only; artifact creation and expiry timestamps are copied from GitHub metadata",
+  "repository": "drmehdisehat-cloud/radyar-mvp",
+  "branch": "dadyar/ai-chat-private-20261101",
+  "sourceCommit": "08eb0afb622320d2842ae292b077560bc5574b71",
+  "requiredCi": {
+    "runId": 45534787124,
+    "jobs": [
+      {
+        "id": 138938617258,
+        "name": "verify-existing-frontend",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 138938867982,
+        "name": "audit-release-posture-after-ci",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ],
+    "contractTests": {
+      "passed": 1463,
+      "failed": 0,
+      "skipped": 0
+    },
+    "browser": {
+      "realBrowserSmoke": {
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0
+      },
+      "checkIntakeBrowser": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      },
+      "syntheticChequeChromium": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      },
+      "mobileChromium": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      },
+      "mobileDeviceEmulation": {
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0
+      },
+      "topicRouting": {
+        "passed": 12,
+        "failed": 0,
+        "skipped": 0
+      }
+    }
+  },
+  "artifactWorkflow": {
+    "name": "Dadyar public-only preview review artifact",
+    "runId": 45534787168,
+    "jobId": 138940542604,
+    "event": "push",
+    "jobStatus": "completed",
+    "jobConclusion": "success",
+    "runUrl": "https://github.com/drmehdisehat-cloud/radyar-mvp/actions/runs/45534787168"
+  },
+  "artifact": {
+    "id": 14986821779,
+    "name": "dadyar-public-preview-review-08eb0afb622320d2842ae292b077560bc5574b71",
+    "sizeBytes": 19726,
+    "createdAt": "2026-11-25T02:47:37Z",
+    "expiresAt": "2026-12-02T02:47:37Z",
+    "archiveSha256": "87e6eaa8c0e565420630564dbefe59e953b9d7f5bd836e771d93367ab1f23529",
+    "entries": [
+      {
+        "path": "index.html",
+        "sizeBytes": 65821,
+        "sha256": "fb31fa29491d3e087d1700a8a053305f3fce555c28728b6ebe0fba7ef822b327",
+        "gitBlobSha1": "90f7616162591efb9c7f0b059105e09f12873e98"
+      },
+      {
+        "path": "INTEGRITY.json",
+        "sizeBytes": 967,
+        "sha256": "bf979b2474e7b4665ac96fea1d5b5191aee043cd2128cf183037f4a1cd38d8c1"
+      }
+    ],
+    "entryCount": 2
+  },
+  "manifest": {
+    "schema": "dadyar-public-preview-integrity-v1",
+    "sourceCommit": "08eb0afb622320d2842ae292b077560bc5574b71",
+    "workflowCommit": "08eb0afb622320d2842ae292b077560bc5574b71",
+    "sourceBranch": "dadyar/ai-chat-private-20261101",
+    "sourceFile": "public/index.html",
+    "targetSubpath": "/dadyar-preview/",
+    "sha256": "fb31fa29491d3e087d1700a8a053305f3fce555c28728b6ebe0fba7ef822b327",
+    "gitBlobSha1": "90f7616162591efb9c7f0b059105e09f12873e98",
+    "topicHintCount": 27,
+    "apiEnabled": false,
+    "publicAiEnabled": false,
+    "reviewerAuthentication": "not-configured",
+    "backupRestoreVerified": false,
+    "destinationVerified": false,
+    "deploymentAuthorized": false
+  },
+  "verification": {
+    "downloadedFromGitHub": true,
+    "zipListingVerified": true,
+    "archiveSha256Recomputed": true,
+    "htmlSha256Recomputed": true,
+    "integrityManifestSha256Recomputed": true,
+    "manifestMatchesArtifact": true,
+    "htmlMatchesSourceGitBlob": true,
+    "sourceGitBlobMatchesBranchFile": true,
+    "productionHostRequested": false,
+    "restorePerformed": false,
+    "destinationTestPerformed": false,
+    "reviewerIdentityVerified": false,
+    "legalAccuracyVerified": false
+  },
+  "releasePosture": {
+    "status": "NOT_READY",
+    "visibility": "public",
+    "branchProtected": false,
+    "blockers": [
+      "repository_must_be_private",
+      "release_branch_protection_disabled",
+      "backup_restore_unverified",
+      "destination_unverified",
+      "reviewer_authentication_not_configured",
+      "legal_sources_unverified",
+      "live_https_unverified"
+    ]
+  },
+  "releaseBoundary": "This record proves the exact downloaded artifact bytes, source Git blob, manifest, and successful CI evidence only. It does not prove an isolated backup restore, hosting destination validity, authenticated human reviewer identity, legal accuracy, live HTTPS availability, or deployment authorization. Do not publish until every independent release gate is satisfied."
+}

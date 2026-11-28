@@ -1,0 +1,81 @@
+{
+  "schema": "dadyar-qavanin-supplemental-recheck-v1",
+  "topic": "check",
+  "observedAt": "2026-11-26",
+  "status": "official-metadata-rendered-only",
+  "scope": "A fresh check of the official Qavanin Attribute page for the consolidated cheque law. The metadata page rendered; the TreeText endpoint returned only a transfer/interstitial page in this retrieval. This is a metadata observation, not a captured law text or a verified legal source.",
+  "sources": {
+    "consolidatedChequeLaw": {
+      "sourceClass": "primary-official-qavanin-metadata-observation",
+      "documentId": "11400475274213876131",
+      "title": "قانون صدور چک",
+      "directTextUrl": "https://qavanin.ir/Law/TreeText/?IDS=11400475274213876131",
+      "directMetadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=11400475274213876131",
+      "textPageAttempted": true,
+      "textPageRendered": false,
+      "textPageResult": "transfer-interstitial-only",
+      "metadataPageRendered": true,
+      "metadataVisibleLines": [
+        7,
+        9,
+        19,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34
+      ],
+      "metadata": {
+        "instrumentTitleShown": "قانون صدور چك",
+        "originalAdoptionDateShown": "1355/04/16",
+        "adoptingAuthorityShown": "مجلس شوراي ملي-مجلس سنا",
+        "notificationNumberShown": "33206",
+        "notifyingAuthorityShown": "نخست وزير",
+        "officialGazetteNumberShown": "9210",
+        "officialGazettePublicationDateShown": "1355/05/19",
+        "promulgationDateShown": "1355/05/09",
+        "originalEffectiveDateShown": "1355/06/04",
+        "latestStatusShown": "اصلاحي 1403/03/30"
+      },
+      "rawHttpResponseBytesCaptured": false,
+      "rawResponseSha256": null,
+      "officialGazetteIssueBytesRetrieved": false,
+      "primarySourceVerified": false,
+      "humanReviewStatus": "pending",
+      "eventDateVersioningApproved": false,
+      "legalAnswerUsePermitted": false,
+      "note": "The official Qavanin Attribute page rendered and displayed the metadata listed above. The TreeText endpoint returned a transfer-to-website interstitial rather than the law text in this retrieval. The Gazette number and dates describe the original 1355 act, while the latest-status label is only a portal label; neither proves the complete amendment chain or the version applicable to a particular event date."
+    }
+  },
+  "verification": {
+    "rawHttpResponseBytesCaptured": false,
+    "rawResponseSha256": null,
+    "officialGazetteIssueBytesRetrieved": false,
+    "primarySourceVerified": false,
+    "humanReviewStatus": "pending",
+    "eventDateVersioningApproved": false,
+    "legalAnswerUsePermitted": false
+  },
+  "limitations": [
+    "No raw HTTP response bytes or reproducible SHA-256 were captured.",
+    "The direct TreeText endpoint returned only a transfer/interstitial page in this retrieval; the consolidated text was not re-read.",
+    "Official Gazette issue 9210 was not downloaded or hashed.",
+    "No amendment-specific Gazette issues were retrieved or reconciled.",
+    "No independent human legal review is recorded.",
+    "No event-date version is approved for legal-answer use."
+  ],
+  "nextActions": [
+    "Retrieve the exact TreeText response bytes through an authorized reproducible fetch and compute SHA-256.",
+    "Retrieve and hash Official Gazette issue 9210 and the amendment-specific Gazette issues.",
+    "Reconcile the complete amendment chain and transitional rules into non-overlapping event-date versions.",
+    "Bind independent legal review to the exact source-byte SHA-256 before enabling legal-answer use."
+  ]
+}

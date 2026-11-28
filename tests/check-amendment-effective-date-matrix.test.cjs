@@ -10,6 +10,9 @@ const matrix = JSON.parse(fs.readFileSync(
   path.join(root, 'docs/check-amendment-effective-date-matrix.json'), 'utf8'));
 const handoff = JSON.parse(fs.readFileSync(
   path.join(root, 'docs/check-law-source-handoff-20261026.json'), 'utf8'));
+const recheck = JSON.parse(fs.readFileSync(
+  path.join(root, 'docs/check-law-qavanin-recheck-20261124.json'), 'utf8'));
+const { audit } = require('../scripts/audit-check-evidence.cjs');
 
 test('cheque amendments are tracked as research, not approved release evidence', () => {
   assert.equal(matrix.schemaVersion, 1);
@@ -25,11 +28,9 @@ test('cheque amendments are tracked as research, not approved release evidence',
   assert.match(matrix.warning, /NOT independently prove/i);
 });
 
-test('1397, 1400 and 1403 amendment dates cannot masquerade as commencement dates', () => {
-  assert.deepEqual(matrix.amendments.map(a => a.label), ['1397', '1400', '1403']);
+test('1372 and later cheque amendment dates cannot masquerade as commencement dates', () => {
+  assert.deepEqual(matrix.amendments.map(a => a.label), ['1372', '1397', '1400', '1403']);
   for (const amendment of matrix.amendments) {
-    assert.equal(amendment.dateMeaning, 'article-amendment-label-only');
-    assert.match(amendment.dateShownOnConsolidatedArticles, /^1[34]\d{2}\/\d{2}\/\d{2}$/);
     assert.ok(amendment.articleLabels.length >= 1);
     assert.ok(amendment.reviewTask.length > 40);
     assert.equal(amendment.independentPrimaryAmendmentTextVerified, false);
@@ -40,6 +41,20 @@ test('1397, 1400 and 1403 amendment dates cannot masquerade as commencement date
     }
     assert.notEqual(amendment.dateShownOnConsolidatedArticles,
       matrix.originalLawEffectiveDateShown);
+    if (amendment.label === '1372') {
+      assert.equal(amendment.dateMeaning, 'instrument-approval-date-only');
+      assert.equal(amendment.dateShownOnConsolidatedArticles, '1372/08/11');
+      assert.equal(recheck.sources.amendment1372.approvalDateShown, '1372/08/11');
+      assert.equal(recheck.sources.amendment1372.guardianCouncilConfirmationDateShown, '1372/08/19');
+      assert.equal(recheck.sources.amendment1372.textPageRendered, true);
+      assert.equal(recheck.sources.amendment1372.metadataPageRendered, true);
+      continue;
+    }
+    assert.equal(amendment.dateMeaning, 'article-amendment-label-only');
+    const [year, month, day] = amendment.dateShownOnConsolidatedArticles.split('/');
+    assert.equal(year, amendment.label);
+    assert.equal(month.length, 2);
+    assert.equal(day.length, 2);
     for (const article of amendment.articleLabels) {
       assert.ok(handoff.officialTextObservation.amendmentDatesDisplayed.some(
         observed => observed.article === article &&
@@ -84,4 +99,61 @@ test('1403 article-7 monetary adjustment is not misclassified as a parliamentary
   assert.equal(matrix.releaseSourceEligible, false);
   assert.equal(matrix.legalConclusionPermitted, false);
   assert.match(adjustment.reviewTask, /not classify this as a parliamentary amendment/i);
+});
+
+test('1397 and 1400 primary-source leads remain unverified after official portal timeouts', () => {
+  const byYear = Object.fromEntries(matrix.amendments.map(item => [item.label, item]));
+  const expected = {
+    '1397': 'https://rc.majlis.ir/fa/law/show/1091223',
+    '1400': 'https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689'
+  };
+  for (const [year, url] of Object.entries(expected)) {
+    const item = byYear[year];
+    const observation = item.candidatePrimaryDocumentObservation;
+    assert.equal(observation.url, url);
+    assert.equal(observation.directFetchAttempt.result, 'timeout');
+    assert.equal(observation.directFetchAttempt.retrieved, false);
+    assert.equal(observation.legalTextImported, false);
+    assert.equal(observation.independentPrimaryAmendmentTextVerified, false);
+    assert.equal(item.independentPrimaryAmendmentTextVerified, false);
+    assert.equal(item.officialGazettePublicationDate, null);
+    assert.equal(item.effectiveDate, null);
+  }
+  assert.equal(matrix.releaseSourceEligible, false);
+  assert.equal(matrix.legalConclusionPermitted, false);
+});
+
+test('1372 Qavanin text and current metadata are recorded without legal promotion', () => {
+  const amendment = matrix.amendments.find(item => item.label === '1372');
+  const candidate = amendment.candidateInstrument;
+  assert.equal(candidate.candidatePrimaryTextRetrieved, true);
+  assert.equal(candidate.primaryTextObservation.sourceType, 'official-qavanin-portal-amendment-text');
+  assert.equal(candidate.primaryTextObservation.observedAt, '2026-11-24');
+  assert.equal(candidate.primaryTextObservation.rawHttpResponseBytesCaptured, false);
+  assert.equal(candidate.primaryTextObservation.rawResponseSha256, null);
+  assert.equal(candidate.primaryMetadataObservation.observedAt, '2026-11-24');
+  assert.equal(candidate.primaryMetadataObservation.metadataPageRendered, true);
+  assert.ok(candidate.primaryMetadataObservation.visibleLines.includes(34));
+  assert.equal(candidate.primaryMetadataObservation.officialGazetteNumberShown, '14189');
+  assert.equal(candidate.primaryMetadataObservation.effectiveDateShown, '1372/09/17');
+  assert.equal(candidate.publicationResearchLead.checkedAt, '2026-11-24');
+  assert.equal(candidate.publicationResearchLead.primaryGazetteIssueRetrieved, false);
+  assert.equal(candidate.publicationResearchLead.effectiveDateIndependentlyVerified, false);
+  assert.equal(amendment.officialGazetteNumber, null);
+  assert.equal(amendment.officialGazettePublicationDate, null);
+  assert.equal(amendment.effectiveDate, null);
+  assert.equal(amendment.transitionalApplicabilityVerified, false);
+  assert.equal(amendment.humanReviewer, null);
+  assert.equal(matrix.releaseSourceEligible, false);
+  assert.equal(matrix.legalConclusionPermitted, false);
+
+  const report = audit(matrix);
+  assert.equal(report.status, 'RESEARCH_ONLY');
+  assert.deepEqual(report.errors, []);
+  const gaps = report.instruments.find(item => item.label === '1372').missingEvidence;
+  assert.ok(!gaps.includes('independent_primary_instrument'));
+  for (const gap of ['primary_official_gazette', 'verified_effective_date',
+    'transitional_applicability', 'subsequent_amendments', 'human_legal_signoff']) {
+    assert.ok(gaps.includes(gap), gap);
+  }
 });

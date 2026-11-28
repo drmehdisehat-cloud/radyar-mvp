@@ -1,0 +1,178 @@
+{
+  "schema": "dadyar-qavanin-check-law-observation-v1",
+  "topic": "check",
+  "observedAt": "2026-11-21",
+  "status": "research-only",
+  "legalAnswerUsePermitted": false,
+  "primarySourceVerified": false,
+  "humanReviewStatus": "pending",
+  "sourceMethod": "Independent rendered retrieval of the direct official Qavanin text and metadata pages on 2026-11-21. The pages exposed line-addressable content. Raw HTTP response bytes were not captured, no SHA-256 was computed, and no text-bound human legal review was performed.",
+  "observations": {
+    "amendment1400": {
+      "title": "قانون اصلاح قانون صدور چک",
+      "instrumentType": "parliamentary-amending-act",
+      "directTextUrl": "https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689",
+      "directMetadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=8508483613671622689",
+      "approvalDateShown": "1400/01/29",
+      "guardianCouncilConfirmationDateShown": "1400/02/18",
+      "officialGazetteNumberShown": "22188",
+      "officialGazettePublicationDateShown": "1400/03/02",
+      "promulgationDateShown": "1400/02/28",
+      "effectiveDateShown": "1400/03/18",
+      "currentConsolidatedStatusLabelShown": "اصلاحي 1403/03/30",
+      "textPageRendered": true,
+      "textPageLines": [
+        7,
+        55
+      ],
+      "metadataPageRendered": true,
+      "metadataPageLines": [
+        19,
+        34
+      ],
+      "observedProvisions": {
+        "article1": "Removes the quoted cheque-validity-period phrases and the three-year maximum period from Article 6 of the Cheque Issuance Act.",
+        "article2": "Changes the transitional rule for Article 21 bis by linking the Sayad registration regime to cheque leaves from cheque books supplied after the end of Esfand 1399, while retaining a prior-rule treatment for older cheque books.",
+        "article3": "Adds Article 24 governing guaranteed cheques, including issuance through Sayad, payment to the named beneficiary, cancellation/payment timing, lost-cheque replacement, and consequences for forgery or use of a forged guaranteed cheque."
+      },
+      "rawHttpBytesCaptured": false,
+      "rawResponseSha256": null,
+      "humanReviewStatus": "pending",
+      "legalAnswerUsePermitted": false,
+      "note": "The official portal currently renders the amendment text and its metadata. The displayed Gazette number/date and effective date are portal-observed metadata, not a retrieved Gazette issue file. The 1403/03/30 label belongs to the current consolidated status and does not by itself establish the event-date effect of every intervening amendment."
+    },
+    "amendment1358": {
+      "title": "لايحه قانوني اصلاح ماده 17 قانون صدور چك",
+      "instrumentType": "legislative-act",
+      "authorityShown": "شوراي انقلاب جمهوري اسلامي ايران",
+      "directTextUrl": "https://qavanin.ir/Law/TreeText/?IDS=5510706429727435487",
+      "directMetadataUrl": "https://qavanin.ir/Law/Attribute/?IDS=5510706429727435487",
+      "approvalDateShown": "1358/04/31",
+      "promulgationDateShown": "1358/05/06",
+      "officialGazetteNumberShown": "10043",
+      "officialGazettePublicationDateShown": "1358/05/25",
+      "effectiveDateShown": "1358/04/31",
+      "currentStatusLabelShown": "1403/11/15",
+      "textPageRendered": true,
+      "textPageLines": [
+        42,
+        45
+      ],
+      "metadataPageRendered": true,
+      "metadataPageLines": [
+        19,
+        34
+      ],
+      "observedProvisions": {
+        "main": "Replaces the guarantee deposit/bank guarantee mentioned in Article 17 with security, including cash, movable or immovable property, or a bank guarantee.",
+        "proviso1": "The legal force of this single-article act lasts only through the end of solar year 1358.",
+        "proviso2": "It applies only to cheques issued through 1358/04/31."
+      },
+      "rawHttpBytesCaptured": false,
+      "rawResponseSha256": null,
+      "gazetteIssueBytesRetrieved": false,
+      "humanReviewStatus": "pending",
+      "primarySourceVerified": false,
+      "legalAnswerUsePermitted": false,
+      "eventDateVersioningApproved": false,
+      "note": "Official Qavanin text and attribute pages rendered in this recheck. The text itself contains a narrow temporary and cheque-issuance-date transition. Portal-rendered metadata is not a downloaded Gazette issue or raw signed instrument; do not generalize this rule to later cheques without the complete amendment chain and human review."
+    }
+  },
+  "eventDateVersions": [],
+  "eventDateVersioningApproved": false,
+  "limitations": [
+    "Raw HTTP response bytes and a reproducible SHA-256 were not captured.",
+    "The official Gazette issue 22188 itself was not downloaded and independently hashed.",
+    "The complete amendment chain for the Cheque Issuance Act, including the 1358, 1372, 1376, 1377, 1382, 1397, 1400 and 1403 instruments, has not been independently established for event-date application.",
+    "The current consolidated status label is not a substitute for an amendment-by-amendment temporal analysis.",
+    "No qualified human legal review bound to the exact source bytes has been recorded.",
+    "The official status index lists ten influencing instruments, but its displayed approval dates do not establish each instrument's Gazette publication date or effective date.",
+    "The 1358 act text and metadata were rendered, but raw HTTP bytes, SHA-256 and Gazette issue 10043 bytes were not captured.",
+    "The 1358 temporary-validity and cheque-issuance-date transition requires exact event-date analysis and independent human legal review."
+  ],
+  "nextActions": [
+    "Capture reproducible raw official text and metadata response bytes, record retrieval timestamps and SHA-256 values.",
+    "Retrieve and hash official Gazette issue 22188 and the original signed amendment.",
+    "Complete the amendment chain and transitional-rule analysis before producing non-overlapping eventDateVersions.",
+    "Obtain independent legal review bound to the exact text SHA-256 and record the reviewer's identity, date and decision.",
+    "Retrieve and hash official Gazette issue 10043 and the signed 1358 act; bind a human review to the exact source bytes.",
+    "Resolve the remaining 1372, 1376, 1377 and 1382 instruments from official text and Gazette metadata before creating event-date versions."
+  ],
+  "statusIndexRecheck": {
+    "directUrl": "https://qavanin.ir/Law/StatusIndex/?IDS=11400475274213876131",
+    "observedAt": "2026-11-21",
+    "pageRendered": true,
+    "renderedLines": [
+      17,
+      30
+    ],
+    "dateFieldMeaning": "Approval dates displayed by the official status index; not publication or effective dates.",
+    "influencingActs": [
+      {
+        "title": "لايحه قانوني اصلاح ماده 17 قانون صدور چك",
+        "approvalDateShown": "1358/04/31",
+        "documentId": "5510706429727435487",
+        "textUrl": "https://qavanin.ir/Law/TreeText/?IDS=5510706429727435487",
+        "textAndMetadataRendered": true
+      },
+      {
+        "title": "قانون اصلاح موادي از قانون صدور چك مصوب تيرماه 1355",
+        "approvalDateShown": "1372/08/11",
+        "documentId": "16863897128756457315",
+        "textUrl": "https://qavanin.ir/Law/TreeText/?IDS=16863897128756457315",
+        "priorTextRendered": true,
+        "metadataAvailability": "incomplete"
+      },
+      {
+        "title": "قانون الحاق يك تبصره به ماده 2 قانون اصلاح موادي از قانون صدورچك مصوب 1375/02/12 [1372/8/11] مجلس شوراي اسلامي",
+        "approvalDateShown": "1376/03/10",
+        "directTextFetchInThisRun": "not_attempted"
+      },
+      {
+        "title": "قانون اصلاح ذيل تبصره (1) ماده (14) قانون صدور چك و الحاق يك تبصره به آن",
+        "approvalDateShown": "1376/10/14",
+        "directTextFetchInThisRun": "not_attempted"
+      },
+      {
+        "title": "قانون استفساريه تبصرۀ الحاقي به ماده 2 قانون اصلاح موادي از قانون صدور چك مصوب مورخ 1376/3/10 مجمع تشخيص مصلحت نظام",
+        "approvalDateShown": "1377/09/21",
+        "directTextFetchInThisRun": "not_attempted"
+      },
+      {
+        "title": "قانون اصلاح موادي از قانون صدور چك",
+        "approvalDateShown": "1382/06/02",
+        "directTextFetchInThisRun": "not_attempted"
+      },
+      {
+        "title": "قانون اصلاح قانون صدور چك",
+        "approvalDateShown": "1397/08/13",
+        "documentId": "3613585600919945767",
+        "textUrl": "https://qavanin.ir/Law/TreeText/?IDS=3613585600919945767",
+        "directTextFetchInThisRun": "timeout"
+      },
+      {
+        "title": "جلسه چهل و پنجم ستاد ملي مديريت كرونا",
+        "approvalDateShown": "1399/09/01",
+        "directTextFetchInThisRun": "not_attempted"
+      },
+      {
+        "title": "قانون اصلاح قانون صدور چك",
+        "approvalDateShown": "1400/01/29",
+        "documentId": "8508483613671622689",
+        "textUrl": "https://qavanin.ir/Law/TreeText/?IDS=8508483613671622689",
+        "priorTextAndMetadataRendered": true
+      },
+      {
+        "title": "اصلاح ميزان مبالغ مربوط به جرائم و تخلفات مندرج در قوانين مختلف",
+        "approvalDateShown": "1403/03/30",
+        "documentId": "634882870797924421",
+        "textUrl": "https://qavanin.ir/Law/TreeText/?IDS=634882870797924421",
+        "directTextFetchInThisRun": "timeout",
+        "priorTextAndMetadataRendered": true
+      }
+    ],
+    "rawHttpBytesCaptured": false,
+    "rawResponseSha256": null,
+    "note": "The status index confirms a ten-item influencing-instrument list. It does not itself prove the publication or effective date of each item. Only the 1358 text and metadata pages were newly rendered in this recheck; other entries retain their separate historical observations or remain unattempted."
+  }
+}

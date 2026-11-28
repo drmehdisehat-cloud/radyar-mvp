@@ -1,0 +1,81 @@
+{
+  "schema": "dadyar-public-preview-artifact-review-v1",
+  "verified_date": "2026-11-22",
+  "repository": "drmehdisehat-cloud/radyar-mvp",
+  "source": {
+    "branch": "dadyar/ai-chat-private-20261101",
+    "commit": "b7bc2767ddbf547f49314d7001ebb2668052389e",
+    "path": "dadyar-preview/index.html",
+    "bytes": 60839,
+    "sha256": "4c754518e9b345a9be98c134d997a329bbe929105ed8b9c7210ef7636d5b1452",
+    "git_blob_sha1": "a151444524a6ff439bba21ec29564e512c3a8472"
+  },
+  "workflow": {
+    "name": "Dadyar public-only preview review artifact",
+    "run_id": 45045319150,
+    "event": "push",
+    "status": "completed",
+    "conclusion": "success",
+    "head_sha": "b7bc2767ddbf547f49314d7001ebb2668052389e"
+  },
+  "artifact": {
+    "id": 14763495951,
+    "name": "dadyar-public-preview-review-b7bc2767ddbf547f49314d7001ebb2668052389e",
+    "file_name": "dadyar-preview-b7bc.zip",
+    "size_bytes": 18028,
+    "sha256": "a4bcfa2c3ebfb585b6a62072cde31b8d2031826fd657ae6795cf3089c527190e",
+    "archive_entries": [
+      {
+        "path": "index.html",
+        "size_bytes": 60839,
+        "sha256": "4c754518e9b345a9be98c134d997a329bbe929105ed8b9c7210ef7636d5b1452",
+        "git_blob_sha1": "a151444524a6ff439bba21ec29564e512c3a8472"
+      },
+      {
+        "path": "INTEGRITY.json",
+        "size_bytes": 862,
+        "sha256": "792f7e8cfa59528cf9dfac11490ada48355d1a51a56b08bbd242e4683d71ee42",
+        "git_blob_sha1": "b2800864f5b73880704dfe50e558af7073a80e46"
+      }
+    ],
+    "zip_crc_verified": true
+  },
+  "integrity_manifest": {
+    "schema": "dadyar-public-preview-integrity-v1",
+    "source_commit": "b7bc2767ddbf547f49314d7001ebb2668052389e",
+    "workflow_commit": "b7bc2767ddbf547f49314d7001ebb2668052389e",
+    "source_branch": "dadyar/ai-chat-private-20261101",
+    "source_file": "public/index.html",
+    "target_subpath": "/dadyar-preview/",
+    "sha256": "4c754518e9b345a9be98c134d997a329bbe929105ed8b9c7210ef7636d5b1452",
+    "git_blob_sha1": "a151444524a6ff439bba21ec29564e512c3a8472",
+    "topic_hint_count": 27,
+    "api_enabled": false,
+    "public_ai_enabled": false,
+    "reviewer_authentication": "not-implemented",
+    "backup_restore_verified": false,
+    "destination_verified": false,
+    "deployment_authorized": false
+  },
+  "checks": {
+    "artifact_metadata_matches_workflow": true,
+    "artifact_sha256_matches_github_digest": true,
+    "zip_listing_exact": true,
+    "zip_crc_and_extraction": true,
+    "manifest_json_parsed": true,
+    "html_sha256_matches_manifest": true,
+    "html_git_blob_sha1_matches_manifest": true,
+    "html_git_blob_sha1_matches_branch_source": true,
+    "source_and_workflow_commit_match_head": true,
+    "network_primitives_absent_in_downloaded_html": true,
+    "csp_connect_src_none": true,
+    "topic_hint_count_matches_27": true
+  },
+  "verification_scope": "The artifact was downloaded from GitHub Actions run 45045319150. The downloaded ZIP was 18,028 bytes; its locally computed SHA-256 matched the GitHub artifact digest. unzip -t passed and the archive contained exactly index.html and INTEGRITY.json. Both extracted files were hashed. The embedded manifest was parsed; the HTML SHA-256 and Git blob SHA-1 matched the manifest, and the Git blob SHA-1 matched the source file blob returned by GitHub for the exact source branch. Static scanning of the downloaded HTML found no fetch, XMLHttpRequest, WebSocket, EventSource, sendBeacon, localStorage, sessionStorage, indexedDB, external resource element, or form element; the CSP contains default-src 'none' and connect-src 'none'.",
+  "limitations": [
+    "This record covers only the downloaded review artifact and its byte integrity.",
+    "It does not prove a real backup restore, valid hosting destination, authenticated reviewer identity, legal-source correctness, or deployment authorization.",
+    "The local review acknowledgement is not reviewer authentication.",
+    "Do not upload this artifact to the live site."
+  ]
+}
