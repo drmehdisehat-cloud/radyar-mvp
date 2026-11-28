@@ -63,6 +63,7 @@ test('push artifact trigger is limited to the isolated review branch and read-on
     '    branches:',
     '      - dadyar/preview-review-slice-20261126',
     '      - dadyar/preview-slice-squash-20261128',
+    '      - dadyar/preview-draft-invalidation-20261128',
     '  pull_request:',
     '    branches:',
     '      - main'
