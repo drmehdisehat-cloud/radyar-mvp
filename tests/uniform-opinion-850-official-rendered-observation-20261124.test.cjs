@@ -40,7 +40,7 @@ test('the legal register exposes the direct opinion 850 source lead but keeps an
   assert.equal(record.primarySourceVerified, false);
   assert.equal(record.humanReviewStatus, 'pending');
   assert.equal(record.useInLegalAnswers, false);
-  assert.equal(record.latestOfficialRenderedObservation.file, 'docs/uniform-opinion-850-source-observation-20261124.json');
+  assert.equal(record.latestOfficialRenderedObservation.file, 'docs/uniform-opinion-850-source-observation-20261128.json');
   const candidate = record.officialDocumentUrlCandidates.find(item => item.documentId === '6755160463259811436');
   assert.ok(candidate);
   assert.equal(candidate.rawHttpBytesCaptured, false);
